@@ -30,6 +30,7 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 
 import java.time.LocalDateTime;
@@ -41,6 +42,7 @@ public final class BucketMetadata {
 
     public final Long id;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     public final LocalDateTime createdAt;
 
     public final String name;

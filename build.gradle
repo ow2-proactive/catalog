@@ -88,9 +88,7 @@ dependencies {
 
 //    compile 'javax.servlet:javax.servlet-api:3.0.1'
 
-//    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-//    compile 'org.codehaus.woodstox:woodstox-core-asl:4.4.1'
-//    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.6.4'
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     testCompile("junit:junit")
 }
