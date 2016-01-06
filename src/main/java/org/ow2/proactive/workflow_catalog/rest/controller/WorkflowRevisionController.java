@@ -75,12 +75,12 @@ public class WorkflowRevisionController {
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions/{revisionId}", method = GET)
-    public WorkflowMetadata getRevisionMetadata(@PathVariable Long bucketId,
-                                                @PathVariable Long workflowId,
-                                                @PathVariable Long revisionId,
-                                                @RequestParam(required = false) String alt,
-                                                Pageable pageable,
-                                                PagedResourcesAssembler assembler) {
+    public WorkflowMetadata getMetadata(@PathVariable Long bucketId,
+                                        @PathVariable Long workflowId,
+                                        @PathVariable Long revisionId,
+                                        @RequestParam(required = false) String alt,
+                                        Pageable pageable,
+                                        PagedResourcesAssembler assembler) {
         return null;
     }
 

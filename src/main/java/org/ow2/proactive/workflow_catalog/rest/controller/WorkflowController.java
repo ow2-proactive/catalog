@@ -68,17 +68,17 @@ public class WorkflowController {
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows", method = GET)
-    public Page<WorkflowMetadata> get(@PathVariable Long bucketId,
-                                      Pageable pageable,
-                                      PagedResourcesAssembler assembler) {
+    public Page<WorkflowMetadata> list(@PathVariable Long bucketId,
+                                       Pageable pageable,
+                                       PagedResourcesAssembler assembler) {
         return null;
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}", method = GET)
-    public ResponseEntity<Object> getMetadata(@PathVariable Long bucketId,
-                                              @PathVariable Long workflowId,
-                                              @RequestParam(required = false) String alt) {
-        if ("media".equals(alt)) {
+    public ResponseEntity<?> get(@PathVariable Long bucketId,
+                                 @PathVariable Long workflowId,
+                                 @RequestParam(required = false) String alt) {
+        if ("payload".equals(alt)) {
             byte[] bytes = new byte[0];
 
             return ResponseEntity.ok()
