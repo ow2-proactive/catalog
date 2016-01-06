@@ -28,7 +28,8 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-package org.ow2.proactive.workflow_catalog.rest.entity.xml;
+
+package org.ow2.proactive.workflow_catalog.rest.entity;
 
 import javax.persistence.Entity;
 
@@ -36,10 +37,6 @@ import javax.persistence.Entity;
  * @author ActiveEon Team
  */
 @Entity
-public class Variable extends KeyValue {
-
-    public String getName() {
-        return super.getKey();
-    }
+public class GenericInformation extends KeyValue {
 
 }

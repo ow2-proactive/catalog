@@ -32,8 +32,8 @@
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
-import org.ow2.proactive.workflow_catalog.rest.entity.xml.GenericInformation;
-import org.ow2.proactive.workflow_catalog.rest.entity.xml.Variable;
+import org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation;
+import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
 
 import java.util.List;
 

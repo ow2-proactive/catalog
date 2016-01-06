@@ -29,43 +29,19 @@
  *                         http://proactive.inria.fr/team_members.htm
  */
 
-package org.ow2.proactive.workflow_catalog.rest.dto.xml;
-
-import java.util.Objects;
+package org.ow2.proactive.workflow_catalog.rest.dto;
 
 /**
  * @author ActiveEon Team
  */
-public abstract class KeyValue {
+public final class Variable extends KeyValue {
 
-    public final Long id;
-
-    public final String key;
-
-    public final String value;
-
-    public KeyValue(Long id, String key, String value) {
-        this.id = id;
-        this.key = key;
-        this.value = value;
+    public Variable(Long id, String key, String value) {
+        super(id, key, value);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        return Objects.equals(this.id, ((KeyValue) o).id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    public String getName() {
+        return super.key;
     }
 
 }

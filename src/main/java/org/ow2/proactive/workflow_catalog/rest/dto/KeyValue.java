@@ -29,14 +29,43 @@
  *                         http://proactive.inria.fr/team_members.htm
  */
 
-package org.ow2.proactive.workflow_catalog.rest.entity.xml;
+package org.ow2.proactive.workflow_catalog.rest.dto;
 
-import javax.persistence.Entity;
+import java.util.Objects;
 
 /**
  * @author ActiveEon Team
  */
-@Entity
-public class GenericInformation extends KeyValue {
+public abstract class KeyValue {
+
+    public final Long id;
+
+    public final String key;
+
+    public final String value;
+
+    public KeyValue(Long id, String key, String value) {
+        this.id = id;
+        this.key = key;
+        this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        return Objects.equals(this.id, ((KeyValue) o).id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
 }

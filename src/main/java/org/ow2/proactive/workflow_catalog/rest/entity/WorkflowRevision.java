@@ -31,9 +31,6 @@
 
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
-import org.ow2.proactive.workflow_catalog.rest.entity.xml.GenericInformation;
-import org.ow2.proactive.workflow_catalog.rest.entity.xml.Variable;
-
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;

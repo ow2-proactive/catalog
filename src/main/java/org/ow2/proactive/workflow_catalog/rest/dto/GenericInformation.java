@@ -28,76 +28,16 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-package org.ow2.proactive.workflow_catalog.rest.entity.xml;
 
-import javax.persistence.*;
-import java.util.Objects;
+package org.ow2.proactive.workflow_catalog.rest.dto;
 
 /**
  * @author ActiveEon Team
  */
-@Entity
-public abstract class KeyValue {
+public final class GenericInformation extends KeyValue {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "ID")
-    protected Long id;
-
-    @Column(name = "KEY", nullable = false)
-    protected String key;
-
-    @Column(name = "VALUE", nullable = false)
-    protected String value;
-
-    public KeyValue() {
-    }
-
-    public KeyValue(String key, String value) {
-        this.key = key;
-        this.value = value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        return Objects.equals(this.id, ((KeyValue) o).id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
+    public GenericInformation(Long id, String key, String value) {
+        super(id, key, value);
     }
 
 }

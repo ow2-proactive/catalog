@@ -28,20 +28,18 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
+package org.ow2.proactive.workflow_catalog.rest.entity;
 
-package org.ow2.proactive.workflow_catalog.rest.dto.xml;
+import javax.persistence.Entity;
 
 /**
  * @author ActiveEon Team
  */
-public final class Variable extends KeyValue {
-
-    public Variable(Long id, String key, String value) {
-        super(id, key, value);
-    }
+@Entity
+public class Variable extends KeyValue {
 
     public String getName() {
-        return super.key;
+        return super.getKey();
     }
 
 }
