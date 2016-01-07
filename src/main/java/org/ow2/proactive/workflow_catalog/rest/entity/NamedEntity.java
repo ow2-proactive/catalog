@@ -41,7 +41,7 @@ import java.util.Objects;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class AbstractEntity {
+public abstract class NamedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -55,10 +55,10 @@ public abstract class AbstractEntity {
     @Column(name = "NAME", nullable = false)
     protected String name;
 
-    public AbstractEntity() {
+    public NamedEntity() {
     }
 
-    public AbstractEntity(String name, LocalDateTime createdAt) {
+    public NamedEntity(String name, LocalDateTime createdAt) {
         this.createdAt = createdAt;
         this.name = name;
     }
@@ -73,7 +73,7 @@ public abstract class AbstractEntity {
             return false;
         }
 
-        return Objects.equals(this.id, ((AbstractEntity) o).id);
+        return Objects.equals(this.id, ((NamedEntity) o).id);
     }
 
     @Override
