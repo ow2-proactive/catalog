@@ -31,7 +31,8 @@
 
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
-import org.junit.Before;
+import com.jayway.restassured.response.Response;
+import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
@@ -40,6 +41,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 
 /**
  * @author ActiveEon Team
@@ -50,17 +57,34 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @WebIntegrationTest
 public class BucketControllerTest {
 
+    private static final String BUCKETS_RESOURCE = "/buckets";
+
+    private static final String BUCKET_RESOURCE = "/buckets/{bucketId}";
+
     @Autowired
     private BucketRepository bucketRepository;
 
-    @Before
-    public void setUp() {
+    @Test
+    public void testCreateBucketShouldReturnSavedBucket() {
+        String bucketName = "test";
 
+        Response response =
+                given().parameters("name", bucketName).
+                        when().post(BUCKETS_RESOURCE);
+
+        Object createdAt = response.getBody().jsonPath().get("createdAt");
+
+        assertThat(createdAt).isNotNull();
+
+        response.then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("id", is(1))
+                .body("name", equalTo(bucketName));
     }
 
     @Test
-    public void testCreate() throws Exception {
-        System.out.println("BucketControllerTest.testCreate");
+    public void testCreateBucketShouldReturnBadRequestWithoutBody() {
+        when().post(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
 }

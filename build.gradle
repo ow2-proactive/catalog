@@ -94,7 +94,9 @@ dependencies {
 
     testCompile 'junit:junit:4.12'
     testCompile 'com.google.truth:truth:0.28'
+
     testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'com.jayway.restassured:rest-assured:2.8.0'
 }
 
 sourceSets {
