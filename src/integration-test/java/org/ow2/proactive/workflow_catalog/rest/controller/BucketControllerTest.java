@@ -40,6 +40,7 @@ import org.ow2.proactive.workflow_catalog.rest.service.BucketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -55,6 +56,7 @@ import static org.hamcrest.Matchers.is;
 // TODO use specific in-memory configuration for tests
 @SpringApplicationConfiguration(classes = Application.class)
 @WebIntegrationTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class BucketControllerTest {
 
     private static final String BUCKETS_RESOURCE = "/buckets";
