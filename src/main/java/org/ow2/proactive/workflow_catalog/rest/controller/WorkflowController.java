@@ -36,7 +36,6 @@ import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
 import org.ow2.proactive.workflow_catalog.rest.service.BucketRepository;
-import org.ow2.proactive.workflow_catalog.rest.service.WorkflowParser;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
