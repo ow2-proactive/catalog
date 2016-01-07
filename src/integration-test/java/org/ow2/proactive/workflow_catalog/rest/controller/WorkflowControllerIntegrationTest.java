@@ -1,3 +1,33 @@
+/*
+ * ProActive Parallel Suite(TM): The Java(TM) library for
+ *    Parallel, Distributed, Multi-Core Computing for
+ *    Enterprise Grids & Clouds
+ *
+ * Copyright (C) 1997-2016 INRIA/University of
+ *                 Nice-Sophia Antipolis/ActiveEon
+ * Contact: proactive@ow2.org or contact@activeeon.com
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; version 3 of
+ * the License.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ * USA
+ *
+ * If needed, contact us to obtain a release under GPL Version 2 or 3
+ * or a different license than the AGPL.
+ *
+ * Initial developer(s):               The ProActive Team
+ *                         http://proactive.inria.fr/team_members.htm
+ */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import org.junit.Before;
@@ -6,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -19,12 +50,12 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 /**
- * Created by paraita on 1/7/16.
+ * @author ActiveEon Team
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = Application.class)
-@WebAppConfiguration
-public class WorkflowControllerTest {
+@WebIntegrationTest
+public class WorkflowControllerIntegrationTest {
 
     private MockMvc mockMvc;
 
@@ -33,7 +64,6 @@ public class WorkflowControllerTest {
 
     @Before
     public void setup() {
-        //this.mockMvc = standaloneSetup(new WorkflowController()).build();
         this.mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
