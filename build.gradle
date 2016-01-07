@@ -94,6 +94,7 @@ dependencies {
 
     testCompile 'junit:junit:4.12'
     testCompile 'com.google.truth:truth:0.28'
+    integrationTestCompile 'org.springframework.boot:spring-boot-starter-test'
 }
 
 sourceSets {

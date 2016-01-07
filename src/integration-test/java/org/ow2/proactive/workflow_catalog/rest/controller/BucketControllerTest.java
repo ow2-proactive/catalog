@@ -31,16 +31,36 @@
 
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.ow2.proactive.workflow_catalog.rest.Application;
+import org.ow2.proactive.workflow_catalog.rest.service.BucketRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author ActiveEon Team
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+// TODO use specific in-memory configuration for tests
+@SpringApplicationConfiguration(classes = Application.class)
+@WebIntegrationTest
 public class BucketControllerTest {
+
+    @Autowired
+    private BucketRepository bucketRepository;
+
+    @Before
+    public void setUp() {
+
+    }
 
     @Test
     public void testCreate() throws Exception {
-    
+        System.out.println("BucketControllerTest.testCreate");
     }
 
 }
