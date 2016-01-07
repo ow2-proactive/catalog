@@ -30,7 +30,7 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 
 import java.time.LocalDateTime;
@@ -38,31 +38,14 @@ import java.time.LocalDateTime;
 /**
  * @author ActiveEon Team
  */
-public final class BucketMetadata {
-
-    public final Long id;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    public final LocalDateTime createdAt;
-
-    public final String name;
-
-    public BucketMetadata() {
-        this.id = -1L;
-        this.createdAt = LocalDateTime.now();
-        this.name = "default";
-    }
+public final class BucketMetadata extends NamedMetadata {
 
     public BucketMetadata(Bucket bucket) {
-        this.id = bucket.getId();
-        this.createdAt = bucket.getCreatedAt();
-        this.name = bucket.getName();
+        super(bucket.getId(), bucket.getName(), bucket.getCreatedAt());
     }
 
-    public BucketMetadata(Long id, LocalDateTime createdAt, String name) {
-        this.id = id;
-        this.createdAt = createdAt;
-        this.name = name;
+    public BucketMetadata(Long id, String name, LocalDateTime createdAt) {
+        super(id, name, createdAt);
     }
 
 }

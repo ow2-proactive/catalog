@@ -86,9 +86,10 @@ public class WorkflowController {
         List<WorkflowRevision> workflowRevisionList = bucket.getWorkflowRevisions();
 
         return new PageImpl<WorkflowMetadata>(workflowRevisionList.stream()
-                .map(workflowRevision -> new WorkflowMetadata(workflowRevision.getBucket(),
-                        workflowRevision.getOriginalId(), workflowRevision.getRevision(),
-                        workflowRevision.getGenericInformation(), workflowRevision.getVariables()))
+                .map(workflowRevision -> new WorkflowMetadata(workflowRevision.getBucket(), workflowRevision.getId(),
+                        workflowRevision.getOriginalId(), workflowRevision.getCreatedAt(), workflowRevision.getName(),
+                        workflowRevision.getRevision(), workflowRevision.getGenericInformation(),
+                        workflowRevision.getVariables()))
                 .collect(Collectors.toList()),
                 pageable, workflowRevisionList.size());
     }

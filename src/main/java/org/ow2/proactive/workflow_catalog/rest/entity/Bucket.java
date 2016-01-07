@@ -44,7 +44,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "BUCKET")
-public class Bucket extends AbstractEntity {
+public class Bucket extends NamedEntity {
 
     @OneToMany(mappedBy = "bucket")
     private List<WorkflowRevision> workflowRevisions;

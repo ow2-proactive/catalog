@@ -30,35 +30,27 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
-import org.springframework.data.annotation.CreatedDate;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
  * @author ActiveEon Team
  */
-@Entity
-@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class NamedMetadata {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "ID")
-    protected Long id;
+    public final Long id;
 
-    @CreatedDate
-    @Column(name = "CREATED_AT", nullable = false)
-    protected LocalDateTime createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JsonProperty("created_at")
+    public final LocalDateTime createdAt;
 
-    @Column(name = "NAME", nullable = false)
-    protected String name;
+    public final String name;
 
-    public NamedMetadata() {
-    }
-
-    public NamedMetadata(String name, LocalDateTime createdAt) {
+    public NamedMetadata(Long id, String name, LocalDateTime createdAt) {
+        this.id = id;
         this.createdAt = createdAt;
         this.name = name;
     }
@@ -79,30 +71,6 @@ public abstract class NamedMetadata {
     @Override
     public int hashCode() {
         return Objects.hash(id);
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
 }

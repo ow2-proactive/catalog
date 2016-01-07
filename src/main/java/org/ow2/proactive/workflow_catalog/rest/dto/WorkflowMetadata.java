@@ -35,9 +35,10 @@ import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation;
 import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
-public final class WorkflowMetadata {
+public final class WorkflowMetadata extends NamedMetadata {
 
     public final Long originalId;
 
@@ -49,12 +50,16 @@ public final class WorkflowMetadata {
 
     public final List<Variable> variables;
 
-    public WorkflowMetadata(Bucket bucket, Long originalId, Long revision, List<GenericInformation> genericInformation, List<Variable> variables) {
+    public WorkflowMetadata(Bucket bucket, Long id, Long originalId, LocalDateTime createdAt,
+                            String name, Long revision, List<GenericInformation> genericInformation,
+                            List<Variable> variables) {
+
+        super(id, name, createdAt);
+
         this.originalId = originalId;
         this.revision = revision;
         this.bucket = bucket;
         this.genericInformation = genericInformation;
         this.variables = variables;
     }
-
 }

@@ -43,7 +43,7 @@ import java.util.List;
         @Index(columnList = "ORIGINAL_ID"),
         @Index(columnList = "REVISION")
 })
-public class WorkflowRevision extends AbstractEntity {
+public class WorkflowRevision extends NamedEntity {
 
     @Column(name = "ORIGINAL_ID")
     private Long originalId;
