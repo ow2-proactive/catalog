@@ -31,7 +31,6 @@
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.util.WorkflowParser;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -54,9 +53,6 @@ public class WorkflowRevisionController {
 
     @Autowired
     private WorkflowRepository workflowRepository;
-
-    @Autowired
-    private WorkflowParser workflowParser;
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions", method = POST)
     public WorkflowMetadata create(

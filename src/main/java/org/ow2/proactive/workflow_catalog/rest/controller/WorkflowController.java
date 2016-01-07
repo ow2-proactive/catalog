@@ -32,7 +32,6 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 
 
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.util.WorkflowParser;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -57,9 +56,6 @@ public class WorkflowController {
 
     @Autowired
     private WorkflowRepository workflowRepository;
-
-    @Autowired
-    private WorkflowParser workflowParser;
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, method = POST)
     public WorkflowMetadata create(@PathVariable Long bucketId,
