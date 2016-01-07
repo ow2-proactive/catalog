@@ -40,7 +40,7 @@ public class WebConfiguration extends WebMvcConfigurerAdapter {
 
     @Override
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-
+        super.configureContentNegotiation(configurer);
     }
 
 }

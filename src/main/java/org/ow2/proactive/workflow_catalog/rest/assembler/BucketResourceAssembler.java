@@ -28,50 +28,28 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-package org.ow2.proactive.workflow_catalog.rest.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.hateoas.ResourceSupport;
+package org.ow2.proactive.workflow_catalog.rest.assembler;
 
-import java.time.LocalDateTime;
-import java.util.Objects;
+import org.ow2.proactive.workflow_catalog.rest.controller.BucketController;
+import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
+import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.stereotype.Component;
 
 /**
  * @author ActiveEon Team
  */
-public abstract class NamedMetadata extends ResourceSupport {
+@Component
+public class BucketResourceAssembler extends ResourceAssemblerSupport<Bucket, BucketMetadata> {
 
-    public final Long id;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @JsonProperty("created_at")
-    public final LocalDateTime createdAt;
-
-    public final String name;
-
-    public NamedMetadata(Long id, String name, LocalDateTime createdAt) {
-        this.id = id;
-        this.createdAt = createdAt;
-        this.name = name;
+    public BucketResourceAssembler() {
+        super(BucketController.class, BucketMetadata.class);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        return Objects.equals(this.id, ((NamedMetadata) o).id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    public BucketMetadata toResource(Bucket entity) {
+        return new BucketMetadata(entity);
     }
 
 }

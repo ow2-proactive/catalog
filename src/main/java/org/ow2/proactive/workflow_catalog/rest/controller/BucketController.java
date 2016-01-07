@@ -33,9 +33,9 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,7 +64,7 @@ public class BucketController {
     }
 
     @RequestMapping(value = "/buckets", method = GET)
-    public Page<BucketMetadata> list(Pageable pageable, PagedResourcesAssembler assembler) {
+    public PagedResources list(Pageable pageable, PagedResourcesAssembler assembler) {
         return bucketService.listBuckets(pageable, assembler);
     }
 

@@ -30,6 +30,7 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
+import org.ow2.proactive.workflow_catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
@@ -37,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -49,6 +51,9 @@ public class BucketService {
 
     @Autowired
     private BucketRepository bucketRepository;
+
+    @Autowired
+    private BucketResourceAssembler bucketAssembler;
 
     public BucketMetadata createBucket(String name) {
         Bucket bucket = new Bucket(name, LocalDateTime.now());
@@ -67,8 +72,9 @@ public class BucketService {
         return new BucketMetadata(bucket);
     }
 
-    public Page<BucketMetadata> listBuckets(Pageable pageable, PagedResourcesAssembler assembler) {
-        return null;
+    public PagedResources listBuckets(Pageable pageable, PagedResourcesAssembler assembler) {
+        Page<Bucket> page = bucketRepository.findAll(pageable);
+        return assembler.toResource(page, bucketAssembler);
     }
 
 }
