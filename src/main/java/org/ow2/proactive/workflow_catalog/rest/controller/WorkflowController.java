@@ -32,10 +32,15 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 
 
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
+import org.ow2.proactive.workflow_catalog.rest.service.BucketRepository;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.MediaType;
@@ -44,6 +49,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -53,6 +60,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
  */
 @RestController
 public class WorkflowController {
+
+    @Autowired
+    private BucketRepository bucketRepository;
 
     @Autowired
     private WorkflowRepository workflowRepository;
@@ -67,7 +77,20 @@ public class WorkflowController {
     public Page<WorkflowMetadata> list(@PathVariable Long bucketId,
                                        Pageable pageable,
                                        PagedResourcesAssembler assembler) {
-        return null;
+        Bucket bucket = bucketRepository.findOne(bucketId);
+
+        if (bucket == null) {
+            throw new BucketNotFoundException(bucketId);
+        }
+
+        List<WorkflowRevision> workflowRevisionList = bucket.getWorkflowRevisions();
+
+        return new PageImpl<WorkflowMetadata>(workflowRevisionList.stream()
+                .map(workflowRevision -> new WorkflowMetadata(workflowRevision.getBucket(),
+                        workflowRevision.getOriginalId(), workflowRevision.getRevision(),
+                        workflowRevision.getGenericInformation(), workflowRevision.getVariables()))
+                .collect(Collectors.toList()),
+                pageable, workflowRevisionList.size());
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}", method = GET)
