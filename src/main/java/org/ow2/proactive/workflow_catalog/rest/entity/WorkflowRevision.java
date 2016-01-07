@@ -119,4 +119,19 @@ public class WorkflowRevision extends AbstractEntity {
         this.xmlPayload = xmlPayload;
     }
 
+    public List<GenericInformation> getGenericInformation() {
+        return genericInformation;
+    }
+
+    public void setGenericInformation(List<GenericInformation> genericInformation) {
+        this.genericInformation = genericInformation;
+    }
+
+    public List<Variable> getVariables() {
+        return variables;
+    }
+
+    public void setVariables(List<Variable> variables) {
+        this.variables = variables;
+    }
 }
