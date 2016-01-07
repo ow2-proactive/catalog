@@ -60,7 +60,7 @@ import static org.hamcrest.Matchers.is;
 @SpringApplicationConfiguration(classes = Application.class)
 @WebIntegrationTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class BucketControllerTest {
+public class BucketControllerIntegrationTest {
 
     private static final String BUCKETS_RESOURCE = "/buckets";
 
@@ -77,7 +77,7 @@ public class BucketControllerTest {
                 given().parameters("name", bucketName).
                         when().post(BUCKETS_RESOURCE);
 
-        Object createdAt = response.getBody().jsonPath().get("createdAt");
+        Object createdAt = response.getBody().jsonPath().get("created_at");
         assertThat(createdAt).isNotNull();
 
         response.then()
@@ -99,7 +99,7 @@ public class BucketControllerTest {
                 when().get(BUCKET_RESOURCE).then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("id", is(bucket.getId().intValue()))
-                .body("createdAt", equalTo(bucket.getCreatedAt().toString()))
+                .body("created_at", equalTo(bucket.getCreatedAt().toString()))
                 .body("name", equalTo(bucket.getName()));
     }
 
