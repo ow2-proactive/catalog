@@ -28,20 +28,47 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-
 package org.ow2.proactive.workflow_catalog.rest.service;
 
+import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.PagingAndSortingRepository;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 /**
  * @author ActiveEon Team
  */
-public interface BucketRepository extends PagingAndSortingRepository<Bucket, Long> {
+@Service
+public class BucketService {
 
-	Page<Bucket> findByName(@Param("name") String name, Pageable pageable);
+    @Autowired
+    private BucketRepository bucketRepository;
+
+    public BucketMetadata createBucket(String name) {
+        Bucket bucket = new Bucket(name, LocalDateTime.now());
+        bucket = bucketRepository.save(bucket);
+
+        return new BucketMetadata(bucket);
+    }
+
+    public BucketMetadata getBucketMetadata(long id) {
+        Bucket bucket = bucketRepository.findOne(id);
+
+        if (bucket == null) {
+            throw new BucketNotFoundException(id);
+        }
+
+        return new BucketMetadata(bucket);
+    }
+
+    public Page<BucketMetadata> listBuckets(Pageable pageable, PagedResourcesAssembler assembler) {
+        return null;
+    }
 
 }

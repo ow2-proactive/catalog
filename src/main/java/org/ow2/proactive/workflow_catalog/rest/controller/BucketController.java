@@ -31,9 +31,7 @@
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
-import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
-import org.ow2.proactive.workflow_catalog.rest.service.BucketRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,8 +40,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDateTime;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -55,32 +51,22 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class BucketController {
 
     @Autowired
-    private BucketRepository bucketRepository;
+    private BucketService bucketService;
 
     @RequestMapping(value = "/buckets", method = POST)
     public BucketMetadata create(
             @RequestParam(value = "name", required = true) String bucketName) {
-
-        Bucket bucket = new Bucket(bucketName, LocalDateTime.now());
-        bucket = bucketRepository.save(bucket);
-
-        return new BucketMetadata(bucket);
+        return bucketService.createBucket(bucketName);
     }
 
     @RequestMapping(value = "/buckets/{bucketId}", method = GET)
     public BucketMetadata getMetadata(@PathVariable long bucketId) {
-        Bucket bucket = bucketRepository.findOne(bucketId);
-
-        if (bucket == null) {
-            throw new BucketNotFoundException(bucketId);
-        }
-
-        return new BucketMetadata(bucket);
+        return bucketService.getBucketMetadata(bucketId);
     }
 
     @RequestMapping(value = "/buckets", method = GET)
     public Page<BucketMetadata> list(Pageable pageable, PagedResourcesAssembler assembler) {
-        return null;
+        return bucketService.listBuckets(pageable, assembler);
     }
 
 }
