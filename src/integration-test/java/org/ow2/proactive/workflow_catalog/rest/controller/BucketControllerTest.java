@@ -36,12 +36,15 @@ import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
+import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.service.BucketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.time.LocalDateTime;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.jayway.restassured.RestAssured.given;
@@ -75,7 +78,6 @@ public class BucketControllerTest {
                         when().post(BUCKETS_RESOURCE);
 
         Object createdAt = response.getBody().jsonPath().get("createdAt");
-
         assertThat(createdAt).isNotNull();
 
         response.then()
@@ -87,6 +89,23 @@ public class BucketControllerTest {
     @Test
     public void testCreateBucketShouldReturnBadRequestWithoutBody() {
         when().post(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void testGetBucketShouldReturnSavedBucket() throws Exception {
+        Bucket bucket = bucketRepository.save(new Bucket("mybucket", LocalDateTime.now()));
+
+        given().pathParam("bucketId", 1L).
+                when().get(BUCKET_RESOURCE).then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("id", is(bucket.getId().intValue()))
+                .body("createdAt", equalTo(bucket.getCreatedAt().toString()))
+                .body("name", equalTo(bucket.getName()));
+    }
+
+    @Test
+    public void testGetBucketShouldBeBadRequestIfNonExistingId() {
+        given().pathParam("bucketId", 42L).then().statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
 }
