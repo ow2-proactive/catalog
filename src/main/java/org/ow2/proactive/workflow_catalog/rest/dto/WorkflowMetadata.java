@@ -31,6 +31,7 @@
 
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation;
 import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
@@ -43,10 +44,12 @@ import java.util.List;
  */
 public final class WorkflowMetadata extends NamedMetadata {
 
+    @JsonProperty("original_id")
     public final Long originalId;
 
     public final Long revision;
 
+    @JsonProperty("bucket_id")
     public final Long bucketId;
 
     public final String projectName;
