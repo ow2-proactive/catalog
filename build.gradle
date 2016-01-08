@@ -52,8 +52,10 @@ repositories {
     jcenter()
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
 
 bootRepackage {
     mainClass = 'org.ow2.proactive.workflow_catalog.rest.Application'
