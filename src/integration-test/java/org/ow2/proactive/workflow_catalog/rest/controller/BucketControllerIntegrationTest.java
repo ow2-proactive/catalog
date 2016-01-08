@@ -45,6 +45,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.jayway.restassured.RestAssured.given;
@@ -93,7 +95,7 @@ public class BucketControllerIntegrationTest {
 
     @Test
     public void testGetBucketShouldReturnSavedBucket() throws Exception {
-        Bucket bucket = bucketRepository.save(new Bucket("mybucket", LocalDateTime.now()));
+        Bucket bucket = bucketRepository.save(createBucket("myBucket"));
 
         given().pathParam("bucketId", 1L).
                 when().get(BUCKET_RESOURCE).then().assertThat()
@@ -106,6 +108,36 @@ public class BucketControllerIntegrationTest {
     @Test
     public void testGetBucketShouldBeBadRequestIfNonExistingId() {
         given().pathParam("bucketId", 42L).get(BUCKET_RESOURCE).then().statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void testListBucketsShouldReturnEmptyContent() {
+        when().get(BUCKETS_RESOURCE).then().assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("page.number", is(0))
+                .body("page.totalElements", is(0));
+    }
+
+    @Test
+    public void testListBucketsShouldReturnSavedBuckets() {
+        int nbBuckets = 25;
+
+        List<Bucket> buckets = new ArrayList<>(nbBuckets);
+
+        for (int i = 0; i < nbBuckets; i++) {
+            buckets.add(createBucket("bucket" + i));
+        }
+
+        bucketRepository.save(buckets);
+        System.out.println(when().get(BUCKETS_RESOURCE).thenReturn().asString());
+        when().get(BUCKETS_RESOURCE).then().assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("page.number", is(0))
+                .body("page.totalElements", is(nbBuckets));
+    }
+
+    private Bucket createBucket(String bucketName) {
+        return new Bucket(bucketName, LocalDateTime.now());
     }
 
 }
