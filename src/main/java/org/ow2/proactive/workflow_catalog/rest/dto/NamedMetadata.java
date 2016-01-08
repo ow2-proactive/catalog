@@ -42,6 +42,7 @@ import java.util.Objects;
  */
 public abstract class NamedMetadata extends ResourceSupport {
 
+    @JsonProperty
     public final Long id;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
