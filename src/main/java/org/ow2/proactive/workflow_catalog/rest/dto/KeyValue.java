@@ -38,14 +38,11 @@ import java.util.Objects;
  */
 public abstract class KeyValue {
 
-    public final Long id;
-
     public final String key;
 
     public final String value;
 
-    public KeyValue(Long id, String key, String value) {
-        this.id = id;
+    public KeyValue(String key, String value) {
         this.key = key;
         this.value = value;
     }
@@ -60,12 +57,18 @@ public abstract class KeyValue {
             return false;
         }
 
-        return Objects.equals(this.id, ((KeyValue) o).id);
+        KeyValue other = (KeyValue) o;
+
+        if (!Objects.equals(key, other.key)) {
+            return false;
+        }
+
+        return Objects.equals(value, other.value);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(key, value);
     }
 
 }

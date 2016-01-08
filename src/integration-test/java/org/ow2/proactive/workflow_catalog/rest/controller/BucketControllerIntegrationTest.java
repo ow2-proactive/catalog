@@ -44,7 +44,6 @@ import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,7 +92,7 @@ public class BucketControllerIntegrationTest {
 
     @Test
     public void testGetBucketShouldReturnSavedBucket() throws Exception {
-        Bucket bucket = bucketRepository.save(createBucket("myBucket"));
+        Bucket bucket = bucketRepository.save(new Bucket("myBucket"));
 
         given().pathParam("bucketId", 1L).
                 when().get(BUCKET_RESOURCE).then().assertThat()
@@ -123,7 +122,7 @@ public class BucketControllerIntegrationTest {
         List<Bucket> buckets = new ArrayList<>(nbBuckets);
 
         for (int i = 0; i < nbBuckets; i++) {
-            buckets.add(createBucket("bucket" + i));
+            buckets.add(new Bucket("bucket" + i));
         }
 
         bucketRepository.save(buckets);
@@ -132,10 +131,6 @@ public class BucketControllerIntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("page.number", is(0))
                 .body("page.totalElements", is(nbBuckets));
-    }
-
-    private Bucket createBucket(String bucketName) {
-        return new Bucket(bucketName, LocalDateTime.now());
     }
 
 }

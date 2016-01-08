@@ -32,8 +32,6 @@
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation;
-import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 
 import java.time.LocalDateTime;
@@ -61,8 +59,8 @@ public final class WorkflowMetadata extends NamedMetadata {
     public WorkflowMetadata(WorkflowRevision workflowRevision) {
         this(workflowRevision.getBucket().getId(), workflowRevision.getId(), workflowRevision.getOriginalId(),
                 workflowRevision.getCreatedAt(), workflowRevision.getName(), workflowRevision.getProjectName(),
-                workflowRevision.getRevision(), workflowRevision.getGenericInformation(),
-                workflowRevision.getVariables());
+                workflowRevision.getRevision(), GenericInformation.to(workflowRevision.getGenericInformation()),
+                Variable.to(workflowRevision.getVariables()));
     }
 
     public WorkflowMetadata(Long bucketId, Long id, Long originalId, LocalDateTime createdAt,

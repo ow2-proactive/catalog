@@ -52,6 +52,11 @@ public class Bucket extends NamedEntity {
     public Bucket() {
     }
 
+    public Bucket(String name, WorkflowRevision... workflowRevisions) {
+        super(name, LocalDateTime.now());
+        this.workflowRevisions = ImmutableList.copyOf(workflowRevisions);
+    }
+
     public Bucket(String name, LocalDateTime createdAt, WorkflowRevision... workflowRevisions) {
         super(name, createdAt);
         this.workflowRevisions = ImmutableList.copyOf(workflowRevisions);

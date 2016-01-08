@@ -31,13 +31,26 @@
 
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 /**
  * @author ActiveEon Team
  */
 public final class GenericInformation extends KeyValue {
 
-    public GenericInformation(Long id, String key, String value) {
-        super(id, key, value);
+    public GenericInformation(String key, String value) {
+        super(key, value);
+    }
+
+    public static List<GenericInformation> to(
+            Collection<? extends org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation> from) {
+        return from.stream().map(entity -> new GenericInformation(entity.getKey(), entity.getValue()))
+                .collect(Collectors.toList());
     }
 
 }

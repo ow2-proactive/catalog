@@ -31,6 +31,8 @@
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
 
+import org.ow2.proactive.workflow_catalog.rest.dto.GenericInformation;
+import org.ow2.proactive.workflow_catalog.rest.dto.Variable;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
@@ -93,7 +95,8 @@ public class WorkflowController {
                 .map(workflowRevision -> new WorkflowMetadata(workflowRevision.getBucket().getId(), workflowRevision.getId(),
                         workflowRevision.getOriginalId(), workflowRevision.getCreatedAt(), workflowRevision.getName(),
                         workflowRevision.getProjectName(), workflowRevision.getRevision(),
-                        workflowRevision.getGenericInformation(), workflowRevision.getVariables()))
+                        GenericInformation.to(workflowRevision.getGenericInformation()),
+                        Variable.to(workflowRevision.getVariables())))
                 .collect(Collectors.toList()),
                 pageable, workflowRevisionList.size());
     }

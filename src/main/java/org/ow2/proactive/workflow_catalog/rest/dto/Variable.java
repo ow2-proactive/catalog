@@ -31,17 +31,30 @@
 
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * @author ActiveEon Team
  */
 public final class Variable extends KeyValue {
 
-    public Variable(Long id, String key, String value) {
-        super(id, key, value);
+    public Variable(String key, String value) {
+        super(key, value);
     }
 
+    @JsonIgnore
     public String getName() {
         return super.key;
+    }
+
+    public static List<Variable> to(
+            Collection<? extends org.ow2.proactive.workflow_catalog.rest.entity.Variable> from) {
+        return from.stream().map(entity -> new Variable(entity.getKey(), entity.getValue()))
+                .collect(Collectors.toList());
     }
 
 }
