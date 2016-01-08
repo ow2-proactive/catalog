@@ -41,8 +41,13 @@ import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
 import org.ow2.proactive.workflow_catalog.rest.service.BucketRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.springframework.data.domain.Page;
+import org.springframework.hateoas.PagedResources;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -52,6 +57,7 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -67,6 +73,13 @@ public class WorkflowControllerTest {
     @Mock
     private BucketRepository bucketRepository;
 
+    @Mock
+    private WorkflowRepository workflowRepository;
+
+    @Mock
+    private WorkflowService workflowService;
+
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -79,12 +92,14 @@ public class WorkflowControllerTest {
                 .collect(Collectors.toMap(WorkflowRevision::getId, Function.identity()));
         when(bucketRepository.findOne(1L)).thenReturn(expectedBucket);
 
-        Page<WorkflowMetadata> actualPage = workflowController.list(1L, null, null);
-        Long actualNbElements = actualPage.getTotalElements();
+        PagedResources actualPage = workflowController.list(1L, null, null);
+        Long actualNbElements = actualPage.getMetadata().getTotalElements();
 
         assertEquals(10L, actualNbElements.longValue());
-        for (WorkflowMetadata w : actualPage.getContent()) {
-            assertTrue(expectedWorkflowsMetadata.containsKey(w.id));
+
+        for (Object w : actualPage.getContent()) {
+            WorkflowMetadata workflow = (WorkflowMetadata) w;
+            assertTrue(expectedWorkflowsMetadata.containsKey(workflow.id));
         }
     }
 
@@ -102,8 +117,22 @@ public class WorkflowControllerTest {
         if (nbWorkflows > 0) {
             List<WorkflowRevision> workflowRevisionList = LongStream.rangeClosed(1L, nbWorkflows)
                     .boxed()
-                    .map((value) -> newMockedWorkflowRevision(value)).collect(Collectors.toList());
+                    .map((value) -> newWorkflowRevision(value))
+                    .collect(Collectors.toList());
             when(bucket.getWorkflowRevisions()).thenReturn(workflowRevisionList);
+
+            PagedResources<WorkflowMetadata> pagedResources = mock(PagedResources.class);
+            PagedResources.PageMetadata pageMetadata = mock(PagedResources.PageMetadata.class);
+
+            when(pageMetadata.getTotalElements()).thenReturn(nbWorkflows);
+            when(pagedResources.getMetadata()).thenReturn(pageMetadata);
+
+            Collection<WorkflowMetadata> workflowMetadataCol = workflowRevisionList.stream()
+                    .map(w -> new WorkflowMetadata(bucket, w.getId(), null, null, null, null, null, null))
+                    .collect(Collectors.toList());
+
+            when(pagedResources.getContent()).thenReturn(workflowMetadataCol);
+            when(workflowService.listWorkflows(any(), any(), any())).thenReturn(pagedResources);
         }
         return bucket;
     }
@@ -113,4 +142,11 @@ public class WorkflowControllerTest {
         when(workflowRevision.getId()).thenReturn(id);
         return workflowRevision;
     }
+
+    private WorkflowRevision newWorkflowRevision(Long id) {
+        WorkflowRevision workflowRevision = new WorkflowRevision();
+        workflowRevision.setId(id);
+        return workflowRevision;
+    }
+
 }

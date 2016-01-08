@@ -31,6 +31,9 @@
 package org.ow2.proactive.workflow_catalog.rest.service;
 
 import com.google.common.collect.Lists;
+import org.ow2.proactive.workflow_catalog.rest.assembler.BucketResourceAssembler;
+import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowResourceAssembler;
+import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation;
@@ -40,6 +43,7 @@ import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundExceptio
 import org.ow2.proactive.workflow_catalog.rest.exceptions.UnprocessableEntityException;
 import org.ow2.proactive.workflow_catalog.rest.util.WorkflowParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
@@ -61,6 +65,9 @@ public class WorkflowService {
 
     @Autowired
     private BucketRepository bucketRepository;
+
+    @Autowired
+    private BucketResourceAssembler bucketAssembler;
 
     @Autowired
     private GenericInformationRepository genericInformationRepository;
@@ -146,6 +153,11 @@ public class WorkflowService {
             throw new BucketNotFoundException(bucketId);
         }
         return bucket;
+    }
+
+public PagedResources listWorkflows(Bucket bucket, Pageable pageable, PagedResourcesAssembler assembler) {
+        Page<WorkflowRevision> page = workflowRepository.findByBucket(bucket, pageable);
+        return assembler.toResource(page, workflowResourceAssembler);
     }
 
 }

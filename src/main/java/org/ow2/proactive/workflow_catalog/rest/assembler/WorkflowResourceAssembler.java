@@ -49,7 +49,7 @@ public class WorkflowResourceAssembler extends ResourceAssemblerSupport<Workflow
 
     @Override
     public WorkflowMetadata toResource(WorkflowRevision workflow) {
-        return null;
+        return new WorkflowMetadata(workflow);
     }
 
 }

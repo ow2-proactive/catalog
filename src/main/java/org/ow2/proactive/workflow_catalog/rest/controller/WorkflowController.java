@@ -47,6 +47,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.HttpStatus;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -89,16 +90,7 @@ public class WorkflowController {
             throw new BucketNotFoundException(bucketId);
         }
 
-        List<WorkflowRevision> workflowRevisionList = bucket.getWorkflowRevisions();
-
-        return new PageImpl<WorkflowMetadata>(workflowRevisionList.stream()
-                .map(workflowRevision -> new WorkflowMetadata(workflowRevision.getBucket().getId(), workflowRevision.getId(),
-                        workflowRevision.getOriginalId(), workflowRevision.getCreatedAt(), workflowRevision.getName(),
-                        workflowRevision.getProjectName(), workflowRevision.getRevision(),
-                        GenericInformation.to(workflowRevision.getGenericInformation()),
-                        Variable.to(workflowRevision.getVariables())))
-                .collect(Collectors.toList()),
-                pageable, workflowRevisionList.size());
+        return workflowService.listWorkflows(bucket, pageable, assembler);
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}", method = GET)
