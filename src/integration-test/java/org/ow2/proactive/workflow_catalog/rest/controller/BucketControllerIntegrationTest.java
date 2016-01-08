@@ -128,7 +128,7 @@ public class BucketControllerIntegrationTest {
         }
 
         bucketRepository.save(buckets);
-        System.out.println(when().get(BUCKETS_RESOURCE).thenReturn().asString());
+        
         when().get(BUCKETS_RESOURCE).then().assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("page.number", is(0))

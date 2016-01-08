@@ -58,7 +58,6 @@ public class WorkflowParserTest {
                 .containsExactly("var1", "var1Value", "var2", "var2Value");
     }
 
-
     @Test
     public void testParseWorkflowContainingNoGenericInformationAndNoVariable() throws Exception {
         WorkflowParser parser = parseWorkflow("workflow-no-generic-information-no-variable.xml");
