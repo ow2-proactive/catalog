@@ -80,7 +80,7 @@ public class BucketControllerIntegrationTest {
         Object createdAt = response.getBody().jsonPath().get("created_at");
         assertThat(createdAt).isNotNull();
 
-        response.then()
+        response.then().assertThat()
                 .statusCode(HttpStatus.SC_CREATED)
                 .body("id", is(1))
                 .body("name", equalTo(bucketName));
@@ -88,7 +88,7 @@ public class BucketControllerIntegrationTest {
 
     @Test
     public void testCreateBucketShouldReturnBadRequestWithoutBody() {
-        when().post(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_BAD_REQUEST);
+        when().post(BUCKETS_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -96,7 +96,7 @@ public class BucketControllerIntegrationTest {
         Bucket bucket = bucketRepository.save(new Bucket("mybucket", LocalDateTime.now()));
 
         given().pathParam("bucketId", 1L).
-                when().get(BUCKET_RESOURCE).then()
+                when().get(BUCKET_RESOURCE).then().assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("id", is(bucket.getId().intValue()))
                 .body("created_at", equalTo(bucket.getCreatedAt().toString()))
@@ -105,7 +105,7 @@ public class BucketControllerIntegrationTest {
 
     @Test
     public void testGetBucketShouldBeBadRequestIfNonExistingId() {
-        given().pathParam("bucketId", 42L).then().statusCode(HttpStatus.SC_BAD_REQUEST);
+        given().pathParam("bucketId", 42L).get(BUCKET_RESOURCE).then().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
 }
