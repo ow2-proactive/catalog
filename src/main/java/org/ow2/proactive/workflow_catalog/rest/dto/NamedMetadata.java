@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.hateoas.ResourceSupport;
 
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
 

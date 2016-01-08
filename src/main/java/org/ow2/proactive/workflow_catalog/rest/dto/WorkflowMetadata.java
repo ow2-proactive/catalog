@@ -62,4 +62,5 @@ public final class WorkflowMetadata extends NamedMetadata {
         this.genericInformation = genericInformation;
         this.variables = variables;
     }
+
 }
