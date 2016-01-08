@@ -50,6 +50,7 @@ public final class WorkflowMetadata extends NamedMetadata {
     @JsonProperty("bucket_id")
     public final Long bucketId;
 
+    @JsonProperty("project_name")
     public final String projectName;
 
     public final List<GenericInformation> genericInformation;
