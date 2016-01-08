@@ -44,6 +44,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -70,6 +71,7 @@ public class WorkflowController {
     private WorkflowService workflowService;
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, method = POST)
+    @ResponseStatus(HttpStatus.CREATED)
     public WorkflowMetadata create(@PathVariable Long bucketId,
                                    @RequestPart(value = "file") MultipartFile file) throws IOException {
         return workflowService.createWorkflow(bucketId, file.getBytes());
