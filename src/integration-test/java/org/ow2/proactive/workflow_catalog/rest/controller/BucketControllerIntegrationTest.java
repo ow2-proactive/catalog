@@ -58,7 +58,6 @@ import static org.hamcrest.Matchers.is;
  * @author ActiveEon Team
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-// TODO use specific in-memory configuration for tests
 @SpringApplicationConfiguration(classes = Application.class)
 @WebIntegrationTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
