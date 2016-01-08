@@ -31,7 +31,6 @@
 
 package org.ow2.proactive.workflow_catalog.rest.util;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 
 import javax.xml.stream.XMLInputFactory;
@@ -39,9 +38,17 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
 import java.io.InputStream;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 
 /**
+ * WorkflowParser aims to parse a ProActive workflow (whatever the schema version is)
+ * in order to extract some specific values (job name, project name, generic
+ * information and variables).
+ * <p>
+ * No validation is applied for now. Besides parsing stop once required information have
+ * been extracted, mainly for performance reasons.
+ *
  * @author ActiveEon Team
  */
 public final class WorkflowParser {
@@ -209,11 +216,11 @@ public final class WorkflowParser {
     }
 
     public Optional<String> getJobName() {
-        return Optional.fromNullable(jobName);
+        return Optional.ofNullable(jobName);
     }
 
     public Optional<String> getProjectName() {
-        return Optional.fromNullable(projectName);
+        return Optional.ofNullable(projectName);
     }
 
     public ImmutableMap<String, String> getGenericInformation() {
