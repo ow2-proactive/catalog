@@ -28,22 +28,34 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
+package org.ow2.proactive.workflow_catalog.rest.exceptions;
 
-package org.ow2.proactive.workflow_catalog.rest.entity;
-
-import javax.persistence.Entity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * @author ActiveEon Team
  */
-@Entity
-public class GenericInformation extends KeyValue {
+@ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)
+public class UnprocessableEntityException extends RuntimeException {
 
-    public GenericInformation() {
+    public UnprocessableEntityException() {
     }
 
-    public GenericInformation(String key, String value) {
-        super(key, value);
+    public UnprocessableEntityException(String message) {
+        super(message);
+    }
+
+    public UnprocessableEntityException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public UnprocessableEntityException(Throwable cause) {
+        super(cause);
+    }
+
+    public UnprocessableEntityException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 
 }

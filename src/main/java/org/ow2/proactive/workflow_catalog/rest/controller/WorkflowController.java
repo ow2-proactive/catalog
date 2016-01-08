@@ -37,6 +37,7 @@ import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
 import org.ow2.proactive.workflow_catalog.rest.service.BucketRepository;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
@@ -49,6 +50,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,12 +67,12 @@ public class WorkflowController {
     private BucketRepository bucketRepository;
 
     @Autowired
-    private WorkflowRepository workflowRepository;
+    private WorkflowService workflowService;
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, method = POST)
     public WorkflowMetadata create(@PathVariable Long bucketId,
-                                   @RequestPart(value = "file") MultipartFile file) {
-        return null;
+                                   @RequestPart(value = "file") MultipartFile file) throws IOException {
+        return workflowService.createWorkflow(bucketId, file.getBytes());
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows", method = GET)
@@ -86,10 +88,10 @@ public class WorkflowController {
         List<WorkflowRevision> workflowRevisionList = bucket.getWorkflowRevisions();
 
         return new PageImpl<WorkflowMetadata>(workflowRevisionList.stream()
-                .map(workflowRevision -> new WorkflowMetadata(workflowRevision.getBucket(), workflowRevision.getId(),
+                .map(workflowRevision -> new WorkflowMetadata(workflowRevision.getBucket().getId(), workflowRevision.getId(),
                         workflowRevision.getOriginalId(), workflowRevision.getCreatedAt(), workflowRevision.getName(),
-                        workflowRevision.getRevision(), workflowRevision.getGenericInformation(),
-                        workflowRevision.getVariables()))
+                        workflowRevision.getProjectName(), workflowRevision.getRevision(),
+                        workflowRevision.getGenericInformation(), workflowRevision.getVariables()))
                 .collect(Collectors.toList()),
                 pageable, workflowRevisionList.size());
     }

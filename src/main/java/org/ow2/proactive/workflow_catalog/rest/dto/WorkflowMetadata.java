@@ -31,34 +31,47 @@
 
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
-import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation;
 import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
+import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * @author ActiveEon Team
+ */
 public final class WorkflowMetadata extends NamedMetadata {
 
     public final Long originalId;
 
     public final Long revision;
 
-    public final Bucket bucket;
+    public final Long bucketId;
+
+    public final String projectName;
 
     public final List<GenericInformation> genericInformation;
 
     public final List<Variable> variables;
 
-    public WorkflowMetadata(Bucket bucket, Long id, Long originalId, LocalDateTime createdAt,
-                            String name, Long revision, List<GenericInformation> genericInformation,
+    public WorkflowMetadata(WorkflowRevision workflowRevision) {
+        this(workflowRevision.getBucket().getId(), workflowRevision.getId(), workflowRevision.getOriginalId(),
+                workflowRevision.getCreatedAt(), workflowRevision.getName(), workflowRevision.getProjectName(),
+                workflowRevision.getRevision(), workflowRevision.getGenericInformation(),
+                workflowRevision.getVariables());
+    }
+
+    public WorkflowMetadata(Long bucketId, Long id, Long originalId, LocalDateTime createdAt,
+                            String name, String projectName, Long revision, List<GenericInformation> genericInformation,
                             List<Variable> variables) {
 
         super(id, name, createdAt);
 
         this.originalId = originalId;
         this.revision = revision;
-        this.bucket = bucket;
+        this.bucketId = bucketId;
+        this.projectName = projectName;
         this.genericInformation = genericInformation;
         this.variables = variables;
     }

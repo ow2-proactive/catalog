@@ -55,6 +55,9 @@ public class WorkflowRevision extends NamedEntity {
     @JoinColumn(name = "BUCKET_ID", nullable = false)
     private Bucket bucket;
 
+    @Column(name = "PROJECT_NAME", nullable = false)
+    private String projectName;
+
     @OneToMany
     private List<GenericInformation> genericInformation;
 
@@ -62,28 +65,29 @@ public class WorkflowRevision extends NamedEntity {
     private List<Variable> variables;
 
     @Lob
-    @Column(name = "XML_PAYLOAD")
+    @Column(name = "XML_PAYLOAD", columnDefinition = "blob")
     private byte[] xmlPayload;
 
     public WorkflowRevision() {
         super();
     }
 
-    public WorkflowRevision(Bucket bucket, String name, LocalDateTime createdAt, byte[] xmlPayload) {
-        super(name, createdAt);
-
-        this.originalId = -1L;
-        this.revision = 0L;
-        this.bucket = bucket;
-        this.xmlPayload = xmlPayload;
+    public WorkflowRevision(Bucket bucket, String name, String projectName, LocalDateTime createdAt,
+                            List<GenericInformation> genericInformation, List<Variable> variables, byte[] xmlPayload) {
+        this(bucket, -1L, 0L, name, projectName, createdAt, genericInformation, variables, xmlPayload);
     }
 
-    public WorkflowRevision(Bucket bucket, Long originalId, Long revision, String name, LocalDateTime createdAt, byte[] xmlPayload) {
+    public WorkflowRevision(Bucket bucket, Long originalId, Long revision, String name, String projectName,
+                            LocalDateTime createdAt, List<GenericInformation> genericInformation,
+                            List<Variable> variables, byte[] xmlPayload) {
         super(name, createdAt);
 
         this.originalId = originalId;
         this.revision = revision;
         this.bucket = bucket;
+        this.projectName = projectName;
+        this.genericInformation = genericInformation;
+        this.variables = variables;
         this.xmlPayload = xmlPayload;
     }
 
@@ -109,6 +113,14 @@ public class WorkflowRevision extends NamedEntity {
 
     public void setBucket(Bucket bucket) {
         this.bucket = bucket;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public byte[] getXmlPayload() {

@@ -30,20 +30,27 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
-import org.ow2.proactive.workflow_catalog.rest.assembler.BucketResourceAssembler;
-import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
+import com.google.common.collect.Lists;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation;
+import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
+import org.ow2.proactive.workflow_catalog.rest.exceptions.UnprocessableEntityException;
+import org.ow2.proactive.workflow_catalog.rest.util.WorkflowParser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
 
+import javax.xml.stream.XMLStreamException;
+import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * @author ActiveEon Team
@@ -55,15 +62,84 @@ public class WorkflowService {
     private BucketRepository bucketRepository;
 
     @Autowired
-    private BucketResourceAssembler bucketAssembler;
+    private GenericInformationRepository genericInformationRepository;
 
+    @Autowired
+    private VariableRepository variableRepository;
 
-    public BucketMetadata getWorkflowMetadata(long id) {
+    @Autowired
+    private WorkflowRepository workflowRepository;
+
+    public WorkflowMetadata createWorkflow(Long bucketId, byte[] xmlPayload) {
+        Bucket bucket = findBucket(bucketId);
+
+        try {
+            WorkflowParser parser = new WorkflowParser(new ByteArrayInputStream(xmlPayload));
+            parser.parse();
+
+            String projectName = parser.getProjectName().orElseThrow(
+                    getMissingElementException("No project name defined")
+            );
+
+            String name = parser.getJobName().orElseThrow(
+                    getMissingElementException("No job name defined")
+            );
+
+            Iterable<GenericInformation> genericInformation = persistGenericInformation(parser);
+            Iterable<Variable> variables = persistVariable(parser);
+
+            WorkflowRevision workflowRevision = new WorkflowRevision(
+                    bucket, -1L, 0L, name, projectName, LocalDateTime.now(),
+                    Lists.newArrayList(genericInformation),
+                    Lists.newArrayList(variables),
+                    xmlPayload);
+
+            // TODO: see if the following can be better handled
+            workflowRevision = workflowRepository.save(workflowRevision);
+            workflowRevision.setOriginalId(workflowRevision.getId());
+            workflowRepository.save(workflowRevision);
+
+            return new WorkflowMetadata(workflowRevision);
+        } catch (XMLStreamException e) {
+            throw new UnprocessableEntityException(e);
+        }
+    }
+
+    private Iterable<GenericInformation> persistGenericInformation(WorkflowParser parser) {
+        List<GenericInformation> genericInformationEntities = parser.getGenericInformation().entrySet().stream()
+                .map(entry -> new GenericInformation(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+
+        return genericInformationRepository.save(genericInformationEntities);
+    }
+
+    private Iterable<Variable> persistVariable(WorkflowParser parser) {
+        List<Variable> variablesEntities = parser.getVariables().entrySet().stream()
+                .map(entry -> new Variable(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+
+        return variableRepository.save(variablesEntities);
+    }
+
+    private Supplier<UnprocessableEntityException> getMissingElementException(String message) {
+        return () -> new UnprocessableEntityException("XML does not validate against Schema. " + message);
+    }
+
+    public WorkflowMetadata getWorkflowMetadata(long id) {
         return null;
     }
 
     public PagedResources listWorkflows(Pageable pageable, PagedResourcesAssembler assembler) {
         return null;
+    }
+
+    private Bucket findBucket(Long bucketId) {
+        Bucket bucket = bucketRepository.findOne(bucketId);
+
+        if (bucket == null) {
+            throw new BucketNotFoundException(bucketId);
+        }
+        return bucket;
     }
 
 }

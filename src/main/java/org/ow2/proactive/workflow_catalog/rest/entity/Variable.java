@@ -38,6 +38,13 @@ import javax.persistence.Entity;
 @Entity
 public class Variable extends KeyValue {
 
+    public Variable() {
+    }
+
+    public Variable(String key, String value) {
+        super(key, value);
+    }
+
     public String getName() {
         return super.getKey();
     }

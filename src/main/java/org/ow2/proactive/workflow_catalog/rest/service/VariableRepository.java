@@ -29,21 +29,14 @@
  *                         http://proactive.inria.fr/team_members.htm
  */
 
-package org.ow2.proactive.workflow_catalog.rest.entity;
+package org.ow2.proactive.workflow_catalog.rest.service;
 
-import javax.persistence.Entity;
+import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
+import org.springframework.data.repository.CrudRepository;
 
 /**
  * @author ActiveEon Team
  */
-@Entity
-public class GenericInformation extends KeyValue {
-
-    public GenericInformation() {
-    }
-
-    public GenericInformation(String key, String value) {
-        super(key, value);
-    }
+public interface VariableRepository extends CrudRepository<Variable, Long> {
 
 }
