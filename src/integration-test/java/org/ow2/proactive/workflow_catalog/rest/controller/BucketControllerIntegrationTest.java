@@ -51,7 +51,6 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 /**
@@ -84,7 +83,7 @@ public class BucketControllerIntegrationTest {
         response.then().assertThat()
                 .statusCode(HttpStatus.SC_CREATED)
                 .body("id", is(1))
-                .body("name", equalTo(bucketName));
+                .body("name", is(bucketName));
     }
 
     @Test
@@ -100,8 +99,8 @@ public class BucketControllerIntegrationTest {
                 when().get(BUCKET_RESOURCE).then().assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("id", is(bucket.getId().intValue()))
-                .body("created_at", equalTo(bucket.getCreatedAt().toString()))
-                .body("name", equalTo(bucket.getName()));
+                .body("created_at", is(bucket.getCreatedAt().toString()))
+                .body("name", is(bucket.getName()));
     }
 
     @Test
@@ -128,7 +127,7 @@ public class BucketControllerIntegrationTest {
         }
 
         bucketRepository.save(buckets);
-        
+
         when().get(BUCKETS_RESOURCE).then().assertThat()
                 .statusCode(HttpStatus.SC_OK)
                 .body("page.number", is(0))
