@@ -53,6 +53,7 @@ public final class WorkflowMetadata extends NamedMetadata {
     @JsonProperty("project_name")
     public final String projectName;
 
+    @JsonProperty("generic_information")
     public final List<GenericInformation> genericInformation;
 
     public final List<Variable> variables;

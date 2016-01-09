@@ -32,19 +32,31 @@
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
 import com.google.common.collect.ImmutableList;
+import org.springframework.data.annotation.CreatedDate;
 
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author ActiveEon Team
  */
 @Entity
 @Table(name = "BUCKET")
-public class Bucket extends NamedEntity {
+public class Bucket {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "ID")
+    protected Long id;
+
+    @CreatedDate
+    @Column(name = "CREATED_AT", nullable = false)
+    protected LocalDateTime createdAt;
+
+    @Column(name = "NAME", nullable = false)
+    protected String name;
 
     @OneToMany(mappedBy = "bucket")
     private List<WorkflowRevision> workflowRevisions;
@@ -53,12 +65,12 @@ public class Bucket extends NamedEntity {
     }
 
     public Bucket(String name, WorkflowRevision... workflowRevisions) {
-        super(name, LocalDateTime.now());
-        this.workflowRevisions = ImmutableList.copyOf(workflowRevisions);
+        this(name, LocalDateTime.now(), workflowRevisions);
     }
 
     public Bucket(String name, LocalDateTime createdAt, WorkflowRevision... workflowRevisions) {
-        super(name, createdAt);
+        this.name = name;
+        this.createdAt = createdAt;
         this.workflowRevisions = ImmutableList.copyOf(workflowRevisions);
     }
 
@@ -66,8 +78,48 @@ public class Bucket extends NamedEntity {
         this(name, createdAt, new WorkflowRevision[0]);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Bucket other = (Bucket) o;
+
+        if (!Objects.equals(this.name, other.name)) {
+            return false;
+        }
+
+        return Objects.equals(this.createdAt, other.createdAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, createdAt);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public List<WorkflowRevision> getWorkflowRevisions() {
         return workflowRevisions;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setWorkflowRevisions(List<WorkflowRevision> workflowRevisions) {

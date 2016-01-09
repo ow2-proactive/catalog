@@ -31,9 +31,12 @@
 
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
+import org.springframework.data.annotation.CreatedDate;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author ActiveEon Team
@@ -43,9 +46,21 @@ import java.util.List;
         @Index(columnList = "ORIGINAL_ID"),
         @Index(columnList = "REVISION")
 })
-public class WorkflowRevision extends NamedEntity {
+public class WorkflowRevision {
 
-    @Column(name = "ORIGINAL_ID")
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "ID")
+    protected Long id;
+
+    @CreatedDate
+    @Column(name = "CREATED_AT", nullable = false)
+    protected LocalDateTime createdAt;
+
+    @Column(name = "NAME", nullable = false)
+    protected String name;
+
+    @Column(name = "ORIGINAL_ID", nullable = false)
     private Long originalId;
 
     @Column(name = "REVISION", nullable = false)
@@ -80,8 +95,8 @@ public class WorkflowRevision extends NamedEntity {
     public WorkflowRevision(Bucket bucket, Long originalId, Long revision, String name, String projectName,
                             LocalDateTime createdAt, List<GenericInformation> genericInformation,
                             List<Variable> variables, byte[] xmlPayload) {
-        super(name, createdAt);
-
+        this.name = name;
+        this.createdAt = createdAt;
         this.originalId = originalId;
         this.revision = revision;
         this.bucket = bucket;
@@ -91,59 +106,99 @@ public class WorkflowRevision extends NamedEntity {
         this.xmlPayload = xmlPayload;
     }
 
-    public Long getOriginalId() {
-        return originalId;
+    public Long getId() {
+        return id;
     }
 
-    public void setOriginalId(Long originalId) {
-        this.originalId = originalId;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        WorkflowRevision other = (WorkflowRevision) o;
+
+        if (!Objects.equals(this.name, other.name)) {
+            return false;
+        }
+
+        return Objects.equals(this.createdAt, other.createdAt);
     }
 
-    public Long getRevision() {
-        return revision;
-    }
-
-    public void setRevision(Long revision) {
-        this.revision = revision;
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, createdAt);
     }
 
     public Bucket getBucket() {
         return bucket;
     }
 
-    public void setBucket(Bucket bucket) {
-        this.bucket = bucket;
-    }
-
-    public String getProjectName() {
-        return projectName;
-    }
-
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
-
-    public byte[] getXmlPayload() {
-        return xmlPayload;
-    }
-
-    public void setXmlPayload(byte[] xmlPayload) {
-        this.xmlPayload = xmlPayload;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
     public List<GenericInformation> getGenericInformation() {
         return genericInformation;
     }
 
-    public void setGenericInformation(List<GenericInformation> genericInformation) {
-        this.genericInformation = genericInformation;
+    public String getName() {
+        return name;
+    }
+
+    public Long getOriginalId() {
+        return originalId;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public Long getRevision() {
+        return revision;
     }
 
     public List<Variable> getVariables() {
         return variables;
     }
 
+    public byte[] getXmlPayload() {
+        return xmlPayload;
+    }
+
+    public void setBucket(Bucket bucket) {
+        this.bucket = bucket;
+    }
+
+    public void setGenericInformation(List<GenericInformation> genericInformation) {
+        this.genericInformation = genericInformation;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setOriginalId(Long originalId) {
+        this.originalId = originalId;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    public void setRevision(Long revision) {
+        this.revision = revision;
+    }
+
     public void setVariables(List<Variable> variables) {
         this.variables = variables;
+    }
+
+    public void setXmlPayload(byte[] xmlPayload) {
+        this.xmlPayload = xmlPayload;
     }
 }

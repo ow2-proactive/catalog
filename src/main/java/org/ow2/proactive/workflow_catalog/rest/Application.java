@@ -32,10 +32,12 @@
 package org.ow2.proactive.workflow_catalog.rest;
 
 import com.google.common.base.Predicate;
+import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
+import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
@@ -50,6 +52,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
  */
 @SpringBootApplication
 @EnableSwagger2
+@EntityScan(basePackageClasses = Bucket.class)
 public class Application extends SpringBootServletInitializer {
 
     public static void main(String[] args) {

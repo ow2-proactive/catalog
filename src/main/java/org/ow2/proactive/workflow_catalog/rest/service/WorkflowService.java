@@ -44,6 +44,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;
@@ -94,15 +95,20 @@ public class WorkflowService {
                     Lists.newArrayList(variables),
                     xmlPayload);
 
-            // TODO: see if the following can be better handled
-            workflowRevision = workflowRepository.save(workflowRevision);
-            workflowRevision.setOriginalId(workflowRevision.getId());
-            workflowRepository.save(workflowRevision);
+            workflowRevision = persistWorkflowRevision(workflowRevision);
 
             return new WorkflowMetadata(workflowRevision);
         } catch (XMLStreamException e) {
             throw new UnprocessableEntityException(e);
         }
+    }
+
+    @Transactional
+    private WorkflowRevision persistWorkflowRevision(WorkflowRevision workflowRevision) {
+        workflowRevision = workflowRepository.save(workflowRevision);
+        workflowRevision.setOriginalId(workflowRevision.getId());
+        workflowRepository.save(workflowRevision);
+        return workflowRevision;
     }
 
     private Iterable<GenericInformation> persistGenericInformation(WorkflowParser parser) {

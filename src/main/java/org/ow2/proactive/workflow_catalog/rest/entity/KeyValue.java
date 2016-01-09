@@ -37,6 +37,7 @@ import java.util.Objects;
  * @author ActiveEon Team
  */
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public abstract class KeyValue {
 
     @Id
@@ -68,32 +69,34 @@ public abstract class KeyValue {
             return false;
         }
 
-        return Objects.equals(this.id, ((KeyValue) o).id);
+        KeyValue other = (KeyValue) o;
+
+        if (!Objects.equals(this.key, other.key)) {
+            return false;
+        }
+
+        return Objects.equals(this.value, ((KeyValue) o).value);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(key, value);
     }
 
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getKey() {
         return key;
     }
 
-    public void setKey(String key) {
-        this.key = key;
-    }
-
     public String getValue() {
         return value;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public void setValue(String value) {

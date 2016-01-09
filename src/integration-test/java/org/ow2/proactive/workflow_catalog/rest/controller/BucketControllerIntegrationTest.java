@@ -103,7 +103,7 @@ public class BucketControllerIntegrationTest {
     }
 
     @Test
-    public void testGetBucketShouldBeBadRequestIfNonExistingId() {
+    public void testGetBucketShouldBeNotFoundIfNonExistingId() {
         given().pathParam("bucketId", 42L).get(BUCKET_RESOURCE).then().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 

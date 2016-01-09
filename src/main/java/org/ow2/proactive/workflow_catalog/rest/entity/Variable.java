@@ -45,6 +45,10 @@ public class Variable extends KeyValue {
         super(key, value);
     }
 
+    public Long getId() {
+        return id;
+    }
+
     public String getName() {
         return super.getKey();
     }
