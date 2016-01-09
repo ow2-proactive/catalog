@@ -31,6 +31,7 @@
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -57,6 +58,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author ActiveEon Team
  */
+@Ignore
 public class WorkflowControllerTest {
 
     @InjectMocks
@@ -91,12 +93,6 @@ public class WorkflowControllerTest {
         Long nonExistentBucket = 2L;
         workflowController.list(nonExistentBucket, null, null);
     }
-
-
-
-
-
-
 
 
     private Bucket newMockedBucket(Long id, String name, Long nbWorkflows) {
