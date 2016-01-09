@@ -36,6 +36,7 @@ import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
+import org.ow2.proactive.workflow_catalog.rest.InMemoryConfiguration;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.service.BucketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +57,7 @@ import static org.hamcrest.Matchers.is;
  * @author ActiveEon Team
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = Application.class)
+@SpringApplicationConfiguration(classes = {Application.class, InMemoryConfiguration.class})
 @WebIntegrationTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class BucketControllerIntegrationTest {
