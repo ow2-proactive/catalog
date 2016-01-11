@@ -51,6 +51,7 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
 /**
@@ -130,6 +131,7 @@ public class BucketControllerIntegrationTest {
 
         when().get(BUCKETS_RESOURCE).then().assertThat()
                 .statusCode(HttpStatus.SC_OK)
+                .body("_embedded.bucketMetadataList", hasSize(20))
                 .body("page.number", is(0))
                 .body("page.totalElements", is(nbBuckets));
     }
