@@ -1,5 +1,7 @@
 # Workflow Catalog
 
+[![Build Status](http://jenkins.activeeon.com/job/workflow-catalog/badge/icon)](http://jenkins.activeeon.com/job/workflow-catalog/)
+
 The purpose of the workflow catalog is to store ProActive workflows.
 
 A workflow catalog is subdivided into buckets. 
