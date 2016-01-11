@@ -70,6 +70,9 @@ public class WorkflowService {
     private BucketResourceAssembler bucketAssembler;
 
     @Autowired
+    private WorkflowResourceAssembler workflowResourceAssembler;
+
+    @Autowired
     private GenericInformationRepository genericInformationRepository;
 
     @Autowired
@@ -142,11 +145,7 @@ public class WorkflowService {
         return null;
     }
 
-    public PagedResources listWorkflows(Pageable pageable, PagedResourcesAssembler assembler) {
-        return null;
-    }
-
-    private Bucket findBucket(Long bucketId) {
+    protected Bucket findBucket(Long bucketId) {
         Bucket bucket = bucketRepository.findOne(bucketId);
 
         if (bucket == null) {
@@ -155,7 +154,8 @@ public class WorkflowService {
         return bucket;
     }
 
-public PagedResources listWorkflows(Bucket bucket, Pageable pageable, PagedResourcesAssembler assembler) {
+    public PagedResources listWorkflows(Long bucketId, Pageable pageable, PagedResourcesAssembler assembler) {
+        Bucket bucket = findBucket(bucketId);
         Page<WorkflowRevision> page = workflowRepository.findByBucket(bucket, pageable);
         return assembler.toResource(page, workflowResourceAssembler);
     }

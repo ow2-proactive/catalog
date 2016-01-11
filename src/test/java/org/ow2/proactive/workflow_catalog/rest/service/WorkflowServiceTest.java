@@ -28,47 +28,41 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-package org.ow2.proactive.workflow_catalog.rest.controller;
+package org.ow2.proactive.workflow_catalog.rest.service;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
+import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
-import org.ow2.proactive.workflow_catalog.rest.service.BucketRepository;
-import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRepository;
-import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
-
-import java.util.ArrayList;
+import org.springframework.data.domain.Page;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * @author ActiveEon Team
  */
-@Ignore
-public class WorkflowControllerTest {
+public class WorkflowServiceTest {
 
     @InjectMocks
-    private WorkflowController workflowController;
+    private WorkflowService workflowService;
 
     @Mock
     private BucketRepository bucketRepository;
@@ -77,22 +71,39 @@ public class WorkflowControllerTest {
     private WorkflowRepository workflowRepository;
 
     @Mock
-    private WorkflowService workflowService;
+    private PagedResourcesAssembler pagedResourcesAssembler;
 
+    @Mock
+    WorkflowResourceAssembler workflowResourceAssembler;
+
+    private static final Long EXISTING_BUCKET = 1L;
+    private static final Long NON_EXISTING_BUCKET = 2L;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
     }
 
     @Test
-    public void testListFromExistingBucket() throws Exception {
-        Bucket expectedBucket = newMockedBucket(1L, "Expected Bucket", 10L);
+    public void testFindBucketExisting() {
+        Bucket bucket = mock(Bucket.class);
+        when(bucketRepository.findOne(EXISTING_BUCKET)).thenReturn(bucket);
+        assertEquals(workflowService.findBucket(EXISTING_BUCKET), bucket);
+    }
+
+    @Test(expected = BucketNotFoundException.class)
+    public void testFindBucketNonExisting() {
+        workflowService.findBucket(NON_EXISTING_BUCKET);
+    }
+
+    @Test
+    public void testListWorkflowsExistingBucket() throws Exception {
+        Bucket expectedBucket = newMockedBucket(EXISTING_BUCKET, "Expected Bucket", 10L);
         Map<Long, WorkflowRevision> expectedWorkflowsMetadata = expectedBucket.getWorkflowRevisions().stream()
                 .collect(Collectors.toMap(WorkflowRevision::getId, Function.identity()));
-        when(bucketRepository.findOne(1L)).thenReturn(expectedBucket);
+        when(bucketRepository.findOne(EXISTING_BUCKET)).thenReturn(expectedBucket);
 
-        PagedResources actualPage = workflowController.list(1L, null, null);
+        PagedResources actualPage = workflowService.listWorkflows(EXISTING_BUCKET, null, pagedResourcesAssembler);
         Long actualNbElements = actualPage.getMetadata().getTotalElements();
 
         assertEquals(10L, actualNbElements.longValue());
@@ -104,10 +115,13 @@ public class WorkflowControllerTest {
     }
 
     @Test(expected = BucketNotFoundException.class)
-    public void testListFromNonExistentBucket() {
-        Long nonExistentBucket = 2L;
-        workflowController.list(nonExistentBucket, null, null);
+    public void testListWorkflowsNonExistingBucket() {
+        workflowService.listWorkflows(NON_EXISTING_BUCKET, null, pagedResourcesAssembler);
     }
+
+
+
+
 
 
     private Bucket newMockedBucket(Long id, String name, Long nbWorkflows) {
@@ -128,19 +142,15 @@ public class WorkflowControllerTest {
             when(pagedResources.getMetadata()).thenReturn(pageMetadata);
 
             Collection<WorkflowMetadata> workflowMetadataCol = workflowRevisionList.stream()
-                    .map(w -> new WorkflowMetadata(bucket, w.getId(), null, null, null, null, null, null))
+                    .map(w -> new WorkflowMetadata(id, w.getId(), null, null, null, null, null, null, null))
                     .collect(Collectors.toList());
 
+            when(workflowRepository.findByBucket(Matchers.any(Bucket.class), Matchers.any(Pageable.class))).thenReturn(mock(PageImpl.class));
             when(pagedResources.getContent()).thenReturn(workflowMetadataCol);
-            when(workflowService.listWorkflows(any(), any(), any())).thenReturn(pagedResources);
+            when(pagedResourcesAssembler.toResource(Matchers.any(Page.class),
+                    Matchers.any(WorkflowResourceAssembler.class))).thenReturn(pagedResources);
         }
         return bucket;
-    }
-
-    private WorkflowRevision newMockedWorkflowRevision(Long id) {
-        WorkflowRevision workflowRevision = mock(WorkflowRevision.class);
-        when(workflowRevision.getId()).thenReturn(id);
-        return workflowRevision;
     }
 
     private WorkflowRevision newWorkflowRevision(Long id) {
@@ -148,5 +158,4 @@ public class WorkflowControllerTest {
         workflowRevision.setId(id);
         return workflowRevision;
     }
-
 }
