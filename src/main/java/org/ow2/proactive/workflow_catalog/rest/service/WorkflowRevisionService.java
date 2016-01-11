@@ -168,6 +168,8 @@ public class WorkflowRevisionService {
     }
 
     public PagedResources listWorkflows(Long bucketId, Optional<Long> workflowId, Pageable pageable, PagedResourcesAssembler assembler) {
+        findBucket(bucketId);
+
         Page<WorkflowRevision> page;
 
         if (workflowId.isPresent()) {

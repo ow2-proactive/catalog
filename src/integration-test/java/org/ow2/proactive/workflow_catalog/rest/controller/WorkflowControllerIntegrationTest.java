@@ -86,10 +86,9 @@ public class WorkflowControllerIntegrationTest {
                 .assertThat().statusCode(HttpStatus.SC_CREATED)
                 .body("bucket_id", is(bucket.getId().intValue()))
                 .body("id", is(1))
-                .body("original_id", is(1))
                 .body("name", is("Valid Workflow"))
                 .body("project_name", is("Project Name"))
-                .body("revision", is(0))
+                .body("revision", is(1))
                 .body("generic_information", hasSize(2))
                 .body("generic_information[0].key", is("genericInfo1"))
                 .body("generic_information[0].value", is("genericInfo1Value"))
@@ -118,14 +117,14 @@ public class WorkflowControllerIntegrationTest {
     }
 
     @Test
-    public void testList() {
+    public void testListWorkflowsShouldReturnSavedWorkflows() {
         given().pathParam("bucketId", bucket.getId())
                 .when().get(WORKFLOWS_RESOURCE)
                 .then().assertThat().statusCode(HttpStatus.SC_OK);
     }
 
     @Test
-    public void testListNonExistingBucketId() {
+    public void testListWorkflowsShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42)
                 .when().get(WORKFLOWS_RESOURCE)
                 .then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
