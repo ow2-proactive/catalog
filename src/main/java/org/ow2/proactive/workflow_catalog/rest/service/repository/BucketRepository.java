@@ -29,7 +29,7 @@
  *                         http://proactive.inria.fr/team_members.htm
  */
 
-package org.ow2.proactive.workflow_catalog.rest.service;
+package org.ow2.proactive.workflow_catalog.rest.service.repository;
 
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.springframework.data.domain.Page;

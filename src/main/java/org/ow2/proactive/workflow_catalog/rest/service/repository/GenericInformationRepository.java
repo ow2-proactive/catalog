@@ -29,14 +29,14 @@
  *                         http://proactive.inria.fr/team_members.htm
  */
 
-package org.ow2.proactive.workflow_catalog.rest.service;
+package org.ow2.proactive.workflow_catalog.rest.service.repository;
 
-import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
+import org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation;
 import org.springframework.data.repository.CrudRepository;
 
 /**
  * @author ActiveEon Team
  */
-public interface VariableRepository extends CrudRepository<Variable, Long> {
+public interface GenericInformationRepository extends CrudRepository<GenericInformation, Long> {
 
 }
