@@ -119,11 +119,6 @@ public class WorkflowServiceTest {
         workflowService.listWorkflows(NON_EXISTING_BUCKET, null, pagedResourcesAssembler);
     }
 
-
-
-
-
-
     private Bucket newMockedBucket(Long id, String name, Long nbWorkflows) {
         Bucket bucket = mock(Bucket.class);
         when(bucket.getId()).thenReturn(id);
@@ -145,7 +140,8 @@ public class WorkflowServiceTest {
                     .map(w -> new WorkflowMetadata(id, w.getId(), null, null, null, null, null, null, null))
                     .collect(Collectors.toList());
 
-            when(workflowRepository.findByBucket(Matchers.any(Bucket.class), Matchers.any(Pageable.class))).thenReturn(mock(PageImpl.class));
+            when(workflowRepository.findByBucket(Matchers.any(Bucket.class), Matchers.any(Pageable.class)))
+                    .thenReturn(mock(PageImpl.class));
             when(pagedResources.getContent()).thenReturn(workflowMetadataCol);
             when(pagedResourcesAssembler.toResource(Matchers.any(Page.class),
                     Matchers.any(WorkflowResourceAssembler.class))).thenReturn(pagedResources);
