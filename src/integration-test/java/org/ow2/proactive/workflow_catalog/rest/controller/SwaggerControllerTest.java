@@ -3,7 +3,7 @@
  *    Parallel, Distributed, Multi-Core Computing for
  *    Enterprise Grids & Clouds
  *
- * Copyright (C) 1997-2015 INRIA/University of
+ * Copyright (C) 1997-2016 INRIA/University of
  *                 Nice-Sophia Antipolis/ActiveEon
  * Contact: proactive@ow2.org or contact@activeeon.com
  *
@@ -28,25 +28,34 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
+
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
+import org.apache.http.HttpStatus;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.ow2.proactive.workflow_catalog.rest.Application;
+import org.ow2.proactive.workflow_catalog.rest.InMemoryConfiguration;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static com.jayway.restassured.RestAssured.when;
 
 /**
  * @author ActiveEon Team
  */
-@Controller
-public class SwaggerController {
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = {Application.class, InMemoryConfiguration.class})
+@WebIntegrationTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+public class SwaggerControllerTest {
 
-    @RequestMapping("/swagger")
-    public ModelAndView swagger() {
-        RedirectView redirectView = new RedirectView("swagger-ui.html");
-        redirectView.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
-        return new ModelAndView(redirectView);
+    @Test
+    public void testSwagger() throws Exception {
+        when().post("/swagger").then()
+                .assertThat().statusCode(HttpStatus.SC_MOVED_PERMANENTLY);
     }
 
 }
