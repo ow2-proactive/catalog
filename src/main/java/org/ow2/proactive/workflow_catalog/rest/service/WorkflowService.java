@@ -31,7 +31,6 @@
 package org.ow2.proactive.workflow_catalog.rest.service;
 
 import com.google.common.collect.Lists;
-import org.ow2.proactive.workflow_catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
@@ -67,9 +66,6 @@ public class WorkflowService {
 
     @Autowired
     private BucketRepository bucketRepository;
-
-    @Autowired
-    private BucketResourceAssembler bucketAssembler;
 
     @Autowired
     private WorkflowResourceAssembler workflowResourceAssembler;
