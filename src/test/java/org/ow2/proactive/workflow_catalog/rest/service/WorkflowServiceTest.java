@@ -51,8 +51,6 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -131,7 +129,7 @@ public class WorkflowServiceTest {
         if (nbWorkflows > 0) {
             List<WorkflowRevision> workflowRevisionList = LongStream.rangeClosed(1L, nbWorkflows)
                     .boxed()
-                    .map((value) -> newWorkflowRevision(value))
+                    .map((value) -> newMockedWorkflowRevision(value))
                     .collect(Collectors.toList());
             when(bucket.getWorkflowRevisions()).thenReturn(workflowRevisionList);
 
@@ -153,9 +151,9 @@ public class WorkflowServiceTest {
         return bucket;
     }
 
-    private WorkflowRevision newWorkflowRevision(Long id) {
-        WorkflowRevision workflowRevision = new WorkflowRevision();
-        workflowRevision.setId(id);
+    private WorkflowRevision newMockedWorkflowRevision(Long id) {
+        WorkflowRevision workflowRevision = mock(WorkflowRevision.class);
+        when(workflowRevision.getId()).thenReturn(id);
         return workflowRevision;
     }
 }
