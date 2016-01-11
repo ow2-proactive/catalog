@@ -89,11 +89,11 @@ public class WorkflowService {
             parser.parse();
 
             String projectName = parser.getProjectName().orElseThrow(
-                    getMissingElementException("No project name defined")
+                    getMissingElementException("No project name defined.")
             );
 
             String name = parser.getJobName().orElseThrow(
-                    getMissingElementException("No job name defined")
+                    getMissingElementException("No job name defined.")
             );
 
             Iterable<GenericInformation> genericInformation = persistGenericInformation(parser);
@@ -113,7 +113,6 @@ public class WorkflowService {
         }
     }
 
-    @Transactional
     private WorkflowRevision persistWorkflowRevision(WorkflowRevision workflowRevision) {
         workflowRevision = workflowRepository.save(workflowRevision);
         workflowRevision.setOriginalId(workflowRevision.getId());
