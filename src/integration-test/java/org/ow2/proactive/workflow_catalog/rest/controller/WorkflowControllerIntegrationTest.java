@@ -30,22 +30,26 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
+import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.ow2.proactive.workflow_catalog.rest.InMemoryConfiguration;
+import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.ow2.proactive.workflow_catalog.rest.service.BucketRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.context.WebApplicationContext;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import java.io.File;
+
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 
 /**
  * @author ActiveEon Team
@@ -56,18 +60,64 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class WorkflowControllerIntegrationTest {
 
-    private MockMvc mockMvc;
+    private static final String WORKFLOWS_RESOURCE = "/buckets/{bucketId}/workflows";
+
+    private static final String WORKFLOW_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}";
 
     @Autowired
-    private WebApplicationContext webApplicationContext;
+    private BucketRepository bucketRepository;
+
+    @Autowired
+    private WorkflowRepository workflowRepository;
+
+    private Bucket bucket;
 
     @Before
     public void setup() {
-        this.mockMvc = webAppContextSetup(webApplicationContext).build();
+        bucket = bucketRepository.save(new Bucket("myBucket"));
     }
 
     @Test
-    public void testList() throws Exception {
-        this.mockMvc.perform(get("/buckets/1/workflows")).andExpect(status().isNotFound());
+    public void testCreateWorkflowShouldReturnSavedWorkflow() {
+        given().pathParam("bucketId", bucket.getId())
+                .multiPart(getWorkflowFile("workflow.xml"))
+                .when().post(WORKFLOWS_RESOURCE).then()
+                .assertThat().statusCode(HttpStatus.SC_CREATED)
+                .body("bucket_id", is(bucket.getId().intValue()))
+                .body("id", is(1))
+                .body("original_id", is(1))
+                .body("name", is("Valid Workflow"))
+                .body("project_name", is("Project Name"))
+                .body("revision", is(0))
+                .body("generic_information", hasSize(2))
+                .body("generic_information[0].key", is("genericInfo1"))
+                .body("generic_information[0].value", is("genericInfo1Value"))
+                .body("generic_information[1].key", is("genericInfo2"))
+                .body("generic_information[1].value", is("genericInfo2Value"))
+                .body("variables", hasSize(2))
+                .body("variables[0].key", is("var1"))
+                .body("variables[0].value", is("var1Value"))
+                .body("variables[1].key", is("var2"))
+                .body("variables[1].value", is("var2Value"));
     }
+
+    @Test
+    public void testCreateWorkflowShouldReturnUnsupportedMediaTypeWithoutBody() {
+        given().pathParam("bucketId", bucket.getId())
+                .when().post(WORKFLOWS_RESOURCE).then()
+                .assertThat().statusCode(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE);
+    }
+
+    @Test
+    public void testCreateWorkflowShouldReturnNotFoundIfNonExistingBucketId() {
+        given().pathParam("bucketId", 42)
+                .multiPart(getWorkflowFile("workflow.xml"))
+                .when().post(WORKFLOWS_RESOURCE).then()
+                .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    private File getWorkflowFile(String filename) {
+        return new File(this.getClass().getResource("/workflows/" + filename).getFile());
+    }
+
 }
