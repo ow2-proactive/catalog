@@ -36,7 +36,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowResourceAssembler;
+import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
@@ -46,13 +46,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 
 /**
  * @author ActiveEon Team
@@ -75,7 +72,7 @@ public class WorkflowControllerTest {
     private PagedResourcesAssembler pagedResourcesAssembler;
 
     @Mock
-    WorkflowResourceAssembler workflowResourceAssembler;
+    WorkflowRevisionResourceAssembler workflowResourceAssembler;
 
     @Before
     public void setUp() throws Exception {
@@ -87,7 +84,7 @@ public class WorkflowControllerTest {
         Bucket bucket = mock(Bucket.class);
         when(bucketRepository.findOne(1L)).thenReturn(bucket);
         when(pagedResourcesAssembler.toResource(any(Page.class),
-                any(WorkflowResourceAssembler.class))).thenReturn(mock(PagedResources.class));
+                any(WorkflowRevisionResourceAssembler.class))).thenReturn(mock(PagedResources.class));
         workflowController.list(1L, null, pagedResourcesAssembler);
         verify(workflowService, times(1))
                 .listWorkflows(anyLong(), any(Pageable.class), any(PagedResourcesAssembler.class));
@@ -97,4 +94,5 @@ public class WorkflowControllerTest {
     public void testGet() throws Exception {
         assertTrue(false);
     }
+
 }

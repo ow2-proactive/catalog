@@ -28,15 +28,28 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-package org.ow2.proactive.workflow_catalog.rest.exceptions;
+
+package org.ow2.proactive.workflow_catalog.rest.assembler;
+
+import org.ow2.proactive.workflow_catalog.rest.controller.WorkflowController;
+import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
+import org.springframework.stereotype.Component;
 
 /**
  * @author ActiveEon Team
  */
-public class BucketNotFoundException extends ResourceNotFoundException {
+@Component
+public class WorkflowRevisionResourceAssembler extends ResourceAssemblerSupport<WorkflowRevision, WorkflowMetadata> {
 
-    public BucketNotFoundException(long bucketId) {
-        super("No such bucket (id " + bucketId + ")");
+    public WorkflowRevisionResourceAssembler() {
+        super(WorkflowController.class, WorkflowMetadata.class);
+    }
+
+    @Override
+    public WorkflowMetadata toResource(WorkflowRevision workflow) {
+        return new WorkflowMetadata(workflow);
     }
 
 }

@@ -28,15 +28,24 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-package org.ow2.proactive.workflow_catalog.rest.exceptions;
+
+package org.ow2.proactive.workflow_catalog.rest.service.repository;
+
+import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
  * @author ActiveEon Team
  */
-public class BucketNotFoundException extends ResourceNotFoundException {
+public interface WorkflowRevisionRepository extends PagingAndSortingRepository<WorkflowRevision, Long> {
 
-    public BucketNotFoundException(long bucketId) {
-        super("No such bucket (id " + bucketId + ")");
-    }
+    @Query("SELECT wr FROM WorkflowRevision wr JOIN wr.workflow w WHERE (wr.bucketId = ?1 AND w.lastRevisionNumber = wr.revision)")
+    Page<WorkflowRevision> getMostRecentRevisionsByBucket(Long bucketId, Pageable pageable);
+
+    @Query("SELECT wr FROM WorkflowRevision wr JOIN wr.workflow w WHERE w.id = ?1")
+    Page<WorkflowRevision> getMostRecentRevisionByWorkflow(Long workflowId, Pageable pageable);
 
 }

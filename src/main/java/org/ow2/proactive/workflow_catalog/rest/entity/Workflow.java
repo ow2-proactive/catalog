@@ -1,0 +1,109 @@
+/*
+ *  *
+ * ProActive Parallel Suite(TM): The Java(TM) library for
+ *    Parallel, Distributed, Multi-Core Computing for
+ *    Enterprise Grids & Clouds
+ *
+ * Copyright (C) 1997-2015 INRIA/University of
+ *                 Nice-Sophia Antipolis/ActiveEon
+ * Contact: proactive@ow2.org or contact@activeeon.com
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; version 3 of
+ * the License.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ * USA
+ *
+ * If needed, contact us to obtain a release under GPL Version 2 or 3
+ * or a different license than the AGPL.
+ *
+ *  Initial developer(s):               The ProActive Team
+ *                        http://proactive.inria.fr/team_members.htm
+ *  Contributor(s):
+ *
+ *  * $$ACTIVEEON_INITIAL_DEV$$
+ */
+package org.ow2.proactive.workflow_catalog.rest.entity;
+
+
+import com.google.common.collect.Lists;
+
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author ActiveEon Team
+ */
+@Entity
+public class Workflow {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "ID")
+    protected Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "BUCKET_ID", nullable = false)
+    private Bucket bucket;
+
+    @OneToMany(mappedBy = "workflow")
+    private List<WorkflowRevision> revisions;
+
+    @Column(name = "LAST_REVISION_NUMBER")
+    private Long lastRevisionNumber = 0L;
+
+    public Workflow() {
+    }
+
+    public Workflow(Bucket bucket, WorkflowRevision... revisions) {
+        this(bucket, Lists.newArrayList(revisions));
+    }
+
+    public Workflow(Bucket bucket, List<WorkflowRevision> revisions) {
+        this.bucket = bucket;
+        this.revisions = new ArrayList<>(revisions.size());
+
+        revisions.forEach(this::addRevision);
+    }
+
+    public void addRevision(WorkflowRevision workflowRevision) {
+        this.revisions.add(workflowRevision);
+        this.lastRevisionNumber++;
+        workflowRevision.setWorkflow(this);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Bucket getBucket() {
+        return bucket;
+    }
+
+    public Long getLastRevisionNumber() {
+        return lastRevisionNumber;
+    }
+
+    public List<WorkflowRevision> getRevisions() {
+        return revisions;
+    }
+
+    public void setBucket(Bucket bucket) {
+        this.bucket = bucket;
+    }
+
+    public void setRevisions(List<WorkflowRevision> revisions) {
+        this.revisions = revisions;
+    }
+
+}

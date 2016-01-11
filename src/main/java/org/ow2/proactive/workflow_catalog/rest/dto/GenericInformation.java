@@ -49,7 +49,8 @@ public final class GenericInformation extends KeyValue {
 
     public static List<GenericInformation> to(
             Collection<? extends org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation> from) {
-        return from.stream().map(entity -> new GenericInformation(entity.getKey(), entity.getValue()))
+        return from.stream()
+                .map(entity -> new GenericInformation(entity.getKey(), entity.getValue()))
                 .collect(Collectors.toList());
     }
 

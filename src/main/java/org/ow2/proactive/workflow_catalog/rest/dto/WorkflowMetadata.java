@@ -42,9 +42,6 @@ import java.util.List;
  */
 public final class WorkflowMetadata extends NamedMetadata {
 
-    @JsonProperty("original_id")
-    public final Long originalId;
-
     public final Long revision;
 
     @JsonProperty("bucket_id")
@@ -59,19 +56,17 @@ public final class WorkflowMetadata extends NamedMetadata {
     public final List<Variable> variables;
 
     public WorkflowMetadata(WorkflowRevision workflowRevision) {
-        this(workflowRevision.getBucket().getId(), workflowRevision.getId(), workflowRevision.getOriginalId(),
+        this(workflowRevision.getWorkflow().getBucket().getId(), workflowRevision.getWorkflow().getId(),
                 workflowRevision.getCreatedAt(), workflowRevision.getName(), workflowRevision.getProjectName(),
                 workflowRevision.getRevision(), GenericInformation.to(workflowRevision.getGenericInformation()),
                 Variable.to(workflowRevision.getVariables()));
     }
 
-    public WorkflowMetadata(Long bucketId, Long id, Long originalId, LocalDateTime createdAt,
-                            String name, String projectName, Long revision, List<GenericInformation> genericInformation,
-                            List<Variable> variables) {
+    public WorkflowMetadata(Long bucketId, Long id, LocalDateTime createdAt, String name, String projectName,
+                            Long revision, List<GenericInformation> genericInformation, List<Variable> variables) {
 
         super(id, name, createdAt);
 
-        this.originalId = originalId;
         this.revision = revision;
         this.bucketId = bucketId;
         this.projectName = projectName;

@@ -28,28 +28,15 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-
-package org.ow2.proactive.workflow_catalog.rest.assembler;
-
-import org.ow2.proactive.workflow_catalog.rest.controller.WorkflowController;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-import org.springframework.stereotype.Component;
+package org.ow2.proactive.workflow_catalog.rest.exceptions;
 
 /**
  * @author ActiveEon Team
  */
-@Component
-public class WorkflowResourceAssembler extends ResourceAssemblerSupport<WorkflowRevision, WorkflowMetadata> {
+public class WorkflowNotFoundException extends ResourceNotFoundException {
 
-    public WorkflowResourceAssembler() {
-        super(WorkflowController.class, WorkflowMetadata.class);
-    }
-
-    @Override
-    public WorkflowMetadata toResource(WorkflowRevision workflow) {
-        return new WorkflowMetadata(workflow);
+    public WorkflowNotFoundException(long workflowId) {
+        super("No such workflow (id " + workflowId + ")");
     }
 
 }

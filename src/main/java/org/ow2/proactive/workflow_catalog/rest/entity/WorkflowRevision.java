@@ -36,15 +36,13 @@ import org.springframework.data.annotation.CreatedDate;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author ActiveEon Team
  */
 @Entity
-@Table(name = "WORKFLOW", indexes = {
-        @Index(columnList = "ORIGINAL_ID"),
-        @Index(columnList = "REVISION")
+@Table(name = "WORKFLOW_REVISION", indexes = {
+        @Index(columnList = "REVISION_NUMBER")
 })
 public class WorkflowRevision {
 
@@ -60,15 +58,15 @@ public class WorkflowRevision {
     @Column(name = "NAME", nullable = false)
     protected String name;
 
-    @Column(name = "ORIGINAL_ID", nullable = false)
-    private Long originalId;
-
-    @Column(name = "REVISION", nullable = false)
+    @Column(name = "REVISION_NUMBER", nullable = false)
     private Long revision;
 
+    @Column(name = "BUCKET_ID", nullable = false)
+    private Long bucketId;
+
     @ManyToOne
-    @JoinColumn(name = "BUCKET_ID", nullable = false)
-    private Bucket bucket;
+    @JoinColumn(name = "WORKFLOW_ID")
+    private Workflow workflow;
 
     @Column(name = "PROJECT_NAME", nullable = false)
     private String projectName;
@@ -87,55 +85,31 @@ public class WorkflowRevision {
         super();
     }
 
-    public WorkflowRevision(Bucket bucket, String name, String projectName, LocalDateTime createdAt,
-                            List<GenericInformation> genericInformation, List<Variable> variables, byte[] xmlPayload) {
-        this(bucket, -1L, 0L, name, projectName, createdAt, genericInformation, variables, xmlPayload);
-    }
-
-    public WorkflowRevision(Bucket bucket, Long originalId, Long revision, String name, String projectName,
+    public WorkflowRevision(Long bucketId, String name, String projectName,
                             LocalDateTime createdAt, List<GenericInformation> genericInformation,
                             List<Variable> variables, byte[] xmlPayload) {
-        this.name = name;
-        this.createdAt = createdAt;
-        this.originalId = originalId;
+        this(bucketId, 1L, name, projectName, createdAt, genericInformation, variables, xmlPayload);
+    }
+
+    public WorkflowRevision(Long bucketId, Long revision, String name, String projectName,
+                            LocalDateTime createdAt, List<GenericInformation> genericInformation,
+                            List<Variable> variables, byte[] xmlPayload) {
+        this.bucketId = bucketId;
         this.revision = revision;
-        this.bucket = bucket;
+        this.name = name;
         this.projectName = projectName;
+        this.createdAt = createdAt;
         this.genericInformation = genericInformation;
         this.variables = variables;
         this.xmlPayload = xmlPayload;
     }
 
+    public Long getBucketId() {
+        return bucketId;
+    }
+
     public Long getId() {
         return id;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        WorkflowRevision other = (WorkflowRevision) o;
-
-        if (!Objects.equals(this.name, other.name)) {
-            return false;
-        }
-
-        return Objects.equals(this.createdAt, other.createdAt);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, createdAt);
-    }
-
-    public Bucket getBucket() {
-        return bucket;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -150,10 +124,6 @@ public class WorkflowRevision {
         return name;
     }
 
-    public Long getOriginalId() {
-        return originalId;
-    }
-
     public String getProjectName() {
         return projectName;
     }
@@ -166,12 +136,12 @@ public class WorkflowRevision {
         return variables;
     }
 
-    public byte[] getXmlPayload() {
-        return xmlPayload;
+    public Workflow getWorkflow() {
+        return workflow;
     }
 
-    public void setBucket(Bucket bucket) {
-        this.bucket = bucket;
+    public byte[] getXmlPayload() {
+        return xmlPayload;
     }
 
     public void setGenericInformation(List<GenericInformation> genericInformation) {
@@ -180,10 +150,6 @@ public class WorkflowRevision {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public void setOriginalId(Long originalId) {
-        this.originalId = originalId;
     }
 
     public void setProjectName(String projectName) {
@@ -198,7 +164,12 @@ public class WorkflowRevision {
         this.variables = variables;
     }
 
+    public void setWorkflow(Workflow workflow) {
+        this.workflow = workflow;
+    }
+
     public void setXmlPayload(byte[] xmlPayload) {
         this.xmlPayload = xmlPayload;
     }
+
 }

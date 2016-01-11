@@ -59,23 +59,23 @@ public class Bucket {
     protected String name;
 
     @OneToMany(mappedBy = "bucket")
-    private List<WorkflowRevision> workflowRevisions;
+    private List<Workflow> workflows;
 
     public Bucket() {
     }
 
-    public Bucket(String name, WorkflowRevision... workflowRevisions) {
-        this(name, LocalDateTime.now(), workflowRevisions);
+    public Bucket(String name, Workflow... workflows) {
+        this(name, LocalDateTime.now(), workflows);
     }
 
-    public Bucket(String name, LocalDateTime createdAt, WorkflowRevision... workflowRevisions) {
+    public Bucket(String name, LocalDateTime createdAt, Workflow... workflows) {
         this.name = name;
         this.createdAt = createdAt;
-        this.workflowRevisions = ImmutableList.copyOf(workflowRevisions);
+        this.workflows = ImmutableList.copyOf(workflows);
     }
 
     public Bucket(String name, LocalDateTime createdAt) {
-        this(name, createdAt, new WorkflowRevision[0]);
+        this(name, createdAt, new Workflow[0]);
     }
 
     @Override
@@ -102,6 +102,11 @@ public class Bucket {
         return Objects.hash(name, createdAt);
     }
 
+    public void addWorkflow(Workflow workflow) {
+        this.workflows.add(workflow);
+        workflow.setBucket(this);
+    }
+
     public Long getId() {
         return id;
     }
@@ -114,16 +119,16 @@ public class Bucket {
         return name;
     }
 
-    public List<WorkflowRevision> getWorkflowRevisions() {
-        return workflowRevisions;
+    public List<Workflow> getWorkflows() {
+        return workflows;
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public void setWorkflowRevisions(List<WorkflowRevision> workflowRevisions) {
-        this.workflowRevisions = workflowRevisions;
+    public void setWorkflows(List<Workflow> workflows) {
+        this.workflows = workflows;
     }
 
 }

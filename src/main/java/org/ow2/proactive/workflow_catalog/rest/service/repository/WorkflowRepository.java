@@ -31,22 +31,12 @@
 
 package org.ow2.proactive.workflow_catalog.rest.service.repository;
 
-import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
 import org.springframework.data.repository.PagingAndSortingRepository;
-import org.springframework.data.repository.query.Param;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.stereotype.Service;
 
 /**
  * @author ActiveEon Team
  */
-public interface WorkflowRepository extends PagingAndSortingRepository<WorkflowRevision, Long> {
-
-    Page<WorkflowRevision> findByBucket(Bucket bucket, Pageable pageable);
+public interface WorkflowRepository extends PagingAndSortingRepository<Workflow, Long> {
 
 }

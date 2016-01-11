@@ -31,16 +31,19 @@
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedResources;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -52,32 +55,32 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class WorkflowRevisionController {
 
     @Autowired
-    private WorkflowRepository workflowRepository;
+    private WorkflowRevisionService workflowRevisionService;
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions", method = POST)
     public WorkflowMetadata create(
             @PathVariable Long bucketId,
             @PathVariable Long workflowId,
-            @RequestParam(value = "file") MultipartFile file) {
-        return null;
+            @RequestParam(value = "file") MultipartFile file) throws IOException {
+        return workflowRevisionService.createWorkflowRevision(bucketId, Optional.of(workflowId), file.getBytes());
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions", method = GET)
-    public Page<WorkflowMetadata> list(@PathVariable Long bucketId,
-                                       @PathVariable Long workflowId,
-                                       Pageable pageable,
-                                       PagedResourcesAssembler assembler) {
-        return null;
+    public PagedResources list(@PathVariable Long bucketId,
+                               @PathVariable Long workflowId,
+                               Pageable pageable,
+                               PagedResourcesAssembler assembler) {
+        return workflowRevisionService.listWorkflows(bucketId, Optional.of(workflowId), pageable, assembler);
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions/{revisionId}", method = GET)
-    public WorkflowMetadata getMetadata(@PathVariable Long bucketId,
-                                        @PathVariable Long workflowId,
-                                        @PathVariable Long revisionId,
-                                        @RequestParam(required = false) String alt,
-                                        Pageable pageable,
-                                        PagedResourcesAssembler assembler) {
-        return null;
+    public WorkflowMetadata get(@PathVariable Long bucketId,
+                                @PathVariable Long workflowId,
+                                @PathVariable Long revisionId,
+                                @RequestParam(required = false) Optional<String> alt,
+                                Pageable pageable,
+                                PagedResourcesAssembler assembler) {
+        return workflowRevisionService.getWorkflow(bucketId, workflowId, revisionId, alt, pageable, assembler);
     }
 
 }
