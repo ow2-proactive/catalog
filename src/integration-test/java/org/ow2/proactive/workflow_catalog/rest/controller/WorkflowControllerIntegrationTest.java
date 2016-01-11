@@ -31,6 +31,7 @@
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import org.apache.http.HttpStatus;
+import org.apache.http.protocol.HTTP;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -114,6 +115,20 @@ public class WorkflowControllerIntegrationTest {
                 .multiPart(getWorkflowFile("workflow.xml"))
                 .when().post(WORKFLOWS_RESOURCE).then()
                 .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void testList() {
+        given().pathParam("bucketId", bucket.getId())
+                .when().get(WORKFLOWS_RESOURCE)
+                .then().assertThat().statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testListNonExistingBucketId() {
+        given().pathParam("bucketId", 42)
+                .when().get(WORKFLOWS_RESOURCE)
+                .then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     private File getWorkflowFile(String filename) {
