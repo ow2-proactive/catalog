@@ -32,21 +32,19 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 
 
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.http.HttpStatus;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -56,9 +54,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
  */
 @RestController
 public class WorkflowController {
-
-    @Autowired
-    private BucketRepository bucketRepository;
 
     @Autowired
     private WorkflowService workflowService;
@@ -72,25 +67,16 @@ public class WorkflowController {
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows", method = GET)
     public PagedResources list(@PathVariable Long bucketId,
-                                       Pageable pageable,
-                                       PagedResourcesAssembler assembler) {
+                               Pageable pageable,
+                               PagedResourcesAssembler assembler) {
         return workflowService.listWorkflows(bucketId, pageable, assembler);
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}", method = GET)
     public ResponseEntity<?> get(@PathVariable Long bucketId,
                                  @PathVariable Long workflowId,
-                                 @RequestParam(required = false) String alt) {
-        if ("payload".equals(alt)) {
-            byte[] bytes = new byte[0];
-
-            return ResponseEntity.ok()
-                    .contentLength(bytes.length)
-                    .contentType(MediaType.APPLICATION_XML)
-                    .body(new InputStreamResource(new ByteArrayInputStream(bytes)));
-        } else {
-            return null;
-        }
+                                 @RequestParam(required = false) Optional<String> alt) {
+        return workflowService.getWorkflowMetadata(bucketId, workflowId, alt);
     }
 
 }

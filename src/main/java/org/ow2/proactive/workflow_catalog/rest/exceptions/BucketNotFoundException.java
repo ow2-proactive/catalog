@@ -35,8 +35,8 @@ package org.ow2.proactive.workflow_catalog.rest.exceptions;
  */
 public class BucketNotFoundException extends ResourceNotFoundException {
 
-    public BucketNotFoundException(long bucketId) {
-        super("No such bucket (id " + bucketId + ")");
+    public BucketNotFoundException() {
+        super("No such bucket");
     }
 
 }

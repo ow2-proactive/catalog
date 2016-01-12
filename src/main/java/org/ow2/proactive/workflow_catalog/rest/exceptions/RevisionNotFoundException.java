@@ -28,25 +28,15 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-
-package org.ow2.proactive.workflow_catalog.rest.service.repository;
-
-import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
+package org.ow2.proactive.workflow_catalog.rest.exceptions;
 
 /**
  * @author ActiveEon Team
  */
-public interface WorkflowRepository extends PagingAndSortingRepository<Workflow, Long> {
+public class RevisionNotFoundException extends ResourceNotFoundException {
 
-    @Query("SELECT wr FROM WorkflowRevision wr JOIN wr.workflow w WHERE wr.bucketId = ?1 AND w.lastRevisionNumber = wr.revision")
-    Page<WorkflowRevision> getMostRecentRevisions(Long bucketId, Pageable pageable);
-
-    @Query("SELECT wr FROM WorkflowRevision wr JOIN wr.workflow w WHERE wr.bucketId = ?1 AND wr.workflow.id = ?2 AND w.lastRevisionNumber = wr.revision")
-    WorkflowRevision getMostRecentWorkflowRevision(Long bucketId, Long workflowId);
+    public RevisionNotFoundException() {
+        super("No such revision");
+    }
 
 }

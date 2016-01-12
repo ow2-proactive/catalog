@@ -42,10 +42,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  */
 public interface WorkflowRevisionRepository extends PagingAndSortingRepository<WorkflowRevision, Long> {
 
-    @Query("SELECT wr FROM WorkflowRevision wr JOIN wr.workflow w WHERE (wr.bucketId = ?1 AND w.lastRevisionNumber = wr.revision)")
-    Page<WorkflowRevision> getMostRecentRevisionsByBucket(Long bucketId, Pageable pageable);
-
     @Query("SELECT wr FROM WorkflowRevision wr JOIN wr.workflow w WHERE w.id = ?1")
-    Page<WorkflowRevision> getMostRecentRevisionByWorkflow(Long workflowId, Pageable pageable);
+    Page<WorkflowRevision> getRevisions(Long workflowId, Pageable pageable);
 
 }

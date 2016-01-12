@@ -35,8 +35,8 @@ package org.ow2.proactive.workflow_catalog.rest.exceptions;
  */
 public class WorkflowNotFoundException extends ResourceNotFoundException {
 
-    public WorkflowNotFoundException(long workflowId) {
-        super("No such workflow (id " + workflowId + ")");
+    public WorkflowNotFoundException() {
+        super("No such workflow");
     }
 
 }

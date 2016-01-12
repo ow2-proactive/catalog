@@ -67,7 +67,7 @@ public class BucketService {
         Bucket bucket = bucketRepository.findOne(id);
 
         if (bucket == null) {
-            throw new BucketNotFoundException(id);
+            throw new BucketNotFoundException();
         }
 
         return new BucketMetadata(bucket);

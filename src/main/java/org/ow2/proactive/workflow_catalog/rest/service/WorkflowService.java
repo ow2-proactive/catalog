@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -52,8 +53,8 @@ public class WorkflowService {
         return workflowRevisionService.createWorkflowRevision(bucketId, Optional.empty(), xmlPayload);
     }
 
-    public WorkflowMetadata getWorkflowMetadata(long bucketId, long workflowId) {
-        return workflowRevisionService.getWorkflowMetadata(bucketId, workflowId, Optional.empty());
+    public ResponseEntity<?> getWorkflowMetadata(long bucketId, long workflowId, Optional<String> alt) {
+        return workflowRevisionService.getWorkflow(bucketId, workflowId, Optional.empty(), alt);
     }
 
     public PagedResources listWorkflows(Long bucketId, Pageable pageable, PagedResourcesAssembler assembler) {

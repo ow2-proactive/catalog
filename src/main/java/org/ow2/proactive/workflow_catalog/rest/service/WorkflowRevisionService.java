@@ -35,15 +35,19 @@ import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourc
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.*;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
+import org.ow2.proactive.workflow_catalog.rest.exceptions.RevisionNotFoundException;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.UnprocessableEntityException;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.WorkflowNotFoundException;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.*;
 import org.ow2.proactive.workflow_catalog.rest.util.WorkflowParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,18 +108,13 @@ public class WorkflowRevisionService {
             long revisionNumber = 1;
 
             if (workflowId.isPresent()) {
-                workflow = workflowRepository.findOne(workflowId.get());
-
-                if (workflow == null) {
-                    throw new WorkflowNotFoundException(workflowId.get());
-                }
-
+                workflow = findWorkflow(workflowId.get());
                 revisionNumber = workflow.getLastRevisionNumber() + 1;
             }
 
             workflowRevision =
                     new WorkflowRevision(
-                            bucket.getId(), revisionNumber, name, projectName, LocalDateTime.now(),
+                            bucketId, revisionNumber, name, projectName, LocalDateTime.now(),
                             Lists.newArrayList(genericInformation),
                             Lists.newArrayList(variables),
                             xmlPayload);
@@ -134,6 +133,16 @@ public class WorkflowRevisionService {
         } catch (XMLStreamException e) {
             throw new UnprocessableEntityException(e);
         }
+    }
+
+    private Workflow findWorkflow(long workflowId) {
+        Workflow workflow = workflowRepository.findOne(workflowId);
+
+        if (workflow == null) {
+            throw new WorkflowNotFoundException();
+        }
+
+        return workflow;
     }
 
     private Iterable<GenericInformation> persistGenericInformation(WorkflowParser parser) {
@@ -156,16 +165,13 @@ public class WorkflowRevisionService {
         return () -> new UnprocessableEntityException("XML does not validate against Schema. " + message);
     }
 
-    public WorkflowMetadata getWorkflowMetadata(Long bucketId, long workflowId, Optional<Long> revision) {
-        return null;
-    }
-
     protected Bucket findBucket(Long bucketId) {
         Bucket bucket = bucketRepository.findOne(bucketId);
 
         if (bucket == null) {
-            throw new BucketNotFoundException(bucketId);
+            throw new BucketNotFoundException();
         }
+
         return bucket;
     }
 
@@ -175,16 +181,40 @@ public class WorkflowRevisionService {
         Page<WorkflowRevision> page;
 
         if (workflowId.isPresent()) {
-            page = workflowRevisionRepository.getMostRecentRevisionByWorkflow(workflowId.get(), pageable);
+            page = workflowRevisionRepository.getRevisions(workflowId.get(), pageable);
         } else {
-            page = workflowRevisionRepository.getMostRecentRevisionsByBucket(bucketId, pageable);
+            page = workflowRepository.getMostRecentRevisions(bucketId, pageable);
         }
 
         return assembler.toResource(page, workflowRevisionResourceAssembler);
     }
 
-    public WorkflowMetadata getWorkflow(Long bucketId, Long workflowId, Long revisionId, Optional<String> alt, Pageable pageable, PagedResourcesAssembler assembler) {
-        return null;
+    public ResponseEntity<?> getWorkflow(Long bucketId, Long workflowId, Optional<Long> revisionId, Optional<String> alt) {
+        findBucket(bucketId);
+        findWorkflow(workflowId);
+
+        WorkflowRevision workflowRevision = null;
+
+        if (revisionId.isPresent()) {
+            // TODO
+        } else {
+            workflowRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
+        }
+
+        if (workflowRevision == null) {
+            throw new RevisionNotFoundException();
+        }
+
+        if (alt.isPresent()) {
+            byte[] bytes = workflowRevision.getXmlPayload();
+
+            return ResponseEntity.ok()
+                    .contentLength(bytes.length)
+                    .contentType(MediaType.APPLICATION_XML)
+                    .body(new InputStreamResource(new ByteArrayInputStream(bytes)));
+        }
+
+        return ResponseEntity.ok(new WorkflowMetadata(workflowRevision));
     }
 
 }

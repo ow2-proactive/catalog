@@ -38,6 +38,7 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -74,13 +75,11 @@ public class WorkflowRevisionController {
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions/{revisionId}", method = GET)
-    public WorkflowMetadata get(@PathVariable Long bucketId,
-                                @PathVariable Long workflowId,
-                                @PathVariable Long revisionId,
-                                @RequestParam(required = false) Optional<String> alt,
-                                Pageable pageable,
-                                PagedResourcesAssembler assembler) {
-        return workflowRevisionService.getWorkflow(bucketId, workflowId, revisionId, alt, pageable, assembler);
+    public ResponseEntity<?> get(@PathVariable Long bucketId,
+                                 @PathVariable Long workflowId,
+                                 @PathVariable Long revisionId,
+                                 @RequestParam(required = false) Optional<String> alt) {
+        return workflowRevisionService.getWorkflow(bucketId, workflowId, Optional.of(revisionId), alt);
     }
 
 }

@@ -143,7 +143,7 @@ public class WorkflowServiceTest {
                     .map(w -> new WorkflowMetadata(id, w.getId(), null, null, null, null, null, null))
                     .collect(Collectors.toList());
 
-            when(workflowRevisionRepository.getMostRecentRevisionsByBucket(
+            when(workflowRevisionRepository.getRevisions(
                     Matchers.anyLong(), Matchers.any(Pageable.class)))
                     .thenReturn(mock(PageImpl.class));
             when(pagedResources.getContent()).thenReturn(workflowMetadataCol);
