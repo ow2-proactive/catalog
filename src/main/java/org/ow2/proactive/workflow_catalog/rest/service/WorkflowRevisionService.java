@@ -45,6 +45,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;
@@ -78,7 +79,7 @@ public class WorkflowRevisionService {
     @Autowired
     private WorkflowRevisionRepository workflowRevisionRepository;
 
-
+    @Transactional
     public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId, byte[] xmlPayload) {
         Bucket bucket = findBucket(bucketId);
 

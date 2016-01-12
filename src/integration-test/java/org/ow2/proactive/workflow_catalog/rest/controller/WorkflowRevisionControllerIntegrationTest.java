@@ -36,15 +36,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.ow2.proactive.workflow_catalog.rest.InMemoryConfiguration;
+import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
-import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRepository;
 import org.ow2.proactive.workflow_catalog.rest.util.IntegrationTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.io.IOException;
+import java.util.Optional;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.hasSize;
@@ -57,36 +61,51 @@ import static org.hamcrest.Matchers.is;
 @SpringApplicationConfiguration(classes = {Application.class, InMemoryConfiguration.class})
 @WebIntegrationTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class WorkflowControllerIntegrationTest {
+public class WorkflowRevisionControllerIntegrationTest {
 
-    private static final String WORKFLOWS_RESOURCE = "/buckets/{bucketId}/workflows";
+    private static final String WORKFLOW_REVISIONS_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}/revisions";
 
-    private static final String WORKFLOW_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}";
+    private static final String WORKFLOW_REVISION_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}/revisions/{revisionId}";
 
     @Autowired
     private BucketRepository bucketRepository;
 
     @Autowired
-    private WorkflowRepository workflowRepository;
+    private WorkflowRevisionService workflowRevisionService;
 
     private Bucket bucket;
 
+    private WorkflowMetadata workflowFirstRevision;
+
+    private WorkflowMetadata workflowSecondRevision;
+
     @Before
-    public void setup() {
+    public void setup() throws IOException {
         bucket = bucketRepository.save(new Bucket("myBucket"));
+
+        workflowFirstRevision =
+                workflowRevisionService.createWorkflowRevision(
+                        bucket.getId(), Optional.empty(),
+                        IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+
+        workflowSecondRevision =
+                workflowRevisionService.createWorkflowRevision(
+                        bucket.getId(), Optional.of(workflowFirstRevision.id),
+                        IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
     }
 
     @Test
-    public void testCreateWorkflowShouldReturnSavedWorkflow() {
-        given().pathParam("bucketId", bucket.getId())
+    public void testCreateWorkflowRevisionShouldReturnSavedWorkflow() {
+        given().pathParam("bucketId", bucket.getId()).pathParam("workflowId", workflowFirstRevision.id)
                 .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
-                .when().post(WORKFLOWS_RESOURCE).then()
+                .when().post(WORKFLOW_REVISIONS_RESOURCE).then()
                 .assertThat().statusCode(HttpStatus.SC_CREATED)
                 .body("bucket_id", is(bucket.getId().intValue()))
-                .body("id", is(1))
+                .body("id", is(workflowFirstRevision.id.intValue()))
+                .body("id", is(workflowSecondRevision.id.intValue()))
                 .body("name", is("Valid Workflow"))
                 .body("project_name", is("Project Name"))
-                .body("revision", is(1))
+                .body("revision", is(workflowSecondRevision.revision.intValue() + 1))
                 .body("generic_information", hasSize(2))
                 .body("generic_information[0].key", is("genericInfo1"))
                 .body("generic_information[0].value", is("genericInfo1Value"))
@@ -100,32 +119,18 @@ public class WorkflowControllerIntegrationTest {
     }
 
     @Test
-    public void testCreateWorkflowShouldReturnUnsupportedMediaTypeWithoutBody() {
-        given().pathParam("bucketId", bucket.getId())
-                .when().post(WORKFLOWS_RESOURCE).then()
+    public void testCreateWorkflowRevisionShouldReturnUnsupportedMediaTypeWithoutBody() {
+        given().pathParam("bucketId", bucket.getId()).pathParam("workflowId", workflowFirstRevision.id)
+                .when().post(WORKFLOW_REVISIONS_RESOURCE).then()
                 .assertThat().statusCode(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE);
     }
 
     @Test
-    public void testCreateWorkflowShouldReturnNotFoundIfNonExistingBucketId() {
-        given().pathParam("bucketId", 42)
+    public void testCreateWorkflowRevisionShouldReturnNotFoundIfNonExistingBucketId() {
+        given().pathParam("bucketId", 42).pathParam("workflowId", workflowFirstRevision.id)
                 .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
-                .when().post(WORKFLOWS_RESOURCE).then()
+                .when().post(WORKFLOW_REVISIONS_RESOURCE).then()
                 .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
-    }
-
-    @Test
-    public void testListWorkflowsShouldReturnSavedWorkflows() {
-        given().pathParam("bucketId", bucket.getId())
-                .when().get(WORKFLOWS_RESOURCE)
-                .then().assertThat().statusCode(HttpStatus.SC_OK);
-    }
-
-    @Test
-    public void testListWorkflowsShouldReturnNotFoundIfNonExistingBucketId() {
-        given().pathParam("bucketId", 42)
-                .when().get(WORKFLOWS_RESOURCE)
-                .then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
 }
