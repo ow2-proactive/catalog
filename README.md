@@ -19,7 +19,7 @@ $ gradle clean build war
 Then, you can directly deploy the service with embedded Jetty:
 
 ```
-$ java -jar build/libs/workflow-catalog-7.2.0-SNAPSHOT.war
+$ java -jar build/libs/workflow-catalog-X.Y.Z-SNAPSHOT.war
 ```
 
 ## Samples
@@ -84,7 +84,15 @@ Adding a new workflow revision for workflow with identifier 1 in bucket with id 
 $ http -f POST http://localhost:8080/buckets/1/workflows/1/revisions file@/path/to/workflow.xml
 ```
 
-TODO: getting workflow metadata and payload for a given revision
+Getting workflow metadata for workflow with identifier 1 and revision 1 in bucket with id 1:
+```
+$ http http://localhost:8080/buckets/1/workflows/1/revisions/1
+```
+
+Fetching workflow XML payload for workflow with identifier 1 and revision 1 in bucket with id 1:
+```
+$ http http://localhost:8080/buckets/1/workflows/1/revisions/1?alt=payload
+```
 
 Listing all revisions for workflow with identifier 1:
 ```
