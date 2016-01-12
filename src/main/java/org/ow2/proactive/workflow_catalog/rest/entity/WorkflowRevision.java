@@ -78,7 +78,7 @@ public class WorkflowRevision {
     private List<Variable> variables;
 
     @Lob
-    @Column(name = "XML_PAYLOAD", columnDefinition = "blob")
+    @Column(name = "XML_PAYLOAD", columnDefinition = "blob", nullable = false)
     private byte[] xmlPayload;
 
     public WorkflowRevision() {
