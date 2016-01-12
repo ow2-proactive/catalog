@@ -101,6 +101,8 @@ public class WorkflowRevisionService {
             Workflow workflow = null;
             WorkflowRevision workflowRevision;
 
+            long revisionNumber = 1;
+
             if (workflowId.isPresent()) {
                 workflow = workflowRepository.findOne(workflowId.get());
 
@@ -108,16 +110,15 @@ public class WorkflowRevisionService {
                     throw new WorkflowNotFoundException(workflowId.get());
                 }
 
-                workflowRevision = new WorkflowRevision(bucket.getId(), workflow.getLastRevisionNumber() + 1, name, projectName, LocalDateTime.now(),
-                        Lists.newArrayList(genericInformation),
-                        Lists.newArrayList(variables),
-                        xmlPayload);
-            } else {
-                workflowRevision = new WorkflowRevision(bucket.getId(), name, projectName, LocalDateTime.now(),
-                        Lists.newArrayList(genericInformation),
-                        Lists.newArrayList(variables),
-                        xmlPayload);
+                revisionNumber = workflow.getLastRevisionNumber() + 1;
             }
+
+            workflowRevision =
+                    new WorkflowRevision(
+                            bucket.getId(), revisionNumber, name, projectName, LocalDateTime.now(),
+                            Lists.newArrayList(genericInformation),
+                            Lists.newArrayList(variables),
+                            xmlPayload);
 
             workflowRevision = workflowRevisionRepository.save(workflowRevision);
 
