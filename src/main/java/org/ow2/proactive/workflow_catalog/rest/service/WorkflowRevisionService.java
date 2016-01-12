@@ -135,7 +135,7 @@ public class WorkflowRevisionService {
         }
     }
 
-    private Workflow findWorkflow(long workflowId) {
+    protected Workflow findWorkflow(long workflowId) {
         Workflow workflow = workflowRepository.findOne(workflowId);
 
         if (workflow == null) {
