@@ -40,6 +40,7 @@ import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.ow2.proactive.workflow_catalog.rest.InMemoryConfiguration;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRepository;
@@ -52,6 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.hasSize;
@@ -75,6 +77,9 @@ public class WorkflowControllerIntegrationTest {
 
     @Autowired
     private WorkflowRepository workflowRepository;
+
+    @Autowired
+    private WorkflowRevisionService workflowRevisionService;
 
     @Autowired
     private WorkflowService workflowService;
@@ -129,21 +134,26 @@ public class WorkflowControllerIntegrationTest {
     }
 
     @Test
-    public void testGetWorkflowMetadataShouldReturnSavedWorkflowMetadata() {
-        given().pathParam("bucketId", 1).pathParam("workflowId", 1)
+    public void testGetWorkflowShouldReturnLatestSavedWorkflowRevision() throws IOException {
+        WorkflowMetadata secondWorkflowRevision = workflowRevisionService.createWorkflowRevision(
+                workflow.bucketId, Optional.of(workflow.id),
+                IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+
+        given().pathParam("bucketId", workflow.bucketId)
+                .pathParam("workflowId", workflow.id)
                 .when().get(WORKFLOW_RESOURCE).then()
                 .assertThat().statusCode(HttpStatus.SC_OK)
-                .body("bucket_id", is(bucket.getId().intValue()))
-                .body("id", is(workflow.id.intValue()))
-                .body("name", is("Valid Workflow"))
-                .body("project_name", is("Project Name"))
-                .body("revision", is(1))
-                .body("generic_information", hasSize(2))
+                .body("bucket_id", is(secondWorkflowRevision.bucketId.intValue()))
+                .body("id", is(secondWorkflowRevision.id.intValue()))
+                .body("name", is(secondWorkflowRevision.name))
+                .body("project_name", is(secondWorkflowRevision.projectName))
+                .body("revision", is(secondWorkflowRevision.revision.intValue()))
+                .body("generic_information", hasSize(secondWorkflowRevision.genericInformation.size()))
                 .body("generic_information[0].key", is("genericInfo1"))
                 .body("generic_information[0].value", is("genericInfo1Value"))
                 .body("generic_information[1].key", is("genericInfo2"))
                 .body("generic_information[1].value", is("genericInfo2Value"))
-                .body("variables", hasSize(2))
+                .body("variables", hasSize(secondWorkflowRevision.variables.size()))
                 .body("variables[0].key", is("var1"))
                 .body("variables[0].value", is("var1Value"))
                 .body("variables[1].key", is("var2"))
@@ -166,28 +176,28 @@ public class WorkflowControllerIntegrationTest {
     }
 
     @Test
-    public void testGetWorkflowMetadataShouldReturnReturnNotFoundIfNonExistingBucketId() {
+    public void testGetWorkflowShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42).pathParam("workflowId", 1)
                 .when().get(WORKFLOW_RESOURCE).then()
                 .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
-    public void testGetWorkflowPayloadShouldReturnReturnNotFoundIfNonExistingBucketId() {
+    public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42).pathParam("workflowId", 1)
                 .when().get(WORKFLOW_RESOURCE + "?alt=payload").then()
                 .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
-    public void testGetWorkflowMetadataShouldReturnReturnNotFoundIfNonExistingWorkflowId() {
+    public void testGetWorkflowShouldReturnNotFoundIfNonExistingWorkflowId() {
         given().pathParam("bucketId", 1).pathParam("workflowId", 42)
                 .when().get(WORKFLOW_RESOURCE).then()
                 .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
-    public void testGetWorkflowPayloadShouldReturnReturnNotFoundIfNonExistingWorkflowId() {
+    public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingWorkflowId() {
         given().pathParam("bucketId", 1).pathParam("workflowId", 42)
                 .when().get(WORKFLOW_RESOURCE + "?alt=payload").then()
                 .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
