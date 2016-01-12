@@ -45,4 +45,7 @@ public interface WorkflowRevisionRepository extends PagingAndSortingRepository<W
     @Query("SELECT wr FROM WorkflowRevision wr JOIN wr.workflow w WHERE w.id = ?1")
     Page<WorkflowRevision> getRevisions(Long workflowId, Pageable pageable);
 
+    @Query("SELECT wr FROM WorkflowRevision wr WHERE wr.bucketId = ?1 AND wr.workflow.id = ?2 AND wr.revision = ?3")
+    WorkflowRevision getWorkflowRevision(Long bucketId, Long workflowId, Long revision);
+
 }

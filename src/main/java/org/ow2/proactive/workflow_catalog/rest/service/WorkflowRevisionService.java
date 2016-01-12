@@ -193,10 +193,10 @@ public class WorkflowRevisionService {
         findBucket(bucketId);
         findWorkflow(workflowId);
 
-        WorkflowRevision workflowRevision = null;
+        WorkflowRevision workflowRevision;
 
         if (revisionId.isPresent()) {
-            // TODO
+            workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId, workflowId, revisionId.get());
         } else {
             workflowRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
         }
