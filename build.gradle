@@ -52,6 +52,25 @@ repositories {
     jcenter()
 }
 
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/java')
+        }
+        resources.srcDir file('src/integration-test/resources')
+    }
+
+    // Below is a trick for IntelliJ IDEA to add integration test
+    // resources to classpath when running integration tests from
+    // the IDE. It's is not a good solution but I don't know about
+    // a better one.
+    test {
+        resources.srcDir file('src/integration-test/resources')
+    }
+}
+
 compileJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
@@ -65,7 +84,6 @@ configurations {
 //    all*.exclude module: 'spring-boot-starter-logging'
     integrationTestCompile.extendsFrom testCompile
     integrationTestRuntime.extendsFrom testRuntime
-    providedRuntime
 }
 
 dependencies {
@@ -101,21 +119,14 @@ dependencies {
     testCompile 'com.jayway.restassured:rest-assured:2.8.0'
 }
 
-sourceSets {
-    integrationTest {
-        java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
-            srcDir file('src/integration-test/java')
-        }
-        resources.srcDir file('src/integration-test/resources')
-    }
-}
-
 task integrationTest(type: Test) {
     testClassesDir = sourceSets.integrationTest.output.classesDir
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false }
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
 
 check.dependsOn integrationTest
@@ -127,4 +138,16 @@ task wrapper(type: Wrapper) {
 
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
+}
+
+idea {
+    module {
+        testSourceDirs += file('src/integration-test/java')
+        testSourceDirs += file('src/integration-test/resources')
+
+        scopes.TEST.plus += [
+                configurations.integrationTestCompile,
+                configurations.integrationTestRuntime
+        ]
+    }
 }
