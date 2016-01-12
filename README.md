@@ -55,7 +55,7 @@ $ http http://localhost:8080/buckets?page=42
 
 ### Workflow resource
 
-REST actions related to existing workflows apply to the latest revision of the identified workflow.
+**REST actions related to existing workflows apply to the latest revision of the identified workflow.**
 
 Adding a new workflow in bucket with identifier 1:
 ```
@@ -73,7 +73,7 @@ $ http http://localhost:8080/buckets/1/workflows
 
 Adding a new workflow revision for workflow with identifier 1 in bucket with id 1:
 ```
-$ http -f POST http://localhost:8080/buckets/1/workflows file@/path/to/workflow.xml
+$ http -f POST http://localhost:8080/buckets/1/workflows/1/revisions file@/path/to/workflow.xml
 ```
 
 TODO: getting workflow metadata and payload for a given revision
