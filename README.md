@@ -62,7 +62,15 @@ Adding a new workflow in bucket with identifier 1:
 $ http -f POST http://localhost:8080/buckets/1/workflows file@/path/to/workflow.xml
 ```
 
-TODO: getting workflow metadata and payload
+Getting workflow metadata for workflow with identifier 1 in bucket with id 1:
+```
+$ http http://localhost:8080/buckets/1/workflows/1
+```
+
+Fetching workflow XML payload for workflow with identifier 1 in bucket with id 1:
+```
+$ http http://localhost:8080/buckets/1/workflows/1?alt=payload
+```
 
 Listing workflows managed by bucket with identifier 1:
 ```
