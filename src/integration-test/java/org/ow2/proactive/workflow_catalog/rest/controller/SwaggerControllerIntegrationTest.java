@@ -50,7 +50,7 @@ import static com.jayway.restassured.RestAssured.when;
 @SpringApplicationConfiguration(classes = {Application.class, InMemoryConfiguration.class})
 @WebIntegrationTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class SwaggerControllerTest {
+public class SwaggerControllerIntegrationTest {
 
     @Test
     public void testSwagger() throws Exception {
