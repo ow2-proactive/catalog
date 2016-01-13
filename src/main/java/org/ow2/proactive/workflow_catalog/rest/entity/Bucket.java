@@ -78,30 +78,6 @@ public class Bucket {
         this(name, createdAt, new Workflow[0]);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Bucket other = (Bucket) o;
-
-        if (!Objects.equals(this.name, other.name)) {
-            return false;
-        }
-
-        return Objects.equals(this.createdAt, other.createdAt);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, createdAt);
-    }
-
     public void addWorkflow(Workflow workflow) {
         this.workflows.add(workflow);
         workflow.setBucket(this);

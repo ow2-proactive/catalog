@@ -59,30 +59,6 @@ public abstract class KeyValue {
         this.value = value;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        KeyValue other = (KeyValue) o;
-
-        if (!Objects.equals(this.key, other.key)) {
-            return false;
-        }
-
-        return Objects.equals(this.value, ((KeyValue) o).value);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(key, value);
-    }
-
     public Long getId() {
         return id;
     }
