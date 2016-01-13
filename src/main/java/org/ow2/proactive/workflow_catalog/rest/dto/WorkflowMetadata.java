@@ -56,7 +56,7 @@ public final class WorkflowMetadata extends NamedMetadata {
     public final List<Variable> variables;
 
     public WorkflowMetadata(WorkflowRevision workflowRevision) {
-        this(workflowRevision.getWorkflow().getBucket().getId(), workflowRevision.getWorkflow().getId(),
+        this(workflowRevision.getBucketId(), workflowRevision.getWorkflow().getId(),
                 workflowRevision.getCreatedAt(), workflowRevision.getName(), workflowRevision.getProjectName(),
                 workflowRevision.getRevision(), GenericInformation.to(workflowRevision.getGenericInformation()),
                 Variable.to(workflowRevision.getVariables()));
