@@ -33,6 +33,7 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 import com.google.common.io.ByteStreams;
 import com.jayway.restassured.response.Response;
 import org.apache.http.HttpStatus;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +54,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.hasSize;
@@ -241,5 +243,29 @@ public class WorkflowRevisionControllerIntegrationTest {
                 .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
+    @Test
+    public void testListWorkflowRevisionsShouldReturnSavedRevisions() {
+        IntStream.rangeClosed(1, 25).forEach(i -> {
+            try {
+                workflowRevisionService.createWorkflowRevision(
+                        secondWorkflowRevision.bucketId,
+                        Optional.of(secondWorkflowRevision.id),
+                        IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+            } catch (IOException e) {
+                Assert.fail(e.getMessage());
+            }
+        });
+
+        Response response = given().pathParam("bucketId", 1).pathParam("workflowId", 1)
+                .when().get(WORKFLOW_REVISIONS_RESOURCE);
+
+        int pageSize = response.getBody().jsonPath().getInt("page.size");
+
+        response.then().assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("_embedded.workflowMetadataList", hasSize(pageSize))
+                .body("page.number", is(0))
+                .body("page.totalElements", is(25 + 2));
+    }
 
 }
