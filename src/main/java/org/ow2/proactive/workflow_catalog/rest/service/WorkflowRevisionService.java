@@ -181,6 +181,7 @@ public class WorkflowRevisionService {
         Page<WorkflowRevision> page;
 
         if (workflowId.isPresent()) {
+            findWorkflow(workflowId.get());
             page = workflowRevisionRepository.getRevisions(workflowId.get(), pageable);
         } else {
             page = workflowRepository.getMostRecentRevisions(bucketId, pageable);
