@@ -33,8 +33,6 @@ package org.ow2.proactive.workflow_catalog.rest.dto;
 
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 
-import java.time.LocalDateTime;
-
 /**
  * @author ActiveEon Team
  */
@@ -42,10 +40,6 @@ public final class BucketMetadata extends NamedMetadata {
 
     public BucketMetadata(Bucket bucket) {
         super(bucket.getId(), bucket.getName(), bucket.getCreatedAt());
-    }
-
-    public BucketMetadata(Long id, String name, LocalDateTime createdAt) {
-        super(id, name, createdAt);
     }
 
 }
