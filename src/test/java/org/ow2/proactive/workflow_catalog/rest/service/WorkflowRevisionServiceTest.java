@@ -192,7 +192,7 @@ public class WorkflowRevisionServiceTest {
         Workflow mockedWf = mock(Workflow.class);
         when(mockedWf.getId()).thenReturn(DUMMY_ID);
 
-        WorkflowRevision wfRev = new WorkflowRevision(DUMMY_ID, "WR-TEST", "WR-PROJ-NAME", LocalDateTime.now(),
+        WorkflowRevision wfRev = new WorkflowRevision(DUMMY_ID, DUMMY_ID, "WR-TEST", "WR-PROJ-NAME", LocalDateTime.now(),
                 Lists.newArrayList(), Lists.newArrayList(), getWorkflowAsByteArray("workflow.xml"));
         wfRev.setWorkflow(mockedWf);
 
