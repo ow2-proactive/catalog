@@ -111,6 +111,12 @@ task jacoco(type: JacocoReport) {
 
     // source sets to report on the coverage of
     sourceSets project.sourceSets.main
+
+    reports {
+        html.enabled = true
+        xml.enabled = true
+        csv.enabled = false
+    }
 }
 
 task wrapper(type: Wrapper) {
