@@ -31,13 +31,12 @@
 
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author ActiveEon Team
@@ -71,7 +70,7 @@ public class Bucket {
     public Bucket(String name, LocalDateTime createdAt, Workflow... workflows) {
         this.name = name;
         this.createdAt = createdAt;
-        this.workflows = ImmutableList.copyOf(workflows);
+        this.workflows = Lists.newArrayList(workflows);
     }
 
     public Bucket(String name, LocalDateTime createdAt) {
