@@ -85,12 +85,6 @@ public class WorkflowRevision {
         super();
     }
 
-    public WorkflowRevision(Long bucketId, String name, String projectName,
-                            LocalDateTime createdAt, List<GenericInformation> genericInformation,
-                            List<Variable> variables, byte[] xmlPayload) {
-        this(bucketId, 1L, name, projectName, createdAt, genericInformation, variables, xmlPayload);
-    }
-
     public WorkflowRevision(Long bucketId, Long revision, String name, String projectName,
                             LocalDateTime createdAt, List<GenericInformation> genericInformation,
                             List<Variable> variables, byte[] xmlPayload) {
