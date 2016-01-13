@@ -45,8 +45,9 @@ import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.jayway.restassured.RestAssured.given;
@@ -119,13 +120,9 @@ public class BucketControllerIntegrationTest {
 
     @Test
     public void testListBucketsShouldReturnSavedBuckets() {
-        int nbBuckets = 25;
-
-        List<Bucket> buckets = new ArrayList<>(nbBuckets);
-
-        for (int i = 0; i < nbBuckets; i++) {
-            buckets.add(new Bucket("bucket" + i));
-        }
+        List<Bucket> buckets = IntStream.rangeClosed(1, 25)
+                .mapToObj(i -> new Bucket("bucket" + i))
+                .collect(Collectors.toList());
 
         bucketRepository.save(buckets);
 
@@ -133,7 +130,7 @@ public class BucketControllerIntegrationTest {
                 .statusCode(HttpStatus.SC_OK)
                 .body("_embedded.bucketMetadataList", hasSize(20))
                 .body("page.number", is(0))
-                .body("page.totalElements", is(nbBuckets));
+                .body("page.totalElements", is(buckets.size()));
     }
 
 }
