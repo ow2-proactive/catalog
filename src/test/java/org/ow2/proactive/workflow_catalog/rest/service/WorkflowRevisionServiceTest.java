@@ -1,3 +1,33 @@
+/*
+ * ProActive Parallel Suite(TM): The Java(TM) library for
+ *    Parallel, Distributed, Multi-Core Computing for
+ *    Enterprise Grids & Clouds
+ *
+ * Copyright (C) 1997-2016 INRIA/University of
+ *                 Nice-Sophia Antipolis/ActiveEon
+ * Contact: proactive@ow2.org or contact@activeeon.com
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; version 3 of
+ * the License.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ * USA
+ *
+ * If needed, contact us to obtain a release under GPL Version 2 or 3
+ * or a different license than the AGPL.
+ *
+ * Initial developer(s):               The ProActive Team
+ *                         http://proactive.inria.fr/team_members.htm
+ */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
 import com.google.common.collect.Lists;
@@ -12,11 +42,13 @@ import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
+import org.ow2.proactive.workflow_catalog.rest.exceptions.RevisionNotFoundException;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.UnprocessableEntityException;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.WorkflowNotFoundException;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.*;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.history.Revision;
 import org.springframework.data.web.PagedResourcesAssembler;
 
 import java.io.File;
@@ -28,10 +60,11 @@ import java.util.Optional;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
 
 /**
- * Created by paraita on 1/12/16.
+ * @author ActiveEon Team
  */
 public class WorkflowRevisionServiceTest {
 
@@ -139,14 +172,69 @@ public class WorkflowRevisionServiceTest {
         verify(workflowRepository, times(1)).getMostRecentRevisions(anyLong(), any(Pageable.class));
     }
 
-    @Ignore
+    @Test(expected = RevisionNotFoundException.class)
+    public void testGetWorkflowWithInvalidRevisionId() throws Exception {
+        when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
+        when(workflowRepository.findOne(anyLong())).thenReturn(mock(Workflow.class));
+        when(workflowRepository.getMostRecentWorkflowRevision(anyLong(), anyLong()))
+                .thenReturn(null);
+        workflowRevisionService.getWorkflow(DUMMY_ID, DUMMY_ID,
+                Optional.empty(), Optional.empty());
+    }
+
     @Test
-    public void testGetWorkflow() throws Exception {
-        assertTrue(false);
+    public void testGetWorkflowWithValidRevisionIdNoPayload() throws Exception {
+        getWorkflow(Optional.of(DUMMY_ID), Optional.empty());
+        verify(workflowRevisionRepository, times(1)).getWorkflowRevision(DUMMY_ID, DUMMY_ID, DUMMY_ID);
+    }
+
+    private void getWorkflow(Optional<Long> revisionId, Optional<String> alt) throws IOException {
+        Workflow mockedWf = mock(Workflow.class);
+        when(mockedWf.getId()).thenReturn(DUMMY_ID);
+
+        WorkflowRevision wfRev = new WorkflowRevision(DUMMY_ID, "WR-TEST", "WR-PROJ-NAME", LocalDateTime.now(),
+                Lists.newArrayList(), Lists.newArrayList(), getWorkflowAsByteArray("workflow.xml"));
+        wfRev.setWorkflow(mockedWf);
+
+        when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
+        when(workflowRepository.findOne(anyLong())).thenReturn(mock(Workflow.class));
+
+        if (revisionId.isPresent()) {
+            when(workflowRevisionRepository.getWorkflowRevision(anyLong(), anyLong(), anyLong()))
+                    .thenReturn(wfRev);
+        }
+        else {
+            when(workflowRepository.getMostRecentWorkflowRevision(anyLong(), anyLong()))
+                    .thenReturn(wfRev);
+        }
+
+        workflowRevisionService.getWorkflow(DUMMY_ID, DUMMY_ID, revisionId, alt);
+
+        verify(bucketRepository, times(1)).findOne(DUMMY_ID);
+        verify(workflowRepository, times(1)).findOne(DUMMY_ID);
+    }
+
+    @Test
+    public void testGetWorkflowWithoutRevisionINoPayload() throws Exception {
+        getWorkflow(Optional.empty(), Optional.empty());
+        verify(workflowRepository, times(1)).getMostRecentWorkflowRevision(DUMMY_ID, DUMMY_ID);
+    }
+
+    @Test
+    public void testGetWorkflowWithValidRevisionIdWithPayload() throws Exception {
+        getWorkflow(Optional.of(DUMMY_ID), Optional.of(""));
+        verify(workflowRevisionRepository, times(1)).getWorkflowRevision(DUMMY_ID, DUMMY_ID, DUMMY_ID);
+    }
+
+    @Test
+    public void testGetWorkflowWithoutValidRevisionIdWithPayload() throws Exception {
+        getWorkflow(Optional.empty(), Optional.of(""));
+        verify(workflowRepository, times(1)).getMostRecentWorkflowRevision(DUMMY_ID, DUMMY_ID);
     }
 
     private void listWorkflows(Optional<Long> wId) {
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
+        when(workflowRepository.findOne(anyLong())).thenReturn(mock(Workflow.class));
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
         when(mockedAssembler.toResource(any(PageImpl.class), any(WorkflowRevisionResourceAssembler.class)))
                 .thenReturn(null);
