@@ -136,6 +136,14 @@ public class WorkflowRevisionControllerIntegrationTest {
     }
 
     @Test
+    public void testCreateWorkflowRevisionShouldReturnUnprocessableEntityIfInvalidSyntax() {
+        given().pathParam("bucketId", bucket.getId()).pathParam("workflowId", firstWorkflowRevision.id)
+                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-invalid-syntax.xml"))
+                .when().post(WORKFLOW_REVISIONS_RESOURCE).then()
+                .assertThat().statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+    }
+
+    @Test
     public void testCreateWorkflowRevisionShouldReturnUnprocessableEntityIfNoProjectNameInXmlPayload() {
         given().pathParam("bucketId", bucket.getId()).pathParam("workflowId", firstWorkflowRevision.id)
                 .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-no-project-name.xml"))

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:proactive:jobdescriptor:3.3"
+        xsi:schemaLocation="urn:proactive:jobdescriptor:3.3 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.3/schedulerjob.xsd"
+        name="Valid Workflow"
+        projectName="Project Name"
+        priority="normal"
+        cancelJobOnError="false">
+    <variables>
+        <variable name==="var1" value="var1Value"/>
+        <variable value="var2Value" name="var2"/>
+    </variables>
+    <description>
+        <![CDATA[ A workflow that executes cmd in JVM. ]]>
+    </description>
+    <genericInformation>
+        <info value="genericInfo1Value" name="genericInfo1"/>
+        <info name="genericInfo2" value="genericInfo2Value"/>
+    </genericInformation>
+    <taskFlow>
+        <task name="Windows_Cmd_Task">
+            <description>
+                <![CDATA[ The simplest task, ran by a cmd engine. ]]>
+            </description>
+            <scriptExecutable>
+                <script>
+                    <code language="cmd">
+                        <![CDATA[
+dir
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+        <task name="Linux_Bash_Task">
+            <description>
+                <![CDATA[ The simplest task, ran by a bash engine. ]]>
+            </description>
+            <depends>
+                <task ref="Groovy_Task"/>
+            </depends>
+            <scriptExecutable>
+                <script>
+                    <code language="bash">
+                        <![CDATA[
+ls -la
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+        <task name="Java_Task"
+              maxNumberOfExecution="4">
+            <javaExecutable class="org.ow2.proactive.scheduler.examples.WaitAndPrint">
+                <parameters>
+                    <parameter name="sleepTime" value="20"/>
+                    <parameter name="number" value="2"/>
+                </parameters>
+            </javaExecutable>
+        </task>
+        <task name="Groovy_Task">
+            <description>
+                <![CDATA[ The simplest task, ran by a groovy engine. ]]>
+            </description>
+            <depends>
+                <task ref="Java_Task"/>
+                <task ref="Windows_Cmd_Task"/>
+            </depends>
+            <scriptExecutable>
+                <script>
+                    <code language="groovy">
+                        <![CDATA[
+println "uname -a".execute().text
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+    </taskFlow>
+</job>
