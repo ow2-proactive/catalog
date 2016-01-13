@@ -98,7 +98,7 @@ public class NamedMetadataTest {
         CustomNamedMetadata a =
                 new CustomNamedMetadata(1L, "name", LocalDateTime.now());
 
-        assertThat(a).isEqualTo(a);
+        assertThat(a.equals(a)).isTrue();
     }
 
     @Test
@@ -107,6 +107,14 @@ public class NamedMetadataTest {
                 new CustomNamedMetadata(1L, "name", LocalDateTime.now());
 
         assertThat(a).isNotEqualTo(null);
+    }
+
+    @Test
+    public void testEquality8() throws Exception {
+        CustomNamedMetadata a =
+                new CustomNamedMetadata(1L, "name", LocalDateTime.now());
+
+        assertThat(a).isNotEqualTo(42);
     }
 
     @Test

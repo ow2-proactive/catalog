@@ -65,6 +65,27 @@ public class KeyValueTest {
     }
 
     @Test
+    public void testEquality4() throws Exception {
+        CustomKeyValue a = new CustomKeyValue("key", "value");
+
+        assertThat(a.equals(a)).isTrue();
+    }
+
+    @Test
+    public void testEquality5() throws Exception {
+        CustomKeyValue a = new CustomKeyValue("key", "value");
+
+        assertThat(a).isNotEqualTo(null);
+    }
+
+    @Test
+    public void testEquality6() throws Exception {
+        CustomKeyValue a = new CustomKeyValue("key", "value");
+
+        assertThat(a).isNotEqualTo(42);
+    }
+
+    @Test
     public void testHashCode1() throws Exception {
         CustomKeyValue a = new CustomKeyValue("key", "value");
         CustomKeyValue b = new CustomKeyValue("key", "value");
