@@ -109,7 +109,7 @@ public class WorkflowRevisionService {
 
             if (workflowId.isPresent()) {
                 workflow = findWorkflow(workflowId.get());
-                revisionNumber = workflow.getLastRevisionNumber() + 1;
+                revisionNumber = workflow.getLastRevisionId() + 1;
             }
 
             workflowRevision =

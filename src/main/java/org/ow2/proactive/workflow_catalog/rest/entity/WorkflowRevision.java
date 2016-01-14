@@ -61,8 +61,8 @@ public class WorkflowRevision {
     @Column(name = "NAME", nullable = false)
     protected String name;
 
-    @Column(name = "REVISION_NUMBER", nullable = false)
-    private Long revision;
+    @Column(name = "REVISION_ID", nullable = false)
+    private Long revisionId;
 
     @Column(name = "BUCKET_ID", nullable = false)
     private Long bucketId;
@@ -88,11 +88,11 @@ public class WorkflowRevision {
         super();
     }
 
-    public WorkflowRevision(Long bucketId, Long revision, String name, String projectName,
+    public WorkflowRevision(Long bucketId, Long revisionId, String name, String projectName,
                             LocalDateTime createdAt, List<GenericInformation> genericInformation,
                             List<Variable> variables, byte[] xmlPayload) {
         this.bucketId = bucketId;
-        this.revision = revision;
+        this.revisionId = revisionId;
         this.name = name;
         this.projectName = projectName;
         this.createdAt = createdAt;
@@ -125,8 +125,8 @@ public class WorkflowRevision {
         return projectName;
     }
 
-    public Long getRevision() {
-        return revision;
+    public Long getRevisionId() {
+        return revisionId;
     }
 
     public List<Variable> getVariables() {
@@ -153,8 +153,8 @@ public class WorkflowRevision {
         this.projectName = projectName;
     }
 
-    public void setRevision(Long revision) {
-        this.revision = revision;
+    public void setRevisionId(Long revisionId) {
+        this.revisionId = revisionId;
     }
 
     public void setVariables(List<Variable> variables) {

@@ -57,12 +57,12 @@ public class WorkflowTest {
 
         Workflow workflow = new Workflow(bucket);
 
-        assertThat(workflow.getLastRevisionNumber()).isEqualTo(0L);
+        assertThat(workflow.getLastRevisionId()).isEqualTo(0L);
         assertThat(workflow.getRevisions()).hasSize(0);
 
         workflow.addRevision(workflowRevision);
 
-        assertThat(workflow.getLastRevisionNumber()).isEqualTo(1L);
+        assertThat(workflow.getLastRevisionId()).isEqualTo(1L);
         assertThat(workflow.getRevisions()).hasSize(1);
     }
 

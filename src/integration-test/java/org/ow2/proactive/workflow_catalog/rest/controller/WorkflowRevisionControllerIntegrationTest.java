@@ -115,7 +115,7 @@ public class WorkflowRevisionControllerIntegrationTest {
                 .body("id", is(secondWorkflowRevision.id.intValue()))
                 .body("name", is("Valid Workflow"))
                 .body("project_name", is("Project Name"))
-                .body("revision", is(secondWorkflowRevision.revision.intValue() + 1))
+                .body("revision_id", is(secondWorkflowRevision.revisionId.intValue() + 1))
                 .body("generic_information", hasSize(2))
                 .body("generic_information[0].key", is("genericInfo1"))
                 .body("generic_information[0].value", is("genericInfo1Value"))
@@ -171,14 +171,14 @@ public class WorkflowRevisionControllerIntegrationTest {
     public void testGetWorkflowRevisionShouldReturnSavedWorkflowRevision() {
         given().pathParam("bucketId", secondWorkflowRevision.bucketId)
                 .pathParam("workflowId", secondWorkflowRevision.id)
-                .pathParam("revisionId", secondWorkflowRevision.revision)
+                .pathParam("revisionId", secondWorkflowRevision.revisionId)
                 .when().get(WORKFLOW_REVISION_RESOURCE).then()
                 .assertThat().statusCode(HttpStatus.SC_OK)
                 .body("bucket_id", is(bucket.getId().intValue()))
                 .body("id", is(secondWorkflowRevision.id.intValue()))
                 .body("name", is(secondWorkflowRevision.name))
                 .body("project_name", is(secondWorkflowRevision.projectName))
-                .body("revision", is(secondWorkflowRevision.revision.intValue()))
+                .body("revision_id", is(secondWorkflowRevision.revisionId.intValue()))
                 .body("generic_information", hasSize(secondWorkflowRevision.genericInformation.size()))
                 .body("generic_information[0].key", is("genericInfo1"))
                 .body("generic_information[0].value", is("genericInfo1ValueUpdated"))
@@ -196,13 +196,13 @@ public class WorkflowRevisionControllerIntegrationTest {
         Response response =
                 given().pathParam("bucketId", secondWorkflowRevision.bucketId)
                         .pathParam("workflowId", secondWorkflowRevision.id)
-                        .pathParam("revisionId", secondWorkflowRevision.revision)
+                        .pathParam("revisionId", secondWorkflowRevision.revisionId)
                         .when().get(WORKFLOW_REVISION_RESOURCE + "?alt=payload");
 
         Arrays.equals(
                 ByteStreams.toByteArray(response.asInputStream()),
                 workflowRevisionRepository.getWorkflowRevision(
-                        secondWorkflowRevision.bucketId, secondWorkflowRevision.id, secondWorkflowRevision.revision)
+                        secondWorkflowRevision.bucketId, secondWorkflowRevision.id, secondWorkflowRevision.revisionId)
                         .getXmlPayload());
 
         response.then()

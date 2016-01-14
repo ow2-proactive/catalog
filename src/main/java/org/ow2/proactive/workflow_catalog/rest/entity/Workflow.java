@@ -59,8 +59,8 @@ public class Workflow {
     @OneToMany(mappedBy = "workflow")
     private List<WorkflowRevision> revisions;
 
-    @Column(name = "LAST_REVISION_NUMBER")
-    private Long lastRevisionNumber = 0L;
+    @Column(name = "LAST_REVISION_ID")
+    private Long lastRevisionId = 0L;
 
     public Workflow() {
     }
@@ -78,7 +78,7 @@ public class Workflow {
 
     public void addRevision(WorkflowRevision workflowRevision) {
         this.revisions.add(workflowRevision);
-        this.lastRevisionNumber++;
+        this.lastRevisionId++;
         workflowRevision.setWorkflow(this);
     }
 
@@ -90,8 +90,8 @@ public class Workflow {
         return bucket;
     }
 
-    public Long getLastRevisionNumber() {
-        return lastRevisionNumber;
+    public Long getLastRevisionId() {
+        return lastRevisionId;
     }
 
     public List<WorkflowRevision> getRevisions() {

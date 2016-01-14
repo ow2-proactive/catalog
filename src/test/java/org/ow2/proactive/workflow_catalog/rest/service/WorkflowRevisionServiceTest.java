@@ -276,7 +276,7 @@ public class WorkflowRevisionServiceTest {
         assertEquals(name, actualWFMetadata.name);
         assertEquals(projectName, actualWFMetadata.projectName);
         assertEquals(EXISTING_ID, actualWFMetadata.bucketId);
-        assertEquals(EXISTING_ID, actualWFMetadata.revision);
+        assertEquals(EXISTING_ID, actualWFMetadata.revisionId);
     }
 
     private static byte[] getWorkflowAsByteArray(String filename) throws IOException {
