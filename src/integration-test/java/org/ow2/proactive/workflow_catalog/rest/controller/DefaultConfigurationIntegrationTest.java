@@ -42,22 +42,30 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static com.jayway.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 /**
  * @author ActiveEon Team
  */
-@ActiveProfiles("test")
+@ActiveProfiles("mem")
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {Application.class})
 @WebIntegrationTest
-public class SwaggerControllerIntegrationTest {
+public class DefaultConfigurationIntegrationTest {
+
+    private static final String BUCKETS_RESOURCE = "/buckets";
 
     @Test
-    public void testSwagger() throws Exception {
-        when().post("/swagger").then()
-                .assertThat().statusCode(HttpStatus.SC_MOVED_PERMANENTLY);
+    public void defaultBucketsShouldBeCreatedBasedOnApplicationConfigurationProperty() {
+        when().get(BUCKETS_RESOURCE).then().assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("_embedded.bucketMetadataList", hasSize(2))
+                .body("_embedded.bucketMetadataList[0].name", is("Catalog"))
+                .body("_embedded.bucketMetadataList[1].name", is("Templates"))
+                .body("page.totalElements", is(2));
     }
 
 }

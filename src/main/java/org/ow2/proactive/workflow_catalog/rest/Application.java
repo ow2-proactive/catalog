@@ -71,6 +71,27 @@ public class Application extends SpringBootServletInitializer {
     }
 
     @Bean
+    @Profile("mem")
+    public DataSource memDataSource() {
+        return createMemDataSource();
+    }
+
+    @Bean
+    @Profile("test")
+    public DataSource testDataSource() {
+        return createMemDataSource();
+    }
+
+    private DataSource createMemDataSource() {
+        EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+        EmbeddedDatabase db = builder
+                .setType(EmbeddedDatabaseType.HSQL)
+                .build();
+
+        return db;
+    }
+
+    @Bean
     public Docket workflowCatalogApi() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .groupName("Workflow Catalog")
@@ -78,17 +99,6 @@ public class Application extends SpringBootServletInitializer {
                 .select()
                 .paths(allowedPaths())
                 .build();
-    }
-
-    @Bean
-    @Profile("mem")
-    public DataSource dataSource() {
-        EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-        EmbeddedDatabase db = builder
-                .setType(EmbeddedDatabaseType.HSQL)
-                .build();
-
-        return db;
     }
 
     private ApiInfo apiInfo() {

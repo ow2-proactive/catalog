@@ -36,13 +36,18 @@ import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 /**
  * @author ActiveEon Team
@@ -55,6 +60,25 @@ public class BucketService {
 
     @Autowired
     private BucketResourceAssembler bucketAssembler;
+
+    @Value("${pa.workflow_catalog.default.buckets}")
+    private String[] defaultBucketNames;
+
+    @Autowired
+    private Environment environment;
+
+    @PostConstruct
+    public void init() throws Exception {
+        boolean isTestProfileEnabled =
+                Arrays.stream(environment.getActiveProfiles())
+                        .anyMatch("test"::equals);
+
+        if (!isTestProfileEnabled && bucketRepository.count() == 0) {
+            Stream.of(defaultBucketNames).forEachOrdered(
+                    name -> bucketRepository.save(new Bucket(name))
+            );
+        }
+    }
 
     public BucketMetadata createBucket(String name) {
         Bucket bucket = new Bucket(name, LocalDateTime.now());
