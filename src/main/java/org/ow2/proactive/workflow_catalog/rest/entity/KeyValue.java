@@ -37,6 +37,10 @@ import java.util.Objects;
  * @author ActiveEon Team
  */
 @Entity
+@Table(name = "WORKFLOW_KEY_VALUE", indexes = {
+        @Index(columnList = "KEY"),
+        @Index(columnList = "VALUE")
+})
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public abstract class KeyValue {
 

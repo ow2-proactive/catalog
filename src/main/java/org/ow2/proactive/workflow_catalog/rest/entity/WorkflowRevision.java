@@ -43,7 +43,8 @@ import java.util.List;
  */
 @Entity
 @Table(name = "WORKFLOW_REVISION", indexes = {
-        @Index(columnList = "REVISION_NUMBER")
+        @Index(columnList = "NAME"),
+        @Index(columnList = "PROJECT_NAME")
 })
 public class WorkflowRevision {
 
