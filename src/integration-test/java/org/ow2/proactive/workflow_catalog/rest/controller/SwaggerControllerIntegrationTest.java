@@ -35,10 +35,10 @@ import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
-import org.ow2.proactive.workflow_catalog.rest.InMemoryConfiguration;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static com.jayway.restassured.RestAssured.when;
@@ -46,10 +46,11 @@ import static com.jayway.restassured.RestAssured.when;
 /**
  * @author ActiveEon Team
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {Application.class, InMemoryConfiguration.class})
-@WebIntegrationTest
+@ActiveProfiles("mem")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = {Application.class})
+@WebIntegrationTest
 public class SwaggerControllerIntegrationTest {
 
     @Test
