@@ -27,6 +27,11 @@ springBoot {
     mainClass = 'org.ow2.proactive.workflow_catalog.rest.Application'
 }
 
+configurations {
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestRuntime.extendsFrom testRuntime
+}
+
 compileJava {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
@@ -43,15 +48,15 @@ compileJjtree {
     arguments = [grammar_encoding: 'UTF-8', static: 'false']
 }
 
+coveralls {
+    sourceDirs = allprojects.sourceSets.main.allSource.srcDirs.flatten()
+    jacocoReportPath = "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+}
+
 jjdoc {
     inputDirectory = file('src/main/javacc')
     outputDirectory = file(project.buildDir.absolutePath + '/generated/jjdoc')
     arguments = [text: 'true']
-}
-
-configurations {
-    integrationTestCompile.extendsFrom testCompile
-    integrationTestRuntime.extendsFrom testRuntime
 }
 
 repositories {
@@ -144,9 +149,8 @@ task wrapper(type: Wrapper) {
 check.dependsOn integrationTest
 integrationTest.mustRunAfter test
 
-tasks.coveralls {
-    dependsOn 'check'
-}
+jacocoTestReport.dependsOn check
+tasks.coveralls.dependsOn jacocoTestReport
 
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
