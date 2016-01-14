@@ -146,7 +146,6 @@ integrationTest.mustRunAfter test
 
 tasks.coveralls {
     dependsOn 'check'
-    onlyIf { isCI }
 }
 
 tasks.withType(Test) {
