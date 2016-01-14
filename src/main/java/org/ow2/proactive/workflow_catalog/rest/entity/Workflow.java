@@ -45,6 +45,9 @@ import java.util.List;
  * @author ActiveEon Team
  */
 @Entity
+@Table(name = "WORKFLOW", indexes = {
+        @Index(columnList = "LAST_REVISION_ID"),
+})
 public class Workflow {
 
     @Id
