@@ -32,6 +32,7 @@
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
 import com.google.common.collect.Lists;
+import org.ow2.proactive.workflow_catalog.rest.util.LocalDateTimeAttributeConverter;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
@@ -51,6 +52,7 @@ public class Bucket {
     protected Long id;
 
     @CreatedDate
+    @Convert(converter = LocalDateTimeAttributeConverter.class)
     @Column(name = "CREATED_AT", nullable = false)
     protected LocalDateTime createdAt;
 
