@@ -1,4 +1,4 @@
-# Workflow Catalog
+# ProActive Workflow Catalog
 
 [![Build Status](http://jenkins.activeeon.com/job/workflow-catalog/badge/icon)](http://jenkins.activeeon.com/job/workflow-catalog/)
 [![Coverage Status](https://coveralls.io/repos/ow2-proactive/workflow-catalog/badge.svg?branch=master&service=github)](https://coveralls.io/github/ow2-proactive/workflow-catalog?branch=master)
