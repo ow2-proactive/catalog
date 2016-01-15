@@ -35,13 +35,15 @@ import com.google.common.base.Predicate;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.service.ApiInfo;
@@ -58,10 +60,21 @@ import javax.sql.DataSource;
 @SpringBootApplication
 @EnableSwagger2
 @EntityScan(basePackageClasses = Bucket.class)
-public class Application extends SpringBootServletInitializer {
+public class Application extends WebMvcConfigurerAdapter {
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
+    }
+
+    @Override
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        configurer.favorPathExtension(false).
+                favorParameter(true).
+                parameterName("format").
+                ignoreAcceptHeader(true).
+                useJaf(false).
+                defaultContentType(MediaType.APPLICATION_JSON).
+                mediaType("json", MediaType.APPLICATION_JSON);
     }
 
     @Bean
