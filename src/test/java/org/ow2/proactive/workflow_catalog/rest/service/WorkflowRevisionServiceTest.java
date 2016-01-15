@@ -222,13 +222,13 @@ public class WorkflowRevisionServiceTest {
 
     @Test
     public void testGetWorkflowWithValidRevisionIdWithPayload() throws Exception {
-        getWorkflow(Optional.of(DUMMY_ID), Optional.of(""));
+        getWorkflow(Optional.of(DUMMY_ID), Optional.of("xml"));
         verify(workflowRevisionRepository, times(1)).getWorkflowRevision(DUMMY_ID, DUMMY_ID, DUMMY_ID);
     }
 
     @Test
     public void testGetWorkflowWithoutValidRevisionIdWithPayload() throws Exception {
-        getWorkflow(Optional.empty(), Optional.of(""));
+        getWorkflow(Optional.empty(), Optional.of("xml"));
         verify(workflowRepository, times(1)).getMostRecentWorkflowRevision(DUMMY_ID, DUMMY_ID);
     }
 

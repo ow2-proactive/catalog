@@ -70,7 +70,7 @@ $ http http://localhost:8080/buckets/1/workflows/1
 
 Fetching workflow XML payload for workflow with identifier 1 in bucket with id 1:
 ```
-$ http http://localhost:8080/buckets/1/workflows/1?alt=payload
+$ http http://localhost:8080/buckets/1/workflows/1?alt=xml
 ```
 
 Listing workflows managed by bucket with identifier 1:
@@ -92,7 +92,7 @@ $ http http://localhost:8080/buckets/1/workflows/1/revisions/1
 
 Fetching workflow XML payload for workflow with identifier 1 and revision 1 in bucket with id 1:
 ```
-$ http http://localhost:8080/buckets/1/workflows/1/revisions/1?alt=payload
+$ http http://localhost:8080/buckets/1/workflows/1/revisions/1?alt=xml
 ```
 
 Listing all revisions for workflow with identifier 1:

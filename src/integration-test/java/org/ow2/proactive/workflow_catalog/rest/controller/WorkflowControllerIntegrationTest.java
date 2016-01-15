@@ -166,7 +166,7 @@ public class WorkflowControllerIntegrationTest {
     public void testGetWorkflowPayloadShouldReturnSavedXmlPayload() throws IOException {
         Response response =
                 given().pathParam("bucketId", 1).pathParam("workflowId", 1)
-                        .when().get(WORKFLOW_RESOURCE + "?alt=payload");
+                        .when().get(WORKFLOW_RESOURCE + "?alt=xml");
 
         Arrays.equals(
                 ByteStreams.toByteArray(response.asInputStream()),
@@ -175,6 +175,13 @@ public class WorkflowControllerIntegrationTest {
         response.then()
                 .assertThat().statusCode(HttpStatus.SC_OK)
                 .contentType("application/xml");
+    }
+
+    @Test
+    public void testGetWorkflowPayloadShouldReturnUnsupportedMediaTypeIfInvalidAltValue() throws IOException {
+        given().pathParam("bucketId", 1).pathParam("workflowId", 1)
+                .when().get(WORKFLOW_RESOURCE + "?alt=wrong").then()
+                .assertThat().statusCode(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE);
     }
 
     @Test
@@ -187,7 +194,7 @@ public class WorkflowControllerIntegrationTest {
     @Test
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42).pathParam("workflowId", 1)
-                .when().get(WORKFLOW_RESOURCE + "?alt=payload").then()
+                .when().get(WORKFLOW_RESOURCE + "?alt=xml").then()
                 .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
@@ -201,7 +208,7 @@ public class WorkflowControllerIntegrationTest {
     @Test
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingWorkflowId() {
         given().pathParam("bucketId", 1).pathParam("workflowId", 42)
-                .when().get(WORKFLOW_RESOURCE + "?alt=payload").then()
+                .when().get(WORKFLOW_RESOURCE + "?alt=xml").then()
                 .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 

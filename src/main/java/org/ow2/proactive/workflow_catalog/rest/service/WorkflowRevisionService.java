@@ -34,10 +34,7 @@ import com.google.common.collect.Lists;
 import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.*;
-import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
-import org.ow2.proactive.workflow_catalog.rest.exceptions.RevisionNotFoundException;
-import org.ow2.proactive.workflow_catalog.rest.exceptions.UnprocessableEntityException;
-import org.ow2.proactive.workflow_catalog.rest.exceptions.WorkflowNotFoundException;
+import org.ow2.proactive.workflow_catalog.rest.exceptions.*;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.*;
 import org.ow2.proactive.workflow_catalog.rest.util.WorkflowParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +61,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class WorkflowRevisionService {
+
+    private static final String SUPPORTED_ALT_VALUE = "xml";
 
     @Autowired
     private BucketRepository bucketRepository;
@@ -207,6 +206,13 @@ public class WorkflowRevisionService {
         }
 
         if (alt.isPresent()) {
+            String altValue = alt.get();
+
+            if (!altValue.equalsIgnoreCase(SUPPORTED_ALT_VALUE)) {
+                throw new UnsupportedMediaTypeException(
+                        "Unsupported media type '" + altValue + "' (only '" + SUPPORTED_ALT_VALUE + "' is allowed)");
+            }
+
             byte[] bytes = workflowRevision.getXmlPayload();
 
             return ResponseEntity.ok()

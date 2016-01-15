@@ -198,7 +198,7 @@ public class WorkflowRevisionControllerIntegrationTest {
                 given().pathParam("bucketId", secondWorkflowRevision.bucketId)
                         .pathParam("workflowId", secondWorkflowRevision.id)
                         .pathParam("revisionId", secondWorkflowRevision.revisionId)
-                        .when().get(WORKFLOW_REVISION_RESOURCE + "?alt=payload");
+                        .when().get(WORKFLOW_REVISION_RESOURCE + "?alt=xml");
 
         Arrays.equals(
                 ByteStreams.toByteArray(response.asInputStream()),
@@ -212,6 +212,13 @@ public class WorkflowRevisionControllerIntegrationTest {
     }
 
     @Test
+    public void testGetWorkflowPayloadShouldReturnUnsupportedMediaTypeIfInvalidAltValue() throws IOException {
+        given().pathParam("bucketId", 1).pathParam("workflowId", 1).pathParam("revisionId", 1)
+                .when().get(WORKFLOW_REVISION_RESOURCE + "?alt=wrong").then()
+                .assertThat().statusCode(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE);
+    }
+
+    @Test
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42).pathParam("workflowId", 1).pathParam("revisionId", 1)
                 .when().get(WORKFLOW_REVISION_RESOURCE).then()
@@ -221,7 +228,7 @@ public class WorkflowRevisionControllerIntegrationTest {
     @Test
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42).pathParam("workflowId", 1).pathParam("revisionId", 1)
-                .when().get(WORKFLOW_REVISION_RESOURCE + "?alt=payload").then()
+                .when().get(WORKFLOW_REVISION_RESOURCE + "?alt=xml").then()
                 .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
@@ -235,7 +242,7 @@ public class WorkflowRevisionControllerIntegrationTest {
     @Test
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingWorkflowId() {
         given().pathParam("bucketId", 1).pathParam("workflowId", 42).pathParam("revisionId", 1)
-                .when().get(WORKFLOW_REVISION_RESOURCE + "?alt=payload").then()
+                .when().get(WORKFLOW_REVISION_RESOURCE + "?alt=xml").then()
                 .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
@@ -249,7 +256,7 @@ public class WorkflowRevisionControllerIntegrationTest {
     @Test
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingRevisionId() {
         given().pathParam("bucketId", 1).pathParam("workflowId", 1).pathParam("revisionId", 42)
-                .when().get(WORKFLOW_REVISION_RESOURCE + "?alt=payload").then()
+                .when().get(WORKFLOW_REVISION_RESOURCE + "?alt=xml").then()
                 .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
