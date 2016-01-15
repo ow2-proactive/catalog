@@ -31,6 +31,7 @@
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
 
+import io.swagger.annotations.ApiParam;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,7 @@ public class WorkflowController {
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}", method = GET)
     public ResponseEntity<?> get(@PathVariable Long bucketId,
                                  @PathVariable Long workflowId,
+                                 @ApiParam(value = "Force response to return workflow XML content when set to 'xml'")
                                  @RequestParam(required = false) Optional<String> alt) {
         return workflowService.getWorkflowMetadata(bucketId, workflowId, alt);
     }

@@ -30,6 +30,7 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
+import io.swagger.annotations.ApiParam;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,9 @@ public class WorkflowRevisionController {
     public ResponseEntity<?> get(@PathVariable Long bucketId,
                                  @PathVariable Long workflowId,
                                  @PathVariable Long revisionId,
-                                 @RequestParam(required = false) Optional<String> alt) {
+                                 @ApiParam(value = "Force response to return workflow XML content when set to 'xml'")
+                                 @RequestParam(required = false)
+                                 Optional<String> alt) {
         return workflowRevisionService.getWorkflow(bucketId, workflowId, Optional.of(revisionId), alt);
     }
 
