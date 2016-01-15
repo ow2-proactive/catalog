@@ -33,7 +33,6 @@ package org.ow2.proactive.workflow_catalog.rest.service;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.*;
 import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
@@ -48,8 +47,8 @@ import org.ow2.proactive.workflow_catalog.rest.exceptions.WorkflowNotFoundExcept
 import org.ow2.proactive.workflow_catalog.rest.service.repository.*;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.history.Revision;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.Link;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -58,7 +57,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -92,6 +91,16 @@ public class WorkflowRevisionServiceTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+
+        workflowRevisionService = Mockito.spy(workflowRevisionService);
+
+        Mockito.doReturn(new Link("test"))
+                .when(workflowRevisionService)
+                .createLink(
+                        Matchers.any(Long.class),
+                        Matchers.any(Long.class),
+                        Matchers.any(Optional.class),
+                        Matchers.any(WorkflowRevision.class));
     }
 
     @Test(expected = BucketNotFoundException.class)
@@ -189,6 +198,7 @@ public class WorkflowRevisionServiceTest {
     }
 
     private void getWorkflow(Optional<Long> revisionId, Optional<String> alt) throws IOException {
+
         Workflow mockedWf = mock(Workflow.class);
         when(mockedWf.getId()).thenReturn(DUMMY_ID);
 
@@ -202,8 +212,7 @@ public class WorkflowRevisionServiceTest {
         if (revisionId.isPresent()) {
             when(workflowRevisionRepository.getWorkflowRevision(anyLong(), anyLong(), anyLong()))
                     .thenReturn(wfRev);
-        }
-        else {
+        } else {
             when(workflowRepository.getMostRecentWorkflowRevision(anyLong(), anyLong()))
                     .thenReturn(wfRev);
         }
@@ -242,8 +251,7 @@ public class WorkflowRevisionServiceTest {
         if (wId.isPresent()) {
             when(workflowRevisionRepository.getRevisions(anyLong(), any(Pageable.class)))
                     .thenReturn(mock(PageImpl.class));
-        }
-        else {
+        } else {
             when(workflowRepository.getMostRecentRevisions(anyLong(), any(Pageable.class)))
                     .thenReturn(mock(PageImpl.class));
         }

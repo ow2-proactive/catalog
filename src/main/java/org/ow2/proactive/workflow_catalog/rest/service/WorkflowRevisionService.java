@@ -32,6 +32,7 @@ package org.ow2.proactive.workflow_catalog.rest.service;
 
 import com.google.common.collect.Lists;
 import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
+import org.ow2.proactive.workflow_catalog.rest.controller.WorkflowRevisionController;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.*;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.*;
@@ -42,7 +43,9 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -55,6 +58,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 /**
  * @author ActiveEon Team
@@ -221,7 +227,23 @@ public class WorkflowRevisionService {
                     .body(new InputStreamResource(new ByteArrayInputStream(bytes)));
         }
 
-        return ResponseEntity.ok(new WorkflowMetadata(workflowRevision));
+        WorkflowMetadata workflowMetadata =
+                new WorkflowMetadata(workflowRevision);
+
+        workflowMetadata.add(createLink(bucketId, workflowId, revisionId, workflowRevision));
+
+        return ResponseEntity.ok(workflowMetadata);
+    }
+
+    public Link createLink(Long bucketId, Long workflowId, Optional<Long> revisionId, WorkflowRevision workflowRevision) {
+        ControllerLinkBuilder controllerLinkBuilder =
+                linkTo(methodOn(WorkflowRevisionController.class)
+                        .get(bucketId, workflowId, workflowRevision.getRevisionId(), null));
+
+        // alt request parameter name and valud is added manually
+        // otherwise a converter needs to be configured
+        // for Optional class
+        return new Link(controllerLinkBuilder.toString() + "?alt=" + SUPPORTED_ALT_VALUE).withRel("content");
     }
 
 }

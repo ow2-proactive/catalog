@@ -57,6 +57,7 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
@@ -189,7 +190,8 @@ public class WorkflowRevisionControllerIntegrationTest {
                 .body("variables[0].key", is("var1"))
                 .body("variables[0].value", is("var1ValueUpdated"))
                 .body("variables[1].key", is("var2"))
-                .body("variables[1].value", is("var2ValueUpdated"));
+                .body("variables[1].value", is("var2ValueUpdated"))
+                .body("_links.content.href", endsWith("?alt=xml"));
     }
 
     @Test
