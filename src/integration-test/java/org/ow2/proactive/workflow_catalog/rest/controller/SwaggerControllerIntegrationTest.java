@@ -56,7 +56,7 @@ public class SwaggerControllerIntegrationTest {
 
     @Test
     public void testSwagger() throws Exception {
-        when().post("/swagger").then()
+        when().post("/").then()
                 .assertThat().statusCode(HttpStatus.SC_MOVED_PERMANENTLY);
     }
 

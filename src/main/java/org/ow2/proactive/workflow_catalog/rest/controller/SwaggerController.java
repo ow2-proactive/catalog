@@ -42,7 +42,7 @@ import org.springframework.web.servlet.view.RedirectView;
 @Controller
 public class SwaggerController {
 
-    @RequestMapping("/swagger")
+    @RequestMapping("/")
     public ModelAndView swagger() {
         RedirectView redirectView = new RedirectView("swagger-ui.html");
         redirectView.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
