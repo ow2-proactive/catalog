@@ -28,38 +28,44 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-PARSER_BEGIN(QueryParser)
+ options {
+     TRACK_TOKENS=true;
+     STATIC=false;
+     MULTI=true;
+     VISITOR=true;
+     NODE_USES_PARSER=true;
+     NODE_FACTORY = true;
+ }
 
-public class QueryParser {
+ PARSER_BEGIN(QueryParser)
 
-	public static void main(String args[]) throws ParseException {
-	    QueryParser queryParser = new QueryParser(System.in);
-	    queryParser.statement();
-    }
-}
+ public class QueryParser {}
 
-PARSER_END(QueryParser)
+ PARSER_END(QueryParser)
 
-SKIP: { " " | "\t" | "\n" }
+ SKIP: { " " | "\t" | "\n" }
 
-TOKEN :
-{
-    < ATTRIBUTE : (["a"-"z","A"-"Z"])+ ( (["_","."])+ (["a"-"z","A"-"Z", "0"-"9"])* )* >
-  | < CONJUNCTION : "AND" | "OR" >
-  | < OPERATOR : "!=" | "=" >
-  | < VALUE : "\"" (~["\t","\n"])* "\"" >
-}
+ TOKEN :
+ {
+     < ATTRIBUTE : (["a"-"z","A"-"Z"])+ ( (["_","."])+ (["a"-"z","A"-"Z", "0"-"9"])* )* >
+   | < CONJUNCTION : "AND" | "OR" >
+   | < OPERATOR : "!=" | "=" >
+   | < VALUE : "\"" (~["\t","\n"])* "\"" >
+ }
 
-void clause() : { } {
-    <ATTRIBUTE> <OPERATOR> <VALUE>
-}
+ void clause() : { } {
+     <ATTRIBUTE> <OPERATOR> <VALUE>
+ }
 
-void clauses() : { } {
-    clause() ( <CONJUNCTION> clause() )*
-}
+ void clauses() : { } {
+     clause() ( <CONJUNCTION> clause() )*
+ }
 
-void statement() : { } {
-    "(" clauses() ")"
-   | clauses()
-}
+ void statement() : { } {
+     "(" clauses() ")"
+    | clauses()
+ }
 
+ ASTCompilationUnit CompilationUnit() : { } {
+     statement() { return jjtThis; }
+ }
