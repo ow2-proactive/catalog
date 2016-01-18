@@ -33,8 +33,10 @@ package org.ow2.proactive.workflow_catalog.rest;
 
 import com.google.common.base.Predicate;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
@@ -52,6 +54,7 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.sql.DataSource;
+import java.io.File;
 
 
 /**
@@ -61,6 +64,18 @@ import javax.sql.DataSource;
 @EnableSwagger2
 @EntityScan(basePackageClasses = Bucket.class)
 public class Application extends WebMvcConfigurerAdapter {
+
+    @Value("${spring.datasource.driverClassName:org.hsqldb.jdbcDriver}")
+    private String dataSourceDriverClassName;
+
+    @Value("${spring.datasource.url:}")
+    private String dataSourceUrl;
+
+    @Value("${spring.datasource.username:root}")
+    private String dataSourceUsername;
+
+    @Value("${spring.datasource.password:}")
+    private String dataSourcePassword;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -75,6 +90,37 @@ public class Application extends WebMvcConfigurerAdapter {
                 useJaf(false).
                 defaultContentType(MediaType.APPLICATION_JSON).
                 mediaType("json", MediaType.APPLICATION_JSON);
+    }
+
+    @Bean
+    public DataSource defaultDataSource() {
+        String jdbcUrl = dataSourceUrl;
+
+        if (jdbcUrl.isEmpty()) {
+            jdbcUrl = "jdbc:hsqldb:file:" + getDatabaseDirectory()
+                    + ";create=true;hsqldb.tx=mvcc;hsqldb.applog=1;hsqldb.sqllog=0;hsqldb.write_delay=false";
+        }
+
+        return DataSourceBuilder
+                .create()
+                .username("root")
+                .password("")
+                .url(jdbcUrl)
+                .driverClassName("org.hsqldb.jdbcDriver")
+                .build();
+    }
+
+    private String getDatabaseDirectory() {
+        String proactiveHome = System.getProperty("proactive.home");
+
+        if (proactiveHome == null) {
+            return System.getProperty("java.io.tmpdir") + File.separator
+                    + "proactive" + File.separator + "workflow-catalog";
+        }
+
+        return proactiveHome + File.separator + "data"
+                + File.separator + "db" + File.separator + "workflow-catalog"
+                + File.separator + "wc";
     }
 
     @Bean
