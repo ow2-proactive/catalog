@@ -29,15 +29,14 @@
  *                         http://proactive.inria.fr/team_members.htm
  */
  options {
-     TRACK_TOKENS=true;
-     STATIC=false;
-     MULTI=true;
-     VISITOR=true;
-     NODE_USES_PARSER=true;
-     NODE_FACTORY = true;
+    MULTI=true;
+    VISITOR=true;
+    NODE_DEFAULT_VOID=true;
  }
 
  PARSER_BEGIN(QueryParser)
+
+ package org.ow2.proactive.workflow_catalog.rest.query;
 
  public class QueryParser {}
 
