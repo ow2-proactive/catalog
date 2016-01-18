@@ -1,4 +1,4 @@
-apply plugin: "ca.coglinc.javacc"
+//apply plugin: "ca.coglinc.javacc"
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
@@ -39,27 +39,27 @@ compileJava {
     targetCompatibility = 1.8
 }
 
-compileJavacc {
-    inputDirectory = file('src/main/javacc')
-    outputDirectory = file(project.buildDir.absolutePath + '/generated/javacc')
-}
+//compileJavacc {
+//    inputDirectory = file('src/main/javacc')
+//    outputDirectory = file(project.buildDir.absolutePath + '/generated/javacc')
+//}
 
-compileJjtree {
-    inputDirectory = file('src/main/jjtree')
-    outputDirectory = file(project.buildDir.absolutePath + '/generated/jjtree')
-    arguments = [grammar_encoding: 'UTF-8', static: 'false']
-}
+//compileJjtree {
+//    inputDirectory = file('src/main/jjtree')
+//    outputDirectory = file(project.buildDir.absolutePath + '/generated/jjtree')
+//    arguments = [grammar_encoding: 'UTF-8', static: 'false']
+//}
 
 coveralls {
     sourceDirs = allprojects.sourceSets.main.allSource.srcDirs.flatten()
     jacocoReportPath = "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
 }
 
-jjdoc {
-    inputDirectory = file('src/main/javacc')
-    outputDirectory = file(project.buildDir.absolutePath + '/generated/jjdoc')
-    arguments = [text: 'true']
-}
+//jjdoc {
+//    inputDirectory = file('src/main/javacc')
+//    outputDirectory = file(project.buildDir.absolutePath + '/generated/jjdoc')
+//    arguments = [text: 'true']
+//}
 
 repositories {
     jcenter()
