@@ -77,7 +77,7 @@ import java.util.Properties;
 @PropertySource("classpath:application.properties")
 public class Application extends WebMvcConfigurerAdapter {
 
-    @Value("${spring.datasource.driverClassName:org.hsqldb.jdbcDriver}")
+    @Value("${spring.datasource.driverClassName:org.hsqldb.jdbc.JDBCDriver}")
     private String dataSourceDriverClassName;
 
     @Value("${spring.datasource.url:}")
@@ -116,10 +116,10 @@ public class Application extends WebMvcConfigurerAdapter {
 
         return DataSourceBuilder
                 .create()
-                .username("root")
-                .password("")
+                .username(dataSourceUsername)
+                .password(dataSourcePassword)
                 .url(jdbcUrl)
-                .driverClassName("org.hsqldb.jdbcDriver")
+                .driverClassName(dataSourceDriverClassName)
                 .build();
     }
 
