@@ -158,6 +158,7 @@ public class Application extends WebMvcConfigurerAdapter {
     }
 
     @Bean
+    @Profile("default")
     public CommonsMultipartResolver multipartResolver() {
         return new CommonsMultipartResolver();
     }
