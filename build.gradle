@@ -154,7 +154,6 @@ task wrapper(type: Wrapper) {
 }
 
 check.dependsOn integrationTest
-integrationTest.mustRunAfter test
 
 jacocoTestReport.dependsOn check
 tasks.coveralls.dependsOn jacocoTestReport
