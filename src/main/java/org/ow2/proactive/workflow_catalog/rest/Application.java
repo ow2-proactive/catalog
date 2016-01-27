@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
+import org.springframework.boot.context.embedded.FilterRegistrationBean;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
@@ -44,6 +45,8 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.multipart.support.MultipartFilter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -90,6 +93,19 @@ public class Application extends WebMvcConfigurerAdapter {
                 useJaf(false).
                 defaultContentType(MediaType.APPLICATION_JSON).
                 mediaType("json", MediaType.APPLICATION_JSON);
+    }
+
+    @Bean
+    public CommonsMultipartResolver commonsMultipartResolver() {
+        return new CommonsMultipartResolver();
+    }
+
+    @Bean
+    public FilterRegistrationBean multipartFilterRegistrationBean() {
+        MultipartFilter multipartFilter = new MultipartFilter();
+        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean(multipartFilter);
+        filterRegistrationBean.addInitParameter("multipartResolverBeanName", "commonsMultipartResolver");
+        return filterRegistrationBean;
     }
 
     @Bean
