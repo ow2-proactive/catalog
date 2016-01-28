@@ -4,13 +4,46 @@ grammar WorkflowCatalogQueryLanguage;
    package org.ow2.proactive.workflow_catalog.rest.query;
 }
 
-clause: ATTRIBUTE OPERATOR VALUE ;
-clauses: clause ( CONJUNCTION clause )* ;
-statement: '(' clauses ')' | clauses ;
+// PARSER
 
-ATTRIBUTE: ([a-z] | [A-Z])+ ([_.]+ ([a-z] | [A-Z] | [0-9])*)* ;
-CONJUNCTION: 'AND' | 'OR' ;
-OPERATOR: '!=' | '=' ;
-VALUE: '"' (~[\t\n])* '"' ;
+expression
+    : and_expression
+    ;
 
-WHITESPACE: [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
+and_expression
+    : or_expression (AND or_expression)*
+    ;
+
+or_expression
+    : clause (OR clause)*
+    ;
+
+clause
+    : (AttributeLiteral COMPARE_OPERATOR StringLiteral)
+    | LPAREN and_expression RPAREN
+    ;
+
+// LEXER
+
+AND                 : 'AND' | '&&' ;
+OR                  : 'OR' | '||' ;
+COMPARE_OPERATOR    : '!=' | '=' ;
+LPAREN              : '(' ;
+RPAREN              : ')' ;
+
+StringLiteral
+    : '"' (~["\\\r\n] | '\\' (. | EOF))* '"'
+    ;
+
+AttributeLiteral
+    : LETTER (LETTER | DIGIT | '_' | '.')*
+    ;
+
+WS
+    : [ \t\r\n]+ -> skip
+    ;
+
+fragment DIGIT: [0-9];
+fragment LETTER: LOWERCASE | UPPERCASE;
+fragment LOWERCASE: [a-z];
+fragment UPPERCASE: [A-Z];
