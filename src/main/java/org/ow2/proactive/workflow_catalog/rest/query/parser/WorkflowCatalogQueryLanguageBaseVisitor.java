@@ -1,6 +1,6 @@
 // Generated from WorkflowCatalogQueryLanguage.g4 by ANTLR 4.5.1
 
-   package org.ow2.proactive.workflow_catalog.rest.query;
+   package org.ow2.proactive.workflow_catalog.rest.query.parser;
 
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
@@ -19,19 +19,26 @@ public class WorkflowCatalogQueryLanguageBaseVisitor<T> extends AbstractParseTre
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitExpression(WorkflowCatalogQueryLanguageParser.ExpressionContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitAnd_expression(WorkflowCatalogQueryLanguageParser.And_expressionContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitOr_expression(WorkflowCatalogQueryLanguageParser.Or_expressionContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitClause(WorkflowCatalogQueryLanguageParser.ClauseContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitClauses(WorkflowCatalogQueryLanguageParser.ClausesContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitStatement(WorkflowCatalogQueryLanguageParser.StatementContext ctx) { return visitChildren(ctx); }
 }

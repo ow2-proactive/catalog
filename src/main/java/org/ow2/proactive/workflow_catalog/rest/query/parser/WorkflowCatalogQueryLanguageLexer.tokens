@@ -1,0 +1,10 @@
+AND=1
+OR=2
+COMPARE_OPERATOR=3
+LPAREN=4
+RPAREN=5
+StringLiteral=6
+AttributeLiteral=7
+WS=8
+'('=4
+')'=5

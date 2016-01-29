@@ -1,7 +1,7 @@
 grammar WorkflowCatalogQueryLanguage;
 
 @header {
-   package org.ow2.proactive.workflow_catalog.rest.query;
+   package org.ow2.proactive.workflow_catalog.rest.query.parser;
 }
 
 // PARSER

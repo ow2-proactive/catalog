@@ -1,6 +1,6 @@
 // Generated from WorkflowCatalogQueryLanguage.g4 by ANTLR 4.5.1
 
-   package org.ow2.proactive.workflow_catalog.rest.query;
+   package org.ow2.proactive.workflow_catalog.rest.query.parser;
 
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -18,6 +18,42 @@ public class WorkflowCatalogQueryLanguageBaseListener implements WorkflowCatalog
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterExpression(WorkflowCatalogQueryLanguageParser.ExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpression(WorkflowCatalogQueryLanguageParser.ExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAnd_expression(WorkflowCatalogQueryLanguageParser.And_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAnd_expression(WorkflowCatalogQueryLanguageParser.And_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterOr_expression(WorkflowCatalogQueryLanguageParser.Or_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOr_expression(WorkflowCatalogQueryLanguageParser.Or_expressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterClause(WorkflowCatalogQueryLanguageParser.ClauseContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -25,30 +61,6 @@ public class WorkflowCatalogQueryLanguageBaseListener implements WorkflowCatalog
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitClause(WorkflowCatalogQueryLanguageParser.ClauseContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterClauses(WorkflowCatalogQueryLanguageParser.ClausesContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitClauses(WorkflowCatalogQueryLanguageParser.ClausesContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterStatement(WorkflowCatalogQueryLanguageParser.StatementContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitStatement(WorkflowCatalogQueryLanguageParser.StatementContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

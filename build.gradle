@@ -50,7 +50,7 @@ coveralls {
 generateGrammarSource {
     arguments += ["-visitor", "-long-messages"]
     maxHeapSize = "64m"
-    outputDirectory = new File("${projectDir}/src/main/java/org/ow2/proactive/workflow_catalog/rest/query".toString())
+    outputDirectory = new File("${projectDir}/src/main/java/org/ow2/proactive/workflow_catalog/rest/query/parser".toString())
 }
 
 repositories {
