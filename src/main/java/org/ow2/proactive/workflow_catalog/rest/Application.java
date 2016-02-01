@@ -178,7 +178,7 @@ public class Application extends WebMvcConfigurerAdapter {
                 .title("Workflow Catalog API")
                 .description("The purpose of the workflow catalog is to store ProActive workflows.\n" +
                         "\n" +
-                        "A workflow catalog is subdivided into buckets.\n\n Each bucket has a unique name and store zero, one or more\n" +
+                        "A workflow catalog is subdivided into buckets.\n\n Each bucket manages zero, one or more\n" +
                         "versioned ProActive workflows.")
                 .licenseUrl("https://github.com/ow2-proactive/workflow-catalog/blob/master/LICENSE")
                 .version("1.0")
