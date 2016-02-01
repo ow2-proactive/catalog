@@ -17,10 +17,10 @@ You can build a WAR file as follows:
 $ gradle clean build war
 ```
 
-Then, you can directly deploy the service with embedded Jetty:
+Then, you can copy the file which has been generated in `PROACTIVE_HOME/dist/war` folder:
 
 ```
-$ java -jar build/libs/workflow-catalog-X.Y.Z-SNAPSHOT.war
+$ cp build/libs/workflow-catalog-X.Y.Z-SNAPSHOT.war $PROACTIVE_HOME/dist/war/workflow-catalog.war 
 ```
 
 ## Samples
