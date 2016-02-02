@@ -104,8 +104,8 @@ public class WorkflowRevisionService {
                     getMissingElementException("No job name defined.")
             );
 
-            Iterable<GenericInformation> genericInformation = persistGenericInformation(parser);
-            Iterable<Variable> variables = persistVariable(parser);
+            Iterable<GenericInformation> genericInformation = getGenericInformation(parser);
+            Iterable<Variable> variables = getVariable(parser);
 
             Workflow workflow = null;
             WorkflowRevision workflowRevision;
@@ -150,20 +150,16 @@ public class WorkflowRevisionService {
         return workflow;
     }
 
-    private Iterable<GenericInformation> persistGenericInformation(WorkflowParser parser) {
-        List<GenericInformation> genericInformationEntities = parser.getGenericInformation().entrySet().stream()
+    private Iterable<GenericInformation> getGenericInformation(WorkflowParser parser) {
+        return parser.getGenericInformation().entrySet().stream()
                 .map(entry -> new GenericInformation(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
-
-        return genericInformationRepository.save(genericInformationEntities);
     }
 
-    private Iterable<Variable> persistVariable(WorkflowParser parser) {
-        List<Variable> variablesEntities = parser.getVariables().entrySet().stream()
+    private Iterable<Variable> getVariable(WorkflowParser parser) {
+        return parser.getVariables().entrySet().stream()
                 .map(entry -> new Variable(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
-
-        return variableRepository.save(variablesEntities);
     }
 
     private Supplier<UnprocessableEntityException> getMissingElementException(String message) {

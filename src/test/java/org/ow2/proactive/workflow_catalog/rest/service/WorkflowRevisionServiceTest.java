@@ -277,8 +277,6 @@ public class WorkflowRevisionServiceTest {
         WorkflowMetadata actualWFMetadata = workflowRevisionService.createWorkflowRevision(
                 DUMMY_ID, wId, getWorkflowAsByteArray(fileName));
 
-        verify(genericInformationRepository, times(1)).save(any(List.class));
-        verify(variableRepository, times(1)).save(any(List.class));
         verify(workflowRevisionRepository, times(1)).save(any(WorkflowRevision.class));
 
         assertEquals(name, actualWFMetadata.name);

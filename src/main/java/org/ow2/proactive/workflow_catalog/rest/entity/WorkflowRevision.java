@@ -74,10 +74,10 @@ public class WorkflowRevision {
     @Column(name = "PROJECT_NAME", nullable = false)
     private String projectName;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     private List<GenericInformation> genericInformation;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     private List<Variable> variables;
 
     @Lob
