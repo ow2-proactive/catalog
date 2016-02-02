@@ -24,7 +24,6 @@ apply plugin: 'spring-boot'
 group = 'org.ow2.proactive'
 version = version
 
-
 bootRepackage {
     enabled = false
 }
@@ -47,6 +46,10 @@ coveralls {
     jacocoReportPath = "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
 }
 
+ext {
+    generatedSrcDir = "$projectDir/src/generated/java"
+}
+
 generateGrammarSource {
     arguments += ["-visitor", "-long-messages"]
     maxHeapSize = "64m"
@@ -58,6 +61,12 @@ repositories {
 }
 
 sourceSets {
+    generated {
+        java {
+            srcDirs += generatedSrcDir
+        }
+    }
+
     integrationTest {
         java {
             compileClasspath += main.output + test.output
@@ -89,6 +98,9 @@ dependencies {
     antlr 'org.antlr:antlr4:4.5.1'
 
     compile 'commons-fileupload:commons-fileupload:1.3.1'
+
+    compile 'com.querydsl:querydsl-jpa:4.0.8'
+    compile 'com.querydsl:querydsl-apt:4.0.8:jpa'
 
     compile 'org.springframework.boot:spring-boot-starter-data-jpa:1.3.2.RELEASE'
     compile('org.springframework.boot:spring-boot-starter-web:1.3.2.RELEASE') {
@@ -148,6 +160,28 @@ jacocoTestReport {
         xml.enabled = true
     }
 }
+
+
+task moveGeneratedFiles(type: Copy) {
+    def copySrcDir = "$buildDir/classes/main"
+
+    from(copySrcDir)
+    includeEmptyDirs = false
+    into(generatedSrcDir)
+    include('**/*.java')
+
+    doLast {
+        delete fileTree(dir: copySrcDir , include: '**/*.java')
+    }
+}
+
+clean {
+    sourceSets.generated.java.srcDirs.each {
+       srcDir -> delete srcDir
+    }
+}
+
+compileJava.finalizedBy moveGeneratedFiles
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.10'
