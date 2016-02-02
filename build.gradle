@@ -53,7 +53,7 @@ ext {
 generateGrammarSource {
     arguments += ["-visitor", "-long-messages"]
     maxHeapSize = "64m"
-    outputDirectory = new File("${projectDir}/src/main/java/org/ow2/proactive/workflow_catalog/rest/query/parser".toString())
+    outputDirectory = file("$generatedSrcDir/org/ow2/proactive/workflow_catalog/rest/query/parser")
 }
 
 repositories {
@@ -74,6 +74,12 @@ sourceSets {
             srcDir file('src/integration-test/java')
         }
         resources.srcDir file('src/integration-test/resources')
+    }
+
+    main {
+        java {
+            srcDirs += generatedSrcDir
+        }
     }
 
     // Below is a trick for IntelliJ IDEA to add integration test
