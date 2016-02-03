@@ -31,6 +31,7 @@
 package org.ow2.proactive.workflow_catalog.rest.service;
 
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -49,8 +50,14 @@ public class WorkflowService {
     @Autowired
     private WorkflowRevisionService workflowRevisionService;
 
-    public WorkflowMetadata createWorkflow(Long bucketId, byte[] xmlPayload) {
-        return workflowRevisionService.createWorkflowRevision(bucketId, Optional.empty(), xmlPayload);
+    public WorkflowMetadata createWorkflow(Long bucketId, ProActiveWorkflowParserResult proActiveWorkflowParserResult,
+                                           byte[] proActiveWorkflowXmlContent) {
+        return workflowRevisionService.createWorkflowRevision(bucketId, Optional.empty(),
+                proActiveWorkflowParserResult, proActiveWorkflowXmlContent);
+    }
+
+    public WorkflowMetadata createWorkflow(Long bucketId, byte[] proActiveWorkflowXmlContent) {
+        return workflowRevisionService.createWorkflowRevision(bucketId, Optional.empty(), proActiveWorkflowXmlContent);
     }
 
     public ResponseEntity<?> getWorkflowMetadata(long bucketId, long workflowId, Optional<String> alt) {

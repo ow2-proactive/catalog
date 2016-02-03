@@ -38,48 +38,44 @@ import javax.xml.stream.XMLStreamException;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
+ * Unit tests associated to {@link ProActiveWorkflowParser}.
+ *
  * @author ActiveEon Team
  */
-public class WorkflowParserTest {
+public class ProActiveWorkflowParserTest {
 
     @Test
     public void testParseWorkflow() throws Exception {
-        WorkflowParser parser = parseWorkflow("workflow.xml");
+        ProActiveWorkflowParserResult result = parseWorkflow("workflow.xml");
 
-        assertThat(parser.getJobName().isPresent()).isTrue();
-        assertThat(parser.getJobName().get()).isEqualTo("Valid Workflow");
+        assertThat(result.getJobName()).isEqualTo("Valid Workflow");
 
-        assertThat(parser.getProjectName().isPresent()).isTrue();
-        assertThat(parser.getProjectName().get()).isEqualTo("Project Name");
+        assertThat(result.getProjectName()).isEqualTo("Project Name");
 
-        assertThat(parser.getGenericInformation())
+        assertThat(result.getGenericInformation())
                 .containsExactly("genericInfo1", "genericInfo1Value", "genericInfo2", "genericInfo2Value");
-        assertThat(parser.getVariables())
+        assertThat(result.getVariables())
                 .containsExactly("var1", "var1Value", "var2", "var2Value");
     }
 
     @Test
     public void testParseWorkflowContainingNoGenericInformationAndNoVariable() throws Exception {
-        WorkflowParser parser = parseWorkflow("workflow-no-generic-information-no-variable.xml");
+        ProActiveWorkflowParserResult result = parseWorkflow("workflow-no-generic-information-no-variable.xml");
 
-        assertThat(parser.getJobName().isPresent()).isTrue();
-        assertThat(parser.getJobName().get()).isEqualTo("Valid Workflow");
+        assertThat(result.getJobName()).isEqualTo("Valid Workflow");
 
-        assertThat(parser.getProjectName().isPresent()).isTrue();
-        assertThat(parser.getProjectName().get()).isEqualTo("Project Name");
+        assertThat(result.getProjectName()).isEqualTo("Project Name");
 
-        assertThat(parser.getGenericInformation()).isEmpty();
-        assertThat(parser.getVariables()).isEmpty();
+        assertThat(result.getGenericInformation()).isEmpty();
+        assertThat(result.getVariables()).isEmpty();
     }
 
-    private WorkflowParser parseWorkflow(String xmlFilename) throws XMLStreamException {
-        WorkflowParser parser =
-                new WorkflowParser(
-                        WorkflowParserTest.class.getResourceAsStream("/workflows/" + xmlFilename));
+    private ProActiveWorkflowParserResult parseWorkflow(String xmlFilename) throws XMLStreamException {
+        ProActiveWorkflowParser parser =
+                new ProActiveWorkflowParser(
+                        ProActiveWorkflowParserTest.class.getResourceAsStream("/workflows/" + xmlFilename));
 
-        parser.parse();
-
-        return parser;
+        return parser.parse();
     }
 
 }

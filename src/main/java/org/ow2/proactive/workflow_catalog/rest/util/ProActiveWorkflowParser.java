@@ -32,6 +32,7 @@
 package org.ow2.proactive.workflow_catalog.rest.util;
 
 import com.google.common.collect.ImmutableMap;
+import org.ow2.proactive.workflow_catalog.rest.exceptions.UnprocessableEntityException;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -40,9 +41,10 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 /**
- * WorkflowParser aims to parse a ProActive workflow (whatever the schema version is)
+ * ProActiveWorkflowParser aims to parse a ProActive XML workflow (whatever the schema version is)
  * in order to extract some specific values (job name, project name, generic
  * information and variables).
  * <p>
@@ -51,7 +53,7 @@ import java.util.function.BiConsumer;
  *
  * @author ActiveEon Team
  */
-public final class WorkflowParser {
+public final class ProActiveWorkflowParser {
 
     private static final String ATTRIBUTE_JOB_NAME = "name";
 
@@ -105,11 +107,13 @@ public final class WorkflowParser {
 
     }
 
-    public WorkflowParser(InputStream inputStream) throws XMLStreamException {
+    public ProActiveWorkflowParser(InputStream inputStream) throws XMLStreamException {
         this.xmlStreamReader = XmlInputFactoryLazyHolder.INSTANCE.createXMLStreamReader(inputStream);
+        this.genericInformation = ImmutableMap.of();
+        this.variables = ImmutableMap.of();
     }
 
-    public void parse() throws XMLStreamException {
+    public ProActiveWorkflowParserResult parse() throws XMLStreamException {
         int eventType;
 
         ImmutableMap.Builder<String, String> genericInformation = ImmutableMap.builder();
@@ -150,11 +154,31 @@ public final class WorkflowParser {
                         break;
                 }
             }
-        } finally {
-            this.xmlStreamReader.close();
+
             this.genericInformation = genericInformation.build();
             this.variables = variables.build();
+
+            return createResult();
+        } finally {
+            this.xmlStreamReader.close();
         }
+    }
+
+    private ProActiveWorkflowParserResult createResult() {
+        String projectName = getProjectName().orElseThrow(
+                getMissingElementException("No project name defined.")
+        );
+
+        String name = getJobName().orElseThrow(
+                getMissingElementException("No job name defined.")
+        );
+
+        return new ProActiveWorkflowParserResult(
+                projectName, name, getGenericInformation(), getVariables());
+    }
+
+    private Supplier<UnprocessableEntityException> getMissingElementException(String message) {
+        return () -> new UnprocessableEntityException("XML does not validate against Schema. " + message);
     }
 
     private void handleGenericInformationElement(ImmutableMap.Builder<String, String> genericInformation) {
@@ -215,19 +239,19 @@ public final class WorkflowParser {
         return this.jobHandled && this.genericInformationHandled && this.variablesHandled;
     }
 
-    public Optional<String> getJobName() {
+    private Optional<String> getJobName() {
         return Optional.ofNullable(jobName);
     }
 
-    public Optional<String> getProjectName() {
+    private Optional<String> getProjectName() {
         return Optional.ofNullable(projectName);
     }
 
-    public ImmutableMap<String, String> getGenericInformation() {
+    private ImmutableMap<String, String> getGenericInformation() {
         return genericInformation;
     }
 
-    public ImmutableMap<String, String> getVariables() {
+    private ImmutableMap<String, String> getVariables() {
         return variables;
     }
 

@@ -45,6 +45,7 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -150,7 +151,8 @@ public class Application extends WebMvcConfigurerAdapter {
 
     @Bean
     @Profile("default")
-    public CommonsMultipartResolver multipartResolver() {
+    public MultipartResolver multipartResolver() {
+        // new StandardServletMultipartResolver()
         return new CommonsMultipartResolver();
     }
 

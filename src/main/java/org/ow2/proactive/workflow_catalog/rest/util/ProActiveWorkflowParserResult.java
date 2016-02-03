@@ -28,16 +28,52 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
+package org.ow2.proactive.workflow_catalog.rest.util;
 
-package org.ow2.proactive.workflow_catalog.rest.service.repository;
+import com.google.common.collect.ImmutableMap;
 
-import org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
-import org.springframework.data.repository.CrudRepository;
+import java.util.Objects;
 
 /**
+ *
+ * @see ProActiveWorkflowParser
+ *
  * @author ActiveEon Team
  */
-public interface GenericInformationRepository extends CrudRepository<GenericInformation, Long>, QueryDslPredicateExecutor<GenericInformation> {
+public final class ProActiveWorkflowParserResult {
+
+    private final String projectName;
+
+    private final String name;
+
+    private final ImmutableMap<String, String> genericInformation;
+
+    private final ImmutableMap<String, String> variables;
+
+    public ProActiveWorkflowParserResult(String projectName, String name, ImmutableMap<String, String> genericInformation, ImmutableMap<String, String> variables) {
+        Objects.requireNonNull(genericInformation);
+        Objects.requireNonNull(variables);
+
+        this.projectName = projectName;
+        this.name = name;
+        this.genericInformation = genericInformation;
+        this.variables = variables;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public String getJobName() {
+        return name;
+    }
+
+    public ImmutableMap<String, String> getGenericInformation() {
+        return genericInformation;
+    }
+
+    public ImmutableMap<String, String> getVariables() {
+        return variables;
+    }
 
 }

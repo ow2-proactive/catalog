@@ -30,6 +30,7 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import org.junit.Before;
@@ -45,6 +46,7 @@ import org.ow2.proactive.workflow_catalog.rest.exceptions.RevisionNotFoundExcept
 import org.ow2.proactive.workflow_catalog.rest.exceptions.UnprocessableEntityException;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.WorkflowNotFoundException;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.*;
+import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -106,7 +108,9 @@ public class WorkflowRevisionServiceTest {
     @Test(expected = BucketNotFoundException.class)
     public void testCreateWorkflowRevisionWithInvalidBucket() throws Exception {
         when(bucketRepository.findOne(Matchers.anyLong())).thenReturn(null);
-        workflowRevisionService.createWorkflowRevision(DUMMY_ID, Optional.empty(), null);
+        workflowRevisionService.createWorkflowRevision(DUMMY_ID, Optional.empty(),
+                new ProActiveWorkflowParserResult("projectName", "name",
+                        ImmutableMap.of(), ImmutableMap.of()), new byte[0]);
     }
 
     @Test(expected = UnprocessableEntityException.class)

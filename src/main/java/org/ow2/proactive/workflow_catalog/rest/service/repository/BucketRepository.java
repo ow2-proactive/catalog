@@ -34,13 +34,14 @@ package org.ow2.proactive.workflow_catalog.rest.service.repository;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 
 /**
  * @author ActiveEon Team
  */
-public interface BucketRepository extends PagingAndSortingRepository<Bucket, Long> {
+public interface BucketRepository extends PagingAndSortingRepository<Bucket, Long>, QueryDslPredicateExecutor<Bucket> {
 
 	Page<Bucket> findByName(@Param("name") String name, Pageable pageable);
 

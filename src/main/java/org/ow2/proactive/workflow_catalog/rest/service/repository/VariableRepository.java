@@ -32,11 +32,12 @@
 package org.ow2.proactive.workflow_catalog.rest.service.repository;
 
 import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 
 /**
  * @author ActiveEon Team
  */
-public interface VariableRepository extends CrudRepository<Variable, Long> {
+public interface VariableRepository extends CrudRepository<Variable, Long>, QueryDslPredicateExecutor<Variable> {
 
 }

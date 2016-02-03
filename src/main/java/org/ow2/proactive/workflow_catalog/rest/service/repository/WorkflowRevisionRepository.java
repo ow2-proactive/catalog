@@ -35,12 +35,13 @@ import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 /**
  * @author ActiveEon Team
  */
-public interface WorkflowRevisionRepository extends PagingAndSortingRepository<WorkflowRevision, Long> {
+public interface WorkflowRevisionRepository extends PagingAndSortingRepository<WorkflowRevision, Long>, QueryDslPredicateExecutor<WorkflowRevision> {
 
     @Query("SELECT wr FROM WorkflowRevision wr JOIN wr.workflow w WHERE w.id = ?1")
     Page<WorkflowRevision> getRevisions(Long workflowId, Pageable pageable);

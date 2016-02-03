@@ -37,12 +37,19 @@ import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQuery
 import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
 
 /**
- * Compile a Workflow Catalog query as input String to an AST.
+ * Compile a Workflow Catalog query as input String to an Abstract Syntax Tree (AST).
  *
  * @author ActiveEon Team
  */
 public class WorkflowCatalogQueryCompiler {
 
+    /**
+     * Compile the specified Workflow Catalog to an AST.
+     *
+     * @param input the Workflow Catalog query to compile.
+     * @return the root of the AST.
+     * @throws SyntaxException if one or more syntax errors are detected while compiling.
+     */
     public WorkflowCatalogQueryLanguageParser.ExpressionContext compile(String input) throws SyntaxException {
         SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
 

@@ -66,6 +66,7 @@ public class Workflow {
     private Long lastRevisionId = 0L;
 
     public Workflow() {
+        this.revisions = new ArrayList<>(0);
     }
 
     public Workflow(Bucket bucket, WorkflowRevision... revisions) {

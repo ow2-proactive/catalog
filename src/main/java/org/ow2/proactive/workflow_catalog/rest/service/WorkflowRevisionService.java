@@ -30,14 +30,15 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableMap;
 import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.controller.WorkflowRevisionController;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.*;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.*;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.*;
-import org.ow2.proactive.workflow_catalog.rest.util.WorkflowParser;
+import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParser;
+import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
@@ -56,7 +57,6 @@ import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
@@ -89,55 +89,66 @@ public class WorkflowRevisionService {
     private WorkflowRevisionRepository workflowRevisionRepository;
 
     @Transactional
-    public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId, byte[] xmlPayload) {
-        Bucket bucket = findBucket(bucketId);
-
+    public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId, byte[] proActiveWorkflowXmlContent) {
         try {
-            WorkflowParser parser = new WorkflowParser(new ByteArrayInputStream(xmlPayload));
-            parser.parse();
+            ProActiveWorkflowParser proActiveWorkflowParser =
+                    new ProActiveWorkflowParser(
+                            new ByteArrayInputStream(proActiveWorkflowXmlContent));
 
-            String projectName = parser.getProjectName().orElseThrow(
-                    getMissingElementException("No project name defined.")
-            );
-
-            String name = parser.getJobName().orElseThrow(
-                    getMissingElementException("No job name defined.")
-            );
-
-            Iterable<GenericInformation> genericInformation = getGenericInformation(parser);
-            Iterable<Variable> variables = getVariable(parser);
-
-            Workflow workflow = null;
-            WorkflowRevision workflowRevision;
-
-            long revisionNumber = 1;
-
-            if (workflowId.isPresent()) {
-                workflow = findWorkflow(workflowId.get());
-                revisionNumber = workflow.getLastRevisionId() + 1;
-            }
-
-            workflowRevision =
-                    new WorkflowRevision(
-                            bucketId, revisionNumber, name, projectName, LocalDateTime.now(),
-                            Lists.newArrayList(genericInformation),
-                            Lists.newArrayList(variables),
-                            xmlPayload);
-
-            workflowRevision = workflowRevisionRepository.save(workflowRevision);
-
-            if (!workflowId.isPresent()) {
-                workflow = new Workflow(bucket, workflowRevision);
-            } else {
-                workflow.addRevision(workflowRevision);
-            }
-
-            workflowRepository.save(workflow);
-
-            return new WorkflowMetadata(workflowRevision);
+            return createWorkflowRevision(bucketId, workflowId,
+                    proActiveWorkflowParser.parse(), proActiveWorkflowXmlContent);
         } catch (XMLStreamException e) {
             throw new UnprocessableEntityException(e);
         }
+    }
+
+    @Transactional
+    public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId,
+                                                   ProActiveWorkflowParserResult proActiveWorkflowParserResult,
+                                                   byte[] proActiveWorkflowXmlContent) {
+        Bucket bucket = findBucket(bucketId);
+
+        Workflow workflow = null;
+        WorkflowRevision workflowRevision;
+
+        long revisionNumber = 1;
+
+        if (workflowId.isPresent()) {
+            workflow = findWorkflow(workflowId.get());
+            revisionNumber = workflow.getLastRevisionId() + 1;
+        }
+
+        workflowRevision =
+                new WorkflowRevision(
+                        bucketId, revisionNumber, proActiveWorkflowParserResult.getJobName(),
+                        proActiveWorkflowParserResult.getProjectName(), LocalDateTime.now(),
+                        createEntityGenericInformation(proActiveWorkflowParserResult.getGenericInformation()),
+                        createEntityVariable(proActiveWorkflowParserResult.getVariables()),
+                        proActiveWorkflowXmlContent);
+
+        workflowRevision = workflowRevisionRepository.save(workflowRevision);
+
+        if (!workflowId.isPresent()) {
+            workflow = new Workflow(bucket, workflowRevision);
+        } else {
+            workflow.addRevision(workflowRevision);
+        }
+
+        workflowRepository.save(workflow);
+
+        return new WorkflowMetadata(workflowRevision);
+    }
+
+    protected List<GenericInformation> createEntityGenericInformation(ImmutableMap<String, String> genericInformation) {
+        return genericInformation.entrySet().stream()
+                .map(entry -> new GenericInformation(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    protected List<Variable> createEntityVariable(ImmutableMap<String, String> variables) {
+        return variables.entrySet().stream()
+                .map(entry -> new Variable(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
     }
 
     protected Workflow findWorkflow(long workflowId) {
@@ -148,22 +159,6 @@ public class WorkflowRevisionService {
         }
 
         return workflow;
-    }
-
-    private Iterable<GenericInformation> getGenericInformation(WorkflowParser parser) {
-        return parser.getGenericInformation().entrySet().stream()
-                .map(entry -> new GenericInformation(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
-    }
-
-    private Iterable<Variable> getVariable(WorkflowParser parser) {
-        return parser.getVariables().entrySet().stream()
-                .map(entry -> new Variable(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
-    }
-
-    private Supplier<UnprocessableEntityException> getMissingElementException(String message) {
-        return () -> new UnprocessableEntityException("XML does not validate against Schema. " + message);
     }
 
     protected Bucket findBucket(Long bucketId) {
@@ -241,5 +236,6 @@ public class WorkflowRevisionService {
         // for Optional class
         return new Link(controllerLinkBuilder.toString() + "?alt=" + SUPPORTED_ALT_VALUE).withRel("content");
     }
+
 
 }

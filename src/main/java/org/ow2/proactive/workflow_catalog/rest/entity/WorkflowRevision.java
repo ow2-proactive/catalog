@@ -36,6 +36,7 @@ import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -85,7 +86,8 @@ public class WorkflowRevision {
     private byte[] xmlPayload;
 
     public WorkflowRevision() {
-        super();
+        this.genericInformation = new ArrayList<>();
+        this.variables = new ArrayList<>();
     }
 
     public WorkflowRevision(Long bucketId, Long revisionId, String name, String projectName,
@@ -111,6 +113,14 @@ public class WorkflowRevision {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public void addGenericInformation(GenericInformation genericInformation) {
+        this.genericInformation.add(genericInformation);
+    }
+
+    public void addVariable(Variable variable) {
+        this.variables.add(variable);
     }
 
     public List<GenericInformation> getGenericInformation() {
@@ -139,6 +149,14 @@ public class WorkflowRevision {
 
     public byte[] getXmlPayload() {
         return xmlPayload;
+    }
+
+    public void setBucketId(Long bucketId) {
+        this.bucketId = bucketId;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public void setGenericInformation(List<GenericInformation> genericInformation) {

@@ -1,4 +1,5 @@
 build
+generated
 src/generated
 *.iml
 .idea
