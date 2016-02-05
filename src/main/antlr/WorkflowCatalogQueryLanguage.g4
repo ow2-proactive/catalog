@@ -19,8 +19,8 @@ or_expression
     ;
 
 clause
-    : (AttributeLiteral COMPARE_OPERATOR StringLiteral)
-    | LPAREN and_expression RPAREN
+    : (AttributeLiteral COMPARE_OPERATOR StringLiteral) #finalClause
+    | LPAREN and_expression RPAREN #parenthesedClause
     ;
 
 // LEXER
