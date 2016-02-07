@@ -17,10 +17,10 @@ You can build a WAR file as follows:
 $ gradle clean build war
 ```
 
-Then, you can copy the file which has been generated to `PROACTIVE_HOME/dist/war` folder:
+Then, you can directly deploy the microservice with embedded Tomcat:
 
 ```
-$ cp build/libs/workflow-catalog-X.Y.Z-SNAPSHOT.war $PROACTIVE_HOME/dist/war/workflow-catalog.war 
+$ java -jar build/libs/workflow-catalog-X.Y.Z-SNAPSHOT.war
 ```
 
 ## Samples
