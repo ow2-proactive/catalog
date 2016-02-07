@@ -23,6 +23,8 @@ Then, you can directly deploy the microservice with embedded Tomcat:
 $ java -jar build/libs/workflow-catalog-X.Y.Z-SNAPSHOT.war
 ```
 
+The WAR file produced by Gradle can also be deployed in the embedded Jetty started by an instance of [ProActive Server](https://github.com/ow2-proactive/scheduling).
+
 ## Samples
 
 Available resources can be listed and tested with Swagger:
