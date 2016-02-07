@@ -25,7 +25,7 @@ group = 'org.ow2.proactive'
 version = version
 
 bootRepackage {
-    enabled = false
+    enabled = true
 }
 
 configurations {
@@ -67,27 +67,18 @@ sourceSets {
         }
     }
 
-    integrationTest {
-        java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
-            srcDir file('src/integration-test/java')
-        }
-        resources.srcDir file('src/integration-test/resources')
-    }
-
     main {
         java {
             srcDirs += generatedSrcDir
         }
     }
 
-    // Below is a trick for IntelliJ IDEA to add integration test
-    // resources to classpath when running integration tests from
-    // the IDE. It's is not a good solution but I don't know about
-    // a better one.
-    test {
+    integrationTest {
+        java.srcDir file('src/integration-test/java')
         resources.srcDir file('src/integration-test/resources')
+
+        compileClasspath = sourceSets.main.output + configurations.integrationTestCompile
+        runtimeClasspath = output + compileClasspath + configurations.integrationTestRuntime
     }
 }
 
@@ -101,36 +92,34 @@ war {
 }
 
 dependencies {
-    antlr 'org.antlr:antlr4:4.5.1'
+    antlr 'org.antlr:antlr4:4.5.2'
 
     compile 'commons-fileupload:commons-fileupload:1.3.1'
-
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.1'
     compile 'com.mysema.querydsl:querydsl-jpa:3.7.1'
     compile 'com.mysema.querydsl:querydsl-apt:3.7.1:jpa'
 
     compile 'org.springframework.boot:spring-boot-starter-data-jpa:1.3.2.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-log4j2:1.3.2.RELEASE'
     compile('org.springframework.boot:spring-boot-starter-web:1.3.2.RELEASE') {
         exclude module: 'spring-boot-starter-tomcat'
         exclude module: 'spring-boot-starter-validation'
     }
+    compile 'org.springframework.hateoas:spring-hateoas:0.19.0.RELEASE'
 
-    compile 'org.springframework.boot:spring-boot-legacy:1.0.2.RELEASE'
-    compile 'org.springframework.boot:spring-boot-starter-log4j2:1.3.2.RELEASE'
-
-    providedRuntime 'org.hsqldb:hsqldb:2.3.3'
     providedCompile 'org.springframework.boot:spring-boot-starter-tomcat:1.3.2.RELEASE'
+    providedRuntime 'org.hsqldb:hsqldb:2.3.3'
 
-    compile 'io.springfox:springfox-spring-web:2.3.0'
-    compile 'io.springfox:springfox-swagger2:2.3.0'
-    compile 'io.springfox:springfox-swagger-ui:2.3.0'
+    compile 'io.springfox:springfox-spring-web:2.3.1'
+    compile 'io.springfox:springfox-swagger2:2.3.1'
+    compile 'io.springfox:springfox-swagger-ui:2.3.1'
 
-    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-
-    testCompile 'junit:junit:4.12'
     testCompile 'com.google.truth:truth:0.28'
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.19'
 
-    testCompile 'org.springframework.boot:spring-boot-starter-test:1.3.2.RELEASE'
-    testCompile 'com.jayway.restassured:rest-assured:2.8.0'
+    integrationTestCompile 'com.jayway.restassured:rest-assured:2.8.0'
+    integrationTestCompile 'org.springframework.boot:spring-boot-starter-test:1.3.2.RELEASE'
 }
 
 test {
@@ -139,11 +128,10 @@ test {
     }
 }
 
-task integrationTest(type: Test, dependsOn: integrationTestClasses) {
-    classpath = sourceSets.integrationTest.runtimeClasspath
+task integrationTest(type: Test) {
     testClassesDir = sourceSets.integrationTest.output.classesDir
-
-    outputs.upToDateWhen { false }
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    classpath += sourceSets.test.runtimeClasspath
 
     jacoco {
         destinationFile = file("$buildDir/jacoco/jacocoIntegrationTest.exec")
@@ -155,18 +143,24 @@ task integrationTest(type: Test, dependsOn: integrationTestClasses) {
 }
 
 jacocoTestReport {
-    // execution files
     executionData test, integrationTest
 
-    // source sets to report on the coverage of
     sourceSets project.sourceSets.main
 
     reports {
         html.enabled = true
         xml.enabled = true
     }
-}
 
+    // remove auto-generated classes from report
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it, excludes: [
+                    'org/ow2/proactive/workflow_catalog/rest/entity/Q*',
+                    'org/ow2/proactive/workflow_catalog/rest/query/parser/*']);
+        })
+    }
+}
 
 task moveGeneratedFiles(type: Copy) {
     def copySrcDir = "$buildDir/classes/main"
