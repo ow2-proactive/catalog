@@ -65,7 +65,7 @@ public class WorkflowCatalogJpaQueryBuilder {
         this.queryCompiler = queryCompiler;
     }
 
-    public void setWCQLVisitor(WorkflowCatalogQueryLanguageVisitor WCQLVisitor) {
+    protected void setWCQLVisitor(WorkflowCatalogQueryLanguageVisitor WCQLVisitor) {
         this.WCQLVisitor = WCQLVisitor;
     }
 }
