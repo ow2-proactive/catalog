@@ -35,8 +35,10 @@ import com.google.common.base.Predicate;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
+import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
@@ -64,6 +66,7 @@ import java.io.File;
  * @author ActiveEon Team
  */
 @SpringBootApplication
+@EnableAutoConfiguration(exclude={MultipartAutoConfiguration.class})
 @EnableSwagger2
 @EntityScan(basePackageClasses = Bucket.class)
 @PropertySource("classpath:application.properties")
@@ -150,9 +153,7 @@ public class Application extends WebMvcConfigurerAdapter {
     }
 
     @Bean
-    @Profile("default")
     public MultipartResolver multipartResolver() {
-        // new StandardServletMultipartResolver()
         return new CommonsMultipartResolver();
     }
 
