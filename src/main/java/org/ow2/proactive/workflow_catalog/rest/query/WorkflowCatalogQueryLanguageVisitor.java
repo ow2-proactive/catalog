@@ -38,7 +38,6 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
 
     @Override
     public BooleanBuilder visitExpression(WorkflowCatalogQueryLanguageParser.ExpressionContext ctx) {
-        System.out.println("expression");
         return visitAnd_expression(ctx.and_expression());
     }
 
@@ -46,7 +45,6 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
     public BooleanBuilder visitAnd_expression(WorkflowCatalogQueryLanguageParser.And_expressionContext ctx) {
         BooleanBuilder booleanBuilder = new BooleanBuilder();
         for (WorkflowCatalogQueryLanguageParser.Or_expressionContext orExpressionContext : ctx.or_expression()) {
-            System.out.println("and_expression");
             booleanBuilder.and(visit(orExpressionContext));
         }
         return booleanBuilder;
@@ -56,14 +54,12 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
     public BooleanBuilder visitOr_expression(WorkflowCatalogQueryLanguageParser.Or_expressionContext ctx) {
         BooleanBuilder booleanBuilder = new BooleanBuilder();
         for (WorkflowCatalogQueryLanguageParser.ClauseContext clauseContext : ctx.clause()) {
-            System.out.println("or_expression");
             booleanBuilder.or(visit(clauseContext));
         }
         return booleanBuilder;
     }
 
     public BooleanBuilder visitFinalClause(WorkflowCatalogQueryLanguageParser.FinalClauseContext ctx) {
-        System.out.println("finalClause");
 
         String attributeLiteral = ctx.AttributeLiteral().getText();
         String stringLiteral = ctx.StringLiteral().getText();
@@ -83,25 +79,20 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
     }
 
     public BooleanBuilder visitParenthesedClause(WorkflowCatalogQueryLanguageParser.ParenthesedClauseContext ctx) {
-        System.out.println("parenthesedClause");
         return visitAnd_expression(ctx.and_expression());
     }
 
     private ClauseKey.TABLE getTable(String attributeName) {
         if (attributeName.contains(VAR_TOKEN + ".")) {
-            System.out.println("Table = " + ClauseKey.TABLE.VARIABLE);
             return ClauseKey.TABLE.VARIABLE;
         }
         else if (attributeName.contains(GI_TOKEN + ".")) {
-            System.out.println("Table = " + ClauseKey.TABLE.GENERIC_INFORMATION);
             return ClauseKey.TABLE.GENERIC_INFORMATION;
         }
         else if (attributeName.contains(NAME_TOKEN)) {
-            System.out.println("Table = " + ClauseKey.TABLE.NAME);
             return ClauseKey.TABLE.NAME;
         }
         else if (attributeName.contains(PROJ_TOKEN)) {
-            System.out.println("Table = " + ClauseKey.TABLE.PROJECT_NAME);
             return ClauseKey.TABLE.PROJECT_NAME;
         }
         else {
@@ -111,11 +102,9 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
 
     private ClauseKey.OPERATION getOperation(String operation) {
         if (operation.contentEquals(EQ)) {
-            System.out.println("Operation = " + ClauseKey.OPERATION.EQUAL);
             return ClauseKey.OPERATION.EQUAL;
         }
         else if (operation.contentEquals(NEQ)) {
-            System.out.println("Operation = " + ClauseKey.OPERATION.NOT_EQUAL);
             return ClauseKey.OPERATION.NOT_EQUAL;
         }
         else {
@@ -129,11 +118,9 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
             String[] terms = attributeLiteral.split(Pattern.quote("."));
             assert terms.length > 1;
             if (terms[1].equalsIgnoreCase(NAME_KEYWORD)) {
-                System.out.println("Clause = " + ClauseKey.CLAUSE_TYPE.KEY);
                 return ClauseKey.CLAUSE_TYPE.KEY;
             }
             else if (terms[1].equalsIgnoreCase(VALUE_KEYWORD)) {
-                System.out.println("Clause = " + ClauseKey.CLAUSE_TYPE.VALUE);
                 return ClauseKey.CLAUSE_TYPE.VALUE;
             }
             else {
@@ -141,7 +128,6 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
             }
         }
         else if (table == ClauseKey.TABLE.NAME || table == ClauseKey.TABLE.PROJECT_NAME) {
-            System.out.println("Clause = " + ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE);
             return ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE;
         }
         else {
