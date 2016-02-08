@@ -31,41 +31,43 @@
 package org.ow2.proactive.workflow_catalog.rest.query;
 
 import com.mysema.query.BooleanBuilder;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
 
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Create the BooleanBuilder that will be used to generate the WCQL query
  *
  * @author ActiveEon Team
  */
-public class WorkflowCatalogJpaQueryBuilder {
+public class WorkflowCatalogJpaQueryBuilderTest {
 
-    private final String workflowCatalogQuery;
-    protected WorkflowCatalogQueryCompiler queryCompiler;
-    protected WorkflowCatalogQueryLanguageVisitor WCQLVisitor;
+    @Mock
+    private WorkflowCatalogQueryCompiler workflowCatalogQueryCompiler;
 
-    public WorkflowCatalogJpaQueryBuilder(String workflowCatalogQuery) {
-        this.workflowCatalogQuery = workflowCatalogQuery;
-        this.queryCompiler = new WorkflowCatalogQueryCompiler();
-        this.WCQLVisitor = new WorkflowCatalogQueryLanguageVisitor();
+    @Mock
+    private WorkflowCatalogQueryLanguageVisitor WCQLVisitor;
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
     }
 
-    public BooleanBuilder build() {
-        WorkflowCatalogQueryLanguageParser.ExpressionContext context = null;
-        try {
-            context = queryCompiler.compile(workflowCatalogQuery);
-        } catch (SyntaxException e) {
-            e.printStackTrace();
-        }
-        return WCQLVisitor.visitExpression(context);
-    }
-
-    protected void setQueryCompiler(WorkflowCatalogQueryCompiler queryCompiler) {
-        this.queryCompiler = queryCompiler;
-    }
-
-    public void setWCQLVisitor(WorkflowCatalogQueryLanguageVisitor WCQLVisitor) {
-        this.WCQLVisitor = WCQLVisitor;
+    @Test
+    public void testBuild() throws Exception {
+        String QCWLQuery = "variable.MyVariable=\"toto\"";
+        WorkflowCatalogJpaQueryBuilder queryBuilder = new WorkflowCatalogJpaQueryBuilder(QCWLQuery);
+        queryBuilder.setQueryCompiler(workflowCatalogQueryCompiler);
+        queryBuilder.setWCQLVisitor(WCQLVisitor);
+        queryBuilder.build();
+        verify(workflowCatalogQueryCompiler, times(1)).compile(QCWLQuery);
+        verify(WCQLVisitor, times(1)).visitExpression(any(WorkflowCatalogQueryLanguageParser.ExpressionContext.class));
     }
 }
