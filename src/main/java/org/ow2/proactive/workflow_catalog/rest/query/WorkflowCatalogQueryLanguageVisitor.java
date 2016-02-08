@@ -1,3 +1,33 @@
+/*
+ *  ProActive Parallel Suite(TM): The Java(TM) library for
+ *     Parallel, Distributed, Multi-Core Computing for
+ *     Enterprise Grids & Clouds
+ *
+ *  Copyright (C) 1997-2016 INRIA/University of
+ *                  Nice-Sophia Antipolis/ActiveEon
+ *  Contact: proactive@ow2.org or contact@activeeon.com
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Affero General Public License
+ *  as published by the Free Software Foundation; version 3 of
+ *  the License.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+ *  USA
+ *
+ *  If needed, contact us to obtain a release under GPL Version 2 or 3
+ *  or a different license than the AGPL.
+ *
+ *  Initial developer(s):               The ProActive Team
+ *                          http://proactive.inria.fr/team_members.htm
+ */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
 import com.google.common.collect.ImmutableMap;
@@ -82,25 +112,28 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         return visitAnd_expression(ctx.and_expression());
     }
 
-    private ClauseKey.TABLE getTable(String attributeName) {
-        if (attributeName.contains(VAR_TOKEN + ".")) {
-            return ClauseKey.TABLE.VARIABLE;
-        }
-        else if (attributeName.contains(GI_TOKEN + ".")) {
-            return ClauseKey.TABLE.GENERIC_INFORMATION;
-        }
-        else if (attributeName.contains(NAME_TOKEN)) {
-            return ClauseKey.TABLE.NAME;
-        }
-        else if (attributeName.contains(PROJ_TOKEN)) {
-            return ClauseKey.TABLE.PROJECT_NAME;
+    protected ClauseKey.TABLE getTable(String attributeName) {
+        String[] terms = attributeName.split(Pattern.quote("."));
+        if (terms.length > 1) {
+            if (terms[0].equalsIgnoreCase(VAR_TOKEN)) {
+                return ClauseKey.TABLE.VARIABLE;
+            }
+            else if (terms[0].equalsIgnoreCase(GI_TOKEN)) {
+                return ClauseKey.TABLE.GENERIC_INFORMATION;
+            }
         }
         else {
-            throw new QueryBuilderException("Attribute name " + attributeName + " is invalid");
+            if (terms[0].equalsIgnoreCase(NAME_TOKEN)) {
+                return ClauseKey.TABLE.NAME;
+            }
+            else if (terms[0].equalsIgnoreCase(PROJ_TOKEN)) {
+                return ClauseKey.TABLE.PROJECT_NAME;
+            }
         }
+        throw new QueryBuilderException("Table name found in " + attributeName + " is invalid");
     }
 
-    private ClauseKey.OPERATION getOperation(String operation) {
+    protected ClauseKey.OPERATION getOperation(String operation) {
         if (operation.contentEquals(EQ)) {
             return ClauseKey.OPERATION.EQUAL;
         }
@@ -112,7 +145,7 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         }
     }
 
-    private ClauseKey.CLAUSE_TYPE getClauseType(String attributeLiteral) {
+    protected ClauseKey.CLAUSE_TYPE getClauseType(String attributeLiteral) {
         ClauseKey.TABLE table = getTable(attributeLiteral);
         if (table == ClauseKey.TABLE.VARIABLE || table == ClauseKey.TABLE.GENERIC_INFORMATION) {
             String[] terms = attributeLiteral.split(Pattern.quote("."));
