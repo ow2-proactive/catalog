@@ -64,7 +64,7 @@ public class WorkflowRevisionController {
     public WorkflowMetadata create(
             @PathVariable Long bucketId,
             @PathVariable Long workflowId,
-            @RequestParam(value = "file") MultipartFile file) throws IOException {
+            @RequestPart(value = "file") MultipartFile file) throws IOException {
         return workflowRevisionService.createWorkflowRevision(bucketId, Optional.of(workflowId), file.getBytes());
     }
 
