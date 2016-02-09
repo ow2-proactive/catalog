@@ -42,6 +42,7 @@ import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQuery
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -98,7 +99,10 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         ClauseKey.TABLE table = getTable(attributeLiteral);
         ClauseKey.OPERATION operation = getOperation(ctx.COMPARE_OPERATOR().getText());
         ClauseKey.CLAUSE_TYPE clauseType = getClauseType(attributeLiteral);
-        ClauseKey clauseKey = new ClauseKey(table, operation, clauseType);
+        Pattern wildcardPattern = Pattern.compile(".*[^\\\\]%.*");
+        Matcher wildcardMatcher = wildcardPattern.matcher(attributeLiteral);
+        boolean hasWildcards = wildcardMatcher.matches();
+        ClauseKey clauseKey = new ClauseKey(table, operation, clauseType, hasWildcards);
         Function<String, Predicate> predicateCreator = clausesToFuncMap.get(clauseKey);
 
         if (predicateCreator == null) {
@@ -169,43 +173,79 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
     }
 
     private static Map<ClauseKey, Function<String, Predicate>> initClausesToFuncMap() {
-        Map<ClauseKey, Function<String, Predicate>> map = new HashMap<>(16);
+        Map<ClauseKey, Function<String, Predicate>> map = new HashMap<>(32);
 
-        map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.KEY),
+        map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.KEY, false),
                 literalString -> QVariable.variable.key.eq(literalString));
-        map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.KEY),
+        map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.KEY, false),
                 literalString -> QVariable.variable.key.ne(literalString));
-        map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.VALUE),
+        map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, false),
                 literalString -> QVariable.variable.value.eq(literalString));
-        map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.VALUE),
+        map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, false),
                 literalString -> QVariable.variable.value.ne(literalString));
 
-        map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.KEY),
+        map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.KEY, false),
                 literalString -> QGenericInformation.genericInformation.key.eq(literalString));
-        map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.KEY),
+        map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.KEY, false),
                 literalString -> QGenericInformation.genericInformation.key.ne(literalString));
-        map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.VALUE),
+        map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, false),
                 literalString -> QGenericInformation.genericInformation.value.eq(literalString));
-        map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.VALUE),
+        map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, false),
                 literalString -> QGenericInformation.genericInformation.value.ne(literalString));
 
-        map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE),
+        map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, false),
                 literalString -> QWorkflowRevision.workflowRevision.name.eq(literalString));
-        map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE),
+        map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, false),
                 literalString -> QWorkflowRevision.workflowRevision.name.ne(literalString));
-        map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE),
+        map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, false),
                 literalString -> QWorkflowRevision.workflowRevision.name.eq(literalString));
-        map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE),
+        map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, false),
                 literalString -> QWorkflowRevision.workflowRevision.name.ne(literalString));
 
-        map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE),
+        map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, false),
                 literalString -> QWorkflowRevision.workflowRevision.projectName.eq(literalString));
-        map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE),
+        map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, false),
                 literalString -> QWorkflowRevision.workflowRevision.projectName.ne(literalString));
-        map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE),
+        map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, false),
                 literalString -> QWorkflowRevision.workflowRevision.projectName.eq(literalString));
-        map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE),
+        map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, false),
                 literalString -> QWorkflowRevision.workflowRevision.projectName.ne(literalString));
+
+        map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.KEY, true),
+                literalString -> QVariable.variable.key.like(literalString));
+        map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.KEY, true),
+                literalString -> QVariable.variable.key.notLike(literalString));
+        map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, true),
+                literalString -> QVariable.variable.value.like(literalString));
+        map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, true),
+                literalString -> QVariable.variable.value.notLike(literalString));
+
+        map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.KEY, true),
+                literalString -> QGenericInformation.genericInformation.key.like(literalString));
+        map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.KEY, true),
+                literalString -> QGenericInformation.genericInformation.key.notLike(literalString));
+        map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, true),
+                literalString -> QGenericInformation.genericInformation.value.like(literalString));
+        map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, true),
+                literalString -> QGenericInformation.genericInformation.value.notLike(literalString));
+
+        map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
+                literalString -> QWorkflowRevision.workflowRevision.name.like(literalString));
+        map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
+                literalString -> QWorkflowRevision.workflowRevision.name.notLike(literalString));
+        map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
+                literalString -> QWorkflowRevision.workflowRevision.name.like(literalString));
+        map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
+                literalString -> QWorkflowRevision.workflowRevision.name.notLike(literalString));
+
+        map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
+                literalString -> QWorkflowRevision.workflowRevision.projectName.like(literalString));
+        map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
+                literalString -> QWorkflowRevision.workflowRevision.projectName.notLike(literalString));
+        map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
+                literalString -> QWorkflowRevision.workflowRevision.projectName.like(literalString));
+        map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
+                literalString -> QWorkflowRevision.workflowRevision.projectName.notLike(literalString));
 
         return ImmutableMap.copyOf(map);
     }

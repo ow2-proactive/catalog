@@ -42,11 +42,13 @@ public class ClauseKey {
     private final TABLE table;
     private final OPERATION operation;
     private final CLAUSE_TYPE clauseType;
+    private final boolean hasWildcards;
 
-    public ClauseKey(TABLE table, OPERATION operation, CLAUSE_TYPE clauseType) {
+    public ClauseKey(TABLE table, OPERATION operation, CLAUSE_TYPE clauseType, boolean hasWildcards) {
         this.table = table;
         this.operation = operation;
         this.clauseType = clauseType;
+        this.hasWildcards = hasWildcards;
     }
 
     @Override
@@ -56,6 +58,7 @@ public class ClauseKey {
 
         ClauseKey clauseKey = (ClauseKey) o;
 
+        if (hasWildcards != clauseKey.hasWildcards) return false;
         if (table != clauseKey.table) return false;
         if (operation != clauseKey.operation) return false;
         return clauseType == clauseKey.clauseType;
@@ -67,6 +70,7 @@ public class ClauseKey {
         int result = table.hashCode();
         result = 31 * result + operation.hashCode();
         result = 31 * result + clauseType.hashCode();
+        result = 31 * result + (hasWildcards ? 1 : 0);
         return result;
     }
 
@@ -79,6 +83,8 @@ public class ClauseKey {
         stringBuilder.append(operation);
         stringBuilder.append(", clauseType: ");
         stringBuilder.append(clauseType);
+        stringBuilder.append(", hasWildcards: ");
+        stringBuilder.append(hasWildcards);
         stringBuilder.append("]");
         return stringBuilder.toString();
     }
