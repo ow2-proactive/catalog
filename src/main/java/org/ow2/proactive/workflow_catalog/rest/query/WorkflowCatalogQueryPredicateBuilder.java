@@ -39,19 +39,19 @@ import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQuery
  *
  * @author ActiveEon Team
  */
-public class WorkflowCatalogJpaQueryBuilder {
+public class WorkflowCatalogQueryPredicateBuilder {
 
     private final String workflowCatalogQuery;
     protected WorkflowCatalogQueryCompiler queryCompiler;
     protected WorkflowCatalogQueryLanguageVisitor WCQLVisitor;
 
-    public WorkflowCatalogJpaQueryBuilder(String workflowCatalogQuery) {
+    public WorkflowCatalogQueryPredicateBuilder(String workflowCatalogQuery) {
         this.workflowCatalogQuery = workflowCatalogQuery;
         this.queryCompiler = new WorkflowCatalogQueryCompiler();
         this.WCQLVisitor = new WorkflowCatalogQueryLanguageVisitor();
     }
 
-    public BooleanBuilder build() throws QueryBuilderException {
+    public BooleanBuilder build() throws QueryPredicateBuilderException {
         // empty query must throw no exception and be valid
         if (workflowCatalogQuery.trim().isEmpty()) {
             return new BooleanBuilder();
@@ -62,8 +62,8 @@ public class WorkflowCatalogJpaQueryBuilder {
                     queryCompiler.compile(workflowCatalogQuery);
 
             return WCQLVisitor.visitExpression(context);
-        } catch (QueryBuilderRuntimeException | SyntaxException e) {
-            throw new QueryBuilderException(e.getMessage());
+        } catch (QueryPredicateBuilderRuntimeException | SyntaxException e) {
+            throw new QueryPredicateBuilderException(e.getMessage());
         }
     }
 

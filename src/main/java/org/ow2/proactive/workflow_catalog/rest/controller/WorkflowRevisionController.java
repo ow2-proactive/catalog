@@ -32,7 +32,7 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import io.swagger.annotations.ApiParam;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.query.QueryBuilderException;
+import org.ow2.proactive.workflow_catalog.rest.query.QueryPredicateBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -75,7 +75,7 @@ public class WorkflowRevisionController {
                                @RequestParam(required = false)
                                Optional<String> query,
                                Pageable pageable,
-                               PagedResourcesAssembler assembler) throws QueryBuilderException {
+                               PagedResourcesAssembler assembler) throws QueryPredicateBuilderException {
         return workflowRevisionService.listWorkflows(bucketId, Optional.ofNullable(workflowId), query, pageable, assembler);
     }
 

@@ -37,8 +37,8 @@ import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourc
 import org.ow2.proactive.workflow_catalog.rest.controller.WorkflowRevisionController;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.*;
-import org.ow2.proactive.workflow_catalog.rest.query.QueryBuilderException;
-import org.ow2.proactive.workflow_catalog.rest.query.WorkflowCatalogJpaQueryBuilder;
+import org.ow2.proactive.workflow_catalog.rest.query.QueryPredicateBuilderException;
+import org.ow2.proactive.workflow_catalog.rest.query.WorkflowCatalogQueryPredicateBuilder;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.*;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParser;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
@@ -177,7 +177,7 @@ public class WorkflowRevisionService {
         return bucket;
     }
 
-    public PagedResources listWorkflows(Long bucketId, Optional<Long> workflowId, Optional<String> query, Pageable pageable, PagedResourcesAssembler assembler) throws QueryBuilderException {
+    public PagedResources listWorkflows(Long bucketId, Optional<Long> workflowId, Optional<String> query, Pageable pageable, PagedResourcesAssembler assembler) throws QueryPredicateBuilderException {
         findBucket(bucketId);
         Page<WorkflowRevision> page;
 
@@ -205,9 +205,9 @@ public class WorkflowRevisionService {
         return assembler.toResource(page, workflowRevisionResourceAssembler);
     }
 
-    private Predicate createJpaQueryPredicate(String workflowCatalogQuery) throws QueryBuilderException {
-        WorkflowCatalogJpaQueryBuilder builder =
-                new WorkflowCatalogJpaQueryBuilder(workflowCatalogQuery);
+    private Predicate createJpaQueryPredicate(String workflowCatalogQuery) throws QueryPredicateBuilderException {
+        WorkflowCatalogQueryPredicateBuilder builder =
+                new WorkflowCatalogQueryPredicateBuilder(workflowCatalogQuery);
 
         return builder.build();
     }
