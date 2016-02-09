@@ -31,6 +31,7 @@
 package org.ow2.proactive.workflow_catalog.rest.query;
 
 import com.mysema.query.BooleanBuilder;
+import com.mysema.query.types.Predicate;
 import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
 
 
@@ -51,7 +52,7 @@ public class WorkflowCatalogQueryPredicateBuilder {
         this.wcqlVisitor = new WorkflowCatalogQueryLanguageVisitor();
     }
 
-    public BooleanBuilder build() throws QueryPredicateBuilderException {
+    public Predicate build() throws QueryPredicateBuilderException {
         // empty query must throw no exception and be valid
         if (workflowCatalogQuery.trim().isEmpty()) {
             return new BooleanBuilder();
@@ -74,4 +75,5 @@ public class WorkflowCatalogQueryPredicateBuilder {
     protected void setWcqlVisitor(WorkflowCatalogQueryLanguageVisitor wcqlVisitor) {
         this.wcqlVisitor = wcqlVisitor;
     }
+
 }

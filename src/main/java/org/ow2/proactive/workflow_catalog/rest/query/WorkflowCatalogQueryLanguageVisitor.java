@@ -68,6 +68,9 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         CLAUSES_TO_FUNC_MAP = initClausesToFuncMap();
     }
 
+    public WorkflowCatalogQueryLanguageVisitor() {
+    }
+
     @Override
     public BooleanBuilder visitExpression(WorkflowCatalogQueryLanguageParser.ExpressionContext ctx) {
         return visitAnd_expression(ctx.and_expression());
