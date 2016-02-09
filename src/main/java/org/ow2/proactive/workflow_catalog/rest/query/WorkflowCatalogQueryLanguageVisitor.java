@@ -61,10 +61,11 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
     private final static String PROJ_TOKEN = "project_name";
     private final static String NAME_KEYWORD = "name";
     private final static String VALUE_KEYWORD = "value";
-    private static final Map<ClauseKey, Function<String, Predicate>> clausesToFuncMap;
+
+    private static final Map<ClauseKey, Function<String, Predicate>> CLAUSES_TO_FUNC_MAP;
 
     static {
-        clausesToFuncMap = initClausesToFuncMap();
+        CLAUSES_TO_FUNC_MAP = initClausesToFuncMap();
     }
 
     @Override
@@ -104,11 +105,12 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         ClauseKey.TABLE table = getTable(attributeLiteral);
         ClauseKey.OPERATION operation = getOperation(ctx.COMPARE_OPERATOR().getText());
         ClauseKey.CLAUSE_TYPE clauseType = getClauseType(attributeLiteral);
+
         Pattern wildcardPattern = Pattern.compile(".*[^\\\\]%.*");
         Matcher wildcardMatcher = wildcardPattern.matcher(attributeLiteral);
         boolean hasWildcards = wildcardMatcher.matches();
         ClauseKey clauseKey = new ClauseKey(table, operation, clauseType, hasWildcards);
-        Function<String, Predicate> predicateCreator = clausesToFuncMap.get(clauseKey);
+        Function<String, Predicate> predicateCreator = CLAUSES_TO_FUNC_MAP.get(clauseKey);
 
         if (predicateCreator == null) {
             throw new QueryPredicateBuilderRuntimeException("No predicate found for clause " + clauseKey);
@@ -123,34 +125,31 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
 
     protected ClauseKey.TABLE getTable(String attributeName) {
         String[] terms = attributeName.split(Pattern.quote("."));
+
         if (terms.length > 1) {
             if (terms[0].equalsIgnoreCase(VAR_TOKEN)) {
                 return ClauseKey.TABLE.VARIABLE;
-            }
-            else if (terms[0].equalsIgnoreCase(GI_TOKEN)) {
+            } else if (terms[0].equalsIgnoreCase(GI_TOKEN)) {
                 return ClauseKey.TABLE.GENERIC_INFORMATION;
             }
-        }
-        else {
+        } else {
             if (terms[0].equalsIgnoreCase(NAME_TOKEN)) {
                 return ClauseKey.TABLE.NAME;
-            }
-            else if (terms[0].equalsIgnoreCase(PROJ_TOKEN)) {
+            } else if (terms[0].equalsIgnoreCase(PROJ_TOKEN)) {
                 return ClauseKey.TABLE.PROJECT_NAME;
             }
         }
+
         throw new QueryPredicateBuilderRuntimeException("Table name found in " + attributeName + " is invalid");
     }
 
     protected ClauseKey.OPERATION getOperation(String operation) {
         if (operation.contentEquals(EQ)) {
             return ClauseKey.OPERATION.EQUAL;
-        }
-        else if (operation.contentEquals(NEQ)) {
+        } else if (operation.contentEquals(NEQ)) {
             return ClauseKey.OPERATION.NOT_EQUAL;
-        }
-        else {
-            throw new QueryPredicateBuilderRuntimeException("operation " + operation + " is invalid");
+        } else {
+            throw new QueryPredicateBuilderRuntimeException("Operation " + operation + " is invalid");
         }
     }
 
@@ -158,21 +157,19 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         ClauseKey.TABLE table = getTable(attributeLiteral);
         if (table == ClauseKey.TABLE.VARIABLE || table == ClauseKey.TABLE.GENERIC_INFORMATION) {
             String[] terms = attributeLiteral.split(Pattern.quote("."));
+
             assert terms.length > 1;
+
             if (terms[1].equalsIgnoreCase(NAME_KEYWORD)) {
                 return ClauseKey.CLAUSE_TYPE.KEY;
-            }
-            else if (terms[1].equalsIgnoreCase(VALUE_KEYWORD)) {
+            } else if (terms[1].equalsIgnoreCase(VALUE_KEYWORD)) {
                 return ClauseKey.CLAUSE_TYPE.VALUE;
-            }
-            else {
+            } else {
                 throw new QueryPredicateBuilderRuntimeException("Clause type found in " + attributeLiteral + " is invalid");
             }
-        }
-        else if (table == ClauseKey.TABLE.NAME || table == ClauseKey.TABLE.PROJECT_NAME) {
+        } else if (table == ClauseKey.TABLE.NAME || table == ClauseKey.TABLE.PROJECT_NAME) {
             return ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE;
-        }
-        else {
+        } else {
             throw new QueryPredicateBuilderRuntimeException("Clause " + attributeLiteral + " is invalid");
         }
     }

@@ -51,7 +51,7 @@ public class WorkflowCatalogQueryPredicateBuilderTest {
     private WorkflowCatalogQueryCompiler workflowCatalogQueryCompiler;
 
     @Mock
-    private WorkflowCatalogQueryLanguageVisitor WCQLVisitor;
+    private WorkflowCatalogQueryLanguageVisitor wcqlVisitor;
 
     @Before
     public void setUp() throws Exception {
@@ -60,12 +60,13 @@ public class WorkflowCatalogQueryPredicateBuilderTest {
 
     @Test
     public void testBuild() throws Exception {
-        String QCWLQuery = "variable.MyVariable=\"toto\"";
-        WorkflowCatalogQueryPredicateBuilder queryBuilder = new WorkflowCatalogQueryPredicateBuilder(QCWLQuery);
+        String wcqlQuery = "variable.MyVariable=\"toto\"";
+        WorkflowCatalogQueryPredicateBuilder queryBuilder = new WorkflowCatalogQueryPredicateBuilder(wcqlQuery);
         queryBuilder.setQueryCompiler(workflowCatalogQueryCompiler);
-        queryBuilder.setWCQLVisitor(WCQLVisitor);
+        queryBuilder.setWcqlVisitor(wcqlVisitor);
         queryBuilder.build();
-        verify(workflowCatalogQueryCompiler, times(1)).compile(QCWLQuery);
-        verify(WCQLVisitor, times(1)).visitExpression(any(WorkflowCatalogQueryLanguageParser.ExpressionContext.class));
+        verify(workflowCatalogQueryCompiler, times(1)).compile(wcqlQuery);
+        verify(wcqlVisitor, times(1)).visitExpression(any(WorkflowCatalogQueryLanguageParser.ExpressionContext.class));
     }
+    
 }

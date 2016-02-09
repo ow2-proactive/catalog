@@ -43,12 +43,12 @@ public class WorkflowCatalogQueryPredicateBuilder {
 
     private final String workflowCatalogQuery;
     protected WorkflowCatalogQueryCompiler queryCompiler;
-    protected WorkflowCatalogQueryLanguageVisitor WCQLVisitor;
+    protected WorkflowCatalogQueryLanguageVisitor wcqlVisitor;
 
     public WorkflowCatalogQueryPredicateBuilder(String workflowCatalogQuery) {
         this.workflowCatalogQuery = workflowCatalogQuery;
         this.queryCompiler = new WorkflowCatalogQueryCompiler();
-        this.WCQLVisitor = new WorkflowCatalogQueryLanguageVisitor();
+        this.wcqlVisitor = new WorkflowCatalogQueryLanguageVisitor();
     }
 
     public BooleanBuilder build() throws QueryPredicateBuilderException {
@@ -61,7 +61,7 @@ public class WorkflowCatalogQueryPredicateBuilder {
             WorkflowCatalogQueryLanguageParser.ExpressionContext context =
                     queryCompiler.compile(workflowCatalogQuery);
 
-            return WCQLVisitor.visitExpression(context);
+            return wcqlVisitor.visitExpression(context);
         } catch (QueryPredicateBuilderRuntimeException | SyntaxException e) {
             throw new QueryPredicateBuilderException(e.getMessage());
         }
@@ -71,7 +71,7 @@ public class WorkflowCatalogQueryPredicateBuilder {
         this.queryCompiler = queryCompiler;
     }
 
-    protected void setWCQLVisitor(WorkflowCatalogQueryLanguageVisitor WCQLVisitor) {
-        this.WCQLVisitor = WCQLVisitor;
+    protected void setWcqlVisitor(WorkflowCatalogQueryLanguageVisitor wcqlVisitor) {
+        this.wcqlVisitor = wcqlVisitor;
     }
 }

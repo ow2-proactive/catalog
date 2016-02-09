@@ -30,14 +30,20 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
+import com.google.common.base.MoreObjects;
+
+import java.util.Objects;
+
 /**
  * @author ActiveEon Team
  */
 public class ClauseKey {
 
-    public enum TABLE { VARIABLE, GENERIC_INFORMATION, NAME, PROJECT_NAME}
-    public enum OPERATION { EQUAL, NOT_EQUAL}
-    public enum CLAUSE_TYPE { KEY, VALUE, NOT_APPLICABLE}
+    public enum TABLE {VARIABLE, GENERIC_INFORMATION, NAME, PROJECT_NAME}
+
+    public enum OPERATION {EQUAL, NOT_EQUAL}
+
+    public enum CLAUSE_TYPE {KEY, VALUE, NOT_APPLICABLE}
 
     private final TABLE table;
     private final OPERATION operation;
@@ -67,25 +73,16 @@ public class ClauseKey {
 
     @Override
     public int hashCode() {
-        int result = table.hashCode();
-        result = 31 * result + operation.hashCode();
-        result = 31 * result + clauseType.hashCode();
-        result = 31 * result + (hasWildcards ? 1 : 0);
-        return result;
+        return Objects.hash(table, operation, clauseType, hasWildcards);
     }
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("[table:");
-        stringBuilder.append(table);
-        stringBuilder.append(", operation:");
-        stringBuilder.append(operation);
-        stringBuilder.append(", clauseType: ");
-        stringBuilder.append(clauseType);
-        stringBuilder.append(", hasWildcards: ");
-        stringBuilder.append(hasWildcards);
-        stringBuilder.append("]");
-        return stringBuilder.toString();
+        return MoreObjects.toStringHelper(this)
+                .add("table", table)
+                .add("operation", operation)
+                .add("clauseType", clauseType)
+                .add("hasWildcards", hasWildcards).toString();
     }
+
 }
