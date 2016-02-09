@@ -28,23 +28,15 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-package org.ow2.proactive.workflow_catalog.rest.exceptions;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+package org.ow2.proactive.workflow_catalog.rest.service;
 
 /**
  * @author ActiveEon Team
  */
-@ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)
-public class UnprocessableEntityException extends RuntimeException {
+public class BucketNotFoundException extends ResourceNotFoundException {
 
-    public UnprocessableEntityException(String message) {
-        super(message);
-    }
-
-    public UnprocessableEntityException(Throwable cause) {
-        super(cause);
+    public BucketNotFoundException() {
+        super("No such bucket");
     }
 
 }

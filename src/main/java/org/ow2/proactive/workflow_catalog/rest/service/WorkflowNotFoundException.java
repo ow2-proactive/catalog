@@ -28,19 +28,15 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-package org.ow2.proactive.workflow_catalog.rest.exceptions;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+package org.ow2.proactive.workflow_catalog.rest.service;
 
 /**
  * @author ActiveEon Team
  */
-@ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class ResourceNotFoundException extends RuntimeException {
+public class WorkflowNotFoundException extends ResourceNotFoundException {
 
-    public ResourceNotFoundException(String message) {
-        super(message);
+    public WorkflowNotFoundException() {
+        super("No such workflow");
     }
 
 }

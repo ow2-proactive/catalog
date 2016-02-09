@@ -28,15 +28,19 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-package org.ow2.proactive.workflow_catalog.rest.exceptions;
+package org.ow2.proactive.workflow_catalog.rest.service;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * @author ActiveEon Team
  */
-public class RevisionNotFoundException extends ResourceNotFoundException {
+@ResponseStatus(value = HttpStatus.NOT_FOUND)
+public class ResourceNotFoundException extends RuntimeException {
 
-    public RevisionNotFoundException() {
-        super("No such revision");
+    public ResourceNotFoundException(String message) {
+        super(message);
     }
 
 }

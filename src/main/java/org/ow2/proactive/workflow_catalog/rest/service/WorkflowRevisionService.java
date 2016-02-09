@@ -37,7 +37,6 @@ import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourc
 import org.ow2.proactive.workflow_catalog.rest.controller.WorkflowRevisionController;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.*;
-import org.ow2.proactive.workflow_catalog.rest.exceptions.*;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.query.WorkflowCatalogJpaQueryBuilder;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.*;

@@ -31,18 +31,13 @@
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
 import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.PostConstruct;
-import java.util.stream.Stream;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;

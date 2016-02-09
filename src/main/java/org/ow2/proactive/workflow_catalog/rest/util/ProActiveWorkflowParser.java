@@ -32,7 +32,7 @@
 package org.ow2.proactive.workflow_catalog.rest.util;
 
 import com.google.common.collect.ImmutableMap;
-import org.ow2.proactive.workflow_catalog.rest.exceptions.UnprocessableEntityException;
+import org.ow2.proactive.workflow_catalog.rest.service.UnprocessableEntityException;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
