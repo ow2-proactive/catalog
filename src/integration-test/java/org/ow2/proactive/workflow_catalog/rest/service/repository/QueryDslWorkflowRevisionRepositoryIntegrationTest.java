@@ -8,15 +8,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
+import org.ow2.proactive.workflow_catalog.rest.controller.AbstractWorkflowRevisionControllerTest;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.QGenericInformation;
 import org.ow2.proactive.workflow_catalog.rest.entity.QVariable;
 import org.ow2.proactive.workflow_catalog.rest.entity.QWorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
-import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
-import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
-import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -51,16 +49,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {Application.class})
 @WebIntegrationTest
-public class QueryDslWorkflowRevisionRepositoryIntegrationTest {
-
-    @Autowired
-    private BucketService bucketService;
-
-    @Autowired
-    private WorkflowService workflowService;
-
-    @Autowired
-    private WorkflowRevisionService workflowRevisionService;
+public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractWorkflowRevisionControllerTest {
 
     @Autowired
     private QueryDslWorkflowRevisionRepository queryDslWorkflowRevisionRepository;

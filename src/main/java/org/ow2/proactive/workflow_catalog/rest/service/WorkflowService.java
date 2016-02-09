@@ -31,6 +31,7 @@
 package org.ow2.proactive.workflow_catalog.rest.service;
 
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.query.QueryBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -64,8 +65,8 @@ public class WorkflowService {
         return workflowRevisionService.getWorkflow(bucketId, workflowId, Optional.empty(), alt);
     }
 
-    public PagedResources listWorkflows(Long bucketId, Pageable pageable, PagedResourcesAssembler assembler) {
-        return workflowRevisionService.listWorkflows(bucketId, Optional.empty(), pageable, assembler);
+    public PagedResources listWorkflows(Long bucketId, Optional<String> query, Pageable pageable, PagedResourcesAssembler assembler) throws QueryBuilderException {
+        return workflowRevisionService.listWorkflows(bucketId, Optional.empty(), query, pageable, assembler);
     }
 
 }

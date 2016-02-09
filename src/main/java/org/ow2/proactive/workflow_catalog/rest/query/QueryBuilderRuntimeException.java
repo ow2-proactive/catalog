@@ -37,9 +37,9 @@ package org.ow2.proactive.workflow_catalog.rest.query;
  *
  * @author ActiveEon Team
  */
-public class QueryBuilderException extends Exception {
+public class QueryBuilderRuntimeException extends RuntimeException {
 
-    public QueryBuilderException(String message) {
+    public QueryBuilderRuntimeException(String message) {
         super(message);
     }
 

@@ -77,9 +77,9 @@ public class WorkflowRevisionControllerTest {
     public void testList() throws Exception {
         Pageable mockedPageable = mock(Pageable.class);
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
-        workflowRevisionController.list(BUCKET_ID, WF_ID, mockedPageable, mockedAssembler);
+        workflowRevisionController.list(BUCKET_ID, WF_ID, Optional.empty(), mockedPageable, mockedAssembler);
         verify(workflowRevisionService, times(1))
-                .listWorkflows(BUCKET_ID, Optional.of(WF_ID), mockedPageable, mockedAssembler);
+                .listWorkflows(BUCKET_ID, Optional.of(WF_ID), Optional.empty(), mockedPageable, mockedAssembler);
     }
 
     @Test

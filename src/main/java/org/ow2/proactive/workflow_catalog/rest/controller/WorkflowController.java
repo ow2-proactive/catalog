@@ -33,6 +33,7 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import io.swagger.annotations.ApiParam;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.query.QueryBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -68,9 +69,11 @@ public class WorkflowController {
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows", method = GET)
     public PagedResources list(@PathVariable Long bucketId,
+                               @ApiParam("Query string for searching workflows. See Searching for workflows for more information about supported fields and operations.")
+                               @RequestParam(required = false) Optional<String> query,
                                Pageable pageable,
-                               PagedResourcesAssembler assembler) {
-        return workflowService.listWorkflows(bucketId, pageable, assembler);
+                               PagedResourcesAssembler assembler) throws QueryBuilderException {
+        return workflowService.listWorkflows(bucketId, query, pageable, assembler);
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}", method = GET)

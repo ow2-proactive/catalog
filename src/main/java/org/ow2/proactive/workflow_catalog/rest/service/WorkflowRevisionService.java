@@ -31,11 +31,15 @@
 package org.ow2.proactive.workflow_catalog.rest.service;
 
 import com.google.common.collect.ImmutableMap;
+import com.mysema.query.BooleanBuilder;
+import com.mysema.query.types.Predicate;
 import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.controller.WorkflowRevisionController;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.*;
 import org.ow2.proactive.workflow_catalog.rest.exceptions.*;
+import org.ow2.proactive.workflow_catalog.rest.query.QueryBuilderException;
+import org.ow2.proactive.workflow_catalog.rest.query.WorkflowCatalogJpaQueryBuilder;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.*;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParser;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
@@ -78,6 +82,9 @@ public class WorkflowRevisionService {
 
     @Autowired
     private GenericInformationRepository genericInformationRepository;
+
+    @Autowired
+    private QueryDslWorkflowRevisionRepository queryDslWorkflowRevisionRepository;
 
     @Autowired
     private VariableRepository variableRepository;
@@ -171,19 +178,39 @@ public class WorkflowRevisionService {
         return bucket;
     }
 
-    public PagedResources listWorkflows(Long bucketId, Optional<Long> workflowId, Pageable pageable, PagedResourcesAssembler assembler) {
+    public PagedResources listWorkflows(Long bucketId, Optional<Long> workflowId, Optional<String> query, Pageable pageable, PagedResourcesAssembler assembler) throws QueryBuilderException {
         findBucket(bucketId);
-
         Page<WorkflowRevision> page;
 
         if (workflowId.isPresent()) {
             findWorkflow(workflowId.get());
-            page = workflowRevisionRepository.getRevisions(workflowId.get(), pageable);
+
+            if (query.isPresent()) {
+                Predicate jpaQueryPredicate = createJpaQueryPredicate(query.get());
+                BooleanBuilder booleanBuilder = new BooleanBuilder(jpaQueryPredicate);
+                booleanBuilder.and(QWorkflowRevision.workflowRevision.workflow.id.eq(workflowId.get()));
+
+                page = queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(booleanBuilder, pageable);
+            } else {
+                page = workflowRevisionRepository.getRevisions(workflowId.get(), pageable);
+            }
         } else {
-            page = workflowRepository.getMostRecentRevisions(bucketId, pageable);
+            if (query.isPresent()) {
+                Predicate jpaQueryPredicate = createJpaQueryPredicate(query.get());
+                page = queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(jpaQueryPredicate, pageable);
+            } else {
+                page = workflowRepository.getMostRecentRevisions(bucketId, pageable);
+            }
         }
 
         return assembler.toResource(page, workflowRevisionResourceAssembler);
+    }
+
+    private Predicate createJpaQueryPredicate(String workflowCatalogQuery) throws QueryBuilderException {
+        WorkflowCatalogJpaQueryBuilder builder =
+                new WorkflowCatalogJpaQueryBuilder(workflowCatalogQuery);
+
+        return builder.build();
     }
 
     public ResponseEntity<?> getWorkflow(Long bucketId, Long workflowId, Optional<Long> revisionId, Optional<String> alt) {

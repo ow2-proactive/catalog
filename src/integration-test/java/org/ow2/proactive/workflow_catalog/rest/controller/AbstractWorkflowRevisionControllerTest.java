@@ -28,19 +28,39 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
+package org.ow2.proactive.workflow_catalog.rest.controller;
 
-package org.ow2.proactive.workflow_catalog.rest.query;
+import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
+import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
+import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRevisionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Exception thrown if an error is encountered when browsing the AST to generate the predicate
- * that will be used in the query
- *
  * @author ActiveEon Team
  */
-public class QueryBuilderException extends Exception {
+public class AbstractWorkflowRevisionControllerTest {
 
-    public QueryBuilderException(String message) {
-        super(message);
-    }
+    protected static final String WORKFLOWS_RESOURCE = "/buckets/{bucketId}/workflows/";
+
+    protected static final String WORKFLOW_REVISIONS_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}/revisions";
+
+    protected static final String WORKFLOW_REVISION_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}/revisions/{revisionId}";
+
+    @Autowired
+    protected BucketRepository bucketRepository;
+
+    @Autowired
+    protected WorkflowRevisionRepository workflowRevisionRepository;
+
+    @Autowired
+    protected BucketService bucketService;
+
+    @Autowired
+    protected WorkflowService workflowService;
+
+    @Autowired
+    protected WorkflowRevisionService workflowRevisionService;
 
 }

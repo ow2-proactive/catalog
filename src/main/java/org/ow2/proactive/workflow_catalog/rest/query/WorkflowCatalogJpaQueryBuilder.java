@@ -51,14 +51,20 @@ public class WorkflowCatalogJpaQueryBuilder {
         this.WCQLVisitor = new WorkflowCatalogQueryLanguageVisitor();
     }
 
-    public BooleanBuilder build() {
-        WorkflowCatalogQueryLanguageParser.ExpressionContext context = null;
-        try {
-            context = queryCompiler.compile(workflowCatalogQuery);
-        } catch (SyntaxException e) {
-            e.printStackTrace();
+    public BooleanBuilder build() throws QueryBuilderException {
+        // empty query must throw no exception and be valid
+        if (workflowCatalogQuery.trim().isEmpty()) {
+            return new BooleanBuilder();
         }
-        return WCQLVisitor.visitExpression(context);
+
+        try {
+            WorkflowCatalogQueryLanguageParser.ExpressionContext context =
+                    queryCompiler.compile(workflowCatalogQuery);
+
+            return WCQLVisitor.visitExpression(context);
+        } catch (QueryBuilderRuntimeException | SyntaxException e) {
+            throw new QueryBuilderException(e.getMessage());
+        }
     }
 
     protected void setQueryCompiler(WorkflowCatalogQueryCompiler queryCompiler) {

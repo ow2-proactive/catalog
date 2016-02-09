@@ -40,11 +40,7 @@ import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
-import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
-import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
-import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRevisionRepository;
 import org.ow2.proactive.workflow_catalog.rest.util.IntegrationTestUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -57,9 +53,7 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 /**
@@ -70,26 +64,13 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {Application.class})
 @WebIntegrationTest
-public class WorkflowRevisionControllerIntegrationTest {
+public class WorkflowRevisionControllerIntegrationTest extends AbstractWorkflowRevisionControllerTest {
 
-    private static final String WORKFLOW_REVISIONS_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}/revisions";
+    protected Bucket bucket;
 
-    private static final String WORKFLOW_REVISION_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}/revisions/{revisionId}";
+    protected WorkflowMetadata firstWorkflowRevision;
 
-    @Autowired
-    private BucketRepository bucketRepository;
-
-    @Autowired
-    private WorkflowRevisionRepository workflowRevisionRepository;
-
-    @Autowired
-    private WorkflowRevisionService workflowRevisionService;
-
-    private Bucket bucket;
-
-    private WorkflowMetadata firstWorkflowRevision;
-
-    private WorkflowMetadata secondWorkflowRevision;
+    protected WorkflowMetadata secondWorkflowRevision;
 
     @Before
     public void setup() throws IOException {
