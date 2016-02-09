@@ -31,12 +31,16 @@
 
 package org.ow2.proactive.workflow_catalog.rest.query;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 /**
  * Exception thrown if an error is encountered when browsing the AST to generate the predicate
  * that will be used in the query
  *
  * @author ActiveEon Team
  */
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
 public class QueryPredicateBuilderException extends Exception {
 
     public QueryPredicateBuilderException(String message) {

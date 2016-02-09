@@ -116,7 +116,7 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         Function<String, Predicate> predicateCreator = CLAUSES_TO_FUNC_MAP.get(clauseKey);
 
         if (predicateCreator == null) {
-            throw new QueryPredicateBuilderRuntimeException("No predicate found for clause " + clauseKey);
+            throw new QueryPredicateBuilderRuntimeException("No predicate found for clause '" + clauseKey + "'");
         }
 
         return booleanBuilder.and(predicateCreator.apply(stringLiteral));
@@ -143,7 +143,7 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
             }
         }
 
-        throw new QueryPredicateBuilderRuntimeException("Table name found in " + attributeName + " is invalid");
+        throw new QueryPredicateBuilderRuntimeException("Invalid attribute name '" + attributeName + "'");
     }
 
     protected ClauseKey.OPERATION getOperation(String operation) {
@@ -152,7 +152,7 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         } else if (operation.contentEquals(NEQ)) {
             return ClauseKey.OPERATION.NOT_EQUAL;
         } else {
-            throw new QueryPredicateBuilderRuntimeException("Operation " + operation + " is invalid");
+            throw new QueryPredicateBuilderRuntimeException("Operator '" + operation + "' is invalid");
         }
     }
 
@@ -168,12 +168,12 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
             } else if (terms[1].equalsIgnoreCase(VALUE_KEYWORD)) {
                 return ClauseKey.CLAUSE_TYPE.VALUE;
             } else {
-                throw new QueryPredicateBuilderRuntimeException("Clause type found in " + attributeLiteral + " is invalid");
+                throw new QueryPredicateBuilderRuntimeException("Clause type found in '" + attributeLiteral + "' is invalid");
             }
         } else if (table == ClauseKey.TABLE.NAME || table == ClauseKey.TABLE.PROJECT_NAME) {
             return ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE;
         } else {
-            throw new QueryPredicateBuilderRuntimeException("Clause " + attributeLiteral + " is invalid");
+            throw new QueryPredicateBuilderRuntimeException("Clause '" + attributeLiteral + "' is invalid");
         }
     }
 
