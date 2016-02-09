@@ -94,6 +94,11 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
 
         String attributeLiteral = ctx.AttributeLiteral().getText();
         String stringLiteral = ctx.StringLiteral().getText();
+
+        // a String literal always starts and ends by a " character
+        // remove leading and trailing " character
+        stringLiteral = stringLiteral.substring(1, stringLiteral.length() - 1);
+
         BooleanBuilder booleanBuilder = new BooleanBuilder();
 
         ClauseKey.TABLE table = getTable(attributeLiteral);
