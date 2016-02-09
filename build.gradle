@@ -34,6 +34,8 @@ configurations {
 
     integrationTestCompile.extendsFrom testCompile
     integrationTestRuntime.extendsFrom testRuntime
+
+    querydsl
 }
 
 compileJava {
@@ -97,7 +99,7 @@ dependencies {
     compile 'commons-fileupload:commons-fileupload:1.3.1'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.1'
     compile 'com.mysema.querydsl:querydsl-jpa:3.7.1'
-    compile 'com.mysema.querydsl:querydsl-apt:3.7.1:jpa'
+    querydsl 'com.mysema.querydsl:querydsl-apt:3.7.1'
 
     compile 'org.springframework.boot:spring-boot-starter-data-jpa:1.3.2.RELEASE'
     compile 'org.springframework.boot:spring-boot-starter-log4j2:1.3.2.RELEASE'
@@ -142,6 +144,33 @@ task integrationTest(type: Test) {
     }
 }
 
+task generateQueryDSL(type: JavaCompile, group: 'build', description: 'Generates the QueryDSL query types') {
+    // place the output of the QueryDSL predicate processor in a new location.
+    def outputDir = file("$generatedSrcDir")
+    outputs.dir outputDir
+    doFirst {
+        // make sure the directory exists.
+        outputDir.exists() || outputDir.mkdirs()
+    }
+
+    source = sourceSets.main.java
+    classpath = configurations.compile + configurations.querydsl
+
+    options.compilerArgs = [
+            "-proc:only",
+            "-processor", "com.mysema.query.apt.jpa.JPAAnnotationProcessor"
+    ]
+
+    // generated code goes into the generated code directory.
+    destinationDir = outputDir
+
+    dependencyCacheDir = compileJava.dependencyCacheDir
+
+}
+
+compileJava.dependsOn generateQueryDSL
+compileJava.source generateQueryDSL.outputs.files, sourceSets.main.java
+
 jacocoTestReport {
     executionData test, integrationTest
 
@@ -162,26 +191,11 @@ jacocoTestReport {
     }
 }
 
-task moveGeneratedFiles(type: Copy) {
-    def copySrcDir = "$buildDir/classes/main"
-
-    from(copySrcDir)
-    includeEmptyDirs = false
-    into(generatedSrcDir)
-    include('**/*.java')
-
-    doLast {
-        delete fileTree(dir: copySrcDir , include: '**/*.java')
-    }
-}
-
 clean {
     sourceSets.generated.java.srcDirs.each {
        srcDir -> delete srcDir
     }
 }
-
-compileJava.finalizedBy moveGeneratedFiles
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.10'
