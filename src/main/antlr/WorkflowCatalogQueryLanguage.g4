@@ -11,11 +11,11 @@ expression
     ;
 
 and_expression
-    : or_expression (AND or_expression)*
+    : or_expression (OR or_expression)*
     ;
 
 or_expression
-    : clause (OR clause)*
+    : clause (AND clause)*
     ;
 
 clause

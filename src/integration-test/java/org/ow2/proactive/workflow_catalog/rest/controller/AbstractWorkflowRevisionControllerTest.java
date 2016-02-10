@@ -35,12 +35,18 @@ import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRevisionRepository;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author ActiveEon Team
  */
 public class AbstractWorkflowRevisionControllerTest {
+
+    protected static final String WORKFLOW_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}";
 
     protected static final String WORKFLOWS_RESOURCE = "/buckets/{bucketId}/workflows/";
 
@@ -62,5 +68,13 @@ public class AbstractWorkflowRevisionControllerTest {
 
     @Autowired
     protected WorkflowRevisionService workflowRevisionService;
+
+    protected String prettify(String json) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        JsonParser jsonParser = new JsonParser();
+        JsonElement jsonElement = jsonParser.parse(json);
+
+        return gson.toJson(jsonElement);
+    }
 
 }

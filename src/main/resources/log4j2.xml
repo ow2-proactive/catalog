@@ -6,6 +6,9 @@
         </Console>
     </Appenders>
     <Loggers>
+        <Logger name="org.ow2.proactive.workflow_catalog.rest" level="info">
+            <AppenderRef ref="Console"/>
+        </Logger>
         <Logger name="org.springframework" level="info">
             <AppenderRef ref="Console"/>
         </Logger>

@@ -30,58 +30,51 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
-import java.util.Objects;
+import java.util.Set;
 
+import org.ow2.proactive.workflow_catalog.rest.entity.QGenericInformation;
+import org.ow2.proactive.workflow_catalog.rest.entity.QVariable;
 import com.google.common.base.MoreObjects;
+import com.mysema.query.types.Predicate;
 
 /**
+ * PredicateContext keeps the context associated to a query predicate.
+ * Mainly the QueryDSL predicate and the aliases used.
+ *
  * @author ActiveEon Team
  */
-public class ClauseKey {
+public final class PredicateContext {
 
-    public enum TABLE {VARIABLE, GENERIC_INFORMATION, NAME, PROJECT_NAME}
+    private final Predicate predicate;
 
-    public enum OPERATION {EQUAL, NOT_EQUAL}
+    private final Set<QGenericInformation> qGenericInformation;
 
-    public enum CLAUSE_TYPE {KEY, VALUE, NOT_APPLICABLE}
+    private final Set<QVariable> qVariables;
 
-    private final TABLE table;
-    private final OPERATION operation;
-    private final CLAUSE_TYPE clauseType;
-    private final boolean hasWildcards;
-
-    public ClauseKey(TABLE table, OPERATION operation, CLAUSE_TYPE clauseType, boolean hasWildcards) {
-        this.table = table;
-        this.operation = operation;
-        this.clauseType = clauseType;
-        this.hasWildcards = hasWildcards;
+    public PredicateContext(Predicate predicate, Set<QGenericInformation> qGenericInformation, Set<QVariable> qVariables) {
+        this.predicate = predicate;
+        this.qGenericInformation = qGenericInformation;
+        this.qVariables = qVariables;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ClauseKey clauseKey = (ClauseKey) o;
-
-        if (hasWildcards != clauseKey.hasWildcards) return false;
-        if (table != clauseKey.table) return false;
-        if (operation != clauseKey.operation) return false;
-        return clauseType == clauseKey.clauseType;
+    public Predicate getPredicate() {
+        return predicate;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(table, operation, clauseType, hasWildcards);
+    public Set<QGenericInformation> getGenericInformationAliases() {
+        return qGenericInformation;
+    }
+
+    public Set<QVariable> getVariableAliases() {
+        return qVariables;
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("table", table)
-                .add("operation", operation)
-                .add("clauseType", clauseType)
-                .add("hasWildcards", hasWildcards).toString();
+                .add("predicate", predicate)
+                .add("qGenericInformation", qGenericInformation)
+                .add("qVariables", qVariables).toString();
     }
 
 }

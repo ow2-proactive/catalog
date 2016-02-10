@@ -33,11 +33,11 @@ package org.ow2.proactive.workflow_catalog.rest.service.repository;
 
 import com.mysema.query.jpa.JPQLQuery;
 import com.mysema.query.jpa.impl.JPAQuery;
-import com.mysema.query.types.Predicate;
 import org.ow2.proactive.workflow_catalog.rest.entity.QGenericInformation;
 import org.ow2.proactive.workflow_catalog.rest.entity.QVariable;
 import org.ow2.proactive.workflow_catalog.rest.entity.QWorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.query.PredicateContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -59,33 +59,48 @@ public class QueryDslWorkflowRevisionRepository extends QueryDslRepositorySuppor
 
     private QWorkflowRevision qWorkflowRevision = QWorkflowRevision.workflowRevision;
 
-    private QGenericInformation qGenericInformation = QGenericInformation.genericInformation;
-
-    private QVariable qVariable = QVariable.variable;
-
     public QueryDslWorkflowRevisionRepository() {
         super(WorkflowRevision.class);
     }
 
-    public Page<WorkflowRevision> findAllWorkflowRevisions(Predicate predicate, Pageable pageable) {
-        return findWorkflowRevisions(
-                new JPAQuery(entityManager)
-                        .from(qWorkflowRevision)
-                        .leftJoin(qWorkflowRevision.variables, qVariable)
-                        .leftJoin(qWorkflowRevision.genericInformation, qGenericInformation)
-                        .where(predicate)
-                        .distinct(), pageable);
+    public Page<WorkflowRevision> findAllWorkflowRevisions(PredicateContext context, Pageable pageable) {
+        JPAQuery query = createQuery();
+        appendPredicate(query, context);
+
+        return findWorkflowRevisions(query, pageable);
     }
 
-    public Page<WorkflowRevision> findMostRecentWorkflowRevisions(Predicate predicate, Pageable pageable) {
-        return findWorkflowRevisions(new JPAQuery(entityManager)
-                .from(qWorkflowRevision)
-                .join(qWorkflowRevision.workflow)
-                .leftJoin(qWorkflowRevision.variables, qVariable)
-                .leftJoin(qWorkflowRevision.genericInformation, qGenericInformation)
-                .where(qWorkflowRevision.workflow.lastRevisionId.eq(qWorkflowRevision.revisionId))
-                .where(predicate)
-                .distinct(), pageable);
+    public Page<WorkflowRevision> findMostRecentWorkflowRevisions(PredicateContext context, Pageable pageable) {
+        JPAQuery query = createQuery().join(qWorkflowRevision.workflow);
+
+        context =
+                new PredicateContext(
+                        qWorkflowRevision.workflow.lastRevisionId
+                                .eq(qWorkflowRevision.revisionId).and(context.getPredicate()),
+                        context.getGenericInformationAliases(),
+                        context.getVariableAliases());
+
+        appendPredicate(query, context);
+
+        return findWorkflowRevisions(query.distinct(), pageable);
+    }
+
+    private JPAQuery createQuery() {
+        return new JPAQuery(entityManager).from(qWorkflowRevision);
+    }
+
+    private JPAQuery appendPredicate(JPAQuery query, PredicateContext predicateContext) {
+        for (QGenericInformation qGenericInformation : predicateContext.getGenericInformationAliases()) {
+            query.leftJoin(qWorkflowRevision.genericInformation, qGenericInformation);
+        }
+
+        for (QVariable qVariable : predicateContext.getVariableAliases()) {
+            query.leftJoin(qWorkflowRevision.variables, qVariable);
+        }
+
+        query.where(predicateContext.getPredicate()).distinct();
+
+        return query;
     }
 
     private Page<WorkflowRevision> findWorkflowRevisions(JPQLQuery query, Pageable pageable) {

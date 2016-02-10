@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
 
 import static org.mockito.Matchers.any;
@@ -47,10 +48,10 @@ import static org.mockito.Mockito.verify;
  */
 public class WorkflowCatalogQueryPredicateBuilderTest {
 
-    @Mock
+    @Spy
     private WorkflowCatalogQueryCompiler workflowCatalogQueryCompiler;
 
-    @Mock
+    @Spy
     private WorkflowCatalogQueryLanguageVisitor wcqlVisitor;
 
     @Before
@@ -60,11 +61,13 @@ public class WorkflowCatalogQueryPredicateBuilderTest {
 
     @Test
     public void testBuild() throws Exception {
-        String wcqlQuery = "variable.MyVariable=\"toto\"";
+        String wcqlQuery = "variable.name=\"toto\"";
+
         WorkflowCatalogQueryPredicateBuilder queryBuilder = new WorkflowCatalogQueryPredicateBuilder(wcqlQuery);
         queryBuilder.setQueryCompiler(workflowCatalogQueryCompiler);
         queryBuilder.setWcqlVisitor(wcqlVisitor);
         queryBuilder.build();
+
         verify(workflowCatalogQueryCompiler, times(1)).compile(wcqlQuery);
         verify(wcqlVisitor, times(1)).visitExpression(any(WorkflowCatalogQueryLanguageParser.ExpressionContext.class));
     }

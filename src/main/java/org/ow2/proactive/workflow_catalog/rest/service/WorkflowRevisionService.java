@@ -30,18 +30,36 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
-import com.google.common.collect.ImmutableMap;
-import com.mysema.query.BooleanBuilder;
-import com.mysema.query.types.Predicate;
+import java.io.ByteArrayInputStream;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.xml.stream.XMLStreamException;
+
 import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.controller.WorkflowRevisionController;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.entity.*;
+import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation;
+import org.ow2.proactive.workflow_catalog.rest.entity.QWorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
+import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
+import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.query.PredicateContext;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryPredicateBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.query.WorkflowCatalogQueryPredicateBuilder;
-import org.ow2.proactive.workflow_catalog.rest.service.repository.*;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.GenericInformationRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.QueryDslWorkflowRevisionRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.VariableRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRevisionRepository;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParser;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
+import com.google.common.collect.ImmutableMap;
+import com.mysema.query.BooleanBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
@@ -54,13 +72,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.xml.stream.XMLStreamException;
-import java.io.ByteArrayInputStream;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
@@ -95,7 +106,8 @@ public class WorkflowRevisionService {
     private WorkflowRevisionRepository workflowRevisionRepository;
 
     @Transactional
-    public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId, byte[] proActiveWorkflowXmlContent) {
+    public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId,
+            byte[] proActiveWorkflowXmlContent) {
         try {
             ProActiveWorkflowParser proActiveWorkflowParser =
                     new ProActiveWorkflowParser(
@@ -110,8 +122,8 @@ public class WorkflowRevisionService {
 
     @Transactional
     public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId,
-                                                   ProActiveWorkflowParserResult proActiveWorkflowParserResult,
-                                                   byte[] proActiveWorkflowXmlContent) {
+            ProActiveWorkflowParserResult proActiveWorkflowParserResult,
+            byte[] proActiveWorkflowXmlContent) {
         Bucket bucket = findBucket(bucketId);
 
         Workflow workflow = null;
@@ -145,7 +157,8 @@ public class WorkflowRevisionService {
         return new WorkflowMetadata(workflowRevision);
     }
 
-    protected List<GenericInformation> createEntityGenericInformation(ImmutableMap<String, String> genericInformation) {
+    protected List<GenericInformation> createEntityGenericInformation(
+            ImmutableMap<String, String> genericInformation) {
         return genericInformation.entrySet().stream()
                 .map(entry -> new GenericInformation(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
@@ -177,7 +190,8 @@ public class WorkflowRevisionService {
         return bucket;
     }
 
-    public PagedResources listWorkflows(Long bucketId, Optional<Long> workflowId, Optional<String> query, Pageable pageable, PagedResourcesAssembler assembler) throws QueryPredicateBuilderException {
+    public PagedResources listWorkflows(Long bucketId, Optional<Long> workflowId, Optional<String> query,
+            Pageable pageable, PagedResourcesAssembler assembler) throws QueryPredicateBuilderException {
         findBucket(bucketId);
         Page<WorkflowRevision> page;
 
@@ -185,18 +199,25 @@ public class WorkflowRevisionService {
             findWorkflow(workflowId.get());
 
             if (query.isPresent()) {
-                Predicate jpaQueryPredicate = createJpaQueryPredicate(query.get());
-                BooleanBuilder booleanBuilder = new BooleanBuilder(jpaQueryPredicate);
+                PredicateContext predicateContext = createJpaQueryPredicate(query.get());
+
+                BooleanBuilder booleanBuilder = new BooleanBuilder(predicateContext.getPredicate());
                 booleanBuilder.and(QWorkflowRevision.workflowRevision.workflow.id.eq(workflowId.get()));
 
-                page = queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(booleanBuilder, pageable);
+                predicateContext = new PredicateContext(booleanBuilder,
+                        predicateContext.getGenericInformationAliases(),
+                        predicateContext.getVariableAliases());
+
+                page = queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(predicateContext,
+                        pageable);
             } else {
                 page = workflowRevisionRepository.getRevisions(workflowId.get(), pageable);
             }
         } else {
             if (query.isPresent()) {
-                Predicate jpaQueryPredicate = createJpaQueryPredicate(query.get());
-                page = queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(jpaQueryPredicate, pageable);
+                PredicateContext jpaQueryPredicate = createJpaQueryPredicate(query.get());
+                page = queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(jpaQueryPredicate,
+                        pageable);
             } else {
                 page = workflowRepository.getMostRecentRevisions(bucketId, pageable);
             }
@@ -205,21 +226,24 @@ public class WorkflowRevisionService {
         return assembler.toResource(page, workflowRevisionResourceAssembler);
     }
 
-    private Predicate createJpaQueryPredicate(String workflowCatalogQuery) throws QueryPredicateBuilderException {
+    private PredicateContext createJpaQueryPredicate(
+            String workflowCatalogQuery) throws QueryPredicateBuilderException {
         WorkflowCatalogQueryPredicateBuilder builder =
                 new WorkflowCatalogQueryPredicateBuilder(workflowCatalogQuery);
 
         return builder.build();
     }
 
-    public ResponseEntity<?> getWorkflow(Long bucketId, Long workflowId, Optional<Long> revisionId, Optional<String> alt) {
+    public ResponseEntity<?> getWorkflow(Long bucketId, Long workflowId, Optional<Long> revisionId,
+            Optional<String> alt) {
         findBucket(bucketId);
         findWorkflow(workflowId);
 
         WorkflowRevision workflowRevision;
 
         if (revisionId.isPresent()) {
-            workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId, workflowId, revisionId.get());
+            workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId, workflowId,
+                    revisionId.get());
         } else {
             workflowRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
         }
@@ -252,16 +276,16 @@ public class WorkflowRevisionService {
         return ResponseEntity.ok(workflowMetadata);
     }
 
-    public Link createLink(Long bucketId, Long workflowId, Optional<Long> revisionId, WorkflowRevision workflowRevision) {
+    public Link createLink(Long bucketId, Long workflowId, Optional<Long> revisionId,
+            WorkflowRevision workflowRevision) {
         ControllerLinkBuilder controllerLinkBuilder =
                 linkTo(methodOn(WorkflowRevisionController.class)
                         .get(bucketId, workflowId, workflowRevision.getRevisionId(), null));
 
-        // alt request parameter name and valud is added manually
+        // alt request parameter name and value is added manually
         // otherwise a converter needs to be configured
         // for Optional class
         return new Link(controllerLinkBuilder.toString() + "?alt=" + SUPPORTED_ALT_VALUE).withRel("content");
     }
-
 
 }
