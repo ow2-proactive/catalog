@@ -113,7 +113,7 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         ClauseKey.CLAUSE_TYPE clauseType = getClauseType(attributeLiteral);
 
         Pattern wildcardPattern = Pattern.compile(".*[^\\\\]%.*");
-        Matcher wildcardMatcher = wildcardPattern.matcher(attributeLiteral);
+        Matcher wildcardMatcher = wildcardPattern.matcher(stringLiteral);
         boolean hasWildcards = wildcardMatcher.matches();
         ClauseKey clauseKey = new ClauseKey(table, operation, clauseType, hasWildcards);
         Function<String, Predicate> predicateCreator = clausesToFuncMap.get(clauseKey);
