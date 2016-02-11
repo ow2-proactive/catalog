@@ -28,15 +28,15 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-package org.ow2.proactive.workflow_catalog.rest.exceptions;
+package org.ow2.proactive.workflow_catalog.rest.service;
 
 /**
  * @author ActiveEon Team
  */
-public class RevisionNotFoundException extends ResourceNotFoundException {
+public class WorkflowNotFoundException extends ResourceNotFoundException {
 
-    public RevisionNotFoundException() {
-        super("No such revision");
+    public WorkflowNotFoundException() {
+        super("No such workflow");
     }
 
 }

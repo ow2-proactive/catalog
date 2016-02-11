@@ -30,14 +30,13 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
-import com.mysema.query.BooleanBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
 
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -47,13 +46,13 @@ import static org.mockito.Mockito.verify;
  *
  * @author ActiveEon Team
  */
-public class WorkflowCatalogJpaQueryBuilderTest {
+public class WorkflowCatalogQueryPredicateBuilderTest {
 
-    @Mock
+    @Spy
     private WorkflowCatalogQueryCompiler workflowCatalogQueryCompiler;
 
-    @Mock
-    private WorkflowCatalogQueryLanguageVisitor WCQLVisitor;
+    @Spy
+    private WorkflowCatalogQueryLanguageVisitor wcqlVisitor;
 
     @Before
     public void setUp() throws Exception {
@@ -62,12 +61,15 @@ public class WorkflowCatalogJpaQueryBuilderTest {
 
     @Test
     public void testBuild() throws Exception {
-        String QCWLQuery = "variable.MyVariable=\"toto\"";
-        WorkflowCatalogJpaQueryBuilder queryBuilder = new WorkflowCatalogJpaQueryBuilder(QCWLQuery);
+        String wcqlQuery = "variable.name=\"toto\"";
+
+        WorkflowCatalogQueryPredicateBuilder queryBuilder = new WorkflowCatalogQueryPredicateBuilder(wcqlQuery);
         queryBuilder.setQueryCompiler(workflowCatalogQueryCompiler);
-        queryBuilder.setWCQLVisitor(WCQLVisitor);
+        queryBuilder.setWcqlVisitor(wcqlVisitor);
         queryBuilder.build();
-        verify(workflowCatalogQueryCompiler, times(1)).compile(QCWLQuery);
-        verify(WCQLVisitor, times(1)).visitExpression(any(WorkflowCatalogQueryLanguageParser.ExpressionContext.class));
+
+        verify(workflowCatalogQueryCompiler, times(1)).compile(wcqlQuery);
+        verify(wcqlVisitor, times(1)).visitExpression(any(WorkflowCatalogQueryLanguageParser.ExpressionContext.class));
     }
+    
 }

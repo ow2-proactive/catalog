@@ -28,15 +28,19 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-package org.ow2.proactive.workflow_catalog.rest.exceptions;
+
+package org.ow2.proactive.workflow_catalog.rest.query;
 
 /**
+ * Exception thrown if an error is encountered when browsing the AST to generate the predicate
+ * that will be used in the query
+ *
  * @author ActiveEon Team
  */
-public class WorkflowNotFoundException extends ResourceNotFoundException {
+public class QueryPredicateBuilderRuntimeException extends RuntimeException {
 
-    public WorkflowNotFoundException() {
-        super("No such workflow");
+    public QueryPredicateBuilderRuntimeException(String message) {
+        super(message);
     }
 
 }

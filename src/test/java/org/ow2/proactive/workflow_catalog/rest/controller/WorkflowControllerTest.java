@@ -95,9 +95,9 @@ public class WorkflowControllerTest {
         when(bucketRepository.findOne(1L)).thenReturn(bucket);
         when(pagedResourcesAssembler.toResource(any(Page.class),
                 any(WorkflowRevisionResourceAssembler.class))).thenReturn(mock(PagedResources.class));
-        workflowController.list(1L, null, pagedResourcesAssembler);
+        workflowController.list(1L, Optional.empty(), null, pagedResourcesAssembler);
         verify(workflowService, times(1))
-                .listWorkflows(anyLong(), any(Pageable.class), any(PagedResourcesAssembler.class));
+                .listWorkflows(anyLong(), any(Optional.class), any(Pageable.class), any(PagedResourcesAssembler.class));
     }
 
     @Test

@@ -32,6 +32,7 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import io.swagger.annotations.ApiParam;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.query.QueryPredicateBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -63,16 +64,19 @@ public class WorkflowRevisionController {
     public WorkflowMetadata create(
             @PathVariable Long bucketId,
             @PathVariable Long workflowId,
-            @RequestParam(value = "file") MultipartFile file) throws IOException {
+            @RequestPart(value = "file") MultipartFile file) throws IOException {
         return workflowRevisionService.createWorkflowRevision(bucketId, Optional.of(workflowId), file.getBytes());
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions", method = GET)
     public PagedResources list(@PathVariable Long bucketId,
                                @PathVariable Long workflowId,
+                               @ApiParam("Query string for searching workflows. See Searching for workflows for more information about supported fields and operations.")
+                               @RequestParam(required = false)
+                               Optional<String> query,
                                Pageable pageable,
-                               PagedResourcesAssembler assembler) {
-        return workflowRevisionService.listWorkflows(bucketId, Optional.of(workflowId), pageable, assembler);
+                               PagedResourcesAssembler assembler) throws QueryPredicateBuilderException {
+        return workflowRevisionService.listWorkflows(bucketId, Optional.ofNullable(workflowId), query, pageable, assembler);
     }
 
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions/{revisionId}", method = GET)
@@ -82,7 +86,7 @@ public class WorkflowRevisionController {
                                  @ApiParam(value = "Force response to return workflow XML content when set to 'xml'")
                                  @RequestParam(required = false)
                                  Optional<String> alt) {
-        return workflowRevisionService.getWorkflow(bucketId, workflowId, Optional.of(revisionId), alt);
+        return workflowRevisionService.getWorkflow(bucketId, workflowId, Optional.ofNullable(revisionId), alt);
     }
 
 }

@@ -28,7 +28,7 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-package org.ow2.proactive.workflow_catalog.rest.exceptions;
+package org.ow2.proactive.workflow_catalog.rest.service;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -36,15 +36,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author ActiveEon Team
  */
-@ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)
-public class UnprocessableEntityException extends RuntimeException {
+@ResponseStatus(value = HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+public class UnsupportedMediaTypeException extends ResourceNotFoundException {
 
-    public UnprocessableEntityException(String message) {
+    public UnsupportedMediaTypeException(String message) {
         super(message);
-    }
-
-    public UnprocessableEntityException(Throwable cause) {
-        super(cause);
     }
 
 }

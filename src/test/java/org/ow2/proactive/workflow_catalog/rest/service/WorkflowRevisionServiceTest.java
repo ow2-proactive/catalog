@@ -41,10 +41,7 @@ import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
-import org.ow2.proactive.workflow_catalog.rest.exceptions.BucketNotFoundException;
-import org.ow2.proactive.workflow_catalog.rest.exceptions.RevisionNotFoundException;
-import org.ow2.proactive.workflow_catalog.rest.exceptions.UnprocessableEntityException;
-import org.ow2.proactive.workflow_catalog.rest.exceptions.WorkflowNotFoundException;
+import org.ow2.proactive.workflow_catalog.rest.query.QueryPredicateBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.*;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
 import org.springframework.data.domain.PageImpl;
@@ -245,7 +242,7 @@ public class WorkflowRevisionServiceTest {
         verify(workflowRepository, times(1)).getMostRecentWorkflowRevision(DUMMY_ID, DUMMY_ID);
     }
 
-    private void listWorkflows(Optional<Long> wId) {
+    private void listWorkflows(Optional<Long> wId) throws QueryPredicateBuilderException {
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(workflowRepository.findOne(anyLong())).thenReturn(mock(Workflow.class));
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
@@ -260,7 +257,7 @@ public class WorkflowRevisionServiceTest {
                     .thenReturn(mock(PageImpl.class));
         }
 
-        workflowRevisionService.listWorkflows(DUMMY_ID, wId, null, mockedAssembler);
+        workflowRevisionService.listWorkflows(DUMMY_ID, wId, Optional.empty(), null, mockedAssembler);
     }
 
     private void createWorkflow(String name, String projectName, String fileName, Optional<Long> wId)

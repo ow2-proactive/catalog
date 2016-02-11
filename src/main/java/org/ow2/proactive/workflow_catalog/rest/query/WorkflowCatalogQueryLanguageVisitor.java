@@ -30,20 +30,23 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
-import com.google.common.collect.ImmutableMap;
-import com.mysema.query.BooleanBuilder;
-import com.mysema.query.types.Predicate;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.ow2.proactive.workflow_catalog.rest.entity.QGenericInformation;
 import org.ow2.proactive.workflow_catalog.rest.entity.QVariable;
 import org.ow2.proactive.workflow_catalog.rest.entity.QWorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageBaseVisitor;
 import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+import com.mysema.query.BooleanBuilder;
+import com.mysema.query.types.Predicate;
+import com.mysema.query.types.path.EntityPathBase;
 
 /**
  * The concrete visitor that will create the predicate based
@@ -61,10 +64,14 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
     private final static String PROJ_TOKEN = "project_name";
     private final static String NAME_KEYWORD = "name";
     private final static String VALUE_KEYWORD = "value";
-    private static final Map<ClauseKey, Function<String, Predicate>> clausesToFuncMap;
 
-    static {
+    private final Map<ClauseKey, Function<String, Predicate>> clausesToFuncMap;
+
+    private final QGenerator generator;
+
+    public WorkflowCatalogQueryLanguageVisitor() {
         clausesToFuncMap = initClausesToFuncMap();
+        generator = new QGenerator();
     }
 
     @Override
@@ -76,7 +83,7 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
     public BooleanBuilder visitAnd_expression(WorkflowCatalogQueryLanguageParser.And_expressionContext ctx) {
         BooleanBuilder booleanBuilder = new BooleanBuilder();
         for (WorkflowCatalogQueryLanguageParser.Or_expressionContext orExpressionContext : ctx.or_expression()) {
-            booleanBuilder.and(visit(orExpressionContext));
+            booleanBuilder.or(visit(orExpressionContext));
         }
         return booleanBuilder;
     }
@@ -85,7 +92,7 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
     public BooleanBuilder visitOr_expression(WorkflowCatalogQueryLanguageParser.Or_expressionContext ctx) {
         BooleanBuilder booleanBuilder = new BooleanBuilder();
         for (WorkflowCatalogQueryLanguageParser.ClauseContext clauseContext : ctx.clause()) {
-            booleanBuilder.or(visit(clauseContext));
+            booleanBuilder.and(visit(clauseContext));
         }
         return booleanBuilder;
     }
@@ -94,11 +101,17 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
 
         String attributeLiteral = ctx.AttributeLiteral().getText();
         String stringLiteral = ctx.StringLiteral().getText();
+
+        // a String literal always starts and ends by a " character
+        // remove leading and trailing " character
+        stringLiteral = stringLiteral.substring(1, stringLiteral.length() - 1);
+
         BooleanBuilder booleanBuilder = new BooleanBuilder();
 
         ClauseKey.TABLE table = getTable(attributeLiteral);
         ClauseKey.OPERATION operation = getOperation(ctx.COMPARE_OPERATOR().getText());
         ClauseKey.CLAUSE_TYPE clauseType = getClauseType(attributeLiteral);
+
         Pattern wildcardPattern = Pattern.compile(".*[^\\\\]%.*");
         Matcher wildcardMatcher = wildcardPattern.matcher(attributeLiteral);
         boolean hasWildcards = wildcardMatcher.matches();
@@ -106,7 +119,7 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         Function<String, Predicate> predicateCreator = clausesToFuncMap.get(clauseKey);
 
         if (predicateCreator == null) {
-            throw new QueryBuilderException("No predicate found for clause " + clauseKey);
+            throw new QueryPredicateBuilderRuntimeException("No predicate found for clause '" + clauseKey + "'");
         }
 
         return booleanBuilder.and(predicateCreator.apply(stringLiteral));
@@ -118,34 +131,31 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
 
     protected ClauseKey.TABLE getTable(String attributeName) {
         String[] terms = attributeName.split(Pattern.quote("."));
+
         if (terms.length > 1) {
             if (terms[0].equalsIgnoreCase(VAR_TOKEN)) {
                 return ClauseKey.TABLE.VARIABLE;
-            }
-            else if (terms[0].equalsIgnoreCase(GI_TOKEN)) {
+            } else if (terms[0].equalsIgnoreCase(GI_TOKEN)) {
                 return ClauseKey.TABLE.GENERIC_INFORMATION;
             }
-        }
-        else {
+        } else {
             if (terms[0].equalsIgnoreCase(NAME_TOKEN)) {
                 return ClauseKey.TABLE.NAME;
-            }
-            else if (terms[0].equalsIgnoreCase(PROJ_TOKEN)) {
+            } else if (terms[0].equalsIgnoreCase(PROJ_TOKEN)) {
                 return ClauseKey.TABLE.PROJECT_NAME;
             }
         }
-        throw new QueryBuilderException("Table name found in " + attributeName + " is invalid");
+
+        throw new QueryPredicateBuilderRuntimeException("Invalid attribute name '" + attributeName + "'");
     }
 
     protected ClauseKey.OPERATION getOperation(String operation) {
         if (operation.contentEquals(EQ)) {
             return ClauseKey.OPERATION.EQUAL;
-        }
-        else if (operation.contentEquals(NEQ)) {
+        } else if (operation.contentEquals(NEQ)) {
             return ClauseKey.OPERATION.NOT_EQUAL;
-        }
-        else {
-            throw new QueryBuilderException("operation " + operation + " is invalid");
+        } else {
+            throw new QueryPredicateBuilderRuntimeException("Operator '" + operation + "' is invalid");
         }
     }
 
@@ -153,45 +163,47 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         ClauseKey.TABLE table = getTable(attributeLiteral);
         if (table == ClauseKey.TABLE.VARIABLE || table == ClauseKey.TABLE.GENERIC_INFORMATION) {
             String[] terms = attributeLiteral.split(Pattern.quote("."));
+
             assert terms.length > 1;
+
             if (terms[1].equalsIgnoreCase(NAME_KEYWORD)) {
                 return ClauseKey.CLAUSE_TYPE.KEY;
-            }
-            else if (terms[1].equalsIgnoreCase(VALUE_KEYWORD)) {
+            } else if (terms[1].equalsIgnoreCase(VALUE_KEYWORD)) {
                 return ClauseKey.CLAUSE_TYPE.VALUE;
+            } else {
+                throw new QueryPredicateBuilderRuntimeException("Clause type found in '" + attributeLiteral + "' is invalid");
             }
-            else {
-                throw new QueryBuilderException("Clause type found in " + attributeLiteral + " is invalid");
-            }
-        }
-        else if (table == ClauseKey.TABLE.NAME || table == ClauseKey.TABLE.PROJECT_NAME) {
+        } else if (table == ClauseKey.TABLE.NAME || table == ClauseKey.TABLE.PROJECT_NAME) {
             return ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE;
-        }
-        else {
-            throw new QueryBuilderException("Clause " + attributeLiteral + " is invalid");
+        } else {
+            throw new QueryPredicateBuilderRuntimeException("Clause '" + attributeLiteral + "' is invalid");
         }
     }
 
-    private static Map<ClauseKey, Function<String, Predicate>> initClausesToFuncMap() {
+    public QGenerator getGenerator() {
+        return generator;
+    }
+
+    private Map<ClauseKey, Function<String, Predicate>> initClausesToFuncMap() {
         Map<ClauseKey, Function<String, Predicate>> map = new HashMap<>(32);
 
         map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.KEY, false),
-                literalString -> QVariable.variable.key.eq(literalString));
+                literalString -> generator.createVariableAlias().key.eq(literalString));
         map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.KEY, false),
-                literalString -> QVariable.variable.key.ne(literalString));
+                literalString -> generator.createVariableAlias().key.ne(literalString));
         map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, false),
-                literalString -> QVariable.variable.value.eq(literalString));
+                literalString -> generator.createVariableAlias().value.eq(literalString));
         map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, false),
-                literalString -> QVariable.variable.value.ne(literalString));
+                literalString -> generator.createVariableAlias().value.ne(literalString));
 
         map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.KEY, false),
-                literalString -> QGenericInformation.genericInformation.key.eq(literalString));
+                literalString -> generator.createGenericInformationAlias().key.eq(literalString));
         map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.KEY, false),
-                literalString -> QGenericInformation.genericInformation.key.ne(literalString));
+                literalString -> generator.createGenericInformationAlias().key.ne(literalString));
         map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, false),
-                literalString -> QGenericInformation.genericInformation.value.eq(literalString));
+                literalString -> generator.createGenericInformationAlias().value.eq(literalString));
         map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, false),
-                literalString -> QGenericInformation.genericInformation.value.ne(literalString));
+                literalString -> generator.createGenericInformationAlias().value.ne(literalString));
 
         map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, false),
                 literalString -> QWorkflowRevision.workflowRevision.name.eq(literalString));
@@ -212,22 +224,22 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
                 literalString -> QWorkflowRevision.workflowRevision.projectName.ne(literalString));
 
         map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.KEY, true),
-                literalString -> QVariable.variable.key.like(literalString));
+                literalString -> generator.createVariableAlias().key.like(literalString));
         map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.KEY, true),
-                literalString -> QVariable.variable.key.notLike(literalString));
+                literalString -> generator.createVariableAlias().key.notLike(literalString));
         map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, true),
-                literalString -> QVariable.variable.value.like(literalString));
+                literalString -> generator.createVariableAlias().value.like(literalString));
         map.put(new ClauseKey(ClauseKey.TABLE.VARIABLE, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, true),
-                literalString -> QVariable.variable.value.notLike(literalString));
+                literalString -> generator.createVariableAlias().value.notLike(literalString));
 
         map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.KEY, true),
-                literalString -> QGenericInformation.genericInformation.key.like(literalString));
+                literalString -> generator.createGenericInformationAlias().key.like(literalString));
         map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.KEY, true),
-                literalString -> QGenericInformation.genericInformation.key.notLike(literalString));
+                literalString -> generator.createGenericInformationAlias().key.notLike(literalString));
         map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, true),
-                literalString -> QGenericInformation.genericInformation.value.like(literalString));
+                literalString -> generator.createGenericInformationAlias().value.like(literalString));
         map.put(new ClauseKey(ClauseKey.TABLE.GENERIC_INFORMATION, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.VALUE, true),
-                literalString -> QGenericInformation.genericInformation.value.notLike(literalString));
+                literalString -> generator.createGenericInformationAlias().value.notLike(literalString));
 
         map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
                 literalString -> QWorkflowRevision.workflowRevision.name.like(literalString));
@@ -248,6 +260,50 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
                 literalString -> QWorkflowRevision.workflowRevision.projectName.notLike(literalString));
 
         return ImmutableMap.copyOf(map);
+    }
+
+    /**
+     * The purpose of QGenerator is to ensure that each clause for
+     * a given attribute has a unique alias name.
+     */
+    public static class QGenerator {
+
+        private int index = 0;
+
+        private final Set<QGenericInformation> qGenericInformation = Sets.newHashSet();
+
+        private final Set<QVariable> qVariables = Sets.newHashSet();
+
+        public QGenericInformation createGenericInformationAlias() {
+            return (QGenericInformation) createAlias("genericInformation", aliasName -> {
+                    QGenericInformation alias = new QGenericInformation(aliasName);
+                    qGenericInformation.add(alias);
+                    return alias;
+            });
+        }
+
+        public QVariable createVariableAlias() {
+            return (QVariable) createAlias("variable", aliasName -> {
+                QVariable alias = new QVariable(aliasName);
+                qVariables.add(alias);
+                return alias;
+            });
+        }
+
+        public EntityPathBase<?> createAlias(String aliasPrefix, Function<String, EntityPathBase<?>> function) {
+            EntityPathBase<?> result = function.apply(aliasPrefix + index);
+            index++;
+            return result;
+        }
+
+        public Set<QGenericInformation> getGenericInformationAliases() {
+            return qGenericInformation;
+        }
+
+        public Set<QVariable> getVariableAliases() {
+            return qVariables;
+        }
+
     }
 
 }

@@ -1,6 +1,8 @@
 package org.ow2.proactive.workflow_catalog.rest.service.repository;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.mysema.query.BooleanBuilder;
 import com.mysema.query.types.Predicate;
 import org.junit.Assert;
@@ -8,16 +10,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
+import org.ow2.proactive.workflow_catalog.rest.controller.AbstractWorkflowRevisionControllerTest;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.QGenericInformation;
 import org.ow2.proactive.workflow_catalog.rest.entity.QVariable;
 import org.ow2.proactive.workflow_catalog.rest.entity.QWorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
-import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
-import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
-import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
+import org.ow2.proactive.workflow_catalog.rest.query.PredicateContext;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
@@ -51,16 +54,9 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {Application.class})
 @WebIntegrationTest
-public class QueryDslWorkflowRevisionRepositoryIntegrationTest {
+public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractWorkflowRevisionControllerTest {
 
-    @Autowired
-    private BucketService bucketService;
-
-    @Autowired
-    private WorkflowService workflowService;
-
-    @Autowired
-    private WorkflowRevisionService workflowRevisionService;
+    private static final Logger log = LoggerFactory.getLogger(QueryDslWorkflowRevisionRepositoryIntegrationTest.class);
 
     @Autowired
     private QueryDslWorkflowRevisionRepository queryDslWorkflowRevisionRepository;
@@ -115,14 +111,14 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest {
 
     private TestInput[] createTestInputs(int expectedNbResultsMultiple) {
         return new TestInput[]{
-                // no predicate defined must return all revisions
-                new TestInput(builder -> builder, NUMBER_OF_WORKFLOWS * expectedNbResultsMultiple),
+                // no predicateContext defined must return all revisions
+                new TestInput(builder -> createPredicateContext(builder), NUMBER_OF_WORKFLOWS * expectedNbResultsMultiple),
 
                 // search workflow revision with projectName that exists
                 new TestInput(
-                        builder -> builder.and(
+                        builder -> createPredicateContext(builder.and(
                                 QWorkflowRevision.workflowRevision.name
-                                        .eq("name" + (NUMBER_OF_WORKFLOWS / 2))),
+                                        .eq("name" + (NUMBER_OF_WORKFLOWS / 2)))),
                         1 * expectedNbResultsMultiple,
                         revisions -> {
                             assertThat(
@@ -133,19 +129,19 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest {
 
                 // search workflow revision with projectName that does not exist
                 new TestInput(
-                        builder -> builder.and(
+                        builder -> createPredicateContext(builder.and(
                                 QWorkflowRevision.workflowRevision.projectName
-                                        .eq("nonExistingProjectName")),
+                                        .eq("nonExistingProjectName"))),
                         0 * expectedNbResultsMultiple),
 
                 // search workflow revisions based on multiple OR conditions
                 new TestInput(
                         builder -> {
-                            builder.or(QWorkflowRevision.workflowRevision.name.eq("name1"));
-                            builder.or(QWorkflowRevision.workflowRevision.name.eq("name3"));
-                            builder.or(QGenericInformation.genericInformation.key.eq("key17"));
-                            builder.or(QVariable.variable.key.eq("key19"));
-                            return builder;
+                            return createPredicateContext(
+                                    builder.or(QWorkflowRevision.workflowRevision.name.eq("name1"))
+                                            .or(QWorkflowRevision.workflowRevision.name.eq("name3"))
+                                            .or(QGenericInformation.genericInformation.key.eq("key17"))
+                                            .or(QVariable.variable.key.eq("key19")));
                         },
                         4 * expectedNbResultsMultiple,
                         revisions -> {
@@ -158,17 +154,44 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest {
 
                 // search workflow revision based on multiple AND conditions
                 new TestInput(
-                        builder -> {
-                            builder.and(QWorkflowRevision.workflowRevision.projectName.eq("projectName"));
-                            builder.and(QWorkflowRevision.workflowRevision.name.eq("name1"));
-                            builder.and(QGenericInformation.genericInformation.key.eq("key11"));
-                            builder.and(QVariable.variable.value.eq("value11"));
-                            return builder;
-                        },
+                        builder ->
+                                createPredicateContext(
+                                        builder.and(QWorkflowRevision.workflowRevision.projectName.eq("projectName"))
+                                                .and(QWorkflowRevision.workflowRevision.name.eq("name1"))
+                                                .and(QGenericInformation.genericInformation.key.eq("key11"))
+                                                .and(QVariable.variable.value.eq("value11"))),
                         1 * expectedNbResultsMultiple,
                         revisions -> {
                             assertThat(revisions.get(0).getName().equals("name1"));
                         }
+                ),
+
+                // search workflow revision based on multiple OR conditions
+                new TestInput(
+                        builder ->
+                                createPredicateContext(
+                                        builder.or(QWorkflowRevision.workflowRevision.name.eq("name1"))
+                                                .or(QWorkflowRevision.workflowRevision.name.eq("name" + (NUMBER_OF_WORKFLOWS / 2)))
+                                                .or(QWorkflowRevision.workflowRevision.name.eq("name" + (NUMBER_OF_WORKFLOWS - 1)))),
+                        3 * expectedNbResultsMultiple
+                ),
+
+                // search workflow revision based on multiple AND conditions on same attribute
+                new TestInput(
+                        builder -> {
+                            List<QGenericInformation> aliases = ImmutableList.of(
+                                    new QGenericInformation("gi1"),
+                                    new QGenericInformation("gi2"),
+                                    new QGenericInformation("gi3")
+                            );
+
+                            return new PredicateContext(
+                                    builder.and(aliases.get(0).key.eq("key1"))
+                                            .and(aliases.get(1).key.eq("key2"))
+                                            .and(aliases.get(2).key.eq("key3")),
+                                    ImmutableSet.copyOf(aliases), ImmutableSet.of());
+                        },
+                        NUMBER_OF_WORKFLOWS * expectedNbResultsMultiple
                 ),
 
                 // search workflow revisions based on mixed and nested AND and OR conditions
@@ -185,7 +208,7 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest {
 
                             parent.or(QWorkflowRevision.workflowRevision.name.eq("name3"));
 
-                            return parent;
+                            return createPredicateContext(parent);
                         },
                         ((NUMBER_OF_WORKFLOWS / 2) + 2) * expectedNbResultsMultiple,
                         revisions -> {
@@ -204,32 +227,47 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest {
         };
     }
 
+    private PredicateContext createPredicateContext(Predicate predicate) {
+        return new PredicateContext(predicate,
+                ImmutableSet.of(QGenericInformation.genericInformation),
+                ImmutableSet.of(QVariable.variable));
+    }
+
     private void performTestFindAllWorkflowRevisions(TestInput[] testInputs) {
         performTest(testInputs,
-                (predicate, pageable) ->
+                (predicateContext, pageable) ->
                         queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(
-                                predicate, new PageRequest(0, TOTAL_NUMBER_OF_WORKFLOW_REVISIONS))
+                                predicateContext,
+                                new PageRequest(0, TOTAL_NUMBER_OF_WORKFLOW_REVISIONS))
         );
     }
 
     private void performTestFindMostRecentWorkflowRevisions(TestInput[] testInputs) {
         performTest(testInputs,
-                (predicate, pageable) ->
-                        queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(
-                                predicate, new PageRequest(0, TOTAL_NUMBER_OF_WORKFLOW_REVISIONS))
+                (predicateContext, pageable) -> {
+                    Page<WorkflowRevision> mostRecentWorkflowRevisions =
+                            queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(
+                                    predicateContext,
+                                    new PageRequest(0, TOTAL_NUMBER_OF_WORKFLOW_REVISIONS));
+
+                    log.info("Query predicate is '{}'", predicateContext.getPredicate());
+                    log.info("Number of workflow revision found is {}\n", mostRecentWorkflowRevisions.getTotalElements());
+
+                    return mostRecentWorkflowRevisions;
+                }
         );
     }
 
-    private void performTest(TestInput[] input, BiFunction<Predicate, Pageable, Page<WorkflowRevision>> function) {
+    private void performTest(TestInput[] input, BiFunction<PredicateContext, Pageable, Page<WorkflowRevision>> function) {
         for (TestInput testInput : input) {
             Page<WorkflowRevision> workflowRevisions =
                     function.apply(
-                            testInput.predicate, new PageRequest(0, TOTAL_NUMBER_OF_WORKFLOW_REVISIONS));
+                            testInput.predicateContext, new PageRequest(0, TOTAL_NUMBER_OF_WORKFLOW_REVISIONS));
 
             if (workflowRevisions.getTotalElements() != testInput.expectedNumberOfResults) {
                 Assert.fail("Expected " + testInput.expectedNumberOfResults +
                         " results but got " + workflowRevisions.getTotalElements()
-                        + " with predicate " + testInput.predicate);
+                        + " with predicateContext " + testInput.predicateContext);
             }
 
             testInput.testAssertions(workflowRevisions.getContent());
@@ -245,9 +283,14 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest {
 
         // key, values common to all workflow revisions that belong to a same workflow
         result.put("key1" + workflowIndex, "value1" + workflowIndex);
+
         result.put("key2" + workflowIndex, "value2" + workflowIndex);
         result.put("key3" + workflowIndex, "value3" + workflowIndex);
         result.put("key4" + workflowIndex, "value4" + workflowIndex);
+
+        result.put("key1", "value1");
+        result.put("key2", "value2");
+        result.put("key3", "value3");
 
         result.put("revision", revisionIndex == -1 ? "1" : "" + revisionIndex);
         result.put("workflowIndexIsMultipleOf2", workflowIndex % 2 == 0 ? "true" : "false");
@@ -258,7 +301,7 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest {
 
     private static class TestInput {
 
-        public final Predicate predicate;
+        public final PredicateContext predicateContext;
 
         public final int expectedNumberOfResults;
 
@@ -267,26 +310,26 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest {
         /**
          * Create a test input.
          *
-         * @param function                a function that builds the predicate to test
+         * @param function                a function that builds the predicateContext to test
          * @param expectedNumberOfResults the expected number of results
          */
-        public TestInput(Function<BooleanBuilder, BooleanBuilder> function, int expectedNumberOfResults) {
+        public TestInput(Function<BooleanBuilder, PredicateContext> function, int expectedNumberOfResults) {
             this(function.apply(new BooleanBuilder()), expectedNumberOfResults, null);
         }
 
         /**
          * Create a test input.
          *
-         * @param function                a function that builds the predicate to test
+         * @param function                a function that builds the predicateContext to test
          * @param expectedNumberOfResults the expected number of results
          * @param assertions              extra assertions to execute
          */
-        public TestInput(Function<BooleanBuilder, BooleanBuilder> function, int expectedNumberOfResults, Assertions assertions) {
+        public TestInput(Function<BooleanBuilder, PredicateContext> function, int expectedNumberOfResults, Assertions assertions) {
             this(function.apply(new BooleanBuilder()), expectedNumberOfResults, assertions);
         }
 
-        public TestInput(Predicate predicate, int expectedNumberOfResults, Assertions assertions) {
-            this.predicate = predicate;
+        public TestInput(PredicateContext predicateContext, int expectedNumberOfResults, Assertions assertions) {
+            this.predicateContext = predicateContext;
             this.expectedNumberOfResults = expectedNumberOfResults;
             this.assertions = Optional.ofNullable(assertions);
         }

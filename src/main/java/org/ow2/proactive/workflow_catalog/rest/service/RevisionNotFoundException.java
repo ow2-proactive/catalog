@@ -28,19 +28,15 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-
-package org.ow2.proactive.workflow_catalog.rest.query;
+package org.ow2.proactive.workflow_catalog.rest.service;
 
 /**
- * Exception thrown if an error is encountered when browsing the AST to generate the predicate
- * that will be used in the query
- *
  * @author ActiveEon Team
  */
-public class QueryBuilderException extends RuntimeException {
+public class RevisionNotFoundException extends ResourceNotFoundException {
 
-    public QueryBuilderException(String message) {
-        super(message);
+    public RevisionNotFoundException() {
+        super("No such revision");
     }
 
 }

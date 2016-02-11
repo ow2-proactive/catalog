@@ -30,6 +30,7 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
+import com.google.common.collect.ImmutableSet;
 import com.mysema.query.BooleanBuilder;
 import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
 
@@ -39,33 +40,50 @@ import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQuery
  *
  * @author ActiveEon Team
  */
-public class WorkflowCatalogJpaQueryBuilder {
+public class WorkflowCatalogQueryPredicateBuilder {
 
     private final String workflowCatalogQuery;
-    protected WorkflowCatalogQueryCompiler queryCompiler;
-    protected WorkflowCatalogQueryLanguageVisitor WCQLVisitor;
 
-    public WorkflowCatalogJpaQueryBuilder(String workflowCatalogQuery) {
+    protected WorkflowCatalogQueryCompiler queryCompiler;
+
+    protected WorkflowCatalogQueryLanguageVisitor wcqlVisitor;
+
+    public WorkflowCatalogQueryPredicateBuilder(String workflowCatalogQuery) {
         this.workflowCatalogQuery = workflowCatalogQuery;
         this.queryCompiler = new WorkflowCatalogQueryCompiler();
-        this.WCQLVisitor = new WorkflowCatalogQueryLanguageVisitor();
+        this.wcqlVisitor = new WorkflowCatalogQueryLanguageVisitor();
     }
 
-    public BooleanBuilder build() {
-        WorkflowCatalogQueryLanguageParser.ExpressionContext context = null;
-        try {
-            context = queryCompiler.compile(workflowCatalogQuery);
-        } catch (SyntaxException e) {
-            e.printStackTrace();
+    public PredicateContext build() throws QueryPredicateBuilderException {
+        // empty query must throw no exception and be valid
+        if (workflowCatalogQuery.trim().isEmpty()) {
+            return new PredicateContext(
+                    new BooleanBuilder(), ImmutableSet.of(), ImmutableSet.of());
         }
-        return WCQLVisitor.visitExpression(context);
+
+        try {
+            WorkflowCatalogQueryLanguageParser.ExpressionContext context =
+                    queryCompiler.compile(workflowCatalogQuery);
+
+            BooleanBuilder booleanBuilder = wcqlVisitor.visitExpression(context);
+
+            WorkflowCatalogQueryLanguageVisitor.QGenerator generator = wcqlVisitor.getGenerator();
+
+            return new PredicateContext(
+                    booleanBuilder,
+                    generator.getGenericInformationAliases(),
+                    generator.getVariableAliases());
+        } catch (Exception e) {
+            throw new QueryPredicateBuilderException(e.getMessage());
+        }
     }
 
     protected void setQueryCompiler(WorkflowCatalogQueryCompiler queryCompiler) {
         this.queryCompiler = queryCompiler;
     }
 
-    protected void setWCQLVisitor(WorkflowCatalogQueryLanguageVisitor WCQLVisitor) {
-        this.WCQLVisitor = WCQLVisitor;
+    protected void setWcqlVisitor(WorkflowCatalogQueryLanguageVisitor wcqlVisitor) {
+        this.wcqlVisitor = wcqlVisitor;
     }
+
 }
