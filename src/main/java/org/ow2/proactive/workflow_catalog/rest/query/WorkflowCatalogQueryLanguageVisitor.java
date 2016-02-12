@@ -112,7 +112,7 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         ClauseKey.OPERATION operation = getOperation(ctx.COMPARE_OPERATOR().getText());
         ClauseKey.CLAUSE_TYPE clauseType = getClauseType(attributeLiteral);
 
-        Pattern wildcardPattern = Pattern.compile(".*[^\\\\]%.*");
+        Pattern wildcardPattern = Pattern.compile(".*%.*");
         Matcher wildcardMatcher = wildcardPattern.matcher(stringLiteral);
         boolean hasWildcards = wildcardMatcher.matches();
         ClauseKey clauseKey = new ClauseKey(table, operation, clauseType, hasWildcards);
@@ -248,22 +248,22 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
                 literalString -> generator.createGenericInformationAlias().value.notLike(literalString));
 
         map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.name.like(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.name.like(literalString, '\\'));
         map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.name.notLike(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.name.notLike(literalString, '\\'));
         map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.name.like(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.name.like(literalString, '\\'));
         map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.name.notLike(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.name.notLike(literalString, '\\'));
 
         map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.projectName.like(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.projectName.like(literalString, '\\'));
         map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.projectName.notLike(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.projectName.notLike(literalString, '\\'));
         map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.projectName.like(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.projectName.like(literalString, '\\'));
         map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.projectName.notLike(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.projectName.notLike(literalString, '\\'));
 
         return ImmutableMap.copyOf(map);
     }
