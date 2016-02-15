@@ -30,6 +30,15 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.stream.IntStream;
+
+import org.ow2.proactive.workflow_catalog.rest.Application;
+import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.ow2.proactive.workflow_catalog.rest.util.IntegrationTestUtil;
 import com.google.common.io.ByteStreams;
 import com.jayway.restassured.response.Response;
 import org.apache.http.HttpStatus;
@@ -37,23 +46,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.ow2.proactive.workflow_catalog.rest.Application;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
-import org.ow2.proactive.workflow_catalog.rest.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.IntStream;
-
 import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 /**
@@ -128,11 +130,11 @@ public class WorkflowRevisionControllerIntegrationTest extends AbstractWorkflowR
     }
 
     @Test
-    public void testCreateWorkflowRevisionShouldReturnUnprocessableEntityIfNoProjectNameInXmlPayload() {
+    public void testCreateWorkflowRevisionShouldWorkIfNoProjectNameInXmlPayload() {
         given().pathParam("bucketId", bucket.getId()).pathParam("workflowId", firstWorkflowRevision.id)
                 .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-no-project-name.xml"))
                 .when().post(WORKFLOW_REVISIONS_RESOURCE).then()
-                .assertThat().statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+                .assertThat().statusCode(HttpStatus.SC_CREATED);
     }
 
     @Test
