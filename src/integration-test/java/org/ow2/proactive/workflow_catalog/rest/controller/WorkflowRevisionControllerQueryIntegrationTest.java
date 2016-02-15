@@ -152,6 +152,10 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         testFindMostRecentWorkflowRevisionsMixedAndOrWithBrackets();
         testFindMostRecentWorkflowRevisionsMixedAndOr();
         testFindMostRecentWorkflowRevisionsMixedAndOr2();
+        testFindMostRecentWorkflowsByVariableNameWildcard1();
+        testFindMostRecentWorkflowsByVariableNameWildcard2();
+        testFindMostRecentWorkflowsByVariableNameWildcard3();
+        testFindMostRecentWorkflowsByVariableNameWildcard4();
     }
 
     public void testFindMostRecentWorkflowRevisionsNoPredicate() {
@@ -246,6 +250,26 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                 .body("_embedded.workflowMetadataList", hasSize(numberOfMultipleMixedAndOr2()));
     }
 
+    public void testFindMostRecentWorkflowsByVariableNameWildcard1() {
+        findMostRecentWorkflowRevisions("variable.name=\"%ultipleOf%\"")
+                .body("_embedded.workflowMetadataList", hasSize(numberOfMultipleMixedAndOr2() + 1));
+    }
+
+    public void testFindMostRecentWorkflowsByVariableNameWildcard2() {
+        findMostRecentWorkflowRevisions("variable.name=\"%Of2\"")
+                .body("_embedded.workflowMetadataList", hasSize(numberOfMultipleOf2() + 1));
+    }
+
+    public void testFindMostRecentWorkflowsByVariableNameWildcard3() {
+        findMostRecentWorkflowRevisions("variable.name=\"multiple%\"")
+                .body("_embedded.workflowMetadataList", hasSize(numberOfMultipleMixedAndOr2() + 1));
+    }
+
+    public void testFindMostRecentWorkflowsByVariableNameWildcard4() {
+        findMostRecentWorkflowRevisions("variable.name=\"m%2\"")
+                .body("_embedded.workflowMetadataList", hasSize(numberOfMultipleOf2() + 1));
+    }
+
     public ValidatableResponse findAllWorkflowRevisions(String wcqlQuery, long workflowId) {
         Response response = given().pathParam("bucketId", bucket.id).pathParam("workflowId", workflowId)
                 .queryParam("size", TOTAL_NUMBER_OF_WORKFLOW_REVISIONS)
@@ -311,6 +335,10 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
 
     private int numberOfMultipleOf2And4() {
         return numberOfMultiple(i -> i % 2 == 0 && i % 4 == 0);
+    }
+
+    private int numberOfMultipleOf2() {
+        return numberOfMultiple(i -> i % 2 == 0);
     }
 
     private int numberOfMultiple(Predicate<Integer> predicate) {
