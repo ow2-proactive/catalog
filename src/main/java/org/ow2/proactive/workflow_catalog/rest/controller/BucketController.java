@@ -32,12 +32,20 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -51,6 +59,7 @@ public class BucketController {
     @Autowired
     private BucketService bucketService;
 
+    @ApiOperation(value = "Creates a new bucket")
     @RequestMapping(value = "/buckets", method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public BucketMetadata create(
@@ -58,13 +67,20 @@ public class BucketController {
         return bucketService.createBucket(bucketName);
     }
 
+    @ApiOperation(value = "Gets a bucket's metadata by ID")
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
     @RequestMapping(value = "/buckets/{bucketId}", method = GET)
     public BucketMetadata getMetadata(@PathVariable long bucketId) {
         return bucketService.getBucketMetadata(bucketId);
     }
 
+    @ApiOperation(value = "Lists the buckets")
     @RequestMapping(value = "/buckets", method = GET)
-    public PagedResources list(Pageable pageable, PagedResourcesAssembler assembler) {
+    public PagedResources list(
+            @ApiParam(hidden = false)
+            Pageable pageable,
+            @ApiParam(hidden = true)
+            PagedResourcesAssembler assembler) {
         return bucketService.listBuckets(pageable, assembler);
     }
 
