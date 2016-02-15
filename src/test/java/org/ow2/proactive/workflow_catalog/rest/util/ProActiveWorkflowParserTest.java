@@ -31,9 +31,9 @@
 
 package org.ow2.proactive.workflow_catalog.rest.util;
 
-import org.junit.Test;
-
 import javax.xml.stream.XMLStreamException;
+
+import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -68,6 +68,12 @@ public class ProActiveWorkflowParserTest {
 
         assertThat(result.getGenericInformation()).isEmpty();
         assertThat(result.getVariables()).isEmpty();
+    }
+
+    @Test
+    public void testParseWorkflowWithNoProjectName() throws XMLStreamException {
+        ProActiveWorkflowParserResult result = parseWorkflow("workflow-no-project-name.xml");
+        assertThat(result.getProjectName()).isEmpty();
     }
 
     private ProActiveWorkflowParserResult parseWorkflow(String xmlFilename) throws XMLStreamException {

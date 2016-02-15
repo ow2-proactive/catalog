@@ -30,25 +30,6 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.*;
-import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
-import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
-import org.ow2.proactive.workflow_catalog.rest.query.QueryPredicateBuilderException;
-import org.ow2.proactive.workflow_catalog.rest.service.repository.*;
-import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.Link;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -56,10 +37,40 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
+import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
+import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.query.QueryPredicateBuilderException;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.GenericInformationRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.VariableRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRepository;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRevisionRepository;
+import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.Link;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author ActiveEon Team
@@ -108,13 +119,6 @@ public class WorkflowRevisionServiceTest {
         workflowRevisionService.createWorkflowRevision(DUMMY_ID, Optional.empty(),
                 new ProActiveWorkflowParserResult("projectName", "name",
                         ImmutableMap.of(), ImmutableMap.of()), new byte[0]);
-    }
-
-    @Test(expected = UnprocessableEntityException.class)
-    public void testCreateWorkflowRevisionNoProjectName() throws IOException {
-        when(bucketRepository.findOne(Matchers.anyLong())).thenReturn(mock(Bucket.class));
-        workflowRevisionService.createWorkflowRevision(DUMMY_ID, Optional.empty(),
-                getWorkflowAsByteArray("invalid-workflow.xml"));
     }
 
     @Test

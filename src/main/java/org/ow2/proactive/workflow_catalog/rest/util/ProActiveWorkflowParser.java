@@ -31,17 +31,18 @@
 
 package org.ow2.proactive.workflow_catalog.rest.util;
 
-import com.google.common.collect.ImmutableMap;
-import org.ow2.proactive.workflow_catalog.rest.service.UnprocessableEntityException;
+import java.io.InputStream;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
-import java.io.InputStream;
-import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
+
+import org.ow2.proactive.workflow_catalog.rest.service.UnprocessableEntityException;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * ProActiveWorkflowParser aims to parse a ProActive XML workflow (whatever the schema version is)
@@ -165,9 +166,8 @@ public final class ProActiveWorkflowParser {
     }
 
     private ProActiveWorkflowParserResult createResult() {
-        String projectName = getProjectName().orElseThrow(
-                getMissingElementException("No project name defined.")
-        );
+        // based on XSD definition, project name is optional
+        String projectName = getProjectName().orElse("");
 
         String name = getJobName().orElseThrow(
                 getMissingElementException("No job name defined.")
