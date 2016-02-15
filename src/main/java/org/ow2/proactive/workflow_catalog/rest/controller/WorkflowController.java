@@ -31,10 +31,16 @@
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
 
-import io.swagger.annotations.ApiParam;
+import java.io.IOException;
+import java.util.Optional;
+
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryPredicateBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -42,11 +48,13 @@ import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -60,28 +68,39 @@ public class WorkflowController {
     @Autowired
     private WorkflowService workflowService;
 
-    @RequestMapping(value = "/buckets/{bucketId}/workflows", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, method = POST)
+    @ApiOperation(value = "Creates a new workflow")
+    @ApiResponses(value = {
+            @ApiResponse(code = 404, message = "Bucket not found"),
+            @ApiResponse(code = 422, message = "Invalid XML workflow content supplied")
+    })
+    @RequestMapping(value = "/buckets/{bucketId}/workflows", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public WorkflowMetadata create(@PathVariable Long bucketId,
-                                   @RequestPart(value = "file") MultipartFile file) throws IOException {
+            @RequestPart(value = "file") MultipartFile file) throws IOException {
         return workflowService.createWorkflow(bucketId, file.getBytes());
     }
 
-    @RequestMapping(value = "/buckets/{bucketId}/workflows", method = GET)
-    public PagedResources list(@PathVariable Long bucketId,
-                               @ApiParam("Query string for searching workflows. See Searching for workflows for more information about supported fields and operations.")
-                               @RequestParam(required = false) Optional<String> query,
-                               Pageable pageable,
-                               PagedResourcesAssembler assembler) throws QueryPredicateBuilderException {
-        return workflowService.listWorkflows(bucketId, query, pageable, assembler);
-    }
-
+    @ApiOperation(value = "Gets a workflow's metadata by IDs", notes = "Returns metadata associated to the latest revision of the workflow.")
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}", method = GET)
     public ResponseEntity<?> get(@PathVariable Long bucketId,
-                                 @PathVariable Long workflowId,
-                                 @ApiParam(value = "Force response to return workflow XML content when set to 'xml'")
-                                 @RequestParam(required = false) Optional<String> alt) {
+            @PathVariable Long workflowId,
+            @ApiParam(value = "Force response to return workflow XML content when set to 'xml'.")
+            @RequestParam(required = false) Optional<String> alt) {
         return workflowService.getWorkflowMetadata(bucketId, workflowId, alt);
+    }
+
+    @ApiOperation(value = "Lists workflows metadata", notes = "Returns workflows metadata associated to the latest revision.")
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
+    @RequestMapping(value = "/buckets/{bucketId}/workflows", method = GET)
+    public PagedResources list(@PathVariable Long bucketId,
+            @ApiParam("Query string for searching workflows. See <a href=\"http://doc.activeeon.com/latest/user/ProActiveUserGuide.html#_searching_for_workflows\">Searching for workflows</a> for more information about supported attributes and operations.")
+            @RequestParam(required = false) Optional<String> query,
+            @ApiParam(hidden = true)
+            Pageable pageable,
+            @ApiParam(hidden = true)
+            PagedResourcesAssembler assembler) throws QueryPredicateBuilderException {
+        return workflowService.listWorkflows(bucketId, query, pageable, assembler);
     }
 
 }
