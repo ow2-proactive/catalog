@@ -32,8 +32,9 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,11 +76,19 @@ public class BucketController {
     }
 
     @ApiOperation(value = "Lists the buckets")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "Results page you want to retrieve (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "Number of records per page."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "Sorting criteria in the format: property(,asc|desc). " +
+                            "Default sort order is ascending. " +
+                            "Multiple sort criteria are supported.")
+    })
     @RequestMapping(value = "/buckets", method = GET)
     public PagedResources list(
-            @ApiParam(hidden = false)
             Pageable pageable,
-            @ApiParam(hidden = true)
             PagedResourcesAssembler assembler) {
         return bucketService.listBuckets(pageable, assembler);
     }

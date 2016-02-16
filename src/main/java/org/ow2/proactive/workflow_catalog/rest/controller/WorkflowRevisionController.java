@@ -36,6 +36,8 @@ import java.util.Optional;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryPredicateBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -96,6 +98,16 @@ public class WorkflowRevisionController {
     }
 
     @ApiOperation(value = "Lists a workflow's revisions")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "Results page you want to retrieve (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "Number of records per page."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "Sorting criteria in the format: property(,asc|desc). " +
+                            "Default sort order is ascending. " +
+                            "Multiple sort criteria are supported.")
+    })
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions", method = GET)
     public PagedResources list(@PathVariable Long bucketId,
@@ -103,9 +115,7 @@ public class WorkflowRevisionController {
             @ApiParam("Query string for searching workflows. See <a href=\"http://doc.activeeon.com/latest/user/ProActiveUserGuide.html#_searching_for_workflows\">Searching for workflows</a> for more information about supported fields and operations.")
             @RequestParam(required = false)
             Optional<String> query,
-            @ApiParam(hidden = true)
             Pageable pageable,
-            @ApiParam(hidden = true)
             PagedResourcesAssembler assembler) throws QueryPredicateBuilderException {
         return workflowRevisionService.listWorkflows(
                 bucketId, Optional.ofNullable(workflowId), query, pageable, assembler);

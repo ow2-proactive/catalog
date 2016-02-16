@@ -31,8 +31,12 @@
 
 package org.ow2.proactive.workflow_catalog.rest;
 
-import com.google.common.base.Predicate;
+import java.io.File;
+
+import javax.sql.DataSource;
+
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import com.google.common.base.Predicate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -43,6 +47,8 @@ import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -57,9 +63,6 @@ import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
-
-import javax.sql.DataSource;
-import java.io.File;
 
 
 /**
@@ -160,8 +163,9 @@ public class Application extends WebMvcConfigurerAdapter {
     @Bean
     public Docket workflowCatalogApi() {
         return new Docket(DocumentationType.SWAGGER_2)
-                .groupName("Workflow Catalog")
                 .apiInfo(apiInfo())
+                .groupName("Workflow Catalog")
+                .ignoredParameterTypes(Pageable.class, PagedResourcesAssembler.class)
                 .select()
                 .paths(allowedPaths())
                 .build();
