@@ -31,21 +31,21 @@
 
 package org.ow2.proactive.workflow_catalog.rest.service.repository;
 
-import com.mysema.query.jpa.JPQLQuery;
-import com.mysema.query.jpa.impl.JPAQuery;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.ow2.proactive.workflow_catalog.rest.entity.QGenericInformation;
 import org.ow2.proactive.workflow_catalog.rest.entity.QVariable;
 import org.ow2.proactive.workflow_catalog.rest.entity.QWorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.query.PredicateContext;
+import com.mysema.query.jpa.JPQLQuery;
+import com.mysema.query.jpa.impl.JPAQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.QueryDslRepositorySupport;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 
 /**
@@ -63,14 +63,17 @@ public class QueryDslWorkflowRevisionRepository extends QueryDslRepositorySuppor
         super(WorkflowRevision.class);
     }
 
-    public Page<WorkflowRevision> findAllWorkflowRevisions(PredicateContext context, Pageable pageable) {
+    public Page<WorkflowRevision> findAllWorkflowRevisions(long bucketId, PredicateContext predicateContext,
+            Pageable pageable) {
         JPAQuery query = createQuery();
-        appendPredicate(query, context);
+        appendPredicate(query, predicateContext);
+        appendBucketPredicate(bucketId, query);
 
         return findWorkflowRevisions(query, pageable);
     }
 
-    public Page<WorkflowRevision> findMostRecentWorkflowRevisions(PredicateContext context, Pageable pageable) {
+    public Page<WorkflowRevision> findMostRecentWorkflowRevisions(long bucketId, PredicateContext context,
+            Pageable pageable) {
         JPAQuery query = createQuery().join(qWorkflowRevision.workflow);
 
         context =
@@ -81,6 +84,7 @@ public class QueryDslWorkflowRevisionRepository extends QueryDslRepositorySuppor
                         context.getVariableAliases());
 
         appendPredicate(query, context);
+        appendBucketPredicate(bucketId, query);
 
         return findWorkflowRevisions(query.distinct(), pageable);
     }
@@ -101,6 +105,10 @@ public class QueryDslWorkflowRevisionRepository extends QueryDslRepositorySuppor
         query.where(predicateContext.getPredicate()).distinct();
 
         return query;
+    }
+
+    private void appendBucketPredicate(long bucketId, JPAQuery query) {
+        query.where(qWorkflowRevision.bucketId.eq(bucketId));
     }
 
     private Page<WorkflowRevision> findWorkflowRevisions(JPQLQuery query, Pageable pageable) {
