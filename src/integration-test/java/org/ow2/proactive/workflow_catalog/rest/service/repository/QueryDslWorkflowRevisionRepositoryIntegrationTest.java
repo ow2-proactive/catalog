@@ -1,14 +1,10 @@
 package org.ow2.proactive.workflow_catalog.rest.service.repository;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.mysema.query.BooleanBuilder;
-import com.mysema.query.types.Predicate;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
 import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.ow2.proactive.workflow_catalog.rest.controller.AbstractWorkflowRevisionControllerTest;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
@@ -19,6 +15,15 @@ import org.ow2.proactive.workflow_catalog.rest.entity.QWorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.query.PredicateContext;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.mysema.query.BooleanBuilder;
+import com.mysema.query.types.Predicate;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,17 +36,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
 import static com.google.common.truth.Truth.assertThat;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 /**
  * Integration tests associated to {@link QueryDslWorkflowRevisionRepository}.
- * <p>
+ * <p/>
  * The idea is to start a Web application with a in-memory database
  * that is pre-allocated with several workflow revisions. Then, two main tests
  * are executed. Each runs multiple queries against the database (as sub-test)
@@ -52,11 +52,12 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @ActiveProfiles("test")
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {Application.class})
+@SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest
 public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractWorkflowRevisionControllerTest {
 
-    private static final Logger log = LoggerFactory.getLogger(QueryDslWorkflowRevisionRepositoryIntegrationTest.class);
+    private static final Logger log = LoggerFactory.getLogger(
+            QueryDslWorkflowRevisionRepositoryIntegrationTest.class);
 
     @Autowired
     private QueryDslWorkflowRevisionRepository queryDslWorkflowRevisionRepository;
@@ -74,15 +75,18 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
     private static final int TOTAL_NUMBER_OF_WORKFLOW_REVISIONS =
             (NUMBER_OF_WORKFLOW_REVISIONS_TO_ADD + 1) * NUMBER_OF_WORKFLOWS;
 
+    private BucketMetadata bucket;
+
     @Before
     public void setUp() {
-        BucketMetadata bucket = bucketService.createBucket("test");
+        bucket = bucketService.createBucket("test");
 
         // create workflows
         for (int workflowIndex = 0; workflowIndex < NUMBER_OF_WORKFLOWS; workflowIndex++) {
             ProActiveWorkflowParserResult proActiveWorkflowParserResult =
                     new ProActiveWorkflowParserResult("projectName",
-                            "name" + workflowIndex, createKeyValues(workflowIndex), createKeyValues(workflowIndex));
+                            "name" + workflowIndex, createKeyValues(workflowIndex),
+                            createKeyValues(workflowIndex));
 
             WorkflowMetadata workflow =
                     workflowService.createWorkflow(bucket.id, proActiveWorkflowParserResult, new byte[0]);
@@ -91,7 +95,8 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
             for (int revisionIndex = 0; revisionIndex < NUMBER_OF_WORKFLOW_REVISIONS_TO_ADD; revisionIndex++) {
                 proActiveWorkflowParserResult =
                         new ProActiveWorkflowParserResult("projectName",
-                                "name" + workflowIndex, createKeyValues(workflowIndex), createKeyValues(workflowIndex));
+                                "name" + workflowIndex, createKeyValues(workflowIndex),
+                                createKeyValues(workflowIndex));
 
                 workflowRevisionService.createWorkflowRevision(
                         bucket.id, Optional.of(workflow.id), proActiveWorkflowParserResult, new byte[0]);
@@ -109,10 +114,45 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
         performTestFindMostRecentWorkflowRevisions(createTestInputs(1));
     }
 
+    @Test
+    public void testFindAllWorkflowRevisionsMustTargetSpecificBucket() {
+        doQuery(queryContext ->
+                queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(
+                        queryContext.bucketId, queryContext.predicateContext, queryContext.pageRequest));
+    }
+
+    @Test
+    public void testFindMostRecentWorkflowRevisionsMustTargetSpecificBucket() {
+        doQuery(queryContext ->
+                queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(
+                        queryContext.bucketId, queryContext.predicateContext, queryContext.pageRequest));
+    }
+
+    private Page<WorkflowRevision> doQuery(
+            Function<QueryContext, Page<WorkflowRevision>> function) {
+        BucketMetadata bucket = bucketService.createBucket("another");
+
+        ProActiveWorkflowParserResult workflowParserResult =
+                new ProActiveWorkflowParserResult(
+                        "projectName", "name", ImmutableMap.of(), ImmutableMap.of());
+
+        workflowService.createWorkflow(bucket.id, workflowParserResult, new byte[0]);
+
+        Page<WorkflowRevision> page =
+                function.apply(new QueryContext(bucket.id,
+                        createPredicateContext(new BooleanBuilder()),
+                        new PageRequest(0, TOTAL_NUMBER_OF_WORKFLOW_REVISIONS + 1)));
+
+        assertThat(page).hasSize(1);
+
+        return page;
+    }
+
     private TestInput[] createTestInputs(int expectedNbResultsMultiple) {
-        return new TestInput[]{
+        return new TestInput[] {
                 // no predicateContext defined must return all revisions
-                new TestInput(builder -> createPredicateContext(builder), NUMBER_OF_WORKFLOWS * expectedNbResultsMultiple),
+                new TestInput(builder -> createPredicateContext(builder),
+                        NUMBER_OF_WORKFLOWS * expectedNbResultsMultiple),
 
                 // search workflow revision with projectName that exists
                 new TestInput(
@@ -156,7 +196,8 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
                 new TestInput(
                         builder ->
                                 createPredicateContext(
-                                        builder.and(QWorkflowRevision.workflowRevision.projectName.eq("projectName"))
+                                        builder.and(QWorkflowRevision.workflowRevision.projectName.eq(
+                                                "projectName"))
                                                 .and(QWorkflowRevision.workflowRevision.name.eq("name1"))
                                                 .and(QGenericInformation.genericInformation.key.eq("key11"))
                                                 .and(QVariable.variable.value.eq("value11"))),
@@ -171,8 +212,10 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
                         builder ->
                                 createPredicateContext(
                                         builder.or(QWorkflowRevision.workflowRevision.name.eq("name1"))
-                                                .or(QWorkflowRevision.workflowRevision.name.eq("name" + (NUMBER_OF_WORKFLOWS / 2)))
-                                                .or(QWorkflowRevision.workflowRevision.name.eq("name" + (NUMBER_OF_WORKFLOWS - 1)))),
+                                                .or(QWorkflowRevision.workflowRevision.name.eq(
+                                                        "name" + (NUMBER_OF_WORKFLOWS / 2)))
+                                                .or(QWorkflowRevision.workflowRevision.name.eq(
+                                                        "name" + (NUMBER_OF_WORKFLOWS - 1)))),
                         3 * expectedNbResultsMultiple
                 ),
 
@@ -202,7 +245,8 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
                             parent.or(QWorkflowRevision.workflowRevision.name.eq("name1"));
 
                             builder.and(QWorkflowRevision.workflowRevision.projectName.eq("projectName"));
-                            builder.and(QGenericInformation.genericInformation.key.eq("workflowIndexIsMultipleOf2"));
+                            builder.and(QGenericInformation.genericInformation.key.eq(
+                                    "workflowIndexIsMultipleOf2"));
                             builder.and(QGenericInformation.genericInformation.value.eq("true"));
                             parent.or(builder);
 
@@ -237,6 +281,7 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
         performTest(testInputs,
                 (predicateContext, pageable) ->
                         queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(
+                                bucket.id,
                                 predicateContext,
                                 new PageRequest(0, TOTAL_NUMBER_OF_WORKFLOW_REVISIONS))
         );
@@ -247,22 +292,26 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
                 (predicateContext, pageable) -> {
                     Page<WorkflowRevision> mostRecentWorkflowRevisions =
                             queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(
+                                    bucket.id,
                                     predicateContext,
                                     new PageRequest(0, TOTAL_NUMBER_OF_WORKFLOW_REVISIONS));
 
                     log.info("Query predicate is '{}'", predicateContext.getPredicate());
-                    log.info("Number of workflow revision found is {}\n", mostRecentWorkflowRevisions.getTotalElements());
+                    log.info("Number of workflow revision found is {}\n",
+                            mostRecentWorkflowRevisions.getTotalElements());
 
                     return mostRecentWorkflowRevisions;
                 }
         );
     }
 
-    private void performTest(TestInput[] input, BiFunction<PredicateContext, Pageable, Page<WorkflowRevision>> function) {
+    private void performTest(TestInput[] input,
+            BiFunction<PredicateContext, Pageable, Page<WorkflowRevision>> function) {
         for (TestInput testInput : input) {
             Page<WorkflowRevision> workflowRevisions =
                     function.apply(
-                            testInput.predicateContext, new PageRequest(0, TOTAL_NUMBER_OF_WORKFLOW_REVISIONS));
+                            testInput.predicateContext,
+                            new PageRequest(0, TOTAL_NUMBER_OF_WORKFLOW_REVISIONS));
 
             if (workflowRevisions.getTotalElements() != testInput.expectedNumberOfResults) {
                 Assert.fail("Expected " + testInput.expectedNumberOfResults +
@@ -299,6 +348,23 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
         return result.build();
     }
 
+    private static class QueryContext {
+
+        public final long bucketId;
+
+        public final PredicateContext predicateContext;
+
+        public final PageRequest pageRequest;
+
+        public QueryContext(long bucketId,
+                PredicateContext predicateContext,
+                PageRequest pageRequest) {
+            this.bucketId = bucketId;
+            this.predicateContext = predicateContext;
+            this.pageRequest = pageRequest;
+        }
+    }
+
     private static class TestInput {
 
         public final PredicateContext predicateContext;
@@ -324,11 +390,13 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
          * @param expectedNumberOfResults the expected number of results
          * @param assertions              extra assertions to execute
          */
-        public TestInput(Function<BooleanBuilder, PredicateContext> function, int expectedNumberOfResults, Assertions assertions) {
+        public TestInput(Function<BooleanBuilder, PredicateContext> function, int expectedNumberOfResults,
+                Assertions assertions) {
             this(function.apply(new BooleanBuilder()), expectedNumberOfResults, assertions);
         }
 
-        public TestInput(PredicateContext predicateContext, int expectedNumberOfResults, Assertions assertions) {
+        public TestInput(PredicateContext predicateContext, int expectedNumberOfResults,
+                Assertions assertions) {
             this.predicateContext = predicateContext;
             this.expectedNumberOfResults = expectedNumberOfResults;
             this.assertions = Optional.ofNullable(assertions);

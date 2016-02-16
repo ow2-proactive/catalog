@@ -208,16 +208,16 @@ public class WorkflowRevisionService {
                         predicateContext.getGenericInformationAliases(),
                         predicateContext.getVariableAliases());
 
-                page = queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(predicateContext,
-                        pageable);
+                page = queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(
+                        bucketId, predicateContext, pageable);
             } else {
                 page = workflowRevisionRepository.getRevisions(workflowId.get(), pageable);
             }
         } else {
             if (query.isPresent()) {
                 PredicateContext jpaQueryPredicate = createJpaQueryPredicate(query.get());
-                page = queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(jpaQueryPredicate,
-                        pageable);
+                page = queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(
+                        bucketId, jpaQueryPredicate, pageable);
             } else {
                 page = workflowRepository.getMostRecentRevisions(bucketId, pageable);
             }
