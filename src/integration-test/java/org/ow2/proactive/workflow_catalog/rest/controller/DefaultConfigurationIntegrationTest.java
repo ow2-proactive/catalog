@@ -31,10 +31,10 @@
 
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
+import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -52,7 +52,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @ActiveProfiles("mem")
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {Application.class})
+@SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest
 public class DefaultConfigurationIntegrationTest {
 
@@ -62,10 +62,9 @@ public class DefaultConfigurationIntegrationTest {
     public void defaultBucketsShouldBeCreatedBasedOnApplicationConfigurationProperty() {
         when().get(BUCKETS_RESOURCE).then().assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body("_embedded.bucketMetadataList", hasSize(2))
-                .body("_embedded.bucketMetadataList[0].name", is("Catalog"))
-                .body("_embedded.bucketMetadataList[1].name", is("Templates"))
-                .body("page.totalElements", is(2));
+                .body("_embedded.bucketMetadataList", hasSize(1))
+                .body("_embedded.bucketMetadataList[0].name", is("Templates"))
+                .body("page.totalElements", is(1));
     }
 
 }
