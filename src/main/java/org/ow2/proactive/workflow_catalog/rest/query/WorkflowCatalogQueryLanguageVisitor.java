@@ -76,14 +76,14 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
 
     @Override
     public BooleanBuilder visitExpression(WorkflowCatalogQueryLanguageParser.ExpressionContext ctx) {
-        return visitAnd_expression(ctx.and_expression());
+        return visitOr_expression(ctx.or_expression());
     }
 
     @Override
     public BooleanBuilder visitAnd_expression(WorkflowCatalogQueryLanguageParser.And_expressionContext ctx) {
         BooleanBuilder booleanBuilder = new BooleanBuilder();
-        for (WorkflowCatalogQueryLanguageParser.Or_expressionContext orExpressionContext : ctx.or_expression()) {
-            booleanBuilder.or(visit(orExpressionContext));
+        for (WorkflowCatalogQueryLanguageParser.ClauseContext clauseContext : ctx.clause()) {
+            booleanBuilder.and(visit(clauseContext));
         }
         return booleanBuilder;
     }
@@ -91,8 +91,8 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
     @Override
     public BooleanBuilder visitOr_expression(WorkflowCatalogQueryLanguageParser.Or_expressionContext ctx) {
         BooleanBuilder booleanBuilder = new BooleanBuilder();
-        for (WorkflowCatalogQueryLanguageParser.ClauseContext clauseContext : ctx.clause()) {
-            booleanBuilder.and(visit(clauseContext));
+        for (WorkflowCatalogQueryLanguageParser.And_expressionContext andExpressionContext : ctx.and_expression()) {
+            booleanBuilder.or(visit(andExpressionContext));
         }
         return booleanBuilder;
     }
@@ -112,8 +112,8 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         ClauseKey.OPERATION operation = getOperation(ctx.COMPARE_OPERATOR().getText());
         ClauseKey.CLAUSE_TYPE clauseType = getClauseType(attributeLiteral);
 
-        Pattern wildcardPattern = Pattern.compile(".*[^\\\\]%.*");
-        Matcher wildcardMatcher = wildcardPattern.matcher(attributeLiteral);
+        Pattern wildcardPattern = Pattern.compile(".*%.*");
+        Matcher wildcardMatcher = wildcardPattern.matcher(stringLiteral);
         boolean hasWildcards = wildcardMatcher.matches();
         ClauseKey clauseKey = new ClauseKey(table, operation, clauseType, hasWildcards);
         Function<String, Predicate> predicateCreator = clausesToFuncMap.get(clauseKey);
@@ -126,7 +126,7 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
     }
 
     public BooleanBuilder visitParenthesedClause(WorkflowCatalogQueryLanguageParser.ParenthesedClauseContext ctx) {
-        return visitAnd_expression(ctx.and_expression());
+        return visitOr_expression(ctx.or_expression());
     }
 
     protected ClauseKey.TABLE getTable(String attributeName) {
@@ -135,13 +135,16 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         if (terms.length > 1) {
             if (terms[0].equalsIgnoreCase(VAR_TOKEN)) {
                 return ClauseKey.TABLE.VARIABLE;
-            } else if (terms[0].equalsIgnoreCase(GI_TOKEN)) {
+            }
+            else if (terms[0].equalsIgnoreCase(GI_TOKEN)) {
                 return ClauseKey.TABLE.GENERIC_INFORMATION;
             }
-        } else {
+        }
+        else {
             if (terms[0].equalsIgnoreCase(NAME_TOKEN)) {
                 return ClauseKey.TABLE.NAME;
-            } else if (terms[0].equalsIgnoreCase(PROJ_TOKEN)) {
+            }
+            else if (terms[0].equalsIgnoreCase(PROJ_TOKEN)) {
                 return ClauseKey.TABLE.PROJECT_NAME;
             }
         }
@@ -152,7 +155,8 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
     protected ClauseKey.OPERATION getOperation(String operation) {
         if (operation.contentEquals(EQ)) {
             return ClauseKey.OPERATION.EQUAL;
-        } else if (operation.contentEquals(NEQ)) {
+        }
+        else if (operation.contentEquals(NEQ)) {
             return ClauseKey.OPERATION.NOT_EQUAL;
         } else {
             throw new QueryPredicateBuilderRuntimeException("Operator '" + operation + "' is invalid");
@@ -163,19 +167,21 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
         ClauseKey.TABLE table = getTable(attributeLiteral);
         if (table == ClauseKey.TABLE.VARIABLE || table == ClauseKey.TABLE.GENERIC_INFORMATION) {
             String[] terms = attributeLiteral.split(Pattern.quote("."));
-
             assert terms.length > 1;
-
             if (terms[1].equalsIgnoreCase(NAME_KEYWORD)) {
                 return ClauseKey.CLAUSE_TYPE.KEY;
-            } else if (terms[1].equalsIgnoreCase(VALUE_KEYWORD)) {
+            }
+            else if (terms[1].equalsIgnoreCase(VALUE_KEYWORD)) {
                 return ClauseKey.CLAUSE_TYPE.VALUE;
-            } else {
+            }
+	    else {
                 throw new QueryPredicateBuilderRuntimeException("Clause type found in '" + attributeLiteral + "' is invalid");
             }
-        } else if (table == ClauseKey.TABLE.NAME || table == ClauseKey.TABLE.PROJECT_NAME) {
+        }
+	else if (table == ClauseKey.TABLE.NAME || table == ClauseKey.TABLE.PROJECT_NAME) {
             return ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE;
-        } else {
+        }
+        else {
             throw new QueryPredicateBuilderRuntimeException("Clause '" + attributeLiteral + "' is invalid");
         }
     }
@@ -242,22 +248,22 @@ public class WorkflowCatalogQueryLanguageVisitor extends WorkflowCatalogQueryLan
                 literalString -> generator.createGenericInformationAlias().value.notLike(literalString));
 
         map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.name.like(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.name.like(literalString, '\\'));
         map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.name.notLike(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.name.notLike(literalString, '\\'));
         map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.name.like(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.name.like(literalString, '\\'));
         map.put(new ClauseKey(ClauseKey.TABLE.NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.name.notLike(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.name.notLike(literalString, '\\'));
 
         map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.projectName.like(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.projectName.like(literalString, '\\'));
         map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.projectName.notLike(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.projectName.notLike(literalString, '\\'));
         map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.projectName.like(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.projectName.like(literalString, '\\'));
         map.put(new ClauseKey(ClauseKey.TABLE.PROJECT_NAME, ClauseKey.OPERATION.NOT_EQUAL, ClauseKey.CLAUSE_TYPE.NOT_APPLICABLE, true),
-                literalString -> QWorkflowRevision.workflowRevision.projectName.notLike(literalString));
+                literalString -> QWorkflowRevision.workflowRevision.projectName.notLike(literalString, '\\'));
 
         return ImmutableMap.copyOf(map);
     }

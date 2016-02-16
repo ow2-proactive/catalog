@@ -78,7 +78,7 @@ public class WorkflowCatalogQueryLanguageVisitorTest {
     @Mock
     TerminalNode mockedOperation;
 
-    private List<WorkflowCatalogQueryLanguageParser.Or_expressionContext> lOrExpressions;
+    private List<WorkflowCatalogQueryLanguageParser.And_expressionContext> lAndExpressions;
     private List<WorkflowCatalogQueryLanguageParser.ClauseContext> lClause;
     private static final String attributeLiteralString = "variable.name";
     private static final String stringLiteralString = "\"toto\"";
@@ -87,7 +87,7 @@ public class WorkflowCatalogQueryLanguageVisitorTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        lOrExpressions = ImmutableList.of(mockedOr);
+        lAndExpressions = ImmutableList.of(mockedAnd);
         lClause = ImmutableList.of(mockedFinalClause, mockedParenthesedClause);
         initMocks();
         queryLanguageVisitor = new WorkflowCatalogQueryLanguageVisitor();
@@ -96,19 +96,19 @@ public class WorkflowCatalogQueryLanguageVisitorTest {
     @Test
     public void testVisitExpression() throws Exception {
         queryLanguageVisitor.visitExpression(ctx);
-        verify(ctx, times(1)).and_expression();
+        verify(ctx, times(1)).or_expression();
     }
 
     @Test
     public void testVisitAnd_expression() throws Exception {
         queryLanguageVisitor.visitAnd_expression(mockedAnd);
-        verify(mockedAnd, times(1)).or_expression();
+        verify(mockedAnd, times(1)).clause();
     }
 
     @Test
     public void testVisitOr_expression() throws Exception {
         queryLanguageVisitor.visitOr_expression(mockedOr);
-        verify(mockedOr, times(1)).clause();
+        verify(mockedOr, times(1)).and_expression();
     }
 
     @Test
@@ -123,7 +123,7 @@ public class WorkflowCatalogQueryLanguageVisitorTest {
     @Test
     public void testVisitParenthesedClause() throws Exception {
         queryLanguageVisitor.visitParenthesedClause(mockedParenthesedClause);
-        verify(mockedParenthesedClause, times(1)).and_expression();
+        verify(mockedParenthesedClause, times(1)).or_expression();
     }
 
     @Test
@@ -166,9 +166,9 @@ public class WorkflowCatalogQueryLanguageVisitorTest {
 
     private void initMocks() {
         // for the regular case
-        when(ctx.and_expression()).thenReturn(mockedAnd);
-        when(mockedAnd.or_expression()).thenReturn(lOrExpressions);
-        when(mockedOr.clause()).thenReturn(lClause);
+        when(ctx.or_expression()).thenReturn(mockedOr);
+        when(mockedOr.and_expression()).thenReturn(lAndExpressions);
+        when(mockedAnd.clause()).thenReturn(lClause);
         when(mockedFinalClause.AttributeLiteral()).thenReturn(mockedAttributeLiteral);
         when(mockedFinalClause.StringLiteral()).thenReturn(mockedStringLiteral);
         when(mockedFinalClause.COMPARE_OPERATOR()).thenReturn(mockedOperation);
@@ -177,12 +177,12 @@ public class WorkflowCatalogQueryLanguageVisitorTest {
         when(mockedOperation.getText()).thenReturn("=");
 
         // for the recursive case
-        List<WorkflowCatalogQueryLanguageParser.Or_expressionContext> lParOrExpressions;
+        List<WorkflowCatalogQueryLanguageParser.And_expressionContext> lParAndExpressions;
         List<WorkflowCatalogQueryLanguageParser.ClauseContext> lParClause;
-        lParOrExpressions = ImmutableList.of(mockedParOr);
+        lParAndExpressions = ImmutableList.of(mockedParAnd);
         lParClause = ImmutableList.of(mockedFinalClause);
-        when(mockedParenthesedClause.and_expression()).thenReturn(mockedParAnd);
-        when(mockedParAnd.or_expression()).thenReturn(lParOrExpressions);
-        when(mockedParOr.clause()).thenReturn(lParClause);
+        when(mockedParenthesedClause.or_expression()).thenReturn(mockedParOr);
+        when(mockedParOr.and_expression()).thenReturn(lParAndExpressions);
+        when(mockedParAnd.clause()).thenReturn(lParClause);
     }
 }

@@ -7,20 +7,20 @@ grammar WorkflowCatalogQueryLanguage;
 // PARSER
 
 expression
-    : and_expression
-    ;
-
-and_expression
-    : or_expression (OR or_expression)*
+    : or_expression
     ;
 
 or_expression
+    : and_expression (OR and_expression)*
+    ;
+
+and_expression
     : clause (AND clause)*
     ;
 
 clause
     : (AttributeLiteral COMPARE_OPERATOR StringLiteral) #finalClause
-    | LPAREN and_expression RPAREN #parenthesedClause
+    | LPAREN or_expression RPAREN #parenthesedClause
     ;
 
 // LEXER
