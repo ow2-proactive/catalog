@@ -37,9 +37,9 @@ package org.ow2.proactive.workflow_catalog.rest.query;
  *
  * @author ActiveEon Team
  */
-public class QueryPredicateBuilderRuntimeException extends RuntimeException {
+public class InvalidClauseRuntimeException extends RuntimeException {
 
-    public QueryPredicateBuilderRuntimeException(String message) {
+    public InvalidClauseRuntimeException(String message) {
         super(message);
     }
 

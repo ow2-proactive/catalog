@@ -30,58 +30,31 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
-import java.util.Objects;
-
 import com.google.common.base.MoreObjects;
+import com.mysema.query.types.expr.BooleanExpression;
 
 /**
+ * QueryExpressionContext keeps the context associated to a query expression.
+ * Mainly the QueryDSL expression and the aliases used.
+ *
  * @author ActiveEon Team
  */
-public class ClauseKey {
+public final class QueryExpressionContext {
 
-    public enum TABLE {VARIABLE, GENERIC_INFORMATION, NAME, PROJECT_NAME}
+    private final BooleanExpression booleanExpression;
 
-    public enum OPERATION {EQUAL, NOT_EQUAL}
-
-    public enum CLAUSE_TYPE {KEY, VALUE, NOT_APPLICABLE}
-
-    private final TABLE table;
-    private final OPERATION operation;
-    private final CLAUSE_TYPE clauseType;
-    private final boolean hasWildcards;
-
-    public ClauseKey(TABLE table, OPERATION operation, CLAUSE_TYPE clauseType, boolean hasWildcards) {
-        this.table = table;
-        this.operation = operation;
-        this.clauseType = clauseType;
-        this.hasWildcards = hasWildcards;
+    public QueryExpressionContext(BooleanExpression booleanExpression) {
+        this.booleanExpression = booleanExpression;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ClauseKey clauseKey = (ClauseKey) o;
-
-        if (hasWildcards != clauseKey.hasWildcards) return false;
-        if (table != clauseKey.table) return false;
-        if (operation != clauseKey.operation) return false;
-        return clauseType == clauseKey.clauseType;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(table, operation, clauseType, hasWildcards);
+    public BooleanExpression getExpression() {
+        return booleanExpression;
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("table", table)
-                .add("operation", operation)
-                .add("clauseType", clauseType)
-                .add("hasWildcards", hasWildcards).toString();
+                .add("expression", booleanExpression).toString();
     }
 
 }

@@ -30,11 +30,15 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
+import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageLexer;
+import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
-import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageLexer;
-import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+;
 
 /**
  * Compile a Workflow Catalog query as input String to an Abstract Syntax Tree (AST).
@@ -43,6 +47,8 @@ import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQuery
  */
 public class WorkflowCatalogQueryCompiler {
 
+    private static final Logger log = LoggerFactory.getLogger(WorkflowCatalogQueryCompiler.class);
+
     /**
      * Compile the specified Workflow Catalog to an AST.
      *
@@ -50,7 +56,7 @@ public class WorkflowCatalogQueryCompiler {
      * @return the root of the AST.
      * @throws SyntaxException if one or more syntax errors are detected while compiling.
      */
-    public WorkflowCatalogQueryLanguageParser.ExpressionContext compile(String input) throws SyntaxException {
+    public WorkflowCatalogQueryLanguageParser.StartContext compile(String input) throws SyntaxException {
         SyntaxErrorListener syntaxErrorListener = new SyntaxErrorListener();
 
         // lexer splits input into tokens
@@ -61,6 +67,7 @@ public class WorkflowCatalogQueryCompiler {
         workflowCatalogQueryLanguageLexer.removeErrorListeners();
         workflowCatalogQueryLanguageLexer.addErrorListener(syntaxErrorListener);
 
+        // create a buffer of tokens pulled from the lexer
         TokenStream tokens = new CommonTokenStream(workflowCatalogQueryLanguageLexer);
 
         // parser generates abstract syntax tree
@@ -68,7 +75,12 @@ public class WorkflowCatalogQueryCompiler {
         parser.removeErrorListeners();
         parser.addErrorListener(syntaxErrorListener);
 
-        WorkflowCatalogQueryLanguageParser.ExpressionContext expression = parser.expression();
+        // begin parsing at root rule
+        WorkflowCatalogQueryLanguageParser.StartContext expression = parser.start();
+
+        if (log.isDebugEnabled()) {
+            log.debug("WCQL Tree:\n" + expression.toStringTree(parser));
+        }
 
         if (!syntaxErrorListener.getSyntaxErrors().isEmpty()) {
             throw new SyntaxException(syntaxErrorListener.getSyntaxErrors());

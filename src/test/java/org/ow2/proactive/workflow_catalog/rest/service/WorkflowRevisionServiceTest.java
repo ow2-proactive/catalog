@@ -42,7 +42,7 @@ import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
-import org.ow2.proactive.workflow_catalog.rest.query.QueryPredicateBuilderException;
+import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.GenericInformationRepository;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.VariableRepository;
@@ -246,7 +246,7 @@ public class WorkflowRevisionServiceTest {
         verify(workflowRepository, times(1)).getMostRecentWorkflowRevision(DUMMY_ID, DUMMY_ID);
     }
 
-    private void listWorkflows(Optional<Long> wId) throws QueryPredicateBuilderException {
+    private void listWorkflows(Optional<Long> wId) throws QueryExpressionBuilderException {
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(workflowRepository.findOne(anyLong())).thenReturn(mock(Workflow.class));
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);

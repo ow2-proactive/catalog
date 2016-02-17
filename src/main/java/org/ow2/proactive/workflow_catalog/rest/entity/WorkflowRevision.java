@@ -31,13 +31,28 @@
 
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
-import org.ow2.proactive.workflow_catalog.rest.util.LocalDateTimeAttributeConverter;
-import org.springframework.data.annotation.CreatedDate;
-
-import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import org.ow2.proactive.workflow_catalog.rest.util.LocalDateTimeAttributeConverter;
+import org.springframework.data.annotation.CreatedDate;
 
 /**
  * @author ActiveEon Team
@@ -75,10 +90,10 @@ public class WorkflowRevision {
     @Column(name = "PROJECT_NAME", nullable = false)
     private String projectName;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<GenericInformation> genericInformation;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Variable> variables;
 
     @Lob
@@ -88,6 +103,17 @@ public class WorkflowRevision {
     public WorkflowRevision() {
         this.genericInformation = new ArrayList<>();
         this.variables = new ArrayList<>();
+    }
+
+    public WorkflowRevision(Long bucketId, Long revisionId, String name, String projectName,
+            LocalDateTime createdAt, byte[] xmlPayload) {
+        this();
+        this.bucketId = bucketId;
+        this.revisionId = revisionId;
+        this.name = name;
+        this.projectName = projectName;
+        this.createdAt = createdAt;
+        this.xmlPayload = xmlPayload;
     }
 
     public WorkflowRevision(Long bucketId, Long revisionId, String name, String projectName,
@@ -117,10 +143,20 @@ public class WorkflowRevision {
 
     public void addGenericInformation(GenericInformation genericInformation) {
         this.genericInformation.add(genericInformation);
+        genericInformation.setWorkflowRevision(this);
+    }
+
+    public void addGenericInformation(Collection<GenericInformation> genericInformation) {
+        genericInformation.forEach(gi -> addGenericInformation(gi));
     }
 
     public void addVariable(Variable variable) {
         this.variables.add(variable);
+        variable.setWorkflowRevision(this);
+    }
+
+    public void addVariables(Collection<Variable> variables) {
+        variables.forEach(var -> addVariable(var));
     }
 
     public List<GenericInformation> getGenericInformation() {
@@ -185,6 +221,21 @@ public class WorkflowRevision {
 
     public void setXmlPayload(byte[] xmlPayload) {
         this.xmlPayload = xmlPayload;
+    }
+
+    @Override
+    public String toString() {
+        return "WorkflowRevision{" +
+                "id=" + id +
+                ", createdAt=" + createdAt +
+                ", name='" + name + '\'' +
+                ", revisionId=" + revisionId +
+                ", bucketId=" + bucketId +
+                ", workflow=" + workflow +
+                ", projectName='" + projectName + '\'' +
+                ", genericInformation=" + genericInformation +
+                ", variables=" + variables +
+                '}';
     }
 
 }

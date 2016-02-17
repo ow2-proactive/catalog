@@ -41,9 +41,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author ActiveEon Team
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class QueryPredicateBuilderException extends Exception {
+public class QueryExpressionBuilderException extends Exception {
 
-    public QueryPredicateBuilderException(String message) {
+    public QueryExpressionBuilderException(String message) {
         super(message);
     }
 
