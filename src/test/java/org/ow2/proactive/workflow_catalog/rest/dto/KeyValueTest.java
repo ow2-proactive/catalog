@@ -31,9 +31,8 @@
 
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * @author ActiveEon Team
@@ -41,80 +40,8 @@ import static com.google.common.truth.Truth.assertThat;
 public class KeyValueTest {
 
     @Test
-    public void testEquality1() throws Exception {
-        CustomKeyValue a = new CustomKeyValue("key", "value");
-        CustomKeyValue b = new CustomKeyValue("key", "value");
-
-        assertThat(a).isEqualTo(b);
-    }
-
-    @Test
-    public void testEquality2() throws Exception {
-        CustomKeyValue a = new CustomKeyValue("key1", "value");
-        CustomKeyValue b = new CustomKeyValue("key2", "value");
-
-        assertThat(a).isNotEqualTo(b);
-    }
-
-    @Test
-    public void testEquality3() throws Exception {
-        CustomKeyValue a = new CustomKeyValue("key", "value1");
-        CustomKeyValue b = new CustomKeyValue("key", "value2");
-
-        assertThat(a).isNotEqualTo(b);
-    }
-
-    @Test
-    public void testEquality4() throws Exception {
-        CustomKeyValue a = new CustomKeyValue("key", "value");
-
-        assertThat(a.equals(a)).isTrue();
-    }
-
-    @Test
-    public void testEquality5() throws Exception {
-        CustomKeyValue a = new CustomKeyValue("key", "value");
-
-        assertThat(a).isNotEqualTo(null);
-    }
-
-    @Test
-    public void testEquality6() throws Exception {
-        CustomKeyValue a = new CustomKeyValue("key", "value");
-
-        assertThat(a).isNotEqualTo(42);
-    }
-
-    @Test
-    public void testHashCode1() throws Exception {
-        CustomKeyValue a = new CustomKeyValue("key", "value");
-        CustomKeyValue b = new CustomKeyValue("key", "value");
-
-        assertThat(a.hashCode()).isEqualTo(b.hashCode());
-    }
-
-    @Test
-    public void testHashCode2() throws Exception {
-        CustomKeyValue a = new CustomKeyValue("key1", "value");
-        CustomKeyValue b = new CustomKeyValue("key2", "value");
-
-        assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
-    }
-
-    @Test
-    public void testHashCode3() throws Exception {
-        CustomKeyValue a = new CustomKeyValue("key", "value1");
-        CustomKeyValue b = new CustomKeyValue("key", "value2");
-
-        assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
-    }
-
-    private static final class CustomKeyValue extends KeyValue {
-
-        public CustomKeyValue(String key, String value) {
-            super(key, value);
-        }
-
+    public void testEqualsContract() {
+        EqualsVerifier.forClass(KeyValue.class).verify();
     }
 
 }
