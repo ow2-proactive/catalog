@@ -97,7 +97,14 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
 
     private final Map<KeyValueLexicalClause, BiFunction<String, String, ListSubQuery<Long>>> keyValueClausesToFuncMap;
 
-    // Intermediate stacks used to create final result
+    // Below are defined intermediate stacks which are used to create
+    // the final result.
+
+    // Stacks are populated in the order in which fields are defined.
+    // Firstly, some clauses are added to stackOfClauses, then clauses
+    // are moved to stackOfContexts. Secondly, contexts are transferred
+    // to stackOfSubQueries. Finally, the boolean expression is created
+    // from stackOfSubqueries
 
     private Stack<Clause> stackOfClauses;
 
