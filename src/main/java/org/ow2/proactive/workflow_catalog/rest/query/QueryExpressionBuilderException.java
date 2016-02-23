@@ -35,10 +35,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Exception thrown if an error is encountered when browsing the AST to generate the predicate
- * that will be used in the query
+ * Exception thrown if an error is encountered while building a QueryDSL expression.
  *
  * @author ActiveEon Team
+ * @see WorkflowCatalogQueryExpressionBuilder
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 public class QueryExpressionBuilderException extends Exception {

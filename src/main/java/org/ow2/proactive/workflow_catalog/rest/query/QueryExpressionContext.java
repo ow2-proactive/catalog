@@ -35,7 +35,7 @@ import com.mysema.query.types.expr.BooleanExpression;
 
 /**
  * QueryExpressionContext keeps the context associated to a query expression.
- * Mainly the QueryDSL expression and the aliases used.
+ * Mainly the QueryDSL expression and possibly some other fields in the future.
  *
  * @author ActiveEon Team
  */

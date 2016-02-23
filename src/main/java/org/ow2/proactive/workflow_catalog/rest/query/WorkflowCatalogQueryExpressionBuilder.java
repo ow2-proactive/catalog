@@ -37,7 +37,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 
 /**
- * Create the BooleanBuilder that will be used to generate the WCQL query
+ * Create the BooleanExpression that will be used to generate the final QueryDSL query.
  *
  * @author ActiveEon Team
  */

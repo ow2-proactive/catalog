@@ -46,8 +46,8 @@ import org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation;
 import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
 import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
-import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionContext;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
+import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionContext;
 import org.ow2.proactive.workflow_catalog.rest.query.WorkflowCatalogQueryExpressionBuilder;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.GenericInformationRepository;
@@ -80,6 +80,11 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 @Service
 public class WorkflowRevisionService {
 
+    /**
+     * This value is used to detect whether the full workflow XML payload
+     * must be returned to clients or if workflow's metadata only are enough.
+     * The value has to be used with query parameter {@code alt}.
+     */
     private static final String SUPPORTED_ALT_VALUE = "xml";
 
     @Autowired

@@ -35,6 +35,9 @@
 package org.ow2.proactive.workflow_catalog.rest.query;
 
 /**
+ * AtomicLexicalClause depicts the structure of an atomic clause read
+ * from a WCQL query (e.g. {@code project_name=\"*Project\"}).
+ *
  * @author ActiveEon Team
  */
 public class AtomicLexicalClause {
@@ -42,6 +45,7 @@ public class AtomicLexicalClause {
     public enum FieldType {
         NAME, PROJECT_NAME;
     }
+
     private final FieldType type;
 
     private final boolean hasWildcards;
@@ -49,7 +53,6 @@ public class AtomicLexicalClause {
     public enum Operator {EQUAL, NOT_EQUAL}
 
     private final Operator operator;
-
 
     public AtomicLexicalClause(FieldType type, Operator operator, boolean hasWildcards) {
         this.operator = operator;
@@ -90,8 +93,9 @@ public class AtomicLexicalClause {
     public String toString() {
         return "AtomicLexicalClause{" +
                 "type=" + type +
-                ", hasWildcards=" + hasWildcards +
                 ", operator=" + operator +
+                ", hasWildcards=" + hasWildcards +
                 '}';
     }
+
 }

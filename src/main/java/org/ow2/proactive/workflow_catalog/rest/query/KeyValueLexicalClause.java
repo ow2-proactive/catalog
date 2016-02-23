@@ -35,6 +35,9 @@
 package org.ow2.proactive.workflow_catalog.rest.query;
 
 /**
+ * KeyValueLexicalClause depicts the structure of a key/value clause read
+ * from a WCQL query (e.g. {@code generic_information(\"Infra*\", \"*\"}).
+ *
  * @author ActiveEon Team
  */
 public class KeyValueLexicalClause {
@@ -67,7 +70,6 @@ public class KeyValueLexicalClause {
         return valueHasWildcards;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -97,4 +99,5 @@ public class KeyValueLexicalClause {
                 ", valueHasWildcards=" + valueHasWildcards +
                 '}';
     }
+
 }

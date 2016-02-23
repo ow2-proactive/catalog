@@ -38,8 +38,6 @@ import org.antlr.v4.runtime.TokenStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-;
-
 /**
  * Compile a Workflow Catalog query as input String to an Abstract Syntax Tree (AST).
  *
