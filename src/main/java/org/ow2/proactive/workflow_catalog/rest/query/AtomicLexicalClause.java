@@ -34,23 +34,27 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
+import com.google.common.base.Objects;
+
 /**
  * AtomicLexicalClause depicts the structure of an atomic clause read
  * from a WCQL query (e.g. {@code project_name=\"*Project\"}).
  *
  * @author ActiveEon Team
  */
-public class AtomicLexicalClause {
+public final class AtomicLexicalClause {
 
     public enum FieldType {
-        NAME, PROJECT_NAME;
+        NAME, PROJECT_NAME
     }
 
     private final FieldType type;
 
     private final boolean hasWildcards;
 
-    public enum Operator {EQUAL, NOT_EQUAL}
+    public enum Operator {
+        EQUAL, NOT_EQUAL
+    }
 
     private final Operator operator;
 
@@ -64,29 +68,34 @@ public class AtomicLexicalClause {
         return hasWildcards;
     }
 
+    public Operator getOperator() {
+        return operator;
+    }
+
     public FieldType getType() {
         return type;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         AtomicLexicalClause that = (AtomicLexicalClause) o;
 
-        if (hasWildcards != that.hasWildcards) return false;
-        if (type != that.type) return false;
-        return operator == that.operator;
-
+        return Objects.equal(hasWildcards, that.hasWildcards) &&
+                Objects.equal(operator, that.operator) &&
+                Objects.equal(type, that.type);
     }
 
     @Override
     public int hashCode() {
-        int result = type != null ? type.hashCode() : 0;
-        result = 31 * result + (hasWildcards ? 1 : 0);
-        result = 31 * result + (operator != null ? operator.hashCode() : 0);
-        return result;
+        return Objects.hashCode(type, operator, hasWildcards);
     }
 
     @Override

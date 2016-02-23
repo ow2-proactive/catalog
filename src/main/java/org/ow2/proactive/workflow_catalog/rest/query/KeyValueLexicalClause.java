@@ -34,13 +34,15 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
+import com.google.common.base.Objects;
+
 /**
  * KeyValueLexicalClause depicts the structure of a key/value clause read
  * from a WCQL query (e.g. {@code generic_information(\"Infra*\", \"*\"}).
  *
  * @author ActiveEon Team
  */
-public class KeyValueLexicalClause {
+public final class KeyValueLexicalClause {
 
     public enum PairType {
         GENERIC_INFORMATION, VARIABLE
@@ -62,33 +64,34 @@ public class KeyValueLexicalClause {
         return type;
     }
 
-    public boolean isKeyHasWildcards() {
+    public boolean keyHasWildcards() {
         return keyHasWildcards;
     }
 
-    public boolean isValueHasWildcards() {
+    public boolean valueHasWildcards() {
         return valueHasWildcards;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         KeyValueLexicalClause that = (KeyValueLexicalClause) o;
 
-        if (keyHasWildcards != that.keyHasWildcards) return false;
-        if (valueHasWildcards != that.valueHasWildcards) return false;
-        return type == that.type;
-
+        return Objects.equal(keyHasWildcards, that.keyHasWildcards) &&
+                Objects.equal(valueHasWildcards, that.valueHasWildcards) &&
+                Objects.equal(type, that.type);
     }
 
     @Override
     public int hashCode() {
-        int result = type != null ? type.hashCode() : 0;
-        result = 31 * result + (keyHasWildcards ? 1 : 0);
-        result = 31 * result + (valueHasWildcards ? 1 : 0);
-        return result;
+        return Objects.hashCode(type, keyHasWildcards, valueHasWildcards);
     }
 
     @Override
