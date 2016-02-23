@@ -31,145 +31,277 @@
 
 package org.ow2.proactive.workflow_catalog.rest.query;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 /**
+ * Unit tests associated to {@link WorkflowCatalogQueryCompiler}.
+ * <p>
+ * Statically define some queries (written in WCQL) that should
+ * be syntactically valid or invalid.
+ *
  * @author ActiveEon Team
+ * @see WorkflowCatalogQueryCompiler
  */
 @RunWith(Parameterized.class)
 public class WorkflowCatalogQueryCompilerTest {
 
     private final WorkflowCatalogQueryCompiler compiler;
 
-    private final TestInput testInput;
+    private final Assertion assertion;
 
     @Parameterized.Parameters(name = "testQuery{index}")
-    public static Collection<TestInput> queriesUnderTest() {
-        return Arrays.asList(new TestInput[]{
+    public static Collection<Assertion> queriesUnderTest() {
+        return Arrays.asList(new Assertion[] {
 
                 // Queries that are syntactically correct
 
-                createValidTestInput("variable.name=\"name\""),
-                createValidTestInput("variable.name= \"name\""),
-                createValidTestInput("variable.name =\"name\""),
-                createValidTestInput("variable.name = \"name\""),
-                createValidTestInput("variable.name != \"name\""),
-                createValidTestInput("variable.name != \"name with \\\" inside\""),
-                createValidTestInput("variable.name = \" abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ\""),
-                createValidTestInput("generic_information.name=\"name\""),
-                createValidTestInput("generic_information.value=\"value\""),
-                createValidTestInput("generic_information.name = \"name\" AND generic_information.value=\"value\""),
-                createValidTestInput("generic_information.name = \"name\" && generic_information.value=\"value\""),
-                createValidTestInput("generic_information.name = \"name\" || generic_information.value=\"value\""),
-                createValidTestInput("generic_information.name = \"name\" AND generic_information.name=\"name\""),
-                createValidTestInput("generic_information.name = \"name1\" OR generic_information.name=\"name2\""),
-                createValidTestInput("(generic_information.name = \"name1\" OR generic_information.name=\"name2\")"),
-                createValidTestInput("(generic_information.name = \"name1\") OR (generic_information.name=\"name2\")"),
-                createValidTestInput("((generic_information.name = \"name1\") OR (generic_information.name=\"name2\"))"),
-                createValidTestInput("(((generic_information.name = \"name1\") OR (generic_information.name=\"name2\")))"),
+                validTestInput("name=\"\""),
+                validTestInput("name=\"value\""),
+                validTestInput("name=\"I love you\""),
+                validTestInput("name=\"Escape \\\" character\""),
+                validTestInput("name=\"Escape \\% character\""),
+                validTestInput("name=\"Escape \\\\ character\""),
+                validTestInput("name != \"value\""),
+                validTestInput(" \t name  \r \n = \"\"  "),
+                validTestInput("name=\"%suffix\""),
+                validTestInput("name=\"prefix%\""),
+                validTestInput("name=\"%contains%\""),
 
-                createValidTestInput("generic_information.value = \"value1\" " +
-                        "AND generic_information.value=\"value2\"" +
-                        "OR generic_information.value=\"value3\"" +
-                        "AND generic_information.value=\"value4\"" +
-                        "OR generic_information.value=\"value5\"" +
-                        "AND generic_information.value=\"value6\"" +
-                        "OR generic_information.value=\"value7\"" +
-                        "AND generic_information.value=\"value8\"" +
-                        "OR generic_information.value=\"value9\""),
+                validTestInput("project_name=\"\""),
+                validTestInput("project_name=\"value\""),
+                validTestInput("project_name=\"I love you\""),
+                validTestInput("project_name=\"Escape \\\" character\""),
+                validTestInput("project_name=\"Escape \\% character\""),
+                validTestInput("project_name=\"Escape \\\\ character\""),
+                validTestInput("project_name != \"value\""),
+                validTestInput(" \t project_name  \r \n = \"\"  "),
+                validTestInput("project_name=\"%suffix\""),
+                validTestInput("project_name=\"prefix%\""),
+                validTestInput("project_name=\"%contains%\""),
 
-                createValidTestInput("very_long_attribute_name.with.underscore.and.points=\"name\""),
+                validTestInput("generic_information(\"\", \"\")"),
+                validTestInput("generic_information(\"name\", \"\")"),
+                validTestInput("generic_information(\"\", \"value\")"),
+                validTestInput("generic_information(\"name\", \"value\")"),
+                validTestInput("generic_information(\"name\", \"%\")"),
+                validTestInput("generic_information(\"%\", \"value\")"),
+                validTestInput("generic_information(\"prefix%\", \"value\")"),
+                validTestInput("generic_information(\"%suffix\", \"value\")"),
+                validTestInput("generic_information(\"%contains%\", \"value\")"),
+                validTestInput("generic_information(\"name\", \"prefix%\")"),
+                validTestInput("generic_information(\"name\", \"%suffix\")"),
+                validTestInput("generic_information(\"name\", \"%contains%\")"),
+                validTestInput("generic_information(\"My Long Name\", \"value\")"),
+                validTestInput("generic_information(\"name\", \"My Long Value\")"),
+                validTestInput("generic_information(\"My Long Name\", \"My Long Value\")"),
 
-                // Parentheses have been introduced in the language mainly for the following case
-                // where precedence should be given to OR operator whereas AND usually has precedence over OR
-                createValidTestInput("(generic_information.name = \"name1\" OR generic_information.name=\"name2\") AND variable.name=\"name3\""),
-                createValidTestInput("((generic_information.name = \"name1\" OR generic_information.name=\"name2\") AND variable.name=\"name3\")"),
-                createValidTestInput("((generic_information.name = \"name1\" OR generic_information.name=\"name2\") AND variable.name=\"name3\")"),
+                validTestInput("variable(\"\", \"\")"),
+                validTestInput("variable(\"name\", \"\")"),
+                validTestInput("variable(\"\", \"value\")"),
+                validTestInput("variable(\"name\", \"value\")"),
+                validTestInput("variable(\"name\", \"%\")"),
+                validTestInput("variable(\"%\", \"value\")"),
+                validTestInput("variable(\"prefix%\", \"value\")"),
+                validTestInput("variable(\"%suffix\", \"value\")"),
+                validTestInput("variable(\"%contains%\", \"value\")"),
+                validTestInput("variable(\"name\", \"prefix%\")"),
+                validTestInput("variable(\"name\", \"%suffix\")"),
+                validTestInput("variable(\"name\", \"%contains%\")"),
+                validTestInput("variable(\"My Long Name\", \"value\")"),
+                validTestInput("variable(\"name\", \"My Long Value\")"),
+                validTestInput("variable(\"My Long Name\", \"My Long Value\")"),
 
-                // Queries that must raise an exception due to syntax error
+                validTestInput(
+                        "generic_information(\"name1\", \"value1\") " +
+                                "AND generic_information(\"name2\", \"value2\")"),
+                validTestInput(
+                        "generic_information(\"name1\", \"value1\") " +
+                                "AND generic_information(\"name2\", \"value2\") " +
+                                "AND generic_information(\"name3\", \"value3\")"),
+                validTestInput(
+                        "generic_information(\"name1\", \"value1\") " +
+                                "OR generic_information(\"name2\", \"value2\")"),
+                validTestInput(
+                        "generic_information(\"name1\", \"value1\") " +
+                                "OR generic_information(\"name2\", \"value2\") " +
+                                "OR generic_information(\"name3\", \"value3\")"),
+                validTestInput(
+                        "generic_information(\"name1\", \"value1\") " +
+                                "OR generic_information(\"name2\", \"value2\") " +
+                                "AND generic_information(\"name3\", \"value3\")"),
+                validTestInput(
+                        "generic_information(\"name1\", \"value1\") " +
+                                "AND generic_information(\"name2\", \"value2\") " +
+                                "OR generic_information(\"name3\", \"value3\")"),
 
-                createInvalidTestInput("_invalidAttribute = \"value\""),
-                createInvalidTestInput("0invalidAttribute = \"value\""),
-                createInvalidTestInput("generic_information.value <> \"value\""),
-                createInvalidTestInput("generic_information.value == \"value\""),
-                createInvalidTestInput("generic_information.value == \"value\""),
-                createInvalidTestInput("generic_information.value = \"value\" AND"),
-                createInvalidTestInput("generic_information.value = \"value\" OR"),
-                createInvalidTestInput("generic_information.name = \"name\" | generic_information.value = \"value\""),
-                createInvalidTestInput("generic_information.name = \"name\" & generic_information.value = \"value\""),
-                createInvalidTestInput("generic_information.name = \"name\" AND AND generic_information.value = \"value\""),
-                createInvalidTestInput("generic_information.name = \"name\" OR OR generic_information.value = \"value\""),
-                createInvalidTestInput("generic_information.name = \"name\" AND OR AND generic_information.value = \"value\""),
-                createInvalidTestInput("generic_information.name = \"name\" OR AND OR generic_information.value = \"value\""),
-                createInvalidTestInput("(generic_information.name = \"name\" OR generic_information.value = \"value\""),
-                createInvalidTestInput("(generic_information.name = \"name\" OR ) generic_information.value = \"value\""),
-                createInvalidTestInput("generic_information.name = \"name\" ( OR ) generic_information.value = \"value\""),
-                createInvalidTestInput("generic_information.name = \"name\" ( OR generic_information.value = \"value\" )"),
-                createInvalidTestInput("( generic_information.name ) = \"name\" OR generic_information.value = \"value\""),
-                createInvalidTestInput("generic_information.name = ( \"name\" ) OR generic_information.value = \"value\""),
-                createInvalidTestInput("generic_information.name = \"name\" OR ( generic_information.value ) = \"value\""),
-                createInvalidTestInput("generic_information.name = \"name\" OR generic_information.value = ( \"value\" ) "),
+                validTestInput(
+                        "variable(\"name1\", \"value1\") " +
+                                "AND variable(\"name2\", \"value2\")"),
+                validTestInput(
+                        "variable(\"name1\", \"value1\") " +
+                                "AND variable(\"name2\", \"value2\") " +
+                                "AND variable(\"name3\", \"value3\")"),
+                validTestInput(
+                        "variable(\"name1\", \"value1\") " +
+                                "OR variable(\"name2\", \"value2\")"),
+                validTestInput(
+                        "variable(\"name1\", \"value1\") " +
+                                "OR variable(\"name2\", \"value2\") " +
+                                "OR variable(\"name3\", \"value3\")"),
+                validTestInput(
+                        "variable(\"name1\", \"value1\") " +
+                                "OR variable(\"name2\", \"value2\") " +
+                                "AND variable(\"name3\", \"value3\")"),
+                validTestInput(
+                        "variable(\"name1\", \"value1\") " +
+                                "AND variable(\"name2\", \"value2\") " +
+                                "OR variable(\"name3\", \"value3\")"),
 
+                validTestInput(
+                        "generic_information(\"name1\", \"value1\") " +
+                                "AND variable(\"name2\", \"value2\")"),
+                validTestInput(
+                        "variable(\"name1\", \"value1\") " +
+                                "AND generic_information(\"name2\", \"value2\")"),
+                validTestInput(
+                        "generic_information(\"name1\", \"value1\") " +
+                                "AND variable(\"name2\", \"value2\") " +
+                                "AND generic_information(\"name3\", \"value3\")"),
+                validTestInput(
+                        "variable(\"name1\", \"value1\") " +
+                                "AND generic_information(\"name2\", \"value2\") " +
+                                "AND variable(\"name3\", \"value3\")"),
+                validTestInput(
+                        "generic_information(\"name1\", \"value1\") " +
+                                "OR variable(\"name2\", \"value2\")"),
+                validTestInput(
+                        "variable(\"name1\", \"value1\") " +
+                                "OR generic_information(\"name2\", \"value2\")"),
+                validTestInput(
+                        "generic_information(\"name1\", \"value1\") " +
+                                "OR variable(\"name2\", \"value2\") " +
+                                "OR generic_information(\"name3\", \"value3\")"),
+                validTestInput(
+                        "variable(\"name1\", \"value1\") " +
+                                "OR generic_information(\"name2\", \"value2\") " +
+                                "OR variable(\"name3\", \"value3\")"),
+                validTestInput(
+                        "generic_information(\"name1\", \"value1\") " +
+                                "OR variable(\"name2\", \"value2\") " +
+                                "AND generic_information(\"name3\", \"value3\")"),
+                validTestInput(
+                        "variable(\"name1\", \"value1\") " +
+                                "OR generic_information(\"name2\", \"value2\") " +
+                                "AND variable(\"name3\", \"value3\")"),
+                validTestInput(
+                        "generic_information(\"name1\", \"value1\") " +
+                                "AND variable(\"name2\", \"value2\") " +
+                                "OR generic_information(\"name3\", \"value3\")"),
+                validTestInput(
+                        "variable(\"name1\", \"value1\") " +
+                                "AND generic_information(\"name2\", \"value2\") " +
+                                "OR variable(\"name3\", \"value3\")"),
+                validTestInput(
+                        "name=\"name1\" AND variable(\"name1\", \"value1\") " +
+                                "AND generic_information(\"name2\", \"value2\") " +
+                                "OR variable(\"name3\", \"value3\")"),
+
+                // Queries that are syntactically incorrect
+
+                invalidTestInput(""),
+
+                invalidTestInput("name=\'value\'"),
+                invalidTestInput("name==\"value\""),
+                invalidTestInput("name<>\"value\""),
+                invalidTestInput("name=value"),
+                invalidTestInput("name=(value)"),
+                invalidTestInput("name(value)"),
+
+                invalidTestInput("project_name=\'value\'"),
+                invalidTestInput("project_name==\"value\""),
+                invalidTestInput("project_name<>\"value\""),
+                invalidTestInput("project_name=value"),
+                invalidTestInput("project_name=(value)"),
+                invalidTestInput("project_name(value)"),
+
+                invalidTestInput("generic_information.name=\"name\""),
+                invalidTestInput("generic_information.value=\"value\""),
+                invalidTestInput("generic_information(name, value)"),
+                invalidTestInput("generic_information(\'name\', \'value\')"),
+                invalidTestInput("generic_information=(\"name\", \"value\")"),
+                invalidTestInput("generic_information(\"name\"=\"value\")"),
+                invalidTestInput("generic_information<>(\"name\", \"value\")"),
+
+                invalidTestInput("variable.name=\"name\""),
+                invalidTestInput("variable.value=\"value\""),
+                invalidTestInput("variable(name, value)"),
+                invalidTestInput("variable(\'name\', \'value\')"),
+                invalidTestInput("variable=(\"name\", \"value\")"),
+                invalidTestInput("variable(\"name\"=\"value\")"),
+                invalidTestInput("variable<>(\"name\", \"value\")"),
+
+                invalidTestInput("name!=\"name1\" and variable(\"name2\", \"value\")"),
+                invalidTestInput("generic_information(\"name1\", \"value\") or project_name!=\"name2\""),
         });
     }
 
-    public WorkflowCatalogQueryCompilerTest(TestInput testInput) {
+    public WorkflowCatalogQueryCompilerTest(Assertion assertion) {
         this.compiler = new WorkflowCatalogQueryCompiler();
-        this.testInput = testInput;
+        this.assertion = assertion;
     }
 
     @Test
     public void testQuery() {
         try {
-            compiler.compile(testInput.getQuery());
+            compiler.compile(assertion.getQuery());
 
-            if (!testInput.shouldPass) {
+            if (!assertion.shouldPass) {
                 Assert.fail(getMessageDump(
-                        testInput, "Query is detected as syntactically correct but it should not"));
+                        assertion, "Query is detected as syntactically correct but it should not"));
             }
         } catch (SyntaxException e) {
-            if (testInput.shouldPass) {
+            if (assertion.shouldPass) {
                 Assert.fail(getMessageDump(
-                        testInput, e, "Query is detected as syntactically incorrect but it should not"));
+                        assertion, e, "Query is detected as syntactically incorrect but it should not"));
             }
         }
     }
 
-    private String getMessageDump(TestInput testInput, SyntaxException syntaxException, String firstLine) {
-        String message = getMessageDump(testInput, firstLine);
+    private String getMessageDump(Assertion assertion, SyntaxException syntaxException, String firstLine) {
+        String message = getMessageDump(assertion, firstLine);
         message += "    Error: " + syntaxException.getMessage() + "\n";
 
         return message;
     }
 
-    private String getMessageDump(TestInput testInput, String firstLine) {
+    private String getMessageDump(Assertion assertion, String firstLine) {
         String message = firstLine + ": \n";
-        message += "    Query: " + testInput.getQuery() + "\n";
+        message += "    Query: " + assertion.getQuery() + "\n";
 
         return message;
     }
 
-    public static TestInput createValidTestInput(String query) {
-        return new TestInput(query, true);
+    public static Assertion invalidTestInput(String query) {
+        return new Assertion(query, false);
     }
 
-    public static TestInput createInvalidTestInput(String query) {
-        return new TestInput(query, false);
+    public static Assertion validTestInput(String query) {
+        return new Assertion(query, true);
     }
 
-    private static final class TestInput {
+    private static final class Assertion {
 
         private final String query;
 
         private final boolean shouldPass;
 
-        public TestInput(String query, boolean shouldPass) {
+        public Assertion(String query, boolean shouldPass) {
             this.query = query;
             this.shouldPass = shouldPass;
         }
