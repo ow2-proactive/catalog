@@ -93,9 +93,9 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
     // Maps that contain allowed clauses
     // They prevent to write several conditional statements
 
-    private final Map<AtomicLexicalClause, Function<String, ListSubQuery<Long>>> atomicClausesToFuncMap;
+    protected final Map<AtomicLexicalClause, Function<String, ListSubQuery<Long>>> atomicClausesToFuncMap;
 
-    private final Map<KeyValueLexicalClause, BiFunction<String, String, ListSubQuery<Long>>> keyValueClausesToFuncMap;
+    protected final Map<KeyValueLexicalClause, BiFunction<String, String, ListSubQuery<Long>>> keyValueClausesToFuncMap;
 
     // Below are defined intermediate stacks which are used to create
     // the final result.
@@ -106,15 +106,15 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
     // to stackOfSubQueries. Finally, the boolean expression is created
     // from stackOfSubqueries
 
-    private Stack<Clause> stackOfClauses;
+    protected Stack<Clause> stackOfClauses;
 
-    private Stack<Context> stackOfContexts;
+    protected Stack<Context> stackOfContexts;
 
-    private Stack<ListSubQuery<WorkflowRevision>> stackOfSubQueries;
+    protected Stack<ListSubQuery<WorkflowRevision>> stackOfSubQueries;
 
     // Result object
 
-    private BooleanExpression booleanExpression;
+    protected BooleanExpression booleanExpression;
 
 
     public WorkflowCatalogQueryLanguageListener() {
@@ -428,7 +428,7 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
 
     }
 
-    private Map<AtomicLexicalClause, Function<String, ListSubQuery<Long>>> initAtomicClausesToFuncMap() {
+    protected Map<AtomicLexicalClause, Function<String, ListSubQuery<Long>>> initAtomicClausesToFuncMap() {
         ImmutableMap.Builder<AtomicLexicalClause,
                 Function<String, ListSubQuery<Long>>> builder = ImmutableMap.builder();
 
@@ -489,7 +489,7 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
     }
 
 
-    private Map<KeyValueLexicalClause, BiFunction<String, String, ListSubQuery<Long>>> initKeyValueClausesToFuncMap() {
+    protected Map<KeyValueLexicalClause, BiFunction<String, String, ListSubQuery<Long>>> initKeyValueClausesToFuncMap() {
         ImmutableMap.Builder<KeyValueLexicalClause, BiFunction<String, String, ListSubQuery<Long>>> builder = ImmutableMap.builder();
 
         // GENERIC INFORMATION

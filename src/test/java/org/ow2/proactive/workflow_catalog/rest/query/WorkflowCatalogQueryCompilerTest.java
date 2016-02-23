@@ -28,7 +28,6 @@
  *  Initial developer(s):               The ProActive Team
  *                          http://proactive.inria.fr/team_members.htm
  */
-
 package org.ow2.proactive.workflow_catalog.rest.query;
 
 import java.util.Arrays;
