@@ -76,7 +76,7 @@ public class QueryDslWorkflowRevisionRepository extends QueryDslRepositorySuppor
         return new JPASubQuery().from(QWorkflowRevision.workflowRevision)
                 .join(qWorkflowRevision.workflow)
                 .where(
-                        qWorkflowRevision.id.eq(workflowId)
+                        qWorkflowRevision.workflow.id.eq(workflowId)
                                 .and(qWorkflowRevision.bucketId.eq(bucketId)))
                 .list(qWorkflowRevision.id);
     }

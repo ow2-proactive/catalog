@@ -206,7 +206,7 @@ public class WorkflowRevisionService {
         if (workflowId.isPresent()) {
             findWorkflow(workflowId.get());
 
-            if (query.isPresent()) {
+            if (query.isPresent() && "".compareTo(query.get()) != 0) {
                 QueryExpressionContext queryExpressionContext = createJpaQueryExpression(query.get());
 
                 page = queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(
