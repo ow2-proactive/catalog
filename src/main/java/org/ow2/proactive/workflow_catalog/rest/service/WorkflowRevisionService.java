@@ -206,12 +206,14 @@ public class WorkflowRevisionService {
         if (workflowId.isPresent()) {
             findWorkflow(workflowId.get());
 
-            if (query.isPresent() && "".compareTo(query.get()) != 0) {
+            if (query.isPresent() && "".compareTo(query.get().trim()) != 0) {
                 QueryExpressionContext queryExpressionContext = createJpaQueryExpression(query.get());
 
                 page = queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(
                         bucketId, workflowId.get(), queryExpressionContext, pageable);
             } else {
+                // it is not required to pass bucket ID since
+                // workflow ID is unique for all buckets
                 page = workflowRevisionRepository.getRevisions(workflowId.get(), pageable);
             }
         } else {

@@ -81,7 +81,6 @@ public class QueryDslWorkflowRevisionRepository extends QueryDslRepositorySuppor
                 .list(qWorkflowRevision.id);
     }
 
-
     public Page<WorkflowRevision> findMostRecentWorkflowRevisions(long bucketId,
             QueryExpressionContext context,
             Pageable pageable) {
