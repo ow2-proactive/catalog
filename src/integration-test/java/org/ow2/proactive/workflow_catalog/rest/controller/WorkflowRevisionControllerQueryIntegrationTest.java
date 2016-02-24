@@ -30,15 +30,17 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.junit.*;
 import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
-import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRepository;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -47,11 +49,14 @@ import com.jayway.restassured.response.Response;
 import com.jayway.restassured.response.ValidatableResponse;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.http.HttpStatus;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.data.domain.Pageable;
@@ -67,9 +72,8 @@ import static org.junit.Assert.fail;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 /**
- * The purpose of this class is to perform test against the WorkflowRevisionController, assuming
- * there is no workflow ID specified. Consequently, only most recent workflow revisions
- * should be returned whatever the query is.
+ * The purpose of this class is to perform tests against the WorkflowRevisionController
+ * for the {@code query} request parameter,
  *
  * @author ActiveEon Team
  * @see WorkflowRevisionController#list(Long, Long, Optional, Pageable, PagedResourcesAssembler)
@@ -77,7 +81,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @ActiveProfiles("test")
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @RunWith(Parameterized.class)
-@SpringApplicationConfiguration(classes = {Application.class})
+@SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest
 public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWorkflowRevisionControllerTest {
 
@@ -99,7 +103,7 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
+        return Arrays.asList(new Object[][] {
 
                 /*
                  * Querying all workflows (on their latest version)
@@ -121,10 +125,22 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                         Assertion.create("name=\"\"", ImmutableSet.of(), ImmutableSet.of(), ImmutableSet.of())
                 },
                 {
+                        Assertion.create("name!=\"A\"",
+                                ImmutableSet.of("B", "C", "D", "E", "F", "G%", "Amazon"),
+                                ImmutableSet.of("A-small", "A-regular", "A-medium"),
+                                ImmutableSet.of("Dummy"))
+                },
+                {
                         Assertion.create("project_name=\"\"",
                                 ImmutableSet.of("A", "B", "C", "D", "Amazon"),
                                 ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
                                 ImmutableSet.of("A", "Dummy"))
+                },
+                {
+                        Assertion.create("project_name!=\"\"",
+                                ImmutableSet.of("E", "F", "G%"),
+                                ImmutableSet.of(),
+                                ImmutableSet.of())
                 },
                 {
                         Assertion.create("project_name=\"Fab%\"",
@@ -514,15 +530,15 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         /**
          * Create a new assertion.
          *
-         * @param query                                           The query to test.
-         * @param expectedMostRecentWorkflowRevisionNames         The name of the workflows which are expected to be returned.
-         * @param expectedWorkflowRevisionsNames                  The name of the expected revisions from the first bucket.
-         * @param expectedWorkflowRevisionsNamesFromSecondBucket  The name of the expected revisions from the second bucket.
+         * @param query                                          The query to test.
+         * @param expectedMostRecentWorkflowRevisionNames        The name of the workflows which are expected to be returned.
+         * @param expectedWorkflowRevisionsNames                 The name of the expected revisions from the first bucket.
+         * @param expectedWorkflowRevisionsNamesFromSecondBucket The name of the expected revisions from the second bucket.
          */
         private Assertion(String query,
-                          Set<String> expectedMostRecentWorkflowRevisionNames,
-                          Set<String> expectedWorkflowRevisionsNames,
-                          Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
+                Set<String> expectedMostRecentWorkflowRevisionNames,
+                Set<String> expectedWorkflowRevisionsNames,
+                Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
             this.query = query;
             this.expectedMostRecentWorkflowRevisionNames = expectedMostRecentWorkflowRevisionNames;
             this.expectedWorkflowRevisionsNames = expectedWorkflowRevisionsNames;
@@ -530,9 +546,9 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         }
 
         public static Assertion create(String query,
-                                       Set<String> expectedMostRecentWorkflowRevisionNames,
-                                       Set<String> expectedWorkflowRevisionsNames,
-                                       Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
+                Set<String> expectedMostRecentWorkflowRevisionNames,
+                Set<String> expectedWorkflowRevisionsNames,
+                Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
             return new Assertion(query,
                     expectedMostRecentWorkflowRevisionNames,
                     expectedWorkflowRevisionsNames,
