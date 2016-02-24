@@ -515,9 +515,10 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         /**
          * Create a new assertion.
          *
-         * @param query                                   The query to test.
-         * @param expectedMostRecentWorkflowRevisionNames The name of the workflows which are expected to be returned.
-         * @param expectedWorkflowRevisionsNames
+         * @param query                                           The query to test.
+         * @param expectedMostRecentWorkflowRevisionNames         The name of the workflows which are expected to be returned.
+         * @param expectedWorkflowRevisionsNames                  The name of the expected revisions from the first bucket.
+         * @param expectedWorkflowRevisionsNamesFromSecondBucket  The name of the expected revisions from the second bucket.
          */
         private Assertion(String query,
                           Set<String> expectedMostRecentWorkflowRevisionNames,
