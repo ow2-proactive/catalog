@@ -32,10 +32,13 @@ package org.ow2.proactive.workflow_catalog.rest.query;
 
 import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -47,11 +50,15 @@ import static org.mockito.Mockito.verify;
  */
 public class WorkflowCatalogQueryLanguageListenerTest {
 
+    private WorkflowCatalogQueryLanguageListener listener;
+
+    @Before
+    public void setUp() {
+        listener = new WorkflowCatalogQueryLanguageListener();
+    }
+
     @Test
     public void testInitialization() {
-        WorkflowCatalogQueryLanguageListener listener =
-                new WorkflowCatalogQueryLanguageListener();
-
         assertThat(listener.atomicClausesToFuncMap).isNotEmpty();
         assertThat(listener.keyValueClausesToFuncMap).isNotEmpty();
 
@@ -80,9 +87,6 @@ public class WorkflowCatalogQueryLanguageListenerTest {
 
         ParseTreeWalker walker = new ParseTreeWalker();
 
-        WorkflowCatalogQueryLanguageListener listener =
-                new WorkflowCatalogQueryLanguageListener();
-
         listener = Mockito.spy(listener);
 
         walker.walk(listener, context);
@@ -104,6 +108,16 @@ public class WorkflowCatalogQueryLanguageListenerTest {
         assertThat(listener.stackOfSubQueries).isEmpty();
 
         assertThat(listener.booleanExpression).isNotNull();
+    }
+
+    @Test
+    public void testSanitizeLiteral() {
+        assertEquals("CPU", listener.sanitizeLiteral("\"CPU\""));
+        assertEquals("%PU", listener.sanitizeLiteral("\"*PU\""));
+        assertEquals("CP%", listener.sanitizeLiteral("\"CP*\""));
+        assertEquals("%P%", listener.sanitizeLiteral("\"*P*\""));
+        assertEquals("CPU*", listener.sanitizeLiteral("\"CPU\\\\*\""));
+        assertEquals("CPU\\\\%", listener.sanitizeLiteral("\"CPU%\""));
     }
 
 }
