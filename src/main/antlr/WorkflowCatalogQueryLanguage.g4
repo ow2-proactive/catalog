@@ -44,7 +44,7 @@ WS
     ;
 
 fragment DIGIT      : [0-9];
-fragment ESC        : '\\"' | '\\\\' | '\\%';
+fragment ESC        : '\\"' | '\\\\' ; // 2-char sequences \" and \\
 fragment ID_LETTER  : [a-z]|[A-Z]|'_' ;
 fragment LETTER     : LOWERCASE | UPPERCASE;
 fragment LOWERCASE  : [a-z];
