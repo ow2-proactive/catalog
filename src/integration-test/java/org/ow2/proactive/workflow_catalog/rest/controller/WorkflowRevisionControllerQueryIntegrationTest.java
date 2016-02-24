@@ -111,7 +111,7 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
 
                 {
                         Assertion.create("",
-                                ImmutableSet.of("A", "B", "C", "D", "E", "F", "G%", "Amazon"),
+                                ImmutableSet.of("A", "B", "C", "D", "E", "F", "G*", "Amazon"),
                                 ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
                                 ImmutableSet.of("A", "Dummy"))
                 },
@@ -126,7 +126,7 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                 },
                 {
                         Assertion.create("name!=\"A\"",
-                                ImmutableSet.of("B", "C", "D", "E", "F", "G%", "Amazon"),
+                                ImmutableSet.of("B", "C", "D", "E", "F", "G*", "Amazon"),
                                 ImmutableSet.of("A-small", "A-regular", "A-medium"),
                                 ImmutableSet.of("Dummy"))
                 },
@@ -138,54 +138,54 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                 },
                 {
                         Assertion.create("project_name!=\"\"",
-                                ImmutableSet.of("E", "F", "G%"),
+                                ImmutableSet.of("E", "F", "G*"),
                                 ImmutableSet.of(),
                                 ImmutableSet.of())
                 },
                 {
-                        Assertion.create("project_name=\"Fab%\"",
+                        Assertion.create("project_name=\"Fab*\"",
                                 ImmutableSet.of("E", "F"),
                                 ImmutableSet.of(),
                                 ImmutableSet.of())
                 },
                 {
-                        Assertion.create("project_name=\"%bi%\"",
+                        Assertion.create("project_name=\"*bi*\"",
                                 ImmutableSet.of("E", "F"),
                                 ImmutableSet.of(),
                                 ImmutableSet.of())
                 },
                 {
-                        Assertion.create("project_name=\"%ple\"",
+                        Assertion.create("project_name=\"*ple\"",
                                 ImmutableSet.of("E", "F"),
                                 ImmutableSet.of(),
                                 ImmutableSet.of())
                 },
                 {
-                        Assertion.create("project_name=\"%donotexists%\"",
+                        Assertion.create("project_name=\"*donotexists*\"",
                                 ImmutableSet.of(),
                                 ImmutableSet.of(),
                                 ImmutableSet.of())
                 },
                 {
-                        Assertion.create("name=\"G\\%\"",
-                                ImmutableSet.of("G%"),
+                        Assertion.create("name=\"G\\\\*\"",
+                                ImmutableSet.of("G*"),
                                 ImmutableSet.of(),
                                 ImmutableSet.of())
                 },
                 {
-                        Assertion.create("variable(\"CPU\", \"5%\")",
+                        Assertion.create("variable(\"CPU\", \"5*\")",
                                 ImmutableSet.of("D"),
                                 ImmutableSet.of(),
                                 ImmutableSet.of())
                 },
                 {
-                        Assertion.create("variable(\"%\", \"%\")",
+                        Assertion.create("variable(\"*\", \"*\")",
                                 ImmutableSet.of("A", "B", "D", "E", "F"),
                                 ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
                                 ImmutableSet.of("A"))
                 },
                 {
-                        Assertion.create("variable(\"Provider\", \"%\")",
+                        Assertion.create("variable(\"Provider\", \"*\")",
                                 ImmutableSet.of("E", "F"),
                                 ImmutableSet.of(),
                                 ImmutableSet.of())
@@ -206,7 +206,7 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                 {
                         Assertion.create(
                                 "generic_information(\"linebreak\", \"\\r\\n\")",
-                                ImmutableSet.of("G%"),
+                                ImmutableSet.of("G*"),
                                 ImmutableSet.of(),
                                 ImmutableSet.of())
                 },
@@ -222,7 +222,7 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                         Assertion.create(
                                 "generic_information(\"Infrastructure\", \"Amazon EC2\") " +
                                         "OR generic_information(\"Cloud\", \"Amazon EC2\") " +
-                                        "AND variable(\"CPU\", \"%\")",
+                                        "AND variable(\"CPU\", \"*\")",
                                 ImmutableSet.of("A", "B"),
                                 ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
                                 ImmutableSet.of("A"))
@@ -231,14 +231,14 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                         Assertion.create(
                                 "generic_information(\"Infrastructure\", \"Amazon EC2\") " +
                                         "AND generic_information(\"Cloud\", \"Amazon EC2\") " +
-                                        "OR variable(\"CPU\", \"%\")",
+                                        "OR variable(\"CPU\", \"*\")",
                                 ImmutableSet.of("A", "B", "D"),
                                 ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
                                 ImmutableSet.of("A"))
                 },
                 {
                         Assertion.create(
-                                "variable(\"CPU\", \"%\") AND name=\"B\" " +
+                                "variable(\"CPU\", \"*\") AND name=\"B\" " +
                                         "AND generic_information(\"Cloud\", \"Amazon EC2\")",
                                 ImmutableSet.of("B"),
                                 ImmutableSet.of(),
@@ -248,8 +248,8 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                         Assertion.create(
                                 "generic_information(\"Infrastructure\", \"Amazon EC2\") " +
                                         "AND generic_information(\"Type\", \"Public\") "
-                                        + "AND variable(\"CPU\", \"%\") OR generic_information(\"Cloud\", \"Amazon EC2\") "
-                                        + "AND variable(\"CPU\", \"%\") OR name=\"Amazon\"",
+                                        + "AND variable(\"CPU\", \"*\") OR generic_information(\"Cloud\", \"Amazon EC2\") "
+                                        + "AND variable(\"CPU\", \"*\") OR name=\"Amazon\"",
                                 ImmutableSet.of("A", "B", "Amazon"),
                                 ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
                                 ImmutableSet.of("A"))
@@ -268,7 +268,7 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                 },
                 {
                         Assertion.create(
-                                "generic_information(\"Size\",\"%\")",
+                                "generic_information(\"Size\",\"*\")",
                                 ImmutableSet.of("A"),
                                 ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
                                 ImmutableSet.of())
@@ -311,7 +311,7 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                 },
                 {
                         Assertion.createSyntacticallyIncorrect(
-                                "variable(%, %")
+                                "variable(*, *")
                 },
                 {
                         Assertion.createSyntacticallyIncorrect(
@@ -327,11 +327,11 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                 },
                 {
                         Assertion.createSyntacticallyIncorrect(
-                                "%(\"CPU\", \"4\")")
+                                "*(\"CPU\", \"4\")")
                 },
                 {
                         Assertion.createSyntacticallyIncorrect(
-                                "%=\"A\"")
+                                "*=\"A\"")
                 }
 
 
@@ -405,7 +405,7 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                 ImmutableMap.of("Provider", "Amazon"));
 
         // Workflow G
-        createWorkflowFirstBucket("CharacterEscaping", "G%",
+        createWorkflowFirstBucket("CharacterEscaping", "G*",
                 ImmutableMap.of("linebreak", "\\r\\n"),
                 ImmutableMap.of());
 
@@ -530,15 +530,15 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         /**
          * Create a new assertion.
          *
-         * @param query                                          The query to test.
-         * @param expectedMostRecentWorkflowRevisionNames        The name of the workflows which are expected to be returned.
-         * @param expectedWorkflowRevisionsNames                 The name of the expected revisions from the first bucket.
-         * @param expectedWorkflowRevisionsNamesFromSecondBucket The name of the expected revisions from the second bucket.
+         * @param query                                           The query to test.
+         * @param expectedMostRecentWorkflowRevisionNames         The name of the workflows which are expected to be returned.
+         * @param expectedWorkflowRevisionsNames                  The name of the expected revisions from the first bucket.
+         * @param expectedWorkflowRevisionsNamesFromSecondBucket  The name of the expected revisions from the second bucket.
          */
         private Assertion(String query,
-                Set<String> expectedMostRecentWorkflowRevisionNames,
-                Set<String> expectedWorkflowRevisionsNames,
-                Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
+                          Set<String> expectedMostRecentWorkflowRevisionNames,
+                          Set<String> expectedWorkflowRevisionsNames,
+                          Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
             this.query = query;
             this.expectedMostRecentWorkflowRevisionNames = expectedMostRecentWorkflowRevisionNames;
             this.expectedWorkflowRevisionsNames = expectedWorkflowRevisionsNames;
@@ -546,9 +546,9 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         }
 
         public static Assertion create(String query,
-                Set<String> expectedMostRecentWorkflowRevisionNames,
-                Set<String> expectedWorkflowRevisionsNames,
-                Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
+                                       Set<String> expectedMostRecentWorkflowRevisionNames,
+                                       Set<String> expectedWorkflowRevisionsNames,
+                                       Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
             return new Assertion(query,
                     expectedMostRecentWorkflowRevisionNames,
                     expectedWorkflowRevisionsNames,

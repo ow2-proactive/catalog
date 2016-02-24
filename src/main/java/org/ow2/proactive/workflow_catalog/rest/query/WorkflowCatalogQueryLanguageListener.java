@@ -72,7 +72,9 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
 
     private static final Logger log = LoggerFactory.getLogger(WorkflowCatalogQueryLanguageListener.class);
 
-    private static final Pattern WILDCARD_PATTERN = Pattern.compile(".*%.*");
+    private static final String WCQL_ESC_WILDCARD_TEMP = "\\\\TEMP_WILDCARD_RENAMING";
+
+    private static final Pattern SQL_WILDCARD_PATTERN = Pattern.compile(".*%.*");
 
     // Token names which are allowed
 
@@ -263,16 +265,12 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
     private ListSubQuery<Long> createAtomicLexicalClause(
             WorkflowCatalogQueryLanguageParser.AtomicClauseContext ctx) {
         String attributeLiteral = ctx.AttributeLiteral().getText();
-        String stringLiteral = ctx.StringLiteral().getText();
-
-        // a String literal always starts and ends by a " character
-        // remove leading and trailing " character
-        stringLiteral = removeQuotes(stringLiteral);
+        String stringLiteral = sanitizeLiteral(ctx.StringLiteral().getText());
 
         AtomicLexicalClause.FieldType fieldType = getFieldType(attributeLiteral);
         Operator operator = getOperator(ctx.COMPARE_OPERATOR().getText());
 
-        Matcher wildcardMatcher = WILDCARD_PATTERN.matcher(stringLiteral);
+        Matcher wildcardMatcher = SQL_WILDCARD_PATTERN.matcher(stringLiteral);
         boolean stringLiteralHasWildcard = wildcardMatcher.matches();
 
         AtomicLexicalClause atomicLexicalClause = new AtomicLexicalClause(fieldType, operator,
@@ -295,13 +293,13 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
         String attributeLiteral = ctx.AttributeLiteral().getText();
 
         List<TerminalNode> terminalNodes = ctx.StringLiteral();
-        String pairKey = removeQuotes(terminalNodes.get(0).getText());
-        String pairValue = removeQuotes(terminalNodes.get(1).getText());
+        String pairKey = sanitizeLiteral(terminalNodes.get(0).getText());
+        String pairValue = sanitizeLiteral(terminalNodes.get(1).getText());
 
         KeyValueLexicalClause.PairType pairType = getPairType(attributeLiteral);
 
-        boolean stringLiteralNameHasWildcard = WILDCARD_PATTERN.matcher(pairKey).matches();
-        boolean stringLiteralValueHasWirldcard = WILDCARD_PATTERN.matcher(pairValue).matches();
+        boolean stringLiteralNameHasWildcard = SQL_WILDCARD_PATTERN.matcher(pairKey).matches();
+        boolean stringLiteralValueHasWirldcard = SQL_WILDCARD_PATTERN.matcher(pairValue).matches();
 
         KeyValueLexicalClause keyValueLexicalClause = new KeyValueLexicalClause(pairType,
                 stringLiteralNameHasWildcard, stringLiteralValueHasWirldcard);
@@ -314,6 +312,27 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
         }
 
         return stringListSubQueryFunction.apply(pairKey, pairValue);
+    }
+
+    private String sanitizeLiteral(String value) {
+        // escape '%' char as it is interpreted as the SQL wildcard
+        value = value.replaceAll(SQL_WILDCARD_PATTERN.pattern(), "\\\\%");
+
+        // convert '\\*' to '\\TEMP_WILDCARD_RENAMING'
+        value = value.replace("\\\\*", WCQL_ESC_WILDCARD_TEMP);
+
+        // convert not-escaped '*' into '%' -- this is where we interpret the '*'
+        // if it is not escaped we want to transform it into a real wildcard
+        // if it is escaped we want to use the plain character '*'
+        value = value.replace('*','%');
+
+        // convert back '\\TEMP_WILDCARD_RENAMING' to '\\*'
+        value = value.replace(WCQL_ESC_WILDCARD_TEMP, "*");
+
+        // remove quotes
+        value = removeQuotes(value);
+
+        return value;
     }
 
     private String removeQuotes(String value) {
