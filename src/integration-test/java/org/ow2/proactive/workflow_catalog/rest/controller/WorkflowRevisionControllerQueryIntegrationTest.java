@@ -45,7 +45,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.response.ValidatableResponse;
-import com.sun.istack.internal.NotNull;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.http.HttpStatus;
 import org.junit.runner.RunWith;
@@ -531,9 +530,9 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         }
 
         public static Assertion create(String query,
-                                       @NotNull Set<String> expectedMostRecentWorkflowRevisionNames,
-                                       @NotNull Set<String> expectedWorkflowRevisionsNames,
-                                       @NotNull Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
+                                       Set<String> expectedMostRecentWorkflowRevisionNames,
+                                       Set<String> expectedWorkflowRevisionsNames,
+                                       Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
             return new Assertion(query,
                     expectedMostRecentWorkflowRevisionNames,
                     expectedWorkflowRevisionsNames,
