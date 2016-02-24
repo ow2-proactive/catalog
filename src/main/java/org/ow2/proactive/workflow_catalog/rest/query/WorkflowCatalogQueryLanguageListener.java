@@ -314,9 +314,9 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
         return stringListSubQueryFunction.apply(pairKey, pairValue);
     }
 
-    private String sanitizeLiteral(String value) {
+    protected String sanitizeLiteral(String value) {
         // escape '%' char as it is interpreted as the SQL wildcard
-        value = value.replaceAll(SQL_WILDCARD_PATTERN.pattern(), "\\\\%");
+        value = value.replace("%", "\\\\%");
 
         // convert '\\*' to '\\TEMP_WILDCARD_RENAMING'
         value = value.replace("\\\\*", WCQL_ESC_WILDCARD_TEMP);
