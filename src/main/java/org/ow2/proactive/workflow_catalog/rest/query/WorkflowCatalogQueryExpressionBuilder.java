@@ -49,10 +49,22 @@ public class WorkflowCatalogQueryExpressionBuilder {
 
     protected WorkflowCatalogQueryLanguageListener queryListener;
 
+    private ParseTreeWalker walker;
+
     public WorkflowCatalogQueryExpressionBuilder(String workflowCatalogQuery) {
-        this.queryCompiler = new WorkflowCatalogQueryCompiler();
-        this.queryListener = new WorkflowCatalogQueryLanguageListener();
+        this(workflowCatalogQuery, new WorkflowCatalogQueryCompiler(),
+                new WorkflowCatalogQueryLanguageListener(),
+                new ParseTreeWalker());
+    }
+
+    protected WorkflowCatalogQueryExpressionBuilder(String workflowCatalogQuery,
+            WorkflowCatalogQueryCompiler queryCompiler,
+            WorkflowCatalogQueryLanguageListener queryListener,
+            ParseTreeWalker walker) {
+        this.queryCompiler = queryCompiler;
+        this.queryListener = queryListener;
         this.workflowCatalogQuery = workflowCatalogQuery;
+        this.walker = walker;
     }
 
     public QueryExpressionContext build() throws QueryExpressionBuilderException {
@@ -68,15 +80,8 @@ public class WorkflowCatalogQueryExpressionBuilder {
         try {
             WorkflowCatalogQueryLanguageParser.StartContext context =
                     queryCompiler.compile(workflowCatalogQuery);
-
-            ParseTreeWalker walker = new ParseTreeWalker();
-
-            WorkflowCatalogQueryLanguageListener listener =
-                    new WorkflowCatalogQueryLanguageListener();
-
-            walker.walk(listener, context);
-
-            return new QueryExpressionContext(listener.getBooleanExpression());
+            walker.walk(queryListener, context);
+            return new QueryExpressionContext(queryListener.getBooleanExpression());
         } catch (Exception e) {
             throw new QueryExpressionBuilderException(e.getMessage());
         }
