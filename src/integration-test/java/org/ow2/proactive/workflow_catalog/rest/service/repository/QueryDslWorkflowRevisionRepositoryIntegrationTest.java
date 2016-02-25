@@ -82,7 +82,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = { Application.class })
-@WebIntegrationTest
+@WebIntegrationTest(randomPort = true)
 public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractWorkflowRevisionControllerTest {
 
     private static final Logger log = LoggerFactory.getLogger(

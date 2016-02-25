@@ -82,7 +82,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @RunWith(Parameterized.class)
 @SpringApplicationConfiguration(classes = { Application.class })
-@WebIntegrationTest
+@WebIntegrationTest(randomPort = true)
 public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWorkflowRevisionControllerTest {
 
     @ClassRule
@@ -530,15 +530,15 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         /**
          * Create a new assertion.
          *
-         * @param query                                           The query to test.
-         * @param expectedMostRecentWorkflowRevisionNames         The name of the workflows which are expected to be returned.
-         * @param expectedWorkflowRevisionsNames                  The name of the expected revisions from the first bucket.
-         * @param expectedWorkflowRevisionsNamesFromSecondBucket  The name of the expected revisions from the second bucket.
+         * @param query                                          The query to test.
+         * @param expectedMostRecentWorkflowRevisionNames        The name of the workflows which are expected to be returned.
+         * @param expectedWorkflowRevisionsNames                 The name of the expected revisions from the first bucket.
+         * @param expectedWorkflowRevisionsNamesFromSecondBucket The name of the expected revisions from the second bucket.
          */
         private Assertion(String query,
-                          Set<String> expectedMostRecentWorkflowRevisionNames,
-                          Set<String> expectedWorkflowRevisionsNames,
-                          Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
+                Set<String> expectedMostRecentWorkflowRevisionNames,
+                Set<String> expectedWorkflowRevisionsNames,
+                Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
             this.query = query;
             this.expectedMostRecentWorkflowRevisionNames = expectedMostRecentWorkflowRevisionNames;
             this.expectedWorkflowRevisionsNames = expectedWorkflowRevisionsNames;
@@ -546,9 +546,9 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         }
 
         public static Assertion create(String query,
-                                       Set<String> expectedMostRecentWorkflowRevisionNames,
-                                       Set<String> expectedWorkflowRevisionsNames,
-                                       Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
+                Set<String> expectedMostRecentWorkflowRevisionNames,
+                Set<String> expectedWorkflowRevisionsNames,
+                Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
             return new Assertion(query,
                     expectedMostRecentWorkflowRevisionNames,
                     expectedWorkflowRevisionsNames,

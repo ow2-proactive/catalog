@@ -28,36 +28,23 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
-
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
-import org.ow2.proactive.workflow_catalog.rest.Application;
-import org.apache.http.HttpStatus;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static com.jayway.restassured.RestAssured.when;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
+import com.jayway.restassured.RestAssured;
+import org.junit.Before;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author ActiveEon Team
  */
-@ActiveProfiles("test")
-@DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {Application.class})
-@WebIntegrationTest(randomPort = true)
-public class SwaggerControllerIntegrationTest extends AbstractRestAssuredTest {
+public abstract class AbstractRestAssuredTest {
 
-    @Test
-    public void testSwagger() throws Exception {
-        when().post("/").then()
-                .assertThat().statusCode(HttpStatus.SC_MOVED_PERMANENTLY);
+    @Value("${local.server.port}")
+    private int serverPort;
+
+    @Before
+    public void configureRestAssured() {
+        RestAssured.port = serverPort;
     }
 
 }

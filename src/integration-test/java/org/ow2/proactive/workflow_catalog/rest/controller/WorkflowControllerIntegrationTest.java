@@ -30,12 +30,10 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
-import com.google.common.io.ByteStreams;
-import com.jayway.restassured.response.Response;
-import org.apache.http.HttpStatus;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Optional;
+
 import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
@@ -44,16 +42,18 @@ import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRepository;
 import org.ow2.proactive.workflow_catalog.rest.util.IntegrationTestUtil;
+import com.google.common.io.ByteStreams;
+import com.jayway.restassured.response.Response;
+import org.apache.http.HttpStatus;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Optional;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.hasSize;
@@ -67,8 +67,8 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {Application.class})
-@WebIntegrationTest
-public class WorkflowControllerIntegrationTest {
+@WebIntegrationTest(randomPort = true)
+public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private static final String WORKFLOWS_RESOURCE = "/buckets/{bucketId}/workflows";
 
