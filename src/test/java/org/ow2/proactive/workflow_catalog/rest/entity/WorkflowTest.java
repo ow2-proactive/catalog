@@ -60,7 +60,7 @@ public class WorkflowTest {
                 new WorkflowRevision(
                         1L, 1L, "Test", "Test Project",
                         LocalDateTime.now(),
-                        Lists.<GenericInformation>newArrayList(),
+                        null, Lists.<GenericInformation>newArrayList(),
                         Lists.<Variable>newArrayList(),
                         new byte[0]);
         workflow = new Workflow(bucket);

@@ -78,8 +78,10 @@ public class WorkflowController {
     @RequestMapping(value = "/buckets/{bucketId}/workflows", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public WorkflowMetadata create(@PathVariable Long bucketId,
+            @ApiParam(value = "Layout describing the tasks position in the Workflow")
+            @RequestParam(required = false) Optional<String> layout,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        return workflowService.createWorkflow(bucketId, file.getBytes());
+        return workflowService.createWorkflow(bucketId, layout, file.getBytes());
     }
 
     @ApiOperation(value = "Gets a workflow's metadata by IDs", notes = "Returns metadata associated to the latest revision of the workflow.")

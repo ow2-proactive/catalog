@@ -54,11 +54,11 @@ public class WorkflowService {
     public WorkflowMetadata createWorkflow(Long bucketId, ProActiveWorkflowParserResult proActiveWorkflowParserResult,
                                            byte[] proActiveWorkflowXmlContent) {
         return workflowRevisionService.createWorkflowRevision(bucketId, Optional.empty(),
-                proActiveWorkflowParserResult, proActiveWorkflowXmlContent);
+                proActiveWorkflowParserResult, Optional.empty(), proActiveWorkflowXmlContent);
     }
 
-    public WorkflowMetadata createWorkflow(Long bucketId, byte[] proActiveWorkflowXmlContent) {
-        return workflowRevisionService.createWorkflowRevision(bucketId, Optional.empty(), proActiveWorkflowXmlContent);
+    public WorkflowMetadata createWorkflow(Long bucketId, Optional<String> layout, byte[] proActiveWorkflowXmlContent) {
+        return workflowRevisionService.createWorkflowRevision(bucketId, Optional.empty(), proActiveWorkflowXmlContent, layout);
     }
 
     public ResponseEntity<?> getWorkflowMetadata(long bucketId, long workflowId, Optional<String> alt) {

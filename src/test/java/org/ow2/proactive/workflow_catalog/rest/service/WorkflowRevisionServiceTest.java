@@ -208,7 +208,7 @@ public class WorkflowRevisionServiceTest {
         when(mockedWf.getId()).thenReturn(DUMMY_ID);
 
         WorkflowRevision wfRev = new WorkflowRevision(DUMMY_ID, DUMMY_ID, "WR-TEST", "WR-PROJ-NAME",
-                LocalDateTime.now(),
+                LocalDateTime.now(), null,
                 Lists.newArrayList(), Lists.newArrayList(), getWorkflowAsByteArray("workflow.xml"));
         wfRev.setWorkflow(mockedWf);
 
@@ -272,7 +272,7 @@ public class WorkflowRevisionServiceTest {
         when(variableRepository.save(any(List.class))).thenReturn(Lists.newArrayList());
         when(workflowRevisionRepository.save(any(WorkflowRevision.class)))
                 .thenReturn(new WorkflowRevision(EXISTING_ID, EXISTING_ID, name, projectName,
-                        LocalDateTime.now(), Lists.newArrayList(), Lists.newArrayList(),
+                        LocalDateTime.now(), null, Lists.newArrayList(), Lists.newArrayList(),
                         getWorkflowAsByteArray(fileName)));
 
         if (wId.isPresent()) {
@@ -281,7 +281,7 @@ public class WorkflowRevisionServiceTest {
         }
 
         WorkflowMetadata actualWFMetadata = workflowRevisionService.createWorkflowRevision(
-                DUMMY_ID, wId, getWorkflowAsByteArray(fileName));
+                DUMMY_ID, wId, getWorkflowAsByteArray(fileName), Optional.empty());
 
         verify(workflowRevisionRepository, times(1)).save(any(WorkflowRevision.class));
 

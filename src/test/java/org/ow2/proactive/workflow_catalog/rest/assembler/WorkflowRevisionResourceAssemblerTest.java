@@ -65,7 +65,7 @@ public class WorkflowRevisionResourceAssemblerTest {
     @Test
     public void testToResource() throws Exception {
         WorkflowRevision workflowRevision = new WorkflowRevision(1L, 1L, "WR-TEST", "WR-PROJ-TEST",
-                LocalDateTime.now(), Lists.newArrayList(), Lists.newArrayList(),
+                LocalDateTime.now(), null, Lists.newArrayList(), Lists.newArrayList(),
                 getWorkflowAsByteArray("workflow.xml"));
         Workflow mockedWorkflow = mock(Workflow.class);
         when(mockedWorkflow.getId()).thenReturn(1L);

@@ -79,9 +79,11 @@ public class WorkflowRevisionController {
     public WorkflowMetadata create(
             @PathVariable Long bucketId,
             @PathVariable Long workflowId,
+            @ApiParam(value = "Layout describing the tasks position in the Workflow Revision")
+            @RequestParam(required = false) Optional<String> layout,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
         return workflowRevisionService.createWorkflowRevision(
-                bucketId, Optional.of(workflowId), file.getBytes());
+                bucketId, Optional.of(workflowId), file.getBytes(), layout);
     }
 
     @ApiOperation(value = "Gets a specific revision")

@@ -60,20 +60,23 @@ public class WorkflowServiceTest {
 
     @Test
     public void testCreateWorkflow() {
-        workflowService.createWorkflow(DUMMY_ID, null);
-        verify(workflowRevisionService, times(1)).createWorkflowRevision(DUMMY_ID, Optional.empty(), null);
+        workflowService.createWorkflow(DUMMY_ID, Optional.empty(), null);
+        verify(workflowRevisionService, times(1)).createWorkflowRevision(DUMMY_ID, Optional.empty(),
+                null, Optional.empty());
     }
 
     @Test
     public void testGetWorkflowMetadata() {
         workflowService.getWorkflowMetadata(DUMMY_ID, DUMMY_ID, Optional.empty());
-        verify(workflowRevisionService, times(1)).getWorkflow(DUMMY_ID, DUMMY_ID, Optional.empty(), Optional.empty());
+        verify(workflowRevisionService, times(1)).getWorkflow(DUMMY_ID, DUMMY_ID, Optional.empty(),
+                Optional.empty());
     }
 
     @Test
     public void testListWorkflows() throws QueryExpressionBuilderException {
         workflowService.listWorkflows(DUMMY_ID, Optional.empty(), null, null);
-        verify(workflowRevisionService, times(1)).listWorkflows(DUMMY_ID, Optional.empty(), Optional.empty(), null, null);
+        verify(workflowRevisionService, times(1)).listWorkflows(DUMMY_ID, Optional.empty(),
+                Optional.empty(), null, null);
     }
 
 }

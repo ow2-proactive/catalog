@@ -94,7 +94,7 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
     public void setup() throws IOException {
         bucket = bucketRepository.save(new Bucket("myBucket"));
         workflow = workflowService.createWorkflow(
-                bucket.getId(), IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+                bucket.getId(), Optional.empty(), IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
     }
 
     @Test
@@ -139,7 +139,7 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
     public void testGetWorkflowShouldReturnLatestSavedWorkflowRevision() throws IOException {
         WorkflowMetadata secondWorkflowRevision = workflowRevisionService.createWorkflowRevision(
                 workflow.bucketId, Optional.of(workflow.id),
-                IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+                IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"), Optional.empty());
 
         given().pathParam("bucketId", workflow.bucketId)
                 .pathParam("workflowId", workflow.id)

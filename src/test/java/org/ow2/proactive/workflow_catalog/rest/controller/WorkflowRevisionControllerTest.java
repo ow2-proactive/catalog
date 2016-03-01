@@ -68,9 +68,9 @@ public class WorkflowRevisionControllerTest {
     public void testCreate() throws Exception {
         MultipartFile mockedFile = mock(MultipartFile.class);
         when(mockedFile.getBytes()).thenReturn(null);
-        workflowRevisionController.create(BUCKET_ID, WF_ID, mockedFile);
+        workflowRevisionController.create(BUCKET_ID, WF_ID, Optional.empty(), mockedFile);
         verify(workflowRevisionService, times(1))
-                .createWorkflowRevision(BUCKET_ID, Optional.of(WF_ID), null);
+                .createWorkflowRevision(BUCKET_ID, Optional.of(WF_ID), null, Optional.empty());
     }
 
     @Test
