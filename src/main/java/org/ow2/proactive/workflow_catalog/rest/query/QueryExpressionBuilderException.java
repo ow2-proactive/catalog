@@ -29,35 +29,22 @@
  *                         http://proactive.inria.fr/team_members.htm
  */
 
-package org.ow2.proactive.workflow_catalog.rest.controller;
+package org.ow2.proactive.workflow_catalog.rest.query;
 
-import org.ow2.proactive.workflow_catalog.rest.Application;
-import org.apache.http.HttpStatus;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static com.jayway.restassured.RestAssured.when;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
+ * Exception thrown if an error is encountered while building a QueryDSL expression.
+ *
  * @author ActiveEon Team
+ * @see WorkflowCatalogQueryExpressionBuilder
  */
-@ActiveProfiles("test")
-@DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {Application.class})
-@WebIntegrationTest(randomPort = true)
-public class SwaggerControllerIntegrationTest extends AbstractRestAssuredTest {
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+public class QueryExpressionBuilderException extends Exception {
 
-    @Test
-    public void testSwagger() throws Exception {
-        when().post("/").then()
-                .assertThat().statusCode(HttpStatus.SC_MOVED_PERMANENTLY);
+    public QueryExpressionBuilderException(String message) {
+        super(message);
     }
 
 }

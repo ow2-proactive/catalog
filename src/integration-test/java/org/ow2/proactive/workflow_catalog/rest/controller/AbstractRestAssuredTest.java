@@ -28,23 +28,23 @@
  * Initial developer(s):               The ProActive Team
  *                         http://proactive.inria.fr/team_members.htm
  */
+package org.ow2.proactive.workflow_catalog.rest.controller;
 
-package org.ow2.proactive.workflow_catalog.rest.query;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.jayway.restassured.RestAssured;
+import org.junit.Before;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
- * Exception thrown if an error is encountered when browsing the AST to generate the predicate
- * that will be used in the query
- *
  * @author ActiveEon Team
  */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class QueryPredicateBuilderException extends Exception {
+public abstract class AbstractRestAssuredTest {
 
-    public QueryPredicateBuilderException(String message) {
-        super(message);
+    @Value("${local.server.port}")
+    private int serverPort;
+
+    @Before
+    public void configureRestAssured() {
+        RestAssured.port = serverPort;
     }
 
 }

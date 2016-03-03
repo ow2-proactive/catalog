@@ -53,8 +53,8 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = { Application.class })
-@WebIntegrationTest
-public class DefaultConfigurationIntegrationTest {
+@WebIntegrationTest(randomPort = true)
+public class DefaultConfigurationIntegrationTest extends AbstractRestAssuredTest {
 
     private static final String BUCKETS_RESOURCE = "/buckets";
 

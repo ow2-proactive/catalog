@@ -30,8 +30,17 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
-import javax.persistence.*;
-import java.util.Objects;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
  * @author ActiveEon Team
@@ -55,6 +64,9 @@ public abstract class KeyValue {
     @Column(name = "VALUE", nullable = false)
     protected String value;
 
+    @ManyToOne(cascade= CascadeType.ALL)
+    protected WorkflowRevision workflowRevision;
+
     public KeyValue() {
     }
 
@@ -75,12 +87,30 @@ public abstract class KeyValue {
         return value;
     }
 
+    public WorkflowRevision getWorkflowRevision() {
+        return workflowRevision;
+    }
+
     public void setKey(String key) {
         this.key = key;
     }
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public void setWorkflowRevision(
+            WorkflowRevision workflowRevision) {
+        this.workflowRevision = workflowRevision;
+    }
+
+    @Override
+    public String toString() {
+        return "KeyValue{" +
+                "id=" + id +
+                ", key='" + key + '\'' +
+                ", value='" + value + '\'' +
+                '}';
     }
 
 }

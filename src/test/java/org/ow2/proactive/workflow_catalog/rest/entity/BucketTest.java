@@ -31,18 +31,31 @@
 
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import com.google.common.collect.ImmutableList;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author ActiveEon Team
  */
 public class BucketTest {
 
+    private final String DEFAULT_BUCKET_NAME = "test";
+    private Bucket bucket;
+
+    @Before
+    public void setUp() {
+        bucket = new Bucket(DEFAULT_BUCKET_NAME);
+    }
+
     @Test
     public void testAddWorkflow() throws Exception {
-        Bucket bucket = new Bucket("test");
         Workflow workflow = new Workflow(bucket);
 
         bucket.addWorkflow(workflow);
@@ -51,4 +64,44 @@ public class BucketTest {
         assertThat(workflow.getBucket()).isEqualTo(bucket);
     }
 
+    @Test
+    public void testSetName() {
+        final String expectedName = "EXPECTED_BUCKET_NAME";
+        bucket.setName(expectedName);
+        assertEquals(expectedName, bucket.name);
+    }
+
+    @Test
+    public void testSetWorkflows() throws Exception {
+        List<Workflow> workflowList = ImmutableList.of();
+        bucket.setWorkflows(workflowList);
+        assertEquals(workflowList, bucket.getWorkflows());
+    }
+
+
+    @Test
+    public void testGetId() throws Exception {
+        Long expectedId = 42L;
+        bucket.id = expectedId;
+        assertEquals(expectedId, bucket.getId());
+    }
+
+    @Test
+    public void testGetCreatedAt() throws Exception {
+        LocalDateTime expectedDate = LocalDateTime.now();
+        bucket.createdAt = expectedDate;
+        assertEquals(expectedDate, bucket.getCreatedAt());
+    }
+
+    @Test
+    public void testGetName() throws Exception {
+        assertEquals(DEFAULT_BUCKET_NAME, bucket.getName());
+    }
+
+    @Test
+    public void testGetWorkflows() throws Exception {
+        List<Workflow> workflowList = ImmutableList.of();
+        bucket.setWorkflows(workflowList);
+        assertEquals(workflowList, bucket.getWorkflows());
+    }
 }

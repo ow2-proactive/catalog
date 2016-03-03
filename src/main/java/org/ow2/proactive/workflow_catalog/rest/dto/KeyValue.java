@@ -48,26 +48,26 @@ public abstract class KeyValue {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public final boolean equals(Object other) {
+        if (this == other) {
             return true;
         }
 
-        if (o == null || getClass() != o.getClass()) {
+        if (!(other instanceof KeyValue)) {
             return false;
         }
 
-        KeyValue other = (KeyValue) o;
+        KeyValue that = (KeyValue) other;
 
-        if (!Objects.equals(key, other.key)) {
+        if (!Objects.equals(key, that.key)) {
             return false;
         }
 
-        return Objects.equals(value, other.value);
+        return Objects.equals(value, that.value);
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hash(key, value);
     }
 

@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author ActiveEon Team
  */
-public class AbstractWorkflowRevisionControllerTest {
+public class AbstractWorkflowRevisionControllerTest extends AbstractRestAssuredTest {
 
     protected static final String WORKFLOW_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}";
 

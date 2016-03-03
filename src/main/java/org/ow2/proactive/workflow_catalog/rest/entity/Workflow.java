@@ -35,11 +35,21 @@
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
 
-import com.google.common.collect.Lists;
-
-import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author ActiveEon Team
@@ -108,6 +118,15 @@ public class Workflow {
 
     public void setRevisions(List<WorkflowRevision> revisions) {
         this.revisions = revisions;
+    }
+
+    @Override
+    public String toString() {
+        return "Workflow{" +
+                "id=" + id +
+                ", bucket=" + bucket +
+                ", lastRevisionId=" + lastRevisionId +
+                '}';
     }
 
 }

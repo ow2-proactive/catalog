@@ -35,7 +35,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.workflow_catalog.rest.query.QueryPredicateBuilderException;
+import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 
 import java.util.*;
 import static org.mockito.Mockito.*;
@@ -71,7 +71,7 @@ public class WorkflowServiceTest {
     }
 
     @Test
-    public void testListWorkflows() throws QueryPredicateBuilderException {
+    public void testListWorkflows() throws QueryExpressionBuilderException {
         workflowService.listWorkflows(DUMMY_ID, Optional.empty(), null, null);
         verify(workflowRevisionService, times(1)).listWorkflows(DUMMY_ID, Optional.empty(), Optional.empty(), null, null);
     }

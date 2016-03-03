@@ -30,60 +30,61 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
-import com.google.common.collect.ImmutableSet;
-import com.mysema.query.BooleanBuilder;
+import org.ow2.proactive.workflow_catalog.rest.entity.QWorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
+import com.mysema.query.jpa.JPASubQuery;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 
 /**
- * Create the BooleanBuilder that will be used to generate the WCQL query
+ * Create the BooleanExpression that will be used to generate the final QueryDSL query.
  *
  * @author ActiveEon Team
  */
-public class WorkflowCatalogQueryPredicateBuilder {
+public class WorkflowCatalogQueryExpressionBuilder {
 
     private final String workflowCatalogQuery;
 
     protected WorkflowCatalogQueryCompiler queryCompiler;
 
-    protected WorkflowCatalogQueryLanguageVisitor wcqlVisitor;
+    protected WorkflowCatalogQueryLanguageListener queryListener;
 
-    public WorkflowCatalogQueryPredicateBuilder(String workflowCatalogQuery) {
-        this.workflowCatalogQuery = workflowCatalogQuery;
-        this.queryCompiler = new WorkflowCatalogQueryCompiler();
-        this.wcqlVisitor = new WorkflowCatalogQueryLanguageVisitor();
+    private ParseTreeWalker walker;
+
+    public WorkflowCatalogQueryExpressionBuilder(String workflowCatalogQuery) {
+        this(workflowCatalogQuery, new WorkflowCatalogQueryCompiler(),
+                new WorkflowCatalogQueryLanguageListener(),
+                new ParseTreeWalker());
     }
 
-    public PredicateContext build() throws QueryPredicateBuilderException {
-        // empty query must throw no exception and be valid
+    protected WorkflowCatalogQueryExpressionBuilder(String workflowCatalogQuery,
+            WorkflowCatalogQueryCompiler queryCompiler,
+            WorkflowCatalogQueryLanguageListener queryListener,
+            ParseTreeWalker walker) {
+        this.queryCompiler = queryCompiler;
+        this.queryListener = queryListener;
+        this.workflowCatalogQuery = workflowCatalogQuery;
+        this.walker = walker;
+    }
+
+    public QueryExpressionContext build() throws QueryExpressionBuilderException {
+        // empty query must throw no exception and apply no filter
         if (workflowCatalogQuery.trim().isEmpty()) {
-            return new PredicateContext(
-                    new BooleanBuilder(), ImmutableSet.of(), ImmutableSet.of());
+            return new QueryExpressionContext(
+                    QWorkflowRevision.workflowRevision.in(
+                            new JPASubQuery()
+                                    .from(QWorkflowRevision.workflowRevision)
+                                    .list(QWorkflowRevision.workflowRevision)));
         }
 
         try {
-            WorkflowCatalogQueryLanguageParser.ExpressionContext context =
+            WorkflowCatalogQueryLanguageParser.StartContext context =
                     queryCompiler.compile(workflowCatalogQuery);
-
-            BooleanBuilder booleanBuilder = wcqlVisitor.visitExpression(context);
-
-            WorkflowCatalogQueryLanguageVisitor.QGenerator generator = wcqlVisitor.getGenerator();
-
-            return new PredicateContext(
-                    booleanBuilder,
-                    generator.getGenericInformationAliases(),
-                    generator.getVariableAliases());
+            walker.walk(queryListener, context);
+            return new QueryExpressionContext(queryListener.getBooleanExpression());
         } catch (Exception e) {
-            throw new QueryPredicateBuilderException(e.getMessage());
+            throw new QueryExpressionBuilderException(e.getMessage());
         }
-    }
-
-    protected void setQueryCompiler(WorkflowCatalogQueryCompiler queryCompiler) {
-        this.queryCompiler = queryCompiler;
-    }
-
-    protected void setWcqlVisitor(WorkflowCatalogQueryLanguageVisitor wcqlVisitor) {
-        this.wcqlVisitor = wcqlVisitor;
     }
 
 }

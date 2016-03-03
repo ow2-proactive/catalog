@@ -31,31 +31,43 @@
 
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author ActiveEon Team
  */
 public class WorkflowTest {
 
-    @Test
-    public void testAddRevision() throws Exception {
-        Bucket bucket = new Bucket("test");
+    private Bucket bucket;
 
-        WorkflowRevision workflowRevision =
+    private Workflow workflow;
+
+    private WorkflowRevision workflowRevision;
+
+    @Before
+    public void setUp() {
+        bucket = new Bucket("test");
+        workflowRevision =
                 new WorkflowRevision(
                         1L, 1L, "Test", "Test Project",
                         LocalDateTime.now(),
                         Lists.<GenericInformation>newArrayList(),
                         Lists.<Variable>newArrayList(),
                         new byte[0]);
+        workflow = new Workflow(bucket);
+    }
 
-        Workflow workflow = new Workflow(bucket);
+    @Test
+    public void testAddRevision() throws Exception {
 
         assertThat(workflow.getLastRevisionId()).isEqualTo(0L);
         assertThat(workflow.getRevisions()).hasSize(0);
@@ -64,6 +76,13 @@ public class WorkflowTest {
 
         assertThat(workflow.getLastRevisionId()).isEqualTo(1L);
         assertThat(workflow.getRevisions()).hasSize(1);
+    }
+
+    @Test
+    public void testSetRevisions() throws Exception {
+        List<WorkflowRevision> revisions = ImmutableList.of(workflowRevision);
+        workflow.setRevisions(revisions);
+        assertEquals(revisions, workflow.getRevisions());
     }
 
 }

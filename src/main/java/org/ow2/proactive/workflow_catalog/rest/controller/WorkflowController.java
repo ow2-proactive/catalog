@@ -35,7 +35,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.query.QueryPredicateBuilderException;
+import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -108,8 +108,10 @@ public class WorkflowController {
     public PagedResources list(@PathVariable Long bucketId,
             @ApiParam("Query string for searching workflows. See <a href=\"http://doc.activeeon.com/latest/user/ProActiveUserGuide.html#_searching_for_workflows\">Searching for workflows</a> for more information about supported attributes and operations.")
             @RequestParam(required = false) Optional<String> query,
+            @ApiParam(hidden = true)
             Pageable pageable,
-            PagedResourcesAssembler assembler) throws QueryPredicateBuilderException {
+            @ApiParam(hidden = true)
+            PagedResourcesAssembler assembler) throws QueryExpressionBuilderException {
         return workflowService.listWorkflows(bucketId, query, pageable, assembler);
     }
 

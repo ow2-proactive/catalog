@@ -32,14 +32,20 @@
 package org.ow2.proactive.workflow_catalog.rest.query;
 
 /**
- * Exception thrown if an error is encountered when browsing the AST to generate the predicate
- * that will be used in the query
+ * Exception thrown if an error is encountered when handling events
+ * generated while walking on the Tree associated to the WCQL query
+ * that is analyzed.
+ * <p>
+ * This exception is a runtime exception because the signature of
+ * the method where the exception is used relies on a Java interface
+ * which is auto-generated.
  *
  * @author ActiveEon Team
+ * @see WorkflowCatalogQueryLanguageListener
  */
-public class QueryPredicateBuilderRuntimeException extends RuntimeException {
+public class InvalidClauseRuntimeException extends RuntimeException {
 
-    public QueryPredicateBuilderRuntimeException(String message) {
+    public InvalidClauseRuntimeException(String message) {
         super(message);
     }
 
