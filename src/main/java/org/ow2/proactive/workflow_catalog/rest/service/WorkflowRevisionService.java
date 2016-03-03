@@ -145,7 +145,7 @@ public class WorkflowRevisionService {
                 new WorkflowRevision(
                         bucketId, revisionNumber, proActiveWorkflowParserResult.getJobName(),
                         proActiveWorkflowParserResult.getProjectName(), LocalDateTime.now(),
-                        proActiveWorkflowXmlContent);
+                        layoutValue, proActiveWorkflowXmlContent);
 
         workflowRevision.addGenericInformation(createEntityGenericInformation(
                 proActiveWorkflowParserResult.getGenericInformation()));

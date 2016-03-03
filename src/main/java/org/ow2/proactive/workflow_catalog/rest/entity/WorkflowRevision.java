@@ -109,27 +109,23 @@ public class WorkflowRevision {
     }
 
     public WorkflowRevision(Long bucketId, Long revisionId, String name, String projectName,
-            LocalDateTime createdAt, byte[] xmlPayload) {
+            LocalDateTime createdAt, String layout, byte[] xmlPayload) {
         this();
         this.bucketId = bucketId;
         this.revisionId = revisionId;
         this.name = name;
         this.projectName = projectName;
         this.createdAt = createdAt;
+        this.layout = layout;
         this.xmlPayload = xmlPayload;
     }
 
     public WorkflowRevision(Long bucketId, Long revisionId, String name, String projectName,
                             LocalDateTime createdAt, String layout, List<GenericInformation> genericInformation,
                             List<Variable> variables, byte[] xmlPayload) {
-        this.bucketId = bucketId;
-        this.revisionId = revisionId;
-        this.name = name;
-        this.projectName = projectName;
-        this.createdAt = createdAt;
+        this(bucketId, revisionId, name, projectName, createdAt, layout, xmlPayload);
         this.genericInformation = genericInformation;
         this.variables = variables;
-        this.xmlPayload = xmlPayload;
     }
 
     public Long getBucketId() {
@@ -241,7 +237,8 @@ public class WorkflowRevision {
                 '}';
     }
 
-public String getLayout() {
+    public String getLayout() {
         return layout;
+    }
 
 }

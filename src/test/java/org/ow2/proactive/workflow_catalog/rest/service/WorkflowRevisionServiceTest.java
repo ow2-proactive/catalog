@@ -118,7 +118,7 @@ public class WorkflowRevisionServiceTest {
         when(bucketRepository.findOne(Matchers.anyLong())).thenReturn(null);
         workflowRevisionService.createWorkflowRevision(DUMMY_ID, Optional.empty(),
                 new ProActiveWorkflowParserResult("projectName", "name",
-                        ImmutableMap.of(), ImmutableMap.of()), new byte[0]);
+                        ImmutableMap.of(), ImmutableMap.of()), Optional.empty(), new byte[0]);
     }
 
     @Test
