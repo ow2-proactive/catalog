@@ -118,34 +118,42 @@ public class WorkflowRevisionServiceTest {
         when(bucketRepository.findOne(Matchers.anyLong())).thenReturn(null);
         workflowRevisionService.createWorkflowRevision(DUMMY_ID, Optional.empty(),
                 new ProActiveWorkflowParserResult("projectName", "name",
-                        ImmutableMap.of(), ImmutableMap.of()), new byte[0]);
+                        ImmutableMap.of(), ImmutableMap.of()), Optional.empty(), new byte[0]);
     }
 
     @Test
     public void testCreateWorkflowWithGenericInfosAndVariables1() throws IOException {
         createWorkflow("WR-NAME-GI-VARS", "WR-PROJ-NAME-GI-VARS", "workflow.xml",
-                Optional.empty());
+                Optional.empty(), Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithGenericInfosAndVariables2() throws IOException {
         createWorkflow("WR-NAME-GI-VARS", "WR-PROJ-NAME-GI-VARS", "workflow.xml",
-                Optional.of(EXISTING_ID));
+                Optional.of(EXISTING_ID), Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithoutGenericInfosOrVariables1() throws IOException {
         createWorkflow("WR-NAME", "WR-PROJ-NAME", "workflow-no-generic-information-no-variable.xml",
-                Optional.empty());
+                Optional.empty(), Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithoutGenericInfosOrVariables2() throws IOException {
         createWorkflow("WR-NAME", "WR-PROJ-NAME", "workflow-no-generic-information-no-variable.xml",
-                Optional.of(EXISTING_ID));
+                Optional.of(EXISTING_ID), Optional.empty());
+        // assertions are done in the called method
+    }
+
+    @Test
+    public void testCreateWorkflowWithLayout() throws IOException {
+        createWorkflow("WR-NAME-GI-VARS", "WR-PROJ-NAME-GI-VARS", "workflow.xml",
+                Optional.empty(), Optional.of("{\"offsets\":{\"Linux_Bash_Task\":{\"top\":" +
+                        "222,\"left\":681.5}},\"project\":\"Deployment\",\"detailedView\":true}"));
         // assertions are done in the called method
     }
 
@@ -208,7 +216,7 @@ public class WorkflowRevisionServiceTest {
         when(mockedWf.getId()).thenReturn(DUMMY_ID);
 
         WorkflowRevision wfRev = new WorkflowRevision(DUMMY_ID, DUMMY_ID, "WR-TEST", "WR-PROJ-NAME",
-                LocalDateTime.now(),
+                LocalDateTime.now(), null,
                 Lists.newArrayList(), Lists.newArrayList(), getWorkflowAsByteArray("workflow.xml"));
         wfRev.setWorkflow(mockedWf);
 
@@ -265,14 +273,16 @@ public class WorkflowRevisionServiceTest {
         workflowRevisionService.listWorkflows(DUMMY_ID, wId, Optional.empty(), null, mockedAssembler);
     }
 
-    private void createWorkflow(String name, String projectName, String fileName, Optional<Long> wId)
+    private void createWorkflow(String name, String projectName, String fileName, Optional<Long> wId,
+            Optional<String> layout)
             throws IOException {
+        String layoutStr = layout.orElse("");
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(genericInformationRepository.save(any(List.class))).thenReturn(Lists.newArrayList());
         when(variableRepository.save(any(List.class))).thenReturn(Lists.newArrayList());
         when(workflowRevisionRepository.save(any(WorkflowRevision.class)))
                 .thenReturn(new WorkflowRevision(EXISTING_ID, EXISTING_ID, name, projectName,
-                        LocalDateTime.now(), Lists.newArrayList(), Lists.newArrayList(),
+                        LocalDateTime.now(), layoutStr, Lists.newArrayList(), Lists.newArrayList(),
                         getWorkflowAsByteArray(fileName)));
 
         if (wId.isPresent()) {
@@ -281,7 +291,7 @@ public class WorkflowRevisionServiceTest {
         }
 
         WorkflowMetadata actualWFMetadata = workflowRevisionService.createWorkflowRevision(
-                DUMMY_ID, wId, getWorkflowAsByteArray(fileName));
+                DUMMY_ID, wId, getWorkflowAsByteArray(fileName), layout);
 
         verify(workflowRevisionRepository, times(1)).save(any(WorkflowRevision.class));
 
@@ -289,6 +299,9 @@ public class WorkflowRevisionServiceTest {
         assertEquals(projectName, actualWFMetadata.projectName);
         assertEquals(EXISTING_ID, actualWFMetadata.bucketId);
         assertEquals(EXISTING_ID, actualWFMetadata.revisionId);
+        if (layout.isPresent()) {
+            assertEquals(layout.get(), actualWFMetadata.layout);
+        }
     }
 
     private static byte[] getWorkflowAsByteArray(String filename) throws IOException {

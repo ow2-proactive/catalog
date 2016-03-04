@@ -360,7 +360,8 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                 ImmutableMap.of("CPU", "4"));
 
         workflowRevisionService.createWorkflowRevision(
-                firstBucket.id, Optional.of(workflow.getLeft().id), parserResult, new byte[0]);
+                firstBucket.id, Optional.of(workflow.getLeft().id), parserResult,
+                Optional.empty(), new byte[0]);
 
         parserResult = new ProActiveWorkflowParserResult("",
                 "A-medium",
@@ -368,7 +369,8 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                 ImmutableMap.of("CPU", "4"));
 
         workflowRevisionService.createWorkflowRevision(
-                firstBucket.id, Optional.of(workflow.getLeft().id), parserResult, new byte[0]);
+                firstBucket.id, Optional.of(workflow.getLeft().id), parserResult,
+                Optional.empty(), new byte[0]);
 
         parserResult = new ProActiveWorkflowParserResult("",
                 "A",
@@ -376,7 +378,8 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                 ImmutableMap.of("CPU", "4"));
 
         workflowRevisionService.createWorkflowRevision(
-                firstBucket.id, Optional.of(workflow.getLeft().id), parserResult, new byte[0]);
+                firstBucket.id, Optional.of(workflow.getLeft().id), parserResult,
+                Optional.empty(),  new byte[0]);
 
         workflowA = workflow.getLeft();
 
@@ -386,7 +389,8 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                 ImmutableMap.of("CPU", "2"));
 
         workflowRevisionService.createWorkflowRevision(
-                firstBucket.id, Optional.of(workflow.getLeft().id), workflow.getRight(), new byte[0]);
+                firstBucket.id, Optional.of(workflow.getLeft().id), workflow.getRight(),
+                Optional.empty(), new byte[0]);
 
         // Workflow C
         createWorkflowFirstBucket("", "C", ImmutableMap.of("Infrastructure", "OpenStack"), ImmutableMap.of());

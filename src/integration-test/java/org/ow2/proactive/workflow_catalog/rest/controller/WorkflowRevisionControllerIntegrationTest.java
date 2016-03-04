@@ -81,12 +81,12 @@ public class WorkflowRevisionControllerIntegrationTest extends AbstractWorkflowR
         firstWorkflowRevision =
                 workflowRevisionService.createWorkflowRevision(
                         bucket.getId(), Optional.empty(),
-                        IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+                        IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"), Optional.empty());
 
         secondWorkflowRevision =
                 workflowRevisionService.createWorkflowRevision(
                         bucket.getId(), Optional.of(firstWorkflowRevision.id),
-                        IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml"));
+                        IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml"), Optional.empty());
     }
 
     @Test
@@ -252,7 +252,7 @@ public class WorkflowRevisionControllerIntegrationTest extends AbstractWorkflowR
                 workflowRevisionService.createWorkflowRevision(
                         secondWorkflowRevision.bucketId,
                         Optional.of(secondWorkflowRevision.id),
-                        IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+                        IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"), Optional.empty());
             } catch (IOException e) {
                 Assert.fail(e.getMessage());
             }

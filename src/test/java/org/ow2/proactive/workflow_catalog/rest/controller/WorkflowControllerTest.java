@@ -85,8 +85,8 @@ public class WorkflowControllerTest {
     public void testCreate() throws IOException {
         MultipartFile file = mock(MultipartFile.class);
         when(file.getBytes()).thenReturn(null);
-        workflowController.create(1L, file);
-        verify(workflowService, times(1)).createWorkflow(1L, null);
+        workflowController.create(1L, Optional.empty(), file);
+        verify(workflowService, times(1)).createWorkflow(1L, Optional.empty(), null);
     }
 
     @Test

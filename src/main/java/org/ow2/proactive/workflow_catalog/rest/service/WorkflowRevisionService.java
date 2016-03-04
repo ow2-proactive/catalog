@@ -110,14 +110,14 @@ public class WorkflowRevisionService {
 
     @Transactional
     public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId,
-            byte[] proActiveWorkflowXmlContent) {
+            byte[] proActiveWorkflowXmlContent, Optional<String> layout) {
         try {
             ProActiveWorkflowParser proActiveWorkflowParser =
                     new ProActiveWorkflowParser(
                             new ByteArrayInputStream(proActiveWorkflowXmlContent));
 
             return createWorkflowRevision(bucketId, workflowId,
-                    proActiveWorkflowParser.parse(), proActiveWorkflowXmlContent);
+                    proActiveWorkflowParser.parse(), layout, proActiveWorkflowXmlContent);
         } catch (XMLStreamException e) {
             throw new UnprocessableEntityException(e);
         }
@@ -126,11 +126,13 @@ public class WorkflowRevisionService {
     @Transactional
     public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId,
             ProActiveWorkflowParserResult proActiveWorkflowParserResult,
+            Optional<String> layout,
             byte[] proActiveWorkflowXmlContent) {
         Bucket bucket = findBucket(bucketId);
 
         Workflow workflow = null;
         WorkflowRevision workflowRevision;
+        String layoutValue = layout.orElse("");
 
         long revisionNumber = 1;
 
@@ -143,7 +145,7 @@ public class WorkflowRevisionService {
                 new WorkflowRevision(
                         bucketId, revisionNumber, proActiveWorkflowParserResult.getJobName(),
                         proActiveWorkflowParserResult.getProjectName(), LocalDateTime.now(),
-                        proActiveWorkflowXmlContent);
+                        layoutValue, proActiveWorkflowXmlContent);
 
         workflowRevision.addGenericInformation(createEntityGenericInformation(
                 proActiveWorkflowParserResult.getGenericInformation()));

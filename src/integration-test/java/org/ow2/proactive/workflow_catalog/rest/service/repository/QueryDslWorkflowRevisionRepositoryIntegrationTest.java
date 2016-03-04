@@ -124,7 +124,8 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
                                     createKeyValues(bucketIndex, workflowIndex, revisionIndex));
 
                     workflowRevisionService.createWorkflowRevision(
-                            bucket.id, Optional.of(workflow.id), proActiveWorkflowParserResult, new byte[0]);
+                            bucket.id, Optional.of(workflow.id), proActiveWorkflowParserResult,
+                            Optional.empty(), new byte[0]);
                 }
             }
         }

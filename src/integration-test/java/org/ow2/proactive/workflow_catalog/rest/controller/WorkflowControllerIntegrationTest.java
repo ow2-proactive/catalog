@@ -74,6 +74,10 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private static final String WORKFLOW_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}";
 
+    private static final String layoutMetadata =
+            "{\"offsets\":{\"Linux_Bash_Task\":{\"top\":222" +
+            ",\"left\":681.5}},\"project\":\"Deployment\",\"detailedView\":true}";
+
     @Autowired
     private BucketRepository bucketRepository;
 
@@ -94,12 +98,14 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
     public void setup() throws IOException {
         bucket = bucketRepository.save(new Bucket("myBucket"));
         workflow = workflowService.createWorkflow(
-                bucket.getId(), IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+                bucket.getId(), Optional.of(layoutMetadata),
+                IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
     }
 
     @Test
     public void testCreateWorkflowShouldReturnSavedWorkflow() {
         given().pathParam("bucketId", bucket.getId())
+                .queryParam("layout", layoutMetadata)
                 .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                 .when().post(WORKFLOWS_RESOURCE).then()
                 .assertThat().statusCode(HttpStatus.SC_CREATED)
@@ -117,7 +123,8 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
                 .body("variables[0].key", is("var1"))
                 .body("variables[0].value", is("var1Value"))
                 .body("variables[1].key", is("var2"))
-                .body("variables[1].value", is("var2Value"));
+                .body("variables[1].value", is("var2Value"))
+                .body("layout", is(layoutMetadata));
     }
 
     @Test
@@ -139,7 +146,7 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
     public void testGetWorkflowShouldReturnLatestSavedWorkflowRevision() throws IOException {
         WorkflowMetadata secondWorkflowRevision = workflowRevisionService.createWorkflowRevision(
                 workflow.bucketId, Optional.of(workflow.id),
-                IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+                IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"), Optional.empty());
 
         given().pathParam("bucketId", workflow.bucketId)
                 .pathParam("workflowId", workflow.id)

@@ -72,7 +72,7 @@ public class WorkflowRevisionTest {
 
         WorkflowRevision workflowRevision = new WorkflowRevision(
                 1L, 1L, "test", "test", LocalDateTime.now(),
-                Lists.newArrayList(genericInformationMock), Lists.newArrayList(variableMock), new byte[0]);
+                null, Lists.newArrayList(genericInformationMock), Lists.newArrayList(variableMock), new byte[0]);
 
         return workflowRevision;
     }
