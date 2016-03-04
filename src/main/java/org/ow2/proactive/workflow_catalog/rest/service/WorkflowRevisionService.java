@@ -132,7 +132,7 @@ public class WorkflowRevisionService {
 
         Workflow workflow = null;
         WorkflowRevision workflowRevision;
-        String layoutValue = layout.isPresent() ? layout.get() : "";
+        String layoutValue = layout.orElse("");
 
         long revisionNumber = 1;
 

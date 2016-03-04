@@ -276,7 +276,7 @@ public class WorkflowRevisionServiceTest {
     private void createWorkflow(String name, String projectName, String fileName, Optional<Long> wId,
             Optional<String> layout)
             throws IOException {
-        String layoutStr = layout.isPresent() ? layout.get() : "";
+        String layoutStr = layout.orElse("");
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(genericInformationRepository.save(any(List.class))).thenReturn(Lists.newArrayList());
         when(variableRepository.save(any(List.class))).thenReturn(Lists.newArrayList());
