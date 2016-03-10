@@ -44,6 +44,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -60,6 +61,8 @@ public class BucketServiceTest {
     @Mock
     private BucketRepository bucketRepository;
 
+    private final String DefaultBucketName = "BucketServiceTest";
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -69,11 +72,13 @@ public class BucketServiceTest {
     public void testCreateBucket() throws Exception {
         Bucket mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
         when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
-        BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST");
+        BucketMetadata bucketMetadata = bucketService.createBucket(
+                "BUCKET-NAME-TEST", DefaultBucketName);
         verify(bucketRepository, times(1)).save(any(Bucket.class));
         assertEquals(mockedBucket.getName(), bucketMetadata.name);
         assertEquals(mockedBucket.getCreatedAt(), bucketMetadata.createdAt);
         assertEquals(mockedBucket.getId(), bucketMetadata.id);
+        assertEquals(mockedBucket.getOwner(), bucketMetadata.owner);
     }
 
     @Test

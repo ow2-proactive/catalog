@@ -30,18 +30,13 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.assembler;
 
-import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
-import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
-
 import java.time.LocalDateTime;
-import java.util.Arrays;
 
 import static org.junit.Assert.*;
 
@@ -60,7 +55,7 @@ public class BucketResourceAssemblerTest {
 
     @Test
     public void testToResource() throws Exception {
-        Bucket bucket = new Bucket("BUCKET-TEST", LocalDateTime.now());
+        Bucket bucket = new Bucket("BUCKET-TEST", LocalDateTime.now(), "BucketResourceAssemblerTestUser");
         BucketMetadata bucketMetadata = bucketResourceAssembler.toResource(bucket);
         assertEquals(bucket.getName(), bucketMetadata.name);
         assertEquals(bucket.getCreatedAt(), bucketMetadata.createdAt);

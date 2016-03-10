@@ -38,6 +38,7 @@ import org.junit.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -55,7 +56,7 @@ public class WorkflowTest {
 
     @Before
     public void setUp() {
-        bucket = new Bucket("test");
+        bucket = new Bucket("test", "WorkflowTestUser");
         workflowRevision =
                 new WorkflowRevision(
                         1L, 1L, "Test", "Test Project",

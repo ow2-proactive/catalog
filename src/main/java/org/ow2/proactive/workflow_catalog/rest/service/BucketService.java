@@ -46,6 +46,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -66,6 +67,8 @@ public class BucketService {
     @Autowired
     private Environment environment;
 
+    private static final String DEFAULT_BUCKET_OWNER = "workflow-catalog";
+
     @PostConstruct
     public void init() throws Exception {
         boolean isTestProfileEnabled =
@@ -74,13 +77,17 @@ public class BucketService {
 
         if (!isTestProfileEnabled && bucketRepository.count() == 0) {
             Stream.of(defaultBucketNames).forEachOrdered(
-                    name -> bucketRepository.save(new Bucket(name))
+                    name -> bucketRepository.save(new Bucket(name, DEFAULT_BUCKET_OWNER))
             );
         }
     }
 
     public BucketMetadata createBucket(String name) {
-        Bucket bucket = new Bucket(name, LocalDateTime.now());
+        return createBucket(name, DEFAULT_BUCKET_OWNER);
+    }
+
+    public BucketMetadata createBucket(String name, String owner) {
+        Bucket bucket = new Bucket(name, LocalDateTime.now(), owner);
         bucket = bucketRepository.save(bucket);
 
         return new BucketMetadata(bucket);

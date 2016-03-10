@@ -33,6 +33,7 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -78,10 +79,11 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testCreateBucketShouldReturnSavedBucket() {
-        String bucketName = "test";
+        final String bucketName = "test";
+        final String bucketOwner = "BucketControllerIntegrationTest";
 
         Response response =
-                given().parameters("name", bucketName).
+                given().parameters("name", bucketName, "owner", bucketOwner).
                         when().post(BUCKETS_RESOURCE);
 
         Object createdAt = response.getBody().jsonPath().get("created_at");
@@ -90,7 +92,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         response.then().assertThat()
                 .statusCode(HttpStatus.SC_CREATED)
                 .body("id", is(1))
-                .body("name", is(bucketName));
+                .body("name", is(bucketName))
+                .body("owner", is(bucketOwner));
     }
 
     @Test
@@ -100,7 +103,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testGetBucketShouldReturnSavedBucket() throws Exception {
-        Bucket bucket = bucketRepository.save(new Bucket("myBucket"));
+        Bucket bucket = bucketRepository.save(new Bucket("myBucket","BucketControllerIntegrationTestUser"));
         final long bucketId = bucket.getId();
         final String bucketName = bucket.getName();
         final LocalDateTime bucketCreatedAt = bucket.getCreatedAt();
@@ -127,7 +130,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     @Test
     public void testListBucketsShouldReturnSavedBuckets() {
         List<Bucket> buckets = IntStream.rangeClosed(1, 25)
-                .mapToObj(i -> new Bucket("bucket" + i))
+                .mapToObj(i -> new Bucket("bucket" + i, "BucketResourceAssemblerTestUser"))
                 .collect(Collectors.toList());
 
         bucketRepository.save(buckets);

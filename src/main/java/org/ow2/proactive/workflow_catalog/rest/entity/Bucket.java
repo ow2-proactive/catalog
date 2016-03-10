@@ -38,6 +38,7 @@ import org.springframework.data.annotation.CreatedDate;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author ActiveEon Team
@@ -59,25 +60,34 @@ public class Bucket {
     @Column(name = "NAME", nullable = false)
     protected String name;
 
+    @Column(name = "OWNER", nullable = false)
+    protected String owner;
+
     @OneToMany(mappedBy = "bucket")
     private List<Workflow> workflows;
 
     public Bucket() {
     }
 
-    public Bucket(String name, Workflow... workflows) {
-        this(name, LocalDateTime.now(), workflows);
+    public Bucket(String name, String owner) {
+        this(name, LocalDateTime.now(), owner);
     }
 
-    public Bucket(String name, LocalDateTime createdAt, Workflow... workflows) {
+    public Bucket(String name, LocalDateTime createdAt, String owner) {
+        this(name, createdAt, owner, new Workflow[0]);
+    }
+
+    public Bucket(String name, String owner, Workflow... workflows) {
+        this(name, LocalDateTime.now(), owner, workflows);
+    }
+
+    public Bucket(String name, LocalDateTime createdAt, String owner, Workflow... workflows) {
         this.name = name;
         this.createdAt = createdAt;
+        this.owner = owner;
         this.workflows = Lists.newArrayList(workflows);
     }
 
-    public Bucket(String name, LocalDateTime createdAt) {
-        this(name, createdAt, new Workflow[0]);
-    }
 
     public void addWorkflow(Workflow workflow) {
         this.workflows.add(workflow);
@@ -106,6 +116,14 @@ public class Bucket {
 
     public void setWorkflows(List<Workflow> workflows) {
         this.workflows = workflows;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
 }
