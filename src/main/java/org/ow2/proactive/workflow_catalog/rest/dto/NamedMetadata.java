@@ -30,13 +30,12 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
+import java.time.LocalDateTime;
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.hateoas.ResourceSupport;
-
-import javax.persistence.*;
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * @author ActiveEon Team

@@ -31,11 +31,11 @@
 
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * @author ActiveEon Team

@@ -31,7 +31,7 @@
 
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
 
 /**
  * @author ActiveEon Team

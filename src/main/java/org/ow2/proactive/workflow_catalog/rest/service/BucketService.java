@@ -30,6 +30,12 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.stream.Stream;
+
+import javax.annotation.PostConstruct;
+
 import org.ow2.proactive.workflow_catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
@@ -42,12 +48,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * @author ActiveEon Team

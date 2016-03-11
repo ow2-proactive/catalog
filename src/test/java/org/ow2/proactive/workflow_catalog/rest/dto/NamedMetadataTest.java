@@ -31,10 +31,10 @@
 
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
-import org.junit.Test;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+
+import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
 

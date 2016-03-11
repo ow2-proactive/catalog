@@ -31,13 +31,13 @@
 
 package org.ow2.proactive.workflow_catalog.rest.util;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;
 

@@ -33,7 +33,6 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 

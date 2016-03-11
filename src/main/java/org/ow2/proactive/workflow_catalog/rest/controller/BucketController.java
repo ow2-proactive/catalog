@@ -30,8 +30,6 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
-import java.util.Optional;
-
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
 import io.swagger.annotations.ApiImplicitParam;

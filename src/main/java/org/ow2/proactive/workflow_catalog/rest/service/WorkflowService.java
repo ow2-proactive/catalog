@@ -30,6 +30,8 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
+import java.util.Optional;
+
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
@@ -39,8 +41,6 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 /**
  * @author ActiveEon Team

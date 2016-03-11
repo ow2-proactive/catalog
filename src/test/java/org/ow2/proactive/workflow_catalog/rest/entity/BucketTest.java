@@ -33,7 +33,6 @@ package org.ow2.proactive.workflow_catalog.rest.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;

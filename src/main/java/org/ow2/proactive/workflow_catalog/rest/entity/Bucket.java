@@ -31,14 +31,21 @@
 
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
-import com.google.common.collect.Lists;
-import org.ow2.proactive.workflow_catalog.rest.util.LocalDateTimeAttributeConverter;
-import org.springframework.data.annotation.CreatedDate;
-
-import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import org.ow2.proactive.workflow_catalog.rest.util.LocalDateTimeAttributeConverter;
+import com.google.common.collect.Lists;
+import org.springframework.data.annotation.CreatedDate;
 
 /**
  * @author ActiveEon Team

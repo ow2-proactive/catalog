@@ -30,15 +30,17 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
+import java.util.Optional;
+
+import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 
-import java.util.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author ActiveEon Team

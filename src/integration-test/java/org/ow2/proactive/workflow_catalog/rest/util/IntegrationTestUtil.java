@@ -34,11 +34,11 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.util;
 
-import com.google.common.io.ByteStreams;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+
+import com.google.common.io.ByteStreams;
 
 /**
  * @author ActiveEon Team

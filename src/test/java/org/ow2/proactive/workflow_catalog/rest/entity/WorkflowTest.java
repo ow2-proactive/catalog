@@ -31,14 +31,13 @@
 
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
