@@ -31,11 +31,11 @@
 
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author ActiveEon Team

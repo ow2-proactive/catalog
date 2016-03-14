@@ -76,7 +76,8 @@ public class WorkflowRevisionControllerIntegrationTest extends AbstractWorkflowR
 
     @Before
     public void setup() throws IOException {
-        bucket = bucketRepository.save(new Bucket("bucket"));
+        bucket = bucketRepository.save(new Bucket("bucket",
+                "WorkflowRevisionControllerIntegrationTestUser"));
 
         firstWorkflowRevision =
                 workflowRevisionService.createWorkflowRevision(

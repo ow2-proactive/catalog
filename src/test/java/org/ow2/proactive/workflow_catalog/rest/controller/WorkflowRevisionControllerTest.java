@@ -30,19 +30,22 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
+import java.util.Optional;
+
+import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Optional;
-
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author ActiveEon Team

@@ -31,13 +31,21 @@
 
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
-import com.google.common.collect.Lists;
-import org.ow2.proactive.workflow_catalog.rest.util.LocalDateTimeAttributeConverter;
-import org.springframework.data.annotation.CreatedDate;
-
-import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import org.ow2.proactive.workflow_catalog.rest.util.LocalDateTimeAttributeConverter;
+import com.google.common.collect.Lists;
+import org.springframework.data.annotation.CreatedDate;
 
 /**
  * @author ActiveEon Team
@@ -59,25 +67,34 @@ public class Bucket {
     @Column(name = "NAME", nullable = false)
     protected String name;
 
+    @Column(name = "OWNER", nullable = false)
+    protected String owner;
+
     @OneToMany(mappedBy = "bucket")
     private List<Workflow> workflows;
 
     public Bucket() {
     }
 
-    public Bucket(String name, Workflow... workflows) {
-        this(name, LocalDateTime.now(), workflows);
+    public Bucket(String name, String owner) {
+        this(name, LocalDateTime.now(), owner);
     }
 
-    public Bucket(String name, LocalDateTime createdAt, Workflow... workflows) {
+    public Bucket(String name, LocalDateTime createdAt, String owner) {
+        this(name, createdAt, owner, new Workflow[0]);
+    }
+
+    public Bucket(String name, String owner, Workflow... workflows) {
+        this(name, LocalDateTime.now(), owner, workflows);
+    }
+
+    public Bucket(String name, LocalDateTime createdAt, String owner, Workflow... workflows) {
         this.name = name;
         this.createdAt = createdAt;
+        this.owner = owner;
         this.workflows = Lists.newArrayList(workflows);
     }
 
-    public Bucket(String name, LocalDateTime createdAt) {
-        this(name, createdAt, new Workflow[0]);
-    }
 
     public void addWorkflow(Workflow workflow) {
         this.workflows.add(workflow);
@@ -106,6 +123,14 @@ public class Bucket {
 
     public void setWorkflows(List<Workflow> workflows) {
         this.workflows = workflows;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
 }

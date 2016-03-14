@@ -30,24 +30,28 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
+import java.time.LocalDateTime;
+
+import org.ow2.proactive.workflow_catalog.rest.assembler.BucketResourceAssembler;
+import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
+import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
+import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.workflow_catalog.rest.assembler.BucketResourceAssembler;
-import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
-import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 
-import java.time.LocalDateTime;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author ActiveEon Team
@@ -60,6 +64,8 @@ public class BucketServiceTest {
     @Mock
     private BucketRepository bucketRepository;
 
+    private static final String DEFAULT_BUCKET_NAME = "BucketServiceTest";
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -69,11 +75,13 @@ public class BucketServiceTest {
     public void testCreateBucket() throws Exception {
         Bucket mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
         when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
-        BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST");
+        BucketMetadata bucketMetadata = bucketService.createBucket(
+                "BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
         verify(bucketRepository, times(1)).save(any(Bucket.class));
         assertEquals(mockedBucket.getName(), bucketMetadata.name);
         assertEquals(mockedBucket.getCreatedAt(), bucketMetadata.createdAt);
         assertEquals(mockedBucket.getId(), bucketMetadata.id);
+        assertEquals(mockedBucket.getOwner(), bucketMetadata.owner);
     }
 
     @Test

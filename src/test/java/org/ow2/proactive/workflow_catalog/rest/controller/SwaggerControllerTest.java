@@ -32,7 +32,7 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author ActiveEon Team

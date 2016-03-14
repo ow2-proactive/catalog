@@ -30,9 +30,9 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.util;
 
-import com.google.common.collect.ImmutableMap;
-
 import java.util.Objects;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  *

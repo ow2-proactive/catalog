@@ -38,8 +38,11 @@ import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
  */
 public final class BucketMetadata extends NamedMetadata {
 
+    public final String owner;
+
     public BucketMetadata(Bucket bucket) {
         super(bucket.getId(), bucket.getName(), bucket.getCreatedAt());
+        this.owner = bucket.getOwner();
     }
 
 }

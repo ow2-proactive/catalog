@@ -30,9 +30,9 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
-import com.google.common.base.Joiner;
-
 import java.util.List;
+
+import com.google.common.base.Joiner;
 
 /**
  * Exception thrown if one or more syntax errors are detected while

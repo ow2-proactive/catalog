@@ -47,11 +47,12 @@ import static org.junit.Assert.assertEquals;
 public class BucketTest {
 
     private final String DEFAULT_BUCKET_NAME = "test";
+    private final String DEFAULT_BUCKET_USER = "BucketTestUser";
     private Bucket bucket;
 
     @Before
     public void setUp() {
-        bucket = new Bucket(DEFAULT_BUCKET_NAME);
+        bucket = new Bucket(DEFAULT_BUCKET_NAME, DEFAULT_BUCKET_USER);
     }
 
     @Test
@@ -103,5 +104,17 @@ public class BucketTest {
         List<Workflow> workflowList = ImmutableList.of();
         bucket.setWorkflows(workflowList);
         assertEquals(workflowList, bucket.getWorkflows());
+    }
+
+    @Test
+    public void testGetOwner() throws Exception {
+        assertEquals(DEFAULT_BUCKET_USER, bucket.getOwner());
+    }
+
+    @Test
+    public void testSetOwner() throws Exception {
+        final String expectedOWner = "TOTO";
+        bucket.setOwner(expectedOWner);
+        assertEquals(expectedOWner, bucket.getOwner());
     }
 }

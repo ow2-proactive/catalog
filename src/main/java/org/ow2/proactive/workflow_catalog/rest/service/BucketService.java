@@ -30,6 +30,12 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.stream.Stream;
+
+import javax.annotation.PostConstruct;
+
 import org.ow2.proactive.workflow_catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
@@ -42,11 +48,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.stream.Stream;
 
 /**
  * @author ActiveEon Team
@@ -66,6 +67,8 @@ public class BucketService {
     @Autowired
     private Environment environment;
 
+    private static final String DEFAULT_BUCKET_OWNER = "workflow-catalog";
+
     @PostConstruct
     public void init() throws Exception {
         boolean isTestProfileEnabled =
@@ -74,13 +77,17 @@ public class BucketService {
 
         if (!isTestProfileEnabled && bucketRepository.count() == 0) {
             Stream.of(defaultBucketNames).forEachOrdered(
-                    name -> bucketRepository.save(new Bucket(name))
+                    name -> bucketRepository.save(new Bucket(name, DEFAULT_BUCKET_OWNER))
             );
         }
     }
 
     public BucketMetadata createBucket(String name) {
-        Bucket bucket = new Bucket(name, LocalDateTime.now());
+        return createBucket(name, DEFAULT_BUCKET_OWNER);
+    }
+
+    public BucketMetadata createBucket(String name, String owner) {
+        Bucket bucket = new Bucket(name, LocalDateTime.now(), owner);
         bucket = bucketRepository.save(bucket);
 
         return new BucketMetadata(bucket);

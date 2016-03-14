@@ -96,7 +96,7 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Before
     public void setup() throws IOException {
-        bucket = bucketRepository.save(new Bucket("myBucket"));
+        bucket = bucketRepository.save(new Bucket("myBucket", "BucketControllerIntegrationTestUser"));
         workflow = workflowService.createWorkflow(
                 bucket.getId(), Optional.of(layoutMetadata),
                 IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));

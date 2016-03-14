@@ -30,13 +30,13 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.common.base.Joiner;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Listener used for receiving syntax errors while a Workflow Catalog

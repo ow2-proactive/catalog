@@ -35,6 +35,7 @@ import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,8 +65,10 @@ public class BucketController {
     @RequestMapping(value = "/buckets", method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public BucketMetadata create(
-            @RequestParam(value = "name", required = true) String bucketName) {
-        return bucketService.createBucket(bucketName);
+            @RequestParam(value = "name", required = true) String bucketName,
+            @ApiParam(value = "The name of the user that owns the Bucket")
+            @RequestParam(value = "owner") String ownerName) {
+        return bucketService.createBucket(bucketName, ownerName);
     }
 
     @ApiOperation(value = "Gets a bucket's metadata by ID")
