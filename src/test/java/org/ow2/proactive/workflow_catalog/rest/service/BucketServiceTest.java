@@ -64,7 +64,7 @@ public class BucketServiceTest {
     @Mock
     private BucketRepository bucketRepository;
 
-    private final String DefaultBucketName = "BucketServiceTest";
+    private static final String DEFAULT_BUCKET_NAME = "BucketServiceTest";
 
     @Before
     public void setUp() throws Exception {
@@ -76,7 +76,7 @@ public class BucketServiceTest {
         Bucket mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
         when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
         BucketMetadata bucketMetadata = bucketService.createBucket(
-                "BUCKET-NAME-TEST", DefaultBucketName);
+                "BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
         verify(bucketRepository, times(1)).save(any(Bucket.class));
         assertEquals(mockedBucket.getName(), bucketMetadata.name);
         assertEquals(mockedBucket.getCreatedAt(), bucketMetadata.createdAt);
