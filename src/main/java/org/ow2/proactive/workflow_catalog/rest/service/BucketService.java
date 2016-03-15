@@ -44,6 +44,7 @@ import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketReposito
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -92,9 +93,9 @@ public class BucketService {
         try {
             bucket = bucketRepository.save(bucket);
         }
-        catch (Exception e) {
-            System.out.println(e);
-            throw e;
+        catch (DataIntegrityViolationException exception) {
+            throw new BucketAlreadyExisting(
+                    "The bucket named " + name + " owned by " + owner + " already exist");
         }
         return new BucketMetadata(bucket);
     }
