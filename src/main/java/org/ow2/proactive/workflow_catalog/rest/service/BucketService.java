@@ -32,6 +32,7 @@ package org.ow2.proactive.workflow_catalog.rest.service;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -88,8 +89,13 @@ public class BucketService {
 
     public BucketMetadata createBucket(String name, String owner) {
         Bucket bucket = new Bucket(name, LocalDateTime.now(), owner);
-        bucket = bucketRepository.save(bucket);
-
+        try {
+            bucket = bucketRepository.save(bucket);
+        }
+        catch (Exception e) {
+            System.out.println(e);
+            throw e;
+        }
         return new BucketMetadata(bucket);
     }
 
@@ -103,8 +109,15 @@ public class BucketService {
         return new BucketMetadata(bucket);
     }
 
-    public PagedResources listBuckets(Pageable pageable, PagedResourcesAssembler assembler) {
-        Page<Bucket> page = bucketRepository.findAll(pageable);
+    public PagedResources listBuckets(Optional<String> ownerName, Pageable pageable, PagedResourcesAssembler assembler) {
+        Page<Bucket> page;
+        if (ownerName.isPresent()) {
+            page = bucketRepository.findByOwner(ownerName.get(), pageable);
+        }
+        else {
+            page = bucketRepository.findAll(pageable);
+        }
+
         return assembler.toResource(page, bucketAssembler);
     }
 

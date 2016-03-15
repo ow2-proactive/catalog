@@ -43,6 +43,6 @@ import org.springframework.data.repository.query.Param;
  */
 public interface BucketRepository extends PagingAndSortingRepository<Bucket, Long>, QueryDslPredicateExecutor<Bucket> {
 
-	Page<Bucket> findByName(@Param("name") String name, Pageable pageable);
+	Page<Bucket> findByOwner(@Param("owner") String owner, Pageable pageable);
 
 }
