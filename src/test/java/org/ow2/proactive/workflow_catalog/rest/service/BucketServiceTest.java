@@ -31,6 +31,7 @@
 package org.ow2.proactive.workflow_catalog.rest.service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.ow2.proactive.workflow_catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
@@ -102,11 +103,25 @@ public class BucketServiceTest {
     }
 
     @Test
-    public void testListBuckets() throws Exception {
+    public void testListBucketsNoOwner() throws Exception {
+        listBucket(Optional.empty());
+    }
+
+    @Test
+    public void testListBucketsWithOwner() throws Exception {
+        listBucket(Optional.of("toto"));
+    }
+
+    private void listBucket(Optional<String> owner) {
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
         when(bucketRepository.findAll(any(Pageable.class))).thenReturn(null);
-        bucketService.listBuckets(null, mockedAssembler);
-        verify(bucketRepository, times(1)).findAll(any(Pageable.class));
+        bucketService.listBuckets(owner, null, mockedAssembler);
+        if (owner.isPresent()) {
+            verify(bucketRepository, times(1)).findByOwner(any(String.class), any(Pageable.class));
+        }
+        else {
+            verify(bucketRepository, times(1)).findAll(any(Pageable.class));
+        }
         verify(mockedAssembler, times(1)).toResource(any(PageImpl.class),
                 any(BucketResourceAssembler.class));
     }
