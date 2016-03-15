@@ -32,7 +32,6 @@ package org.ow2.proactive.workflow_catalog.rest.controller;
 
 import java.util.Optional;
 
-import org.ow2.proactive.workflow_catalog.rest.service.BucketAlreadyExisting;
 import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,13 +66,6 @@ public class BucketControllerTest {
         final String bucketTestUser = "BucketControllerTestUser";
         bucketController.create("DUMMY", bucketTestUser);
         verify(bucketService, times(1)).createBucket("DUMMY", bucketTestUser);
-    }
-
-    @Test(expected = BucketAlreadyExisting.class)
-    public void testCreateDuplicate() throws Exception {
-        final String bucketTestUser = "BucketControllerTestUser";
-        bucketController.create("DUMMY", bucketTestUser);
-        bucketController.create("DUMMY", bucketTestUser);
     }
 
     @Test
