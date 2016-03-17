@@ -1,9 +1,10 @@
 /*
+ *
  * ProActive Parallel Suite(TM): The Java(TM) library for
  *    Parallel, Distributed, Multi-Core Computing for
  *    Enterprise Grids & Clouds
  *
- * Copyright (C) 1997-2016 INRIA/University of
+ * Copyright (C) 1997-2015 INRIA/University of
  *                 Nice-Sophia Antipolis/ActiveEon
  * Contact: proactive@ow2.org or contact@activeeon.com
  *
@@ -25,24 +26,29 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  *
- * Initial developer(s):               The ProActive Team
- *                         http://proactive.inria.fr/team_members.htm
+ *  Initial developer(s):               The ProActive Team
+ *                        http://proactive.inria.fr/team_members.htm
+ *  Contributor(s):
+ *
+ *  * $$ACTIVEEON_INITIAL_DEV$$
  */
+package org.ow2.proactive.workflow_catalog.rest.service;
 
-package org.ow2.proactive.workflow_catalog.rest.service.repository;
-
-import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
-import org.springframework.data.repository.PagingAndSortingRepository;
-import org.springframework.data.repository.query.Param;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
+ * This Exception is thrown when a POST request for bucket creation has been
+ * received but such a Bucket already exists (name + owner)
+ * The HTTP status is 409 (Conflict because of duplication attempt)
+ *
  * @author ActiveEon Team
  */
-public interface BucketRepository extends PagingAndSortingRepository<Bucket, Long>, QueryDslPredicateExecutor<Bucket> {
+@ResponseStatus(value = HttpStatus.CONFLICT)
+public class BucketAlreadyExisting extends DataIntegrityViolationException {
 
-	Page<Bucket> findByOwner(@Param("owner") String owner, Pageable pageable);
-
+    public BucketAlreadyExisting(String message) {
+        super(message);
+    }
 }

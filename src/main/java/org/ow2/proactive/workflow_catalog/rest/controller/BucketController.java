@@ -30,6 +30,8 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
+import java.util.Optional;
+
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
 import io.swagger.annotations.ApiImplicitParam;
@@ -66,8 +68,8 @@ public class BucketController {
     @ResponseStatus(HttpStatus.CREATED)
     public BucketMetadata create(
             @RequestParam(value = "name", required = true) String bucketName,
-            @ApiParam(value = "The name of the user that owns the Bucket")
-            @RequestParam(value = "owner") String ownerName) {
+            @ApiParam(value = "The name of the user that will own the Bucket")
+            @RequestParam(value = "owner", required = true) String ownerName) {
         return bucketService.createBucket(bucketName, ownerName);
     }
 
@@ -91,9 +93,12 @@ public class BucketController {
     })
     @RequestMapping(value = "/buckets", method = GET)
     public PagedResources list(
+            @ApiParam(value = "The name of the user who owns the Bucket")
+            @RequestParam(value = "owner", required = false)
+            Optional<String> ownerName,
             Pageable pageable,
             PagedResourcesAssembler assembler) {
-        return bucketService.listBuckets(pageable, assembler);
+        return bucketService.listBuckets(ownerName, pageable, assembler);
     }
 
 }

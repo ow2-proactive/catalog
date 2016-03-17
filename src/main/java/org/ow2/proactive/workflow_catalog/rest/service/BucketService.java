@@ -32,6 +32,7 @@ package org.ow2.proactive.workflow_catalog.rest.service;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -43,6 +44,7 @@ import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketReposito
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -88,8 +90,13 @@ public class BucketService {
 
     public BucketMetadata createBucket(String name, String owner) {
         Bucket bucket = new Bucket(name, LocalDateTime.now(), owner);
-        bucket = bucketRepository.save(bucket);
-
+        try {
+            bucket = bucketRepository.save(bucket);
+        }
+        catch (DataIntegrityViolationException exception) {
+            throw new BucketAlreadyExisting(
+                    "The bucket named " + name + " owned by " + owner + " already exist");
+        }
         return new BucketMetadata(bucket);
     }
 
@@ -103,8 +110,15 @@ public class BucketService {
         return new BucketMetadata(bucket);
     }
 
-    public PagedResources listBuckets(Pageable pageable, PagedResourcesAssembler assembler) {
-        Page<Bucket> page = bucketRepository.findAll(pageable);
+    public PagedResources listBuckets(Optional<String> ownerName, Pageable pageable, PagedResourcesAssembler assembler) {
+        Page<Bucket> page;
+        if (ownerName.isPresent()) {
+            page = bucketRepository.findByOwner(ownerName.get(), pageable);
+        }
+        else {
+            page = bucketRepository.findAll(pageable);
+        }
+
         return assembler.toResource(page, bucketAssembler);
     }
 

@@ -42,6 +42,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import org.ow2.proactive.workflow_catalog.rest.util.LocalDateTimeAttributeConverter;
 import com.google.common.collect.Lists;
@@ -51,7 +52,7 @@ import org.springframework.data.annotation.CreatedDate;
  * @author ActiveEon Team
  */
 @Entity
-@Table(name = "BUCKET")
+@Table(name = "BUCKET", uniqueConstraints = @UniqueConstraint(columnNames = {"NAME", "OWNER"}))
 public class Bucket {
 
     @Id

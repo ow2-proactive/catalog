@@ -30,6 +30,8 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
+import java.util.Optional;
+
 import org.ow2.proactive.workflow_catalog.rest.service.BucketService;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,10 +75,19 @@ public class BucketControllerTest {
     }
 
     @Test
-    public void testList() throws Exception {
+    public void testListNoOwner() throws Exception {
         Pageable mockedPageable = mock(Pageable.class);
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
-        bucketController.list(mockedPageable, mockedAssembler);
-        verify(bucketService, times(1)).listBuckets(mockedPageable, mockedAssembler);
+        bucketController.list(Optional.empty(), mockedPageable, mockedAssembler);
+        verify(bucketService, times(1)).listBuckets(Optional.empty(), mockedPageable, mockedAssembler);
+    }
+
+    @Test
+    public void testListWithOwner() throws Exception {
+        Pageable mockedPageable = mock(Pageable.class);
+        PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
+        final Optional<String> owner = Optional.of("toto");
+        bucketController.list(owner, mockedPageable, mockedAssembler);
+        verify(bucketService, times(1)).listBuckets(owner, mockedPageable, mockedAssembler);
     }
 }

@@ -101,6 +101,29 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     }
 
     @Test
+    public void testCreateDuplicatedBucketSameUser() {
+        final String ownerKey = "owner";
+        final String bucketNameKey = "name";
+        final String ownerValue = "toto";
+        final String bucketNameValue = "TotosBucket";
+        given().parameters(ownerKey,ownerValue, bucketNameKey, bucketNameValue).post(BUCKETS_RESOURCE)
+                .then().assertThat().statusCode(HttpStatus.SC_CREATED);
+        given().parameters(ownerKey,ownerValue, bucketNameKey, bucketNameValue).post(BUCKETS_RESOURCE)
+                .then().assertThat().statusCode(HttpStatus.SC_CONFLICT);
+    }
+
+    @Test
+    public void testCreateDuplicatedBucketDifferentUsers() {
+        final String ownerKey = "owner";
+        final String bucketNameKey = "name";
+        final String bucketNameValue = "OneSpecialBucket";
+        given().parameters(ownerKey, "Alice", bucketNameKey, bucketNameValue).post(BUCKETS_RESOURCE)
+                .then().assertThat().statusCode(HttpStatus.SC_CREATED);
+        given().parameters(ownerKey, "Bob", bucketNameKey, bucketNameValue).post(BUCKETS_RESOURCE)
+                .then().assertThat().statusCode(HttpStatus.SC_CREATED);
+    }
+
+    @Test
     public void testGetBucketShouldReturnSavedBucket() throws Exception {
         Bucket bucket = bucketRepository.save(new Bucket("myBucket","BucketControllerIntegrationTestUser"));
         final long bucketId = bucket.getId();
@@ -140,5 +163,59 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                 .body("page.number", is(0))
                 .body("page.totalElements", is(buckets.size()));
     }
+
+    @Test
+    public void testListBucketsOwnerShouldReturnNothing() {
+        bucketRepository.save(new Bucket("TotosBucket","toto"));
+
+        given().param("owner", "nonExistingUser").get(BUCKETS_RESOURCE)
+                .then().assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("page.number", is(0))
+                .body("page.totalElements", is(0));
+    }
+
+    @Test
+    public void testListBucketsOwnerShouldReturnOneBucketOnly() {
+        final String owner = "toto";
+        bucketRepository.save(new Bucket("TotosBucket",owner));
+
+        given().param("owner", owner).get(BUCKETS_RESOURCE)
+                .then().assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("_embedded.bucketMetadataList", hasSize(1))
+                .body("page.number", is(0));
+    }
+
+    @Test
+    public void testListOneBucketNameTwoOwners() {
+        final String bucketName = "TheBucketOfLove";
+        final String userAlice = "Alice";
+        final String userBob = "Bob";
+        bucketRepository.save(new Bucket(bucketName, userAlice));
+        bucketRepository.save(new Bucket(bucketName, userBob));
+
+        // TODO not finished
+        // list all -> should return the 2 buckets
+        when().get(BUCKETS_RESOURCE).then().assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("_embedded.bucketMetadataList", hasSize(2))
+                .body("page.number", is(0));
+
+        // list alice -> should return one only
+        given().param("owner", userAlice).get(BUCKETS_RESOURCE)
+                .then().assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("_embedded.bucketMetadataList", hasSize(1))
+                .body("page.number", is(0));
+
+        // list bob -> should return one only
+        given().param("owner", userBob).get(BUCKETS_RESOURCE)
+                .then().assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("_embedded.bucketMetadataList", hasSize(1))
+                .body("page.number", is(0));
+    }
+
 
 }
