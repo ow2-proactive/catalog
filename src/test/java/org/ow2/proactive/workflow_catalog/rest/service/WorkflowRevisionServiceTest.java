@@ -109,7 +109,6 @@ public class WorkflowRevisionServiceTest {
                 .createLink(
                         Matchers.any(Long.class),
                         Matchers.any(Long.class),
-                        Matchers.any(Optional.class),
                         Matchers.any(WorkflowRevision.class));
     }
 

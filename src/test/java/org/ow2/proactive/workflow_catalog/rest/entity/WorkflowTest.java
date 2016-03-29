@@ -32,9 +32,9 @@
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.SortedSet;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -80,7 +80,7 @@ public class WorkflowTest {
 
     @Test
     public void testSetRevisions() throws Exception {
-        List<WorkflowRevision> revisions = ImmutableList.of(workflowRevision);
+        SortedSet<WorkflowRevision> revisions = ImmutableSortedSet.of(workflowRevision);
         workflow.setRevisions(revisions);
         assertEquals(revisions, workflow.getRevisions());
     }

@@ -277,13 +277,29 @@ public class WorkflowRevisionService {
         WorkflowMetadata workflowMetadata =
                 new WorkflowMetadata(workflowRevision);
 
-        workflowMetadata.add(createLink(bucketId, workflowId, revisionId, workflowRevision));
+        workflowMetadata.add(createLink(bucketId, workflowId, workflowRevision));
 
         return ResponseEntity.ok(workflowMetadata);
     }
 
-    public Link createLink(Long bucketId, Long workflowId, Optional<Long> revisionId,
-            WorkflowRevision workflowRevision) {
+    public ResponseEntity<?> delete(Long bucketId, Long workflowId, Optional<Long> revisionId) {
+        Workflow workflow = findWorkflow(workflowId);
+        WorkflowRevision workflowRevision = null;
+        if (revisionId.isPresent() && workflow.getRevisions().size() > 1) {
+            // TODO: remove the current revision R and point the workflow to revision R-1
+
+        }
+        else {
+            workflowRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
+            // should delete
+            workflowRepository.delete(workflow);
+        }
+        WorkflowMetadata workflowMetadata = new WorkflowMetadata(workflowRevision);
+        workflowMetadata.add(createLink(bucketId, workflowId, workflowRevision));
+        return ResponseEntity.ok(workflowMetadata);
+    }
+
+    public Link createLink(Long bucketId, Long workflowId, WorkflowRevision workflowRevision) {
         ControllerLinkBuilder controllerLinkBuilder =
                 linkTo(methodOn(WorkflowRevisionController.class)
                         .get(bucketId, workflowId, workflowRevision.getRevisionId(), null));

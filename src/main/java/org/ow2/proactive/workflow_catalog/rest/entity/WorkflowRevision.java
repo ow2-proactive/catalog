@@ -62,7 +62,7 @@ import org.springframework.data.annotation.CreatedDate;
         @Index(columnList = "NAME"),
         @Index(columnList = "PROJECT_NAME")
 })
-public class WorkflowRevision {
+public class WorkflowRevision implements Comparable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -241,4 +241,8 @@ public class WorkflowRevision {
         return layout;
     }
 
+    @Override
+    public int compareTo(Object o) {
+        return createdAt.compareTo(((WorkflowRevision) o).createdAt);
+    }
 }
