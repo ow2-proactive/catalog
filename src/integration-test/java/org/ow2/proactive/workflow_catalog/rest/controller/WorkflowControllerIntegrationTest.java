@@ -233,4 +233,18 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
                 .then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
+    @Test
+    public void testDeleteExistingWorkflow() {
+        given().pathParam("bucketId", bucket.getId())
+                .pathParam("workflowId", workflow.id)
+                .when().get(WORKFLOW_RESOURCE)
+                .then().assertThat().statusCode(HttpStatus.SC_OK)
+                .body("name", is(workflow.name));
+                //.body()
+    }
+
+    @Test
+    public void testDeleteNonExistingWorkflow() {
+
+    }
 }

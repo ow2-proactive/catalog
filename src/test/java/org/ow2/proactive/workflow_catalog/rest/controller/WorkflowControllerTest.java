@@ -109,4 +109,9 @@ public class WorkflowControllerTest {
         verify(workflowService, times(1)).getWorkflowMetadata(1L, 2L, Optional.empty());
     }
 
+    @Test
+    public void testDelete() throws Exception {
+        workflowController.delete(1L, 2L);
+        verify(workflowService, times(1)).delete(1L, 2L);
+    }
 }
