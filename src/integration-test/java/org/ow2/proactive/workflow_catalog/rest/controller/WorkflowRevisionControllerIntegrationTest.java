@@ -342,8 +342,12 @@ public class WorkflowRevisionControllerIntegrationTest extends AbstractWorkflowR
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK);
 
-        // check that the workflow continues to
-        // reference secondWorkflowRevision
-
+        // check that the workflow references the previous version
+        given()
+                .pathParam("bucketId", bucket.getId())
+                .pathParam("workflowId", firstWorkflowRevision.id)
+                .when().get(WORKFLOW_RESOURCE)
+                .then().assertThat()
+                .statusCode(HttpStatus.SC_OK);
     }
 }
