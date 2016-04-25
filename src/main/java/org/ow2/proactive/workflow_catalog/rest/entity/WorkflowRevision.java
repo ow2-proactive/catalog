@@ -243,6 +243,6 @@ public class WorkflowRevision implements Comparable {
 
     @Override
     public int compareTo(Object o) {
-        return createdAt.compareTo(((WorkflowRevision) o).createdAt);
+        return ((WorkflowRevision) o).createdAt.compareTo(createdAt);
     }
 }
