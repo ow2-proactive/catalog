@@ -118,6 +118,10 @@ public class Workflow {
         this.bucket = bucket;
     }
 
+    public void setLastRevisionId(Long lastRevisionId) {
+        this.lastRevisionId = lastRevisionId;
+    }
+
     public void setRevisions(SortedSet<WorkflowRevision> revisions) {
         this.revisions = revisions;
     }
