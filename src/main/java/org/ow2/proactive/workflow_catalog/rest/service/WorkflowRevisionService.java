@@ -32,6 +32,7 @@ package org.ow2.proactive.workflow_catalog.rest.service;
 
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -282,16 +283,45 @@ public class WorkflowRevisionService {
         return ResponseEntity.ok(workflowMetadata);
     }
 
+    /**
+     * Generic method to delete either a specific WorkflowRevision or a complete Workflow
+     * and all of its dependencies.
+     * Deleting a previous WorkflowRevision will not impact the current revision of a Workflow.
+     * Deleting the current WorkflowRevision will:
+     * <ul>
+     *     <li>also delete the Workflow if it has only one WorkflowRevision</li>
+     *     <li>impact the Workflow by referencing the previous WorkflowRevision if it had more than one WorkflowRevision.</li>
+     * </ul>
+     * @param bucketId The id of the Bucket containing the Workflow
+     * @param workflowId The id of the Workflow containing the WorkflowRevision
+     * @param revisionId The revision number of the Workflow
+     * @return The deleted WorkflowRevision metadata
+     */
     public ResponseEntity<?> delete(Long bucketId, Long workflowId, Optional<Long> revisionId) {
         Workflow workflow = findWorkflow(workflowId);
         WorkflowRevision workflowRevision = null;
         if (revisionId.isPresent() && workflow.getRevisions().size() > 1) {
-            // TODO: remove the current revision R and point the workflow to revision R-1
-
+            if (revisionId.get() == workflow.getLastRevisionId()) {
+                Iterator iter = workflow.getRevisions().iterator();
+                workflowRevision = (WorkflowRevision) iter.next();
+                WorkflowRevision newWorkflowRevisionReference = (WorkflowRevision) iter.next();
+                workflow.setLastRevisionId(newWorkflowRevisionReference.getRevisionId());
+                workflowRevision = workflowRevisionRepository.getWorkflowRevision(
+                        bucketId, workflowId, workflowRevision.getRevisionId());
+//                WorkflowRevision copyOfWorkflowRevision = copyWorkflowRevision(workflowRevision);
+                workflowRevisionRepository.delete(workflowRevision);
+//                workflowRevision = copyOfWorkflowRevision;
+            }
+            else {
+                workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId, workflowId,
+                        revisionId.get());
+//                WorkflowRevision copyOfWorkflowRevision = copyWorkflowRevision(workflowRevision);
+                workflowRevisionRepository.delete(workflowRevision);
+//                workflowRevision = copyOfWorkflowRevision;
+            }
         }
         else {
             workflowRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
-            // should delete
             workflowRepository.delete(workflow);
         }
         WorkflowMetadata workflowMetadata = new WorkflowMetadata(workflowRevision);
@@ -308,6 +338,12 @@ public class WorkflowRevisionService {
         // otherwise a converter needs to be configured
         // for Optional class
         return new Link(controllerLinkBuilder.toString() + "?alt=" + SUPPORTED_ALT_VALUE).withRel("content");
+    }
+
+    private WorkflowRevision copyWorkflowRevision(WorkflowRevision w) {
+        return new WorkflowRevision(w.getBucketId(), w.getRevisionId(), w.getName(), w.getProjectName(),
+                w.getCreatedAt(), w.getLayout(), w.getGenericInformation(), w.getVariables(),
+                w.getXmlPayload());
     }
 
 }
