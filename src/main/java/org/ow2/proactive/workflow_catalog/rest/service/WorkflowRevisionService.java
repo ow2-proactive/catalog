@@ -308,16 +308,12 @@ public class WorkflowRevisionService {
                 workflow.setLastRevisionId(newWorkflowRevisionReference.getRevisionId());
                 workflowRevision = workflowRevisionRepository.getWorkflowRevision(
                         bucketId, workflowId, workflowRevision.getRevisionId());
-//                WorkflowRevision copyOfWorkflowRevision = copyWorkflowRevision(workflowRevision);
                 workflowRevisionRepository.delete(workflowRevision);
-//                workflowRevision = copyOfWorkflowRevision;
             }
             else {
                 workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId, workflowId,
                         revisionId.get());
-//                WorkflowRevision copyOfWorkflowRevision = copyWorkflowRevision(workflowRevision);
                 workflowRevisionRepository.delete(workflowRevision);
-//                workflowRevision = copyOfWorkflowRevision;
             }
         }
         else {
@@ -338,12 +334,6 @@ public class WorkflowRevisionService {
         // otherwise a converter needs to be configured
         // for Optional class
         return new Link(controllerLinkBuilder.toString() + "?alt=" + SUPPORTED_ALT_VALUE).withRel("content");
-    }
-
-    private WorkflowRevision copyWorkflowRevision(WorkflowRevision w) {
-        return new WorkflowRevision(w.getBucketId(), w.getRevisionId(), w.getName(), w.getProjectName(),
-                w.getCreatedAt(), w.getLayout(), w.getGenericInformation(), w.getVariables(),
-                w.getXmlPayload());
     }
 
 }
