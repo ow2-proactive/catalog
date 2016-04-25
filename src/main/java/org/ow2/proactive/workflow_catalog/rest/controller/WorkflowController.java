@@ -118,6 +118,7 @@ public class WorkflowController {
         return workflowService.listWorkflows(bucketId, query, pageable, assembler);
     }
 
+    @ApiOperation(value = "Delete a workflow", notes = "Returns the deleted Workflow's metadata")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}", method = DELETE)
     public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable Long workflowId) {

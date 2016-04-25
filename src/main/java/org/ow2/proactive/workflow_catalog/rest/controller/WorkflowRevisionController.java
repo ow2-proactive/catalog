@@ -126,6 +126,7 @@ public class WorkflowRevisionController {
                 bucketId, Optional.ofNullable(workflowId), query, pageable, assembler);
     }
 
+    @ApiOperation(value = "Delete a workflow's revision", notes = "Returns the deleted WorkflowRevision metadata. If the latest revision is deleted, the previous one becomes the new latest revision.")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions/{revisionId}", method = DELETE)
     public ResponseEntity<?> delete(@PathVariable Long bucketId,
