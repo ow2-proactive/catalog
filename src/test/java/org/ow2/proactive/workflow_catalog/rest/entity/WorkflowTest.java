@@ -32,7 +32,9 @@
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -56,13 +58,7 @@ public class WorkflowTest {
     @Before
     public void setUp() {
         bucket = new Bucket("test", "WorkflowTestUser");
-        workflowRevision =
-                new WorkflowRevision(
-                        1L, 1L, "Test", "Test Project",
-                        LocalDateTime.now(),
-                        null, Lists.<GenericInformation>newArrayList(),
-                        Lists.<Variable>newArrayList(),
-                        new byte[0]);
+        workflowRevision = newWorkflowRevision(1L, LocalDateTime.now());
         workflow = new Workflow(bucket);
     }
 
@@ -85,4 +81,26 @@ public class WorkflowTest {
         assertEquals(revisions, workflow.getRevisions());
     }
 
+    @Test
+    public void testGetRevisions() throws Exception {
+        SortedSet<WorkflowRevision> revisions = new TreeSet<>();
+        revisions.add(workflowRevision);
+        revisions.add(newWorkflowRevision(10L, LocalDateTime.now().plusHours(1)));
+        revisions.add(newWorkflowRevision(2L, LocalDateTime.now().plusHours(2)));
+        workflow.setRevisions(revisions);
+        assertEquals(revisions, workflow.getRevisions());
+        Iterator iterator = workflow.getRevisions().iterator();
+        assertEquals(2L, ((WorkflowRevision) iterator.next()).getRevisionId().longValue());
+        assertEquals(10L, ((WorkflowRevision) iterator.next()).getRevisionId().longValue());
+        assertEquals(1L, ((WorkflowRevision) iterator.next()).getRevisionId().longValue());
+    }
+
+    private WorkflowRevision newWorkflowRevision(Long revisionId, LocalDateTime date) {
+        return new WorkflowRevision(
+                1L, revisionId, "Test", "Test Project",
+                date,
+                null, Lists.<GenericInformation>newArrayList(),
+                Lists.<Variable>newArrayList(),
+                new byte[0]);
+    }
 }

@@ -57,6 +57,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -123,6 +124,14 @@ public class WorkflowRevisionController {
             PagedResourcesAssembler assembler) throws QueryExpressionBuilderException {
         return workflowRevisionService.listWorkflows(
                 bucketId, Optional.ofNullable(workflowId), query, pageable, assembler);
+    }
+
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
+    @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions/{revisionId}", method = DELETE)
+    public ResponseEntity<?> delete(@PathVariable Long bucketId,
+            @PathVariable Long workflowId,
+            @PathVariable Long revisionId) {
+        return workflowRevisionService.delete(bucketId, workflowId, Optional.of(revisionId));
     }
 
 }

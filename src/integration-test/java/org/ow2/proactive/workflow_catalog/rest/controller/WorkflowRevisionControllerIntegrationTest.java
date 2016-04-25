@@ -56,6 +56,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 /**
@@ -74,6 +75,8 @@ public class WorkflowRevisionControllerIntegrationTest extends AbstractWorkflowR
 
     protected WorkflowMetadata secondWorkflowRevision;
 
+    protected WorkflowMetadata workflowRevisionAlone;
+
     @Before
     public void setup() throws IOException {
         bucket = bucketRepository.save(new Bucket("bucket",
@@ -88,6 +91,11 @@ public class WorkflowRevisionControllerIntegrationTest extends AbstractWorkflowR
                 workflowRevisionService.createWorkflowRevision(
                         bucket.getId(), Optional.of(firstWorkflowRevision.id),
                         IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml"), Optional.empty());
+
+        workflowRevisionAlone =
+                workflowRevisionService.createWorkflowRevision(
+                        bucket.getId(), Optional.empty(),
+                        IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"), Optional.empty());
     }
 
     @Test
@@ -271,4 +279,71 @@ public class WorkflowRevisionControllerIntegrationTest extends AbstractWorkflowR
                 .body("page.totalElements", is(25 + 2));
     }
 
+    @Test
+    public void testDeleteTheUniqueWorkflowRevision() {
+        given()
+                .pathParam("bucketId", bucket.getId())
+                .pathParam("workflowId", workflowRevisionAlone.id)
+                .pathParam("revisionId", workflowRevisionAlone.revisionId)
+                .when().delete(WORKFLOW_REVISION_RESOURCE)
+                .then().assertThat()
+                .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testDeleteAPreviousWorkflowRevisionOfMultipleRevisions() {
+        // because they're from the same workflow
+        assertEquals(firstWorkflowRevision.id, secondWorkflowRevision.id);
+
+        // firstWorkflowRevision is the previous revision
+        // secondWorkflowRevision is the current revision
+        // The workflow currently references secondWorkflowRevision
+        given()
+                .pathParam("bucketId", bucket.getId())
+                .pathParam("workflowId", firstWorkflowRevision.id)
+                .pathParam("revisionId", firstWorkflowRevision.revisionId)
+                .when().delete(WORKFLOW_REVISION_RESOURCE)
+                .then().assertThat()
+                .statusCode(HttpStatus.SC_OK);
+        // check that the workflow continues to
+        // reference secondWorkflowRevision
+        given()
+                .pathParam("bucketId", bucket.getId())
+                .pathParam("workflowId", secondWorkflowRevision.id)
+                .pathParam("revisionId", secondWorkflowRevision.revisionId)
+                .when().get(WORKFLOW_REVISION_RESOURCE)
+                .then().assertThat()
+                .statusCode(HttpStatus.SC_OK);
+        // and that the previous revision is actually gone
+        given()
+                .pathParam("bucketId", bucket.getId())
+                .pathParam("workflowId", firstWorkflowRevision.id)
+                .pathParam("revisionId", firstWorkflowRevision.revisionId)
+                .when().get(WORKFLOW_REVISION_RESOURCE)
+                .then().assertThat()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void testDeleteTheLatestWorkflowRevisionOfMultipleRevisions() {
+        // because they're from the same workflow
+        assertEquals(firstWorkflowRevision.id, secondWorkflowRevision.id);
+
+        // firstWorkflowRevision is the previous revision
+        // secondWorkflowRevision is the current revision
+        // The workflow currently references secondWorkflowRevision
+        given()
+                .pathParam("bucketId", bucket.getId())
+                .pathParam("workflowId", secondWorkflowRevision.id)
+                .pathParam("revisionId", secondWorkflowRevision.revisionId)
+                .when()
+                .delete(WORKFLOW_REVISION_RESOURCE)
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK);
+
+        // check that the workflow continues to
+        // reference secondWorkflowRevision
+
+    }
 }
