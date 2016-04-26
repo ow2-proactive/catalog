@@ -91,4 +91,10 @@ public class WorkflowRevisionControllerTest {
         verify(workflowRevisionService, times(1))
                 .getWorkflow(BUCKET_ID, WF_ID, Optional.of(REV_ID), Optional.empty());
     }
+
+    @Test
+    public void testDelete() throws Exception {
+        workflowRevisionController.delete(BUCKET_ID, WF_ID, REV_ID);
+        verify(workflowRevisionService, times(1)).delete(BUCKET_ID, WF_ID, Optional.of(REV_ID));
+    }
 }

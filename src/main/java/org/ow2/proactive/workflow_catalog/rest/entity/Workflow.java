@@ -35,8 +35,9 @@
 package org.ow2.proactive.workflow_catalog.rest.entity;
 
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -47,6 +48,7 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import com.google.common.collect.Lists;
@@ -69,14 +71,15 @@ public class Workflow {
     @JoinColumn(name = "BUCKET_ID", nullable = false)
     private Bucket bucket;
 
-    @OneToMany(mappedBy = "workflow")
-    private List<WorkflowRevision> revisions;
+    @OneToMany(mappedBy = "workflow", orphanRemoval = true)
+    @OrderBy("createdAt DESC")
+    private SortedSet<WorkflowRevision> revisions;
 
     @Column(name = "LAST_REVISION_ID")
     private Long lastRevisionId = 0L;
 
     public Workflow() {
-        this.revisions = new ArrayList<>(0);
+        this.revisions = new TreeSet<WorkflowRevision>();
     }
 
     public Workflow(Bucket bucket, WorkflowRevision... revisions) {
@@ -85,8 +88,7 @@ public class Workflow {
 
     public Workflow(Bucket bucket, List<WorkflowRevision> revisions) {
         this.bucket = bucket;
-        this.revisions = new ArrayList<>(revisions.size());
-
+        this.revisions = new TreeSet<WorkflowRevision>();
         revisions.forEach(this::addRevision);
     }
 
@@ -108,7 +110,7 @@ public class Workflow {
         return lastRevisionId;
     }
 
-    public List<WorkflowRevision> getRevisions() {
+    public SortedSet<WorkflowRevision> getRevisions() {
         return revisions;
     }
 
@@ -116,7 +118,11 @@ public class Workflow {
         this.bucket = bucket;
     }
 
-    public void setRevisions(List<WorkflowRevision> revisions) {
+    public void setLastRevisionId(Long lastRevisionId) {
+        this.lastRevisionId = lastRevisionId;
+    }
+
+    public void setRevisions(SortedSet<WorkflowRevision> revisions) {
         this.revisions = revisions;
     }
 

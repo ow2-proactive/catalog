@@ -32,6 +32,7 @@ package org.ow2.proactive.workflow_catalog.rest.service;
 
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -277,13 +278,54 @@ public class WorkflowRevisionService {
         WorkflowMetadata workflowMetadata =
                 new WorkflowMetadata(workflowRevision);
 
-        workflowMetadata.add(createLink(bucketId, workflowId, revisionId, workflowRevision));
+        workflowMetadata.add(createLink(bucketId, workflowId, workflowRevision));
 
         return ResponseEntity.ok(workflowMetadata);
     }
 
-    public Link createLink(Long bucketId, Long workflowId, Optional<Long> revisionId,
-            WorkflowRevision workflowRevision) {
+    /**
+     * Generic method to delete either a specific WorkflowRevision or a complete Workflow
+     * and all of its dependencies.
+     * Deleting a previous WorkflowRevision will not impact the current revision of a Workflow.
+     * Deleting the current WorkflowRevision will:
+     * <ul>
+     *     <li>also delete the Workflow if it has only one WorkflowRevision</li>
+     *     <li>impact the Workflow by referencing the previous WorkflowRevision if it had more than one WorkflowRevision.</li>
+     * </ul>
+     * @param bucketId The id of the Bucket containing the Workflow
+     * @param workflowId The id of the Workflow containing the WorkflowRevision
+     * @param revisionId The revision number of the Workflow
+     * @return The deleted WorkflowRevision metadata
+     */
+    public ResponseEntity<?> delete(Long bucketId, Long workflowId, Optional<Long> revisionId) {
+        Workflow workflow = findWorkflow(workflowId);
+        WorkflowRevision workflowRevision = null;
+        if (revisionId.isPresent() && workflow.getRevisions().size() > 1) {
+            if (revisionId.get() == workflow.getLastRevisionId()) {
+                Iterator iter = workflow.getRevisions().iterator();
+                workflowRevision = (WorkflowRevision) iter.next();
+                WorkflowRevision newWorkflowRevisionReference = (WorkflowRevision) iter.next();
+                workflow.setLastRevisionId(newWorkflowRevisionReference.getRevisionId());
+                workflowRevision = workflowRevisionRepository.getWorkflowRevision(
+                        bucketId, workflowId, workflowRevision.getRevisionId());
+                workflowRevisionRepository.delete(workflowRevision);
+            }
+            else {
+                workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId, workflowId,
+                        revisionId.get());
+                workflowRevisionRepository.delete(workflowRevision);
+            }
+        }
+        else {
+            workflowRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
+            workflowRepository.delete(workflow);
+        }
+        WorkflowMetadata workflowMetadata = new WorkflowMetadata(workflowRevision);
+        workflowMetadata.add(createLink(bucketId, workflowId, workflowRevision));
+        return ResponseEntity.ok(workflowMetadata);
+    }
+
+    public Link createLink(Long bucketId, Long workflowId, WorkflowRevision workflowRevision) {
         ControllerLinkBuilder controllerLinkBuilder =
                 linkTo(methodOn(WorkflowRevisionController.class)
                         .get(bucketId, workflowId, workflowRevision.getRevisionId(), null));

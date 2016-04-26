@@ -69,4 +69,8 @@ public class WorkflowService {
         return workflowRevisionService.listWorkflows(bucketId, Optional.empty(), query, pageable, assembler);
     }
 
+    public ResponseEntity<?> delete(Long bucketId, Long workflowId) {
+        return workflowRevisionService.delete(bucketId, workflowId, Optional.empty());
+    }
+
 }

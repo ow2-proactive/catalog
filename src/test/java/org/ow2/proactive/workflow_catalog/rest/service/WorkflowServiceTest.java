@@ -81,4 +81,9 @@ public class WorkflowServiceTest {
                 Optional.empty(), null, null);
     }
 
+    @Test
+    public void testDelete() throws Exception {
+        workflowService.delete(1L, 2L);
+        verify(workflowRevisionService, times(1)).delete(1L, 2L, Optional.empty());
+    }
 }
