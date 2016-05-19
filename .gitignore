@@ -1,6 +1,7 @@
 build
 generated
 src/generated
+classes
 *.iml
 .idea
 .gradle
