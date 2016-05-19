@@ -94,9 +94,11 @@ public class WorkflowRevision implements Comparable {
     private String layout;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(nullable = true)
     private List<GenericInformation> genericInformation;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(nullable = true)
     private List<Variable> variables;
 
     @Lob
