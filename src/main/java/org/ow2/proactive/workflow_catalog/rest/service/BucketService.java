@@ -30,13 +30,7 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import javax.annotation.PostConstruct;
-
+import com.google.common.io.ByteStreams;
 import org.ow2.proactive.workflow_catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
@@ -51,6 +45,15 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Optional;
+
 /**
  * @author ActiveEon Team
  */
@@ -63,6 +66,9 @@ public class BucketService {
     @Autowired
     private BucketResourceAssembler bucketAssembler;
 
+    @Autowired
+    private WorkflowService workflowService;
+
     @Value("${pa.workflow_catalog.default.buckets}")
     private String[] defaultBucketNames;
 
@@ -70,6 +76,7 @@ public class BucketService {
     private Environment environment;
 
     private static final String DEFAULT_BUCKET_OWNER = "workflow-catalog";
+    private static final String DEFAULT_WFS_FOLDER = "/default-workflows";
 
     @PostConstruct
     public void init() throws Exception {
@@ -77,10 +84,40 @@ public class BucketService {
                 Arrays.stream(environment.getActiveProfiles())
                         .anyMatch("test"::equals);
 
+        // We define the initial start by no existing buckets in the Catalog
+        // On initial start, we load the Catalog with predefined Workflows
         if (!isTestProfileEnabled && bucketRepository.count() == 0) {
-            Stream.of(defaultBucketNames).forEachOrdered(
-                    name -> bucketRepository.save(new Bucket(name, DEFAULT_BUCKET_OWNER))
-            );
+            populateCatalog(defaultBucketNames, DEFAULT_WFS_FOLDER);
+        }
+    }
+
+    /**
+     * The Catalog can be populated with buckets and workflows all at once.
+     *
+     * @param bucketNames The array of bucket names to create
+     * @param workflowsFolder The folder that contains sub-folders of all workflows to inject
+     * @throws SecurityException if the Catalog is not allowed to read or access the file
+     * @throws IOException if the file or folder could not be found or read properly
+     */
+    protected void populateCatalog(String[] bucketNames, String workflowsFolder)
+            throws SecurityException, IOException {
+        for (String bucketName : bucketNames) {
+            final Long bucketId = bucketRepository.save(new Bucket(bucketName, DEFAULT_BUCKET_OWNER)).getId();
+            final URL folderResource = getClass().getResource(workflowsFolder);
+            if (folderResource == null) {
+                throw new DefaultWorkflowsFolderNotFoundException();
+            }
+            final File bucketFolder = new File(folderResource.getPath() + File.separator + bucketName);
+            if (bucketFolder.isDirectory()) {
+                String[] wfs = bucketFolder.list();
+                Arrays.sort(wfs);
+                for (String workflow : wfs) {
+                    File fWorkflow = new File(bucketFolder.getPath() + File.separator + workflow);
+                    FileInputStream fisWorkflow = new FileInputStream(fWorkflow);
+                    byte[] bWorkflow = ByteStreams.toByteArray(fisWorkflow);
+                    workflowService.createWorkflow(bucketId, Optional.empty(), bWorkflow);
+                }
+            }
         }
     }
 

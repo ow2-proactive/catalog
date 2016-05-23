@@ -2,6 +2,7 @@ build
 generated
 src/generated
 classes
+.gradletasknamecache
 *.iml
 .idea
 .gradle
