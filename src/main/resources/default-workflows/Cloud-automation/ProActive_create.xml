@@ -3,7 +3,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:proactive:jobdescriptor:3.4"
      xsi:schemaLocation="urn:proactive:jobdescriptor:3.4 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.4/schedulerjob.xsd"
-    name="Hello World Service" 
+    name="ProActive" 
     priority="normal"
     onTaskError="continueJobExecution"
      maxNumberOfExecution="2">
@@ -17,7 +17,7 @@
   <genericInformation>
     <info name="pca.service.model" value="9"/>
     <info name="pca.service.type" value="platform"/>
-    <info name="pca.service.name" value="HelloWorldService"/>
+    <info name="pca.service.name" value="ProActive"/>
     <info name="pca.service.description" value="A service doing nothing"/>
     <info name="pca.action.type" value="create"/>
     <info name="pca.action.name" value="create"/>
@@ -28,7 +28,7 @@
   <taskFlow>
     <task name="end_deployment">
       <depends>
-        <task ref="HelloWorldService"/>
+        <task ref="ProActive"/>
       </depends>
       <scriptExecutable>
         <script>
@@ -44,7 +44,7 @@ result = JSON.stringify(resultObj);
         </script>
       </scriptExecutable>
     </task>
-    <task name="HelloWorldService">
+    <task name="ProActive">
       <description>
         <![CDATA[ The simplest task, ran by a bash engine. ]]>
       </description>

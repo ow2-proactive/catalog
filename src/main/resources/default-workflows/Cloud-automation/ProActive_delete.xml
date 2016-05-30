@@ -3,13 +3,13 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:proactive:jobdescriptor:3.4"
      xsi:schemaLocation="urn:proactive:jobdescriptor:3.4 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.4/schedulerjob.xsd"
-    name="Hello_delete" projectName="Cloud Automation - Lifecycle"
+    name="ProActive delete" projectName="Cloud Automation - Lifecycle"
     priority="normal"
     onTaskError="continueJobExecution"
      maxNumberOfExecution="2">
   <variables>
-    <variable name="instance_name" value="terminateHelloService"/>
-    <variable name="infrastructure_name" value="infrastructure_name"/>
+    <variable name="instance_name" value="terminateProActiveService"/>
+    <variable name="infrastructure_name" value="local"/>
   </variables>
   <description>
     <![CDATA[ A workflow that executes bash in JVM. ]]>
@@ -17,13 +17,13 @@
   <genericInformation>
     <info name="pca.service.model" value="9"/>
     <info name="pca.service.type" value="platform"/>
-    <info name="pca.service.name" value="KillHelloService"/>
+    <info name="pca.service.name" value="ProActive"/>
     <info name="pca.service.description" value="killHelloService"/>
     <info name="pca.action.type" value="delete"/>
     <info name="pca.action.name" value="delete"/>
     <info name="pca.action.description" value="delete Hello World Service instance"/>
     <info name="pca.action.origin_state" value="null"/>
-    <info name="pca.action.icon" value="storm"/>
+    <info name="pca.action.icon" value="../studio/images/about_115.png"/>
   </genericInformation>
   <taskFlow>
     <task name="TerminateKiller">
