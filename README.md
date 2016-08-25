@@ -1,6 +1,6 @@
 # ProActive Workflow Catalog
 
-[![Build Status](http://jenkins.activeeon.com/job/workflow-catalog/badge/icon)](http://jenkins.activeeon.com/job/workflow-catalog/)
+[![Build Status](http://jenkins.activeeon.com/buildStatus/icon?job=workflow-catalog)](http://jenkins.activeeon.com/job/workflow-catalog/)
 [![Coverage Status](https://coveralls.io/repos/github/ow2-proactive/workflow-catalog/badge.svg?branch=origin%2Fmaster)](https://coveralls.io/github/ow2-proactive/workflow-catalog?branch=origin%2Fmaster)
 
 The purpose of the workflow catalog is to store ProActive workflows.
