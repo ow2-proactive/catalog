@@ -1,34 +1,32 @@
 /*
- * ProActive Parallel Suite(TM): The Java(TM) library for
- *    Parallel, Distributed, Multi-Core Computing for
- *    Enterprise Grids & Clouds
+ * ProActive Parallel Suite(TM):
+ * The Open Source library for parallel and distributed
+ * Workflows & Scheduling, Orchestration, Cloud Automation
+ * and Big Data Analysis on Enterprise Grids & Clouds.
  *
- * Copyright (C) 1997-2016 INRIA/University of
- *                 Nice-Sophia Antipolis/ActiveEon
- * Contact: proactive@ow2.org or contact@activeeon.com
+ * Copyright (c) 2007 - 2017 ActiveEon
+ * Contact: contact@activeeon.com
  *
- * This library is free software; you can redistribute it and/or
+ * This library is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; version 3 of
+ * as published by the Free Software Foundation: version 3 of
  * the License.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Affero General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- * USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
- *
- * Initial developer(s):               The ProActive Team
- *                         http://proactive.inria.fr/team_members.htm
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
@@ -58,7 +56,6 @@ import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowReposi
 import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRevisionRepository;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParser;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
-import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
@@ -72,8 +69,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import com.google.common.collect.ImmutableMap;
+
 
 /**
  * @author ActiveEon Team
@@ -113,12 +110,13 @@ public class WorkflowRevisionService {
     public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId,
             byte[] proActiveWorkflowXmlContent, Optional<String> layout) {
         try {
-            ProActiveWorkflowParser proActiveWorkflowParser =
-                    new ProActiveWorkflowParser(
-                            new ByteArrayInputStream(proActiveWorkflowXmlContent));
+            ProActiveWorkflowParser proActiveWorkflowParser = new ProActiveWorkflowParser(new ByteArrayInputStream(proActiveWorkflowXmlContent));
 
-            return createWorkflowRevision(bucketId, workflowId,
-                    proActiveWorkflowParser.parse(), layout, proActiveWorkflowXmlContent);
+            return createWorkflowRevision(bucketId,
+                                          workflowId,
+                                          proActiveWorkflowParser.parse(),
+                                          layout,
+                                          proActiveWorkflowXmlContent);
         } catch (XMLStreamException e) {
             throw new UnprocessableEntityException(e);
         }
@@ -126,8 +124,7 @@ public class WorkflowRevisionService {
 
     @Transactional
     public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId,
-            ProActiveWorkflowParserResult proActiveWorkflowParserResult,
-            Optional<String> layout,
+            ProActiveWorkflowParserResult proActiveWorkflowParserResult, Optional<String> layout,
             byte[] proActiveWorkflowXmlContent) {
         Bucket bucket = findBucket(bucketId);
 
@@ -142,17 +139,17 @@ public class WorkflowRevisionService {
             revisionNumber = workflow.getLastRevisionId() + 1;
         }
 
-        workflowRevision =
-                new WorkflowRevision(
-                        bucketId, revisionNumber, proActiveWorkflowParserResult.getJobName(),
-                        proActiveWorkflowParserResult.getProjectName(), LocalDateTime.now(),
-                        layoutValue, proActiveWorkflowXmlContent);
+        workflowRevision = new WorkflowRevision(bucketId,
+                                                revisionNumber,
+                                                proActiveWorkflowParserResult.getJobName(),
+                                                proActiveWorkflowParserResult.getProjectName(),
+                                                LocalDateTime.now(),
+                                                layoutValue,
+                                                proActiveWorkflowXmlContent);
 
-        workflowRevision.addGenericInformation(createEntityGenericInformation(
-                proActiveWorkflowParserResult.getGenericInformation()));
+        workflowRevision.addGenericInformation(createEntityGenericInformation(proActiveWorkflowParserResult.getGenericInformation()));
 
-        workflowRevision.addVariables(createEntityVariable(
-                proActiveWorkflowParserResult.getVariables()));
+        workflowRevision.addVariables(createEntityVariable(proActiveWorkflowParserResult.getVariables()));
 
         workflowRevision = workflowRevisionRepository.save(workflowRevision);
 
@@ -167,17 +164,18 @@ public class WorkflowRevisionService {
         return new WorkflowMetadata(workflowRevision);
     }
 
-    protected List<GenericInformation> createEntityGenericInformation(
-            ImmutableMap<String, String> genericInformation) {
-        return genericInformation.entrySet().stream()
-                .map(entry -> new GenericInformation(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
+    protected List<GenericInformation> createEntityGenericInformation(ImmutableMap<String, String> genericInformation) {
+        return genericInformation.entrySet()
+                                 .stream()
+                                 .map(entry -> new GenericInformation(entry.getKey(), entry.getValue()))
+                                 .collect(Collectors.toList());
     }
 
     protected List<Variable> createEntityVariable(ImmutableMap<String, String> variables) {
-        return variables.entrySet().stream()
-                .map(entry -> new Variable(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
+        return variables.entrySet()
+                        .stream()
+                        .map(entry -> new Variable(entry.getKey(), entry.getValue()))
+                        .collect(Collectors.toList());
     }
 
     protected Workflow findWorkflow(long workflowId) {
@@ -212,8 +210,10 @@ public class WorkflowRevisionService {
             if (query.isPresent() && "".compareTo(query.get().trim()) != 0) {
                 QueryExpressionContext queryExpressionContext = createJpaQueryExpression(query.get());
 
-                page = queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(
-                        bucketId, workflowId.get(), queryExpressionContext, pageable);
+                page = queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(bucketId,
+                                                                                   workflowId.get(),
+                                                                                   queryExpressionContext,
+                                                                                   pageable);
             } else {
                 // it is not required to pass bucket ID since
                 // workflow ID is unique for all buckets
@@ -223,8 +223,9 @@ public class WorkflowRevisionService {
             if (query.isPresent()) {
                 QueryExpressionContext queryExpressionContext = createJpaQueryExpression(query.get());
 
-                page = queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(
-                        bucketId, queryExpressionContext, pageable);
+                page = queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(bucketId,
+                                                                                          queryExpressionContext,
+                                                                                          pageable);
             } else {
                 page = workflowRepository.getMostRecentRevisions(bucketId, pageable);
             }
@@ -233,10 +234,9 @@ public class WorkflowRevisionService {
         return assembler.toResource(page, workflowRevisionResourceAssembler);
     }
 
-    private QueryExpressionContext createJpaQueryExpression(
-            String workflowCatalogQuery) throws QueryExpressionBuilderException {
-        WorkflowCatalogQueryExpressionBuilder builder =
-                new WorkflowCatalogQueryExpressionBuilder(workflowCatalogQuery);
+    private QueryExpressionContext createJpaQueryExpression(String workflowCatalogQuery)
+            throws QueryExpressionBuilderException {
+        WorkflowCatalogQueryExpressionBuilder builder = new WorkflowCatalogQueryExpressionBuilder(workflowCatalogQuery);
 
         return builder.build();
     }
@@ -249,8 +249,7 @@ public class WorkflowRevisionService {
         WorkflowRevision workflowRevision;
 
         if (revisionId.isPresent()) {
-            workflowRevision = workflowRevisionRepository.getWorkflowRevision(
-                    bucketId, workflowId, revisionId.get());
+            workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId, workflowId, revisionId.get());
         } else {
             workflowRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
         }
@@ -263,20 +262,19 @@ public class WorkflowRevisionService {
             String altValue = alt.get();
 
             if (!altValue.equalsIgnoreCase(SUPPORTED_ALT_VALUE)) {
-                throw new UnsupportedMediaTypeException(
-                        "Unsupported media type '" + altValue + "' (only '" + SUPPORTED_ALT_VALUE + "' is allowed)");
+                throw new UnsupportedMediaTypeException("Unsupported media type '" + altValue + "' (only '" +
+                                                        SUPPORTED_ALT_VALUE + "' is allowed)");
             }
 
             byte[] bytes = workflowRevision.getXmlPayload();
 
             return ResponseEntity.ok()
-                    .contentLength(bytes.length)
-                    .contentType(MediaType.APPLICATION_XML)
-                    .body(new InputStreamResource(new ByteArrayInputStream(bytes)));
+                                 .contentLength(bytes.length)
+                                 .contentType(MediaType.APPLICATION_XML)
+                                 .body(new InputStreamResource(new ByteArrayInputStream(bytes)));
         }
 
-        WorkflowMetadata workflowMetadata =
-                new WorkflowMetadata(workflowRevision);
+        WorkflowMetadata workflowMetadata = new WorkflowMetadata(workflowRevision);
 
         workflowMetadata.add(createLink(bucketId, workflowId, workflowRevision));
 
@@ -306,17 +304,17 @@ public class WorkflowRevisionService {
                 workflowRevision = (WorkflowRevision) iter.next();
                 WorkflowRevision newWorkflowRevisionReference = (WorkflowRevision) iter.next();
                 workflow.setLastRevisionId(newWorkflowRevisionReference.getRevisionId());
-                workflowRevision = workflowRevisionRepository.getWorkflowRevision(
-                        bucketId, workflowId, workflowRevision.getRevisionId());
+                workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId,
+                                                                                  workflowId,
+                                                                                  workflowRevision.getRevisionId());
+                workflowRevisionRepository.delete(workflowRevision);
+            } else {
+                workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId,
+                                                                                  workflowId,
+                                                                                  revisionId.get());
                 workflowRevisionRepository.delete(workflowRevision);
             }
-            else {
-                workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId, workflowId,
-                        revisionId.get());
-                workflowRevisionRepository.delete(workflowRevision);
-            }
-        }
-        else {
+        } else {
             workflowRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
             workflowRepository.delete(workflow);
         }
@@ -326,9 +324,10 @@ public class WorkflowRevisionService {
     }
 
     public Link createLink(Long bucketId, Long workflowId, WorkflowRevision workflowRevision) {
-        ControllerLinkBuilder controllerLinkBuilder =
-                linkTo(methodOn(WorkflowRevisionController.class)
-                        .get(bucketId, workflowId, workflowRevision.getRevisionId(), null));
+        ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(WorkflowRevisionController.class).get(bucketId,
+                                                                                                            workflowId,
+                                                                                                            workflowRevision.getRevisionId(),
+                                                                                                            null));
 
         // alt request parameter name and value is added manually
         // otherwise a converter needs to be configured

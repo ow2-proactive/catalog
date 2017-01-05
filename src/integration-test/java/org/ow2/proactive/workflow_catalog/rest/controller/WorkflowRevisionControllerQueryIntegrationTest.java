@@ -1,34 +1,34 @@
 /*
- * ProActive Parallel Suite(TM): The Java(TM) library for
- *    Parallel, Distributed, Multi-Core Computing for
- *    Enterprise Grids & Clouds
+ * ProActive Parallel Suite(TM):
+ * The Open Source library for parallel and distributed
+ * Workflows & Scheduling, Orchestration, Cloud Automation
+ * and Big Data Analysis on Enterprise Grids & Clouds.
  *
- * Copyright (C) 1997-2016 INRIA/University of
- *                 Nice-Sophia Antipolis/ActiveEon
- * Contact: proactive@ow2.org or contact@activeeon.com
+ * Copyright (c) 2007 - 2017 ActiveEon
+ * Contact: contact@activeeon.com
  *
- * This library is free software; you can redistribute it and/or
+ * This library is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; version 3 of
+ * as published by the Free Software Foundation: version 3 of
  * the License.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Affero General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- * USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
- *
- * Initial developer(s):               The ProActive Team
- *                         http://proactive.inria.fr/team_members.htm
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
+
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.fail;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,15 +38,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.ow2.proactive.workflow_catalog.rest.Application;
-import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import com.jayway.restassured.response.Response;
-import com.jayway.restassured.response.ValidatableResponse;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.http.HttpStatus;
 import org.junit.Before;
@@ -55,6 +46,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.ow2.proactive.workflow_catalog.rest.Application;
+import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
+import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -66,10 +61,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
 
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.fail;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.jayway.restassured.response.Response;
+import com.jayway.restassured.response.ValidatableResponse;
+
 
 /**
  * The purpose of this class is to perform tests against the WorkflowRevisionController
@@ -99,241 +96,196 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
 
     private BucketMetadata secondBucket;
 
-    private enum TypeTest {WORKFLOWS, WORKFLOW_REVISIONS, SECOND_BUCKET}
+    private enum TypeTest {
+        WORKFLOWS,
+        WORKFLOW_REVISIONS,
+        SECOND_BUCKET
+    }
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
 
-                /*
-                 * Querying all workflows (on their latest version)
-                 */
+                                              /*
+                                               * Querying all workflows (on their latest version)
+                                               */
 
-                {
-                        Assertion.create("",
-                                ImmutableSet.of("A", "B", "C", "D", "E", "F", "G*", "Amazon"),
-                                ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
-                                ImmutableSet.of("A", "Dummy"))
-                },
-                {
-                        Assertion.create("name=\"A\"",
-                                ImmutableSet.of("A"),
-                                ImmutableSet.of("A"),
-                                ImmutableSet.of("A"))
-                },
-                {
-                        Assertion.create("name=\"\"", ImmutableSet.of(), ImmutableSet.of(), ImmutableSet.of())
-                },
-                {
-                        Assertion.create("name!=\"A\"",
-                                ImmutableSet.of("B", "C", "D", "E", "F", "G*", "Amazon"),
-                                ImmutableSet.of("A-small", "A-regular", "A-medium"),
-                                ImmutableSet.of("Dummy"))
-                },
-                {
-                        Assertion.create("project_name=\"\"",
-                                ImmutableSet.of("A", "B", "C", "D", "Amazon"),
-                                ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
-                                ImmutableSet.of("A", "Dummy"))
-                },
-                {
-                        Assertion.create("project_name!=\"\"",
-                                ImmutableSet.of("E", "F", "G*"),
-                                ImmutableSet.of(),
-                                ImmutableSet.of())
-                },
-                {
-                        Assertion.create("project_name=\"Fab*\"",
-                                ImmutableSet.of("E", "F"),
-                                ImmutableSet.of(),
-                                ImmutableSet.of())
-                },
-                {
-                        Assertion.create("project_name=\"*bi*\"",
-                                ImmutableSet.of("E", "F"),
-                                ImmutableSet.of(),
-                                ImmutableSet.of())
-                },
-                {
-                        Assertion.create("project_name=\"*ple\"",
-                                ImmutableSet.of("E", "F"),
-                                ImmutableSet.of(),
-                                ImmutableSet.of())
-                },
-                {
-                        Assertion.create("project_name=\"*donotexists*\"",
-                                ImmutableSet.of(),
-                                ImmutableSet.of(),
-                                ImmutableSet.of())
-                },
-                {
-                        Assertion.create("name=\"G\\\\*\"",
-                                ImmutableSet.of("G*"),
-                                ImmutableSet.of(),
-                                ImmutableSet.of())
-                },
-                {
-                        Assertion.create("variable(\"CPU\", \"5*\")",
-                                ImmutableSet.of("D"),
-                                ImmutableSet.of(),
-                                ImmutableSet.of())
-                },
-                {
-                        Assertion.create("variable(\"*\", \"*\")",
-                                ImmutableSet.of("A", "B", "D", "E", "F"),
-                                ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
-                                ImmutableSet.of("A"))
-                },
-                {
-                        Assertion.create("variable(\"Provider\", \"*\")",
-                                ImmutableSet.of("E", "F"),
-                                ImmutableSet.of(),
-                                ImmutableSet.of())
-                },
-                {
-                        Assertion.create("variable(\"Provider\", \"Amazon\")",
-                                ImmutableSet.of("F"),
-                                ImmutableSet.of(),
-                                ImmutableSet.of())
-                },
-                {
-                        Assertion.create(
-                                "generic_information(\"Infrastructure\",\"Amazon EC2\")",
-                                ImmutableSet.of("A"),
-                                ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
-                                ImmutableSet.of("A"))
-                },
-                {
-                        Assertion.create(
-                                "generic_information(\"linebreak\", \"\\r\\n\")",
-                                ImmutableSet.of("G*"),
-                                ImmutableSet.of(),
-                                ImmutableSet.of())
-                },
-                {
-                        Assertion.create(
-                                "generic_information(\"Infrastructure\", \"Amazon EC2\") " +
-                                        "OR generic_information(\"Cloud\", \"Amazon EC2\")",
-                                ImmutableSet.of("A", "B"),
-                                ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
-                                ImmutableSet.of("A"))
-                },
-                {
-                        Assertion.create(
-                                "generic_information(\"Infrastructure\", \"Amazon EC2\") " +
-                                        "OR generic_information(\"Cloud\", \"Amazon EC2\") " +
-                                        "AND variable(\"CPU\", \"*\")",
-                                ImmutableSet.of("A", "B"),
-                                ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
-                                ImmutableSet.of("A"))
-                },
-                {
-                        Assertion.create(
-                                "generic_information(\"Infrastructure\", \"Amazon EC2\") " +
-                                        "AND generic_information(\"Cloud\", \"Amazon EC2\") " +
-                                        "OR variable(\"CPU\", \"*\")",
-                                ImmutableSet.of("A", "B", "D"),
-                                ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
-                                ImmutableSet.of("A"))
-                },
-                {
-                        Assertion.create(
-                                "variable(\"CPU\", \"*\") AND name=\"B\" " +
-                                        "AND generic_information(\"Cloud\", \"Amazon EC2\")",
-                                ImmutableSet.of("B"),
-                                ImmutableSet.of(),
-                                ImmutableSet.of())
-                },
-                {
-                        Assertion.create(
-                                "generic_information(\"Infrastructure\", \"Amazon EC2\") " +
-                                        "AND generic_information(\"Type\", \"Public\") "
-                                        + "AND variable(\"CPU\", \"*\") OR generic_information(\"Cloud\", \"Amazon EC2\") "
-                                        + "AND variable(\"CPU\", \"*\") OR name=\"Amazon\"",
-                                ImmutableSet.of("A", "B", "Amazon"),
-                                ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
-                                ImmutableSet.of("A"))
-                },
+                                              { Assertion.create("",
+                                                                 ImmutableSet.of("A",
+                                                                                 "B",
+                                                                                 "C",
+                                                                                 "D",
+                                                                                 "E",
+                                                                                 "F",
+                                                                                 "G*",
+                                                                                 "Amazon"),
+                                                                 ImmutableSet.of("A-small",
+                                                                                 "A-regular",
+                                                                                 "A-medium",
+                                                                                 "A"),
+                                                                 ImmutableSet.of("A", "Dummy")) },
+                                              { Assertion.create("name=\"A\"",
+                                                                 ImmutableSet.of("A"),
+                                                                 ImmutableSet.of("A"),
+                                                                 ImmutableSet.of("A")) },
+                                              { Assertion.create("name=\"\"",
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("name!=\"A\"",
+                                                                 ImmutableSet.of("B",
+                                                                                 "C",
+                                                                                 "D",
+                                                                                 "E",
+                                                                                 "F",
+                                                                                 "G*",
+                                                                                 "Amazon"),
+                                                                 ImmutableSet.of("A-small", "A-regular", "A-medium"),
+                                                                 ImmutableSet.of("Dummy")) },
+                                              { Assertion.create("project_name=\"\"",
+                                                                 ImmutableSet.of("A", "B", "C", "D", "Amazon"),
+                                                                 ImmutableSet.of("A-small",
+                                                                                 "A-regular",
+                                                                                 "A-medium",
+                                                                                 "A"),
+                                                                 ImmutableSet.of("A", "Dummy")) },
+                                              { Assertion.create("project_name!=\"\"",
+                                                                 ImmutableSet.of("E", "F", "G*"),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("project_name=\"Fab*\"",
+                                                                 ImmutableSet.of("E", "F"),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("project_name=\"*bi*\"",
+                                                                 ImmutableSet.of("E", "F"),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("project_name=\"*ple\"",
+                                                                 ImmutableSet.of("E", "F"),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("project_name=\"*donotexists*\"",
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("name=\"G\\\\*\"",
+                                                                 ImmutableSet.of("G*"),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("variable(\"CPU\", \"5*\")",
+                                                                 ImmutableSet.of("D"),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("variable(\"*\", \"*\")",
+                                                                 ImmutableSet.of("A", "B", "D", "E", "F"),
+                                                                 ImmutableSet.of("A-small",
+                                                                                 "A-regular",
+                                                                                 "A-medium",
+                                                                                 "A"),
+                                                                 ImmutableSet.of("A")) },
+                                              { Assertion.create("variable(\"Provider\", \"*\")",
+                                                                 ImmutableSet.of("E", "F"),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("variable(\"Provider\", \"Amazon\")",
+                                                                 ImmutableSet.of("F"),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("generic_information(\"Infrastructure\",\"Amazon EC2\")",
+                                                                 ImmutableSet.of("A"),
+                                                                 ImmutableSet.of("A-small",
+                                                                                 "A-regular",
+                                                                                 "A-medium",
+                                                                                 "A"),
+                                                                 ImmutableSet.of("A")) },
+                                              { Assertion.create("generic_information(\"linebreak\", \"\\r\\n\")",
+                                                                 ImmutableSet.of("G*"),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("generic_information(\"Infrastructure\", \"Amazon EC2\") " +
+                                                                 "OR generic_information(\"Cloud\", \"Amazon EC2\")",
+                                                                 ImmutableSet.of("A", "B"),
+                                                                 ImmutableSet.of("A-small",
+                                                                                 "A-regular",
+                                                                                 "A-medium",
+                                                                                 "A"),
+                                                                 ImmutableSet.of("A")) },
+                                              { Assertion.create("generic_information(\"Infrastructure\", \"Amazon EC2\") " +
+                                                                 "OR generic_information(\"Cloud\", \"Amazon EC2\") " +
+                                                                 "AND variable(\"CPU\", \"*\")",
+                                                                 ImmutableSet.of("A", "B"),
+                                                                 ImmutableSet.of("A-small",
+                                                                                 "A-regular",
+                                                                                 "A-medium",
+                                                                                 "A"),
+                                                                 ImmutableSet.of("A")) },
+                                              { Assertion.create("generic_information(\"Infrastructure\", \"Amazon EC2\") " +
+                                                                 "AND generic_information(\"Cloud\", \"Amazon EC2\") " +
+                                                                 "OR variable(\"CPU\", \"*\")",
+                                                                 ImmutableSet.of("A", "B", "D"),
+                                                                 ImmutableSet.of("A-small",
+                                                                                 "A-regular",
+                                                                                 "A-medium",
+                                                                                 "A"),
+                                                                 ImmutableSet.of("A")) },
+                                              { Assertion.create("variable(\"CPU\", \"*\") AND name=\"B\" " +
+                                                                 "AND generic_information(\"Cloud\", \"Amazon EC2\")",
+                                                                 ImmutableSet.of("B"),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("generic_information(\"Infrastructure\", \"Amazon EC2\") " +
+                                                                 "AND generic_information(\"Type\", \"Public\") " +
+                                                                 "AND variable(\"CPU\", \"*\") OR generic_information(\"Cloud\", \"Amazon EC2\") " +
+                                                                 "AND variable(\"CPU\", \"*\") OR name=\"Amazon\"",
+                                                                 ImmutableSet.of("A", "B", "Amazon"),
+                                                                 ImmutableSet.of("A-small",
+                                                                                 "A-regular",
+                                                                                 "A-medium",
+                                                                                 "A"),
+                                                                 ImmutableSet.of("A")) },
 
-                /*
-                 * Querying all revisions of a particular workflow
-                 */
+                                              /*
+                                               * Querying all revisions of a particular workflow
+                                               */
 
-                {
-                        Assertion.create(
-                                "generic_information(\"Size\",\"medium\")",
-                                ImmutableSet.of(),
-                                ImmutableSet.of("A-medium"),
-                                ImmutableSet.of())
-                },
-                {
-                        Assertion.create(
-                                "generic_information(\"Size\",\"*\")",
-                                ImmutableSet.of("A"),
-                                ImmutableSet.of("A-small", "A-regular", "A-medium", "A"),
-                                ImmutableSet.of())
-                },
+                                              { Assertion.create("generic_information(\"Size\",\"medium\")",
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of("A-medium"),
+                                                                 ImmutableSet.of()) },
+                                              { Assertion.create("generic_information(\"Size\",\"*\")",
+                                                                 ImmutableSet.of("A"),
+                                                                 ImmutableSet.of("A-small",
+                                                                                 "A-regular",
+                                                                                 "A-medium",
+                                                                                 "A"),
+                                                                 ImmutableSet.of()) },
 
-                /*
-                 * Querying all revisions of a particular workflow
-                 */
-                {
-                        Assertion.create(
-                                "name=\"Dummy\"",
-                                ImmutableSet.of(),
-                                ImmutableSet.of(),
-                                ImmutableSet.of("Dummy"))
-                },
-                {
-                        Assertion.create(
-                                "variable(\"CPU\",\"4096\")",
-                                ImmutableSet.of(),
-                                ImmutableSet.of(),
-                                ImmutableSet.of("A"))
-                },
+                                              /*
+                                               * Querying all revisions of a particular workflow
+                                               */
+                                              { Assertion.create("name=\"Dummy\"",
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of("Dummy")) },
+                                              { Assertion.create("variable(\"CPU\",\"4096\")",
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of(),
+                                                                 ImmutableSet.of("A")) },
 
+                                              /*
+                                               * Below are queries with invalid syntax
+                                               */
 
-                /*
-                 * Below are queries with invalid syntax
-                 */
-
-                {
-                        Assertion.createSyntacticallyIncorrect(
-                                "generic_information=(\"Infrastructure\", \"Amazon EC2\")")
-                },
-                {
-                        Assertion.createSyntacticallyIncorrect(
-                                "generic_information(\"Infrastructure\"=\"Amazon EC2\")")
-                },
-                {
-                        Assertion.createSyntacticallyIncorrect(
-                                "project_name(\"Infrastructure\", \"Amazon EC2\")")
-                },
-                {
-                        Assertion.createSyntacticallyIncorrect(
-                                "variable(*, *")
-                },
-                {
-                        Assertion.createSyntacticallyIncorrect(
-                                "variable.name=\"CPU\" AND variable.value=\"4\"")
-                },
-                {
-                        Assertion.createSyntacticallyIncorrect(
-                                "variable(variable(\"CPU\",\"4\"), variable(\"CPU\",\"4\"))")
-                },
-                {
-                        Assertion.createSyntacticallyIncorrect(
-                                "()")
-                },
-                {
-                        Assertion.createSyntacticallyIncorrect(
-                                "*(\"CPU\", \"4\")")
-                },
-                {
-                        Assertion.createSyntacticallyIncorrect(
-                                "*=\"A\"")
-                }
-
+                                              { Assertion.createSyntacticallyIncorrect("generic_information=(\"Infrastructure\", \"Amazon EC2\")") },
+                                              { Assertion.createSyntacticallyIncorrect("generic_information(\"Infrastructure\"=\"Amazon EC2\")") },
+                                              { Assertion.createSyntacticallyIncorrect("project_name(\"Infrastructure\", \"Amazon EC2\")") },
+                                              { Assertion.createSyntacticallyIncorrect("variable(*, *") },
+                                              { Assertion.createSyntacticallyIncorrect("variable.name=\"CPU\" AND variable.value=\"4\"") },
+                                              { Assertion.createSyntacticallyIncorrect("variable(variable(\"CPU\",\"4\"), variable(\"CPU\",\"4\"))") },
+                                              { Assertion.createSyntacticallyIncorrect("()") },
+                                              { Assertion.createSyntacticallyIncorrect("*(\"CPU\", \"4\")") },
+                                              { Assertion.createSyntacticallyIncorrect("*=\"A\"") }
 
         });
     }
@@ -349,48 +301,78 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         firstBucket = bucketService.createBucket("first");
 
         // Workflow A
-        ImmutablePair<WorkflowMetadata, ProActiveWorkflowParserResult> workflow =
-                createWorkflowFirstBucket("", "A-small",
-                        ImmutableMap.of("Infrastructure", "Amazon EC2", "Type", "Public", "Size", "small"),
-                        ImmutableMap.of("CPU", "4"));
+        ImmutablePair<WorkflowMetadata, ProActiveWorkflowParserResult> workflow = createWorkflowFirstBucket("",
+                                                                                                            "A-small",
+                                                                                                            ImmutableMap.of("Infrastructure",
+                                                                                                                            "Amazon EC2",
+                                                                                                                            "Type",
+                                                                                                                            "Public",
+                                                                                                                            "Size",
+                                                                                                                            "small"),
+                                                                                                            ImmutableMap.of("CPU",
+                                                                                                                            "4"));
 
         ProActiveWorkflowParserResult parserResult = new ProActiveWorkflowParserResult("",
-                "A-regular",
-                ImmutableMap.of("Infrastructure", "Amazon EC2", "Type", "Public", "Size", "regular"),
-                ImmutableMap.of("CPU", "4"));
+                                                                                       "A-regular",
+                                                                                       ImmutableMap.of("Infrastructure",
+                                                                                                       "Amazon EC2",
+                                                                                                       "Type",
+                                                                                                       "Public",
+                                                                                                       "Size",
+                                                                                                       "regular"),
+                                                                                       ImmutableMap.of("CPU", "4"));
 
-        workflowRevisionService.createWorkflowRevision(
-                firstBucket.id, Optional.of(workflow.getLeft().id), parserResult,
-                Optional.empty(), new byte[0]);
-
-        parserResult = new ProActiveWorkflowParserResult("",
-                "A-medium",
-                ImmutableMap.of("Infrastructure", "Amazon EC2", "Type", "Public", "Size", "medium"),
-                ImmutableMap.of("CPU", "4"));
-
-        workflowRevisionService.createWorkflowRevision(
-                firstBucket.id, Optional.of(workflow.getLeft().id), parserResult,
-                Optional.empty(), new byte[0]);
+        workflowRevisionService.createWorkflowRevision(firstBucket.id,
+                                                       Optional.of(workflow.getLeft().id),
+                                                       parserResult,
+                                                       Optional.empty(),
+                                                       new byte[0]);
 
         parserResult = new ProActiveWorkflowParserResult("",
-                "A",
-                ImmutableMap.of("Infrastructure", "Amazon EC2", "Type", "Public", "Size", "large"),
-                ImmutableMap.of("CPU", "4"));
+                                                         "A-medium",
+                                                         ImmutableMap.of("Infrastructure",
+                                                                         "Amazon EC2",
+                                                                         "Type",
+                                                                         "Public",
+                                                                         "Size",
+                                                                         "medium"),
+                                                         ImmutableMap.of("CPU", "4"));
 
-        workflowRevisionService.createWorkflowRevision(
-                firstBucket.id, Optional.of(workflow.getLeft().id), parserResult,
-                Optional.empty(),  new byte[0]);
+        workflowRevisionService.createWorkflowRevision(firstBucket.id,
+                                                       Optional.of(workflow.getLeft().id),
+                                                       parserResult,
+                                                       Optional.empty(),
+                                                       new byte[0]);
+
+        parserResult = new ProActiveWorkflowParserResult("",
+                                                         "A",
+                                                         ImmutableMap.of("Infrastructure",
+                                                                         "Amazon EC2",
+                                                                         "Type",
+                                                                         "Public",
+                                                                         "Size",
+                                                                         "large"),
+                                                         ImmutableMap.of("CPU", "4"));
+
+        workflowRevisionService.createWorkflowRevision(firstBucket.id,
+                                                       Optional.of(workflow.getLeft().id),
+                                                       parserResult,
+                                                       Optional.empty(),
+                                                       new byte[0]);
 
         workflowA = workflow.getLeft();
 
         // Workflow B
-        workflow = createWorkflowFirstBucket("", "B",
-                ImmutableMap.of("Cloud", "Amazon EC2", "Type", "private"),
-                ImmutableMap.of("CPU", "2"));
+        workflow = createWorkflowFirstBucket("",
+                                             "B",
+                                             ImmutableMap.of("Cloud", "Amazon EC2", "Type", "private"),
+                                             ImmutableMap.of("CPU", "2"));
 
-        workflowRevisionService.createWorkflowRevision(
-                firstBucket.id, Optional.of(workflow.getLeft().id), workflow.getRight(),
-                Optional.empty(), new byte[0]);
+        workflowRevisionService.createWorkflowRevision(firstBucket.id,
+                                                       Optional.of(workflow.getLeft().id),
+                                                       workflow.getRight(),
+                                                       Optional.empty(),
+                                                       new byte[0]);
 
         // Workflow C
         createWorkflowFirstBucket("", "C", ImmutableMap.of("Infrastructure", "OpenStack"), ImmutableMap.of());
@@ -399,23 +381,22 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         createWorkflowFirstBucket("", "D", ImmutableMap.of(), ImmutableMap.of("CPU", "5"));
 
         // Workflow E
-        createWorkflowFirstBucket("FabienExample", "E",
-                ImmutableMap.of("Provider", "Google", "Fournisseur", "Amazon"),
-                ImmutableMap.of("Provider", "Google", "Fournisseur", "Amazon"));
+        createWorkflowFirstBucket("FabienExample",
+                                  "E",
+                                  ImmutableMap.of("Provider", "Google", "Fournisseur", "Amazon"),
+                                  ImmutableMap.of("Provider", "Google", "Fournisseur", "Amazon"));
 
         // Workflow F
-        createWorkflowFirstBucket("FabienExample", "F",
-                ImmutableMap.of("Provider", "Amazon"),
-                ImmutableMap.of("Provider", "Amazon"));
+        createWorkflowFirstBucket("FabienExample",
+                                  "F",
+                                  ImmutableMap.of("Provider", "Amazon"),
+                                  ImmutableMap.of("Provider", "Amazon"));
 
         // Workflow G
-        createWorkflowFirstBucket("CharacterEscaping", "G*",
-                ImmutableMap.of("linebreak", "\\r\\n"),
-                ImmutableMap.of());
+        createWorkflowFirstBucket("CharacterEscaping", "G*", ImmutableMap.of("linebreak", "\\r\\n"), ImmutableMap.of());
 
         // Workflow Amazon
         createWorkflowFirstBucket("", "Amazon", ImmutableMap.of(), ImmutableMap.of());
-
 
         // Workflows that belong to second bucket
 
@@ -425,28 +406,30 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         createWorkflow(secondBucket, "", "Dummy", ImmutableMap.of(), ImmutableMap.of());
 
         // Workflow A
-        createWorkflow(secondBucket, "",
-                "A", ImmutableMap.of("Infrastructure", "Amazon EC2", "Type", "Public"),
-                ImmutableMap.of("CPU", "4096"));
+        createWorkflow(secondBucket,
+                       "",
+                       "A",
+                       ImmutableMap.of("Infrastructure", "Amazon EC2", "Type", "Public"),
+                       ImmutableMap.of("CPU", "4096"));
     }
 
-    private ImmutablePair<WorkflowMetadata, ProActiveWorkflowParserResult> createWorkflowFirstBucket(
-            String projectName, String name,
-            ImmutableMap<String, String> genericInformation, ImmutableMap<String, String> variable) {
+    private ImmutablePair<WorkflowMetadata, ProActiveWorkflowParserResult> createWorkflowFirstBucket(String projectName,
+            String name, ImmutableMap<String, String> genericInformation, ImmutableMap<String, String> variable) {
         return createWorkflow(firstBucket, projectName, name, genericInformation, variable);
     }
 
-    private ImmutablePair<WorkflowMetadata, ProActiveWorkflowParserResult> createWorkflow(
-            BucketMetadata bucket,
-            String projectName, String name,
-            ImmutableMap<String, String> genericInformation, ImmutableMap<String, String> variable) {
+    private ImmutablePair<WorkflowMetadata, ProActiveWorkflowParserResult> createWorkflow(BucketMetadata bucket,
+            String projectName, String name, ImmutableMap<String, String> genericInformation,
+            ImmutableMap<String, String> variable) {
 
-        ProActiveWorkflowParserResult proActiveWorkflowParserResult =
-                new ProActiveWorkflowParserResult(projectName, name,
-                        genericInformation, variable);
+        ProActiveWorkflowParserResult proActiveWorkflowParserResult = new ProActiveWorkflowParserResult(projectName,
+                                                                                                        name,
+                                                                                                        genericInformation,
+                                                                                                        variable);
 
-        WorkflowMetadata workflow = workflowService.createWorkflow(
-                bucket.id, proActiveWorkflowParserResult, new byte[0]);
+        WorkflowMetadata workflow = workflowService.createWorkflow(bucket.id,
+                                                                   proActiveWorkflowParserResult,
+                                                                   new byte[0]);
 
         return ImmutablePair.of(workflow, proActiveWorkflowParserResult);
     }
@@ -505,16 +488,16 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
             return;
         }
 
-        ArrayList<HashMap<Object, Object>> workflowRevisionsFound =
-                response.extract()
-                        .body().jsonPath().get("_embedded.workflowMetadataList");
+        ArrayList<HashMap<Object, Object>> workflowRevisionsFound = response.extract()
+                                                                            .body()
+                                                                            .jsonPath()
+                                                                            .get("_embedded.workflowMetadataList");
 
-        Set<String> names = workflowRevisionsFound.stream().map(
-                workflowRevision -> (String) workflowRevision.get("name")).collect(
-                Collectors.toSet());
+        Set<String> names = workflowRevisionsFound.stream()
+                                                  .map(workflowRevision -> (String) workflowRevision.get("name"))
+                                                  .collect(Collectors.toSet());
 
-        Sets.SetView<String> difference =
-                Sets.symmetricDifference(names, expected);
+        Sets.SetView<String> difference = Sets.symmetricDifference(names, expected);
 
         if (!difference.isEmpty()) {
             fail("Expected " + expected + " but received " + names);
@@ -539,8 +522,7 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
          * @param expectedWorkflowRevisionsNames                 The name of the expected revisions from the first bucket.
          * @param expectedWorkflowRevisionsNamesFromSecondBucket The name of the expected revisions from the second bucket.
          */
-        private Assertion(String query,
-                Set<String> expectedMostRecentWorkflowRevisionNames,
+        private Assertion(String query, Set<String> expectedMostRecentWorkflowRevisionNames,
                 Set<String> expectedWorkflowRevisionsNames,
                 Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
             this.query = query;
@@ -549,14 +531,13 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
             this.expectedWorkflowRevisionsNamesFromSecondBucket = expectedWorkflowRevisionsNamesFromSecondBucket;
         }
 
-        public static Assertion create(String query,
-                Set<String> expectedMostRecentWorkflowRevisionNames,
+        public static Assertion create(String query, Set<String> expectedMostRecentWorkflowRevisionNames,
                 Set<String> expectedWorkflowRevisionsNames,
                 Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
             return new Assertion(query,
-                    expectedMostRecentWorkflowRevisionNames,
-                    expectedWorkflowRevisionsNames,
-                    expectedWorkflowRevisionsNamesFromSecondBucket);
+                                 expectedMostRecentWorkflowRevisionNames,
+                                 expectedWorkflowRevisionsNames,
+                                 expectedWorkflowRevisionsNamesFromSecondBucket);
         }
 
         public static Assertion createSyntacticallyIncorrect(String query) {
@@ -571,9 +552,10 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
 
     private ValidatableResponse findMostRecentWorkflowRevisionsFromBucket(String wcqlQuery, Long bucketId) {
         Response response = given().pathParam("bucketId", bucketId)
-                .queryParam("size", 999)
-                .queryParam("query", wcqlQuery)
-                .when().get(WORKFLOWS_RESOURCE);
+                                   .queryParam("size", 999)
+                                   .queryParam("query", wcqlQuery)
+                                   .when()
+                                   .get(WORKFLOWS_RESOURCE);
 
         logQueryAndResponse(wcqlQuery, response);
 
@@ -581,10 +563,12 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
     }
 
     public ValidatableResponse findAllWorkflowRevisions(String wcqlQuery, long workflowId) {
-        Response response = given().pathParam("bucketId", firstBucket.id).pathParam("workflowId", workflowId)
-                .queryParam("size", 999)
-                .queryParam("query", wcqlQuery)
-                .when().get(WORKFLOW_REVISIONS_RESOURCE);
+        Response response = given().pathParam("bucketId", firstBucket.id)
+                                   .pathParam("workflowId", workflowId)
+                                   .queryParam("size", 999)
+                                   .queryParam("query", wcqlQuery)
+                                   .when()
+                                   .get(WORKFLOW_REVISIONS_RESOURCE);
 
         logQueryAndResponse(wcqlQuery, response);
 

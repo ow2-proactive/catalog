@@ -1,32 +1,27 @@
 /*
- * ProActive Parallel Suite(TM): The Java(TM) library for
- *    Parallel, Distributed, Multi-Core Computing for
- *    Enterprise Grids & Clouds
+ * ProActive Parallel Suite(TM):
+ * The Open Source library for parallel and distributed
+ * Workflows & Scheduling, Orchestration, Cloud Automation
+ * and Big Data Analysis on Enterprise Grids & Clouds.
  *
- * Copyright (C) 1997-2016 INRIA/University of
- *                 Nice-Sophia Antipolis/ActiveEon
- * Contact: proactive@ow2.org or contact@activeeon.com
+ * Copyright (c) 2007 - 2017 ActiveEon
+ * Contact: contact@activeeon.com
  *
- * This library is free software; you can redistribute it and/or
+ * This library is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; version 3 of
+ * as published by the Free Software Foundation: version 3 of
  * the License.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Affero General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- * USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
- *
- * Initial developer(s):               The ProActive Team
- *                         http://proactive.inria.fr/team_members.htm
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
 
@@ -38,6 +33,9 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.ow2.proactive.workflow_catalog.rest.entity.QGenericInformation;
 import org.ow2.proactive.workflow_catalog.rest.entity.QVariable;
 import org.ow2.proactive.workflow_catalog.rest.entity.QWorkflowRevision;
@@ -46,15 +44,14 @@ import org.ow2.proactive.workflow_catalog.rest.query.AtomicLexicalClause.FieldTy
 import org.ow2.proactive.workflow_catalog.rest.query.AtomicLexicalClause.Operator;
 import org.ow2.proactive.workflow_catalog.rest.query.KeyValueLexicalClause.PairType;
 import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.ImmutableMap;
 import com.mysema.query.jpa.JPASubQuery;
 import com.mysema.query.types.expr.BooleanExpression;
 import com.mysema.query.types.query.ListSubQuery;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ErrorNode;
-import org.antlr.v4.runtime.tree.TerminalNode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 /**
  * Workflow Catalog parse-tree listener.
@@ -68,7 +65,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author ActiveEon Team
  */
-public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageListener {
+public class WorkflowCatalogQueryLanguageListener
+        implements org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageListener {
 
     private static final Logger log = LoggerFactory.getLogger(WorkflowCatalogQueryLanguageListener.class);
 
@@ -117,7 +115,6 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
     // Result object
 
     protected BooleanExpression booleanExpression;
-
 
     public WorkflowCatalogQueryLanguageListener() {
         atomicClausesToFuncMap = initAtomicClausesToFuncMap();
@@ -208,14 +205,13 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
                 if (booleanExpression == null) {
                     booleanExpression = QWorkflowRevision.workflowRevision.id.in(clause.listSubQuery);
                 } else {
-                    booleanExpression = booleanExpression.and(
-                            QWorkflowRevision.workflowRevision.id.in(clause.listSubQuery));
+                    booleanExpression = booleanExpression.and(QWorkflowRevision.workflowRevision.id.in(clause.listSubQuery));
                 }
             }
 
-            stackOfSubQueries.push(jpaSubQuery.from(
-                    QWorkflowRevision.workflowRevision).where(booleanExpression).list(
-                    QWorkflowRevision.workflowRevision));
+            stackOfSubQueries.push(jpaSubQuery.from(QWorkflowRevision.workflowRevision)
+                                              .where(booleanExpression)
+                                              .list(QWorkflowRevision.workflowRevision));
         }
     }
 
@@ -254,16 +250,18 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
     }
 
     private void log(String expression) {
-        log.debug("{}:\n\t   stackOfClauses{}\n\t  stackOfContexts{}\n\tstackOfSubQueries{}", expression,
-                stackOfClauses, stackOfContexts, stackOfSubQueries);
+        log.debug("{}:\n\t   stackOfClauses{}\n\t  stackOfContexts{}\n\tstackOfSubQueries{}",
+                  expression,
+                  stackOfClauses,
+                  stackOfContexts,
+                  stackOfSubQueries);
     }
 
     public BooleanExpression getBooleanExpression() {
         return booleanExpression;
     }
 
-    private ListSubQuery<Long> createAtomicLexicalClause(
-            WorkflowCatalogQueryLanguageParser.AtomicClauseContext ctx) {
+    private ListSubQuery<Long> createAtomicLexicalClause(WorkflowCatalogQueryLanguageParser.AtomicClauseContext ctx) {
         String attributeLiteral = ctx.AttributeLiteral().getText();
         String stringLiteral = sanitizeLiteral(ctx.StringLiteral().getText());
 
@@ -273,11 +271,11 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
         Matcher wildcardMatcher = SQL_WILDCARD_PATTERN.matcher(stringLiteral);
         boolean stringLiteralHasWildcard = wildcardMatcher.matches();
 
-        AtomicLexicalClause atomicLexicalClause = new AtomicLexicalClause(fieldType, operator,
-                stringLiteralHasWildcard);
+        AtomicLexicalClause atomicLexicalClause = new AtomicLexicalClause(fieldType,
+                                                                          operator,
+                                                                          stringLiteralHasWildcard);
 
-        Function<String, ListSubQuery<Long>> stringListSubQueryFunction = atomicClausesToFuncMap.get(
-                atomicLexicalClause);
+        Function<String, ListSubQuery<Long>> stringListSubQueryFunction = atomicClausesToFuncMap.get(atomicLexicalClause);
 
         if (stringListSubQueryFunction == null) {
             throw new InvalidClauseRuntimeException("Invalid clause: " + atomicLexicalClause);
@@ -287,8 +285,8 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
 
     }
 
-    private ListSubQuery<Long> createKeyValueLexicalClause(
-            WorkflowCatalogQueryLanguageParser.KeyValueClauseContext ctx) {
+    private ListSubQuery<Long>
+            createKeyValueLexicalClause(WorkflowCatalogQueryLanguageParser.KeyValueClauseContext ctx) {
 
         String attributeLiteral = ctx.AttributeLiteral().getText();
 
@@ -302,10 +300,10 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
         boolean stringLiteralValueHasWirldcard = SQL_WILDCARD_PATTERN.matcher(pairValue).matches();
 
         KeyValueLexicalClause keyValueLexicalClause = new KeyValueLexicalClause(pairType,
-                stringLiteralNameHasWildcard, stringLiteralValueHasWirldcard);
+                                                                                stringLiteralNameHasWildcard,
+                                                                                stringLiteralValueHasWirldcard);
 
-        BiFunction<String, String, ListSubQuery<Long>> stringListSubQueryFunction =
-                keyValueClausesToFuncMap.get(keyValueLexicalClause);
+        BiFunction<String, String, ListSubQuery<Long>> stringListSubQueryFunction = keyValueClausesToFuncMap.get(keyValueLexicalClause);
 
         if (stringListSubQueryFunction == null) {
             throw new InvalidClauseRuntimeException("Invalid clause: " + keyValueLexicalClause);
@@ -324,7 +322,7 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
         // convert not-escaped '*' into '%' -- this is where we interpret the '*'
         // if it is not escaped we want to transform it into a real wildcard
         // if it is escaped we want to use the plain character '*'
-        value = value.replace('*','%');
+        value = value.replace('*', '%');
 
         // convert back '\\TEMP_WILDCARD_RENAMING' to '\\*'
         value = value.replace(WCQL_ESC_WILDCARD_TEMP, "*");
@@ -390,8 +388,7 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
         return context;
     }
 
-    private void moveClauses(
-            Context context) {
+    private void moveClauses(Context context) {
         while (!stackOfClauses.empty()) {
             Clause clause = stackOfClauses.pop();
             context.addClause(clause);
@@ -448,138 +445,103 @@ public class WorkflowCatalogQueryLanguageListener implements org.ow2.proactive.w
     }
 
     protected Map<AtomicLexicalClause, Function<String, ListSubQuery<Long>>> initAtomicClausesToFuncMap() {
-        ImmutableMap.Builder<AtomicLexicalClause,
-                Function<String, ListSubQuery<Long>>> builder = ImmutableMap.builder();
+        ImmutableMap.Builder<AtomicLexicalClause, Function<String, ListSubQuery<Long>>> builder = ImmutableMap.builder();
 
-        builder.put(
-                new AtomicLexicalClause(FieldType.NAME, Operator.EQUAL, false),
-                value -> createSubQueryForAtomicClause(
-                        QWorkflowRevision.workflowRevision.name.eq(value))
-        );
+        builder.put(new AtomicLexicalClause(FieldType.NAME, Operator.EQUAL, false),
+                    value -> createSubQueryForAtomicClause(QWorkflowRevision.workflowRevision.name.eq(value)));
 
-        builder.put(
-                new AtomicLexicalClause(FieldType.NAME, Operator.NOT_EQUAL, false),
-                value -> createSubQueryForAtomicClause(
-                        QWorkflowRevision.workflowRevision.name.ne(value))
-        );
+        builder.put(new AtomicLexicalClause(FieldType.NAME, Operator.NOT_EQUAL, false),
+                    value -> createSubQueryForAtomicClause(QWorkflowRevision.workflowRevision.name.ne(value)));
 
-        builder.put(
-                new AtomicLexicalClause(FieldType.PROJECT_NAME, Operator.EQUAL, false),
-                value -> createSubQueryForAtomicClause(
-                        QWorkflowRevision.workflowRevision.projectName.eq(value))
-        );
+        builder.put(new AtomicLexicalClause(FieldType.PROJECT_NAME, Operator.EQUAL, false),
+                    value -> createSubQueryForAtomicClause(QWorkflowRevision.workflowRevision.projectName.eq(value)));
 
-        builder.put(
-                new AtomicLexicalClause(FieldType.PROJECT_NAME, Operator.NOT_EQUAL, false),
-                value -> createSubQueryForAtomicClause(
-                        QWorkflowRevision.workflowRevision.projectName.ne(value))
-        );
+        builder.put(new AtomicLexicalClause(FieldType.PROJECT_NAME, Operator.NOT_EQUAL, false),
+                    value -> createSubQueryForAtomicClause(QWorkflowRevision.workflowRevision.projectName.ne(value)));
 
-        builder.put(
-                new AtomicLexicalClause(FieldType.NAME, Operator.EQUAL, true),
-                value -> createSubQueryForAtomicClause(
-                        QWorkflowRevision.workflowRevision.name.like(value, '\\'))
-        );
+        builder.put(new AtomicLexicalClause(FieldType.NAME, Operator.EQUAL, true),
+                    value -> createSubQueryForAtomicClause(QWorkflowRevision.workflowRevision.name.like(value, '\\')));
 
-        builder.put(
-                new AtomicLexicalClause(FieldType.NAME, Operator.NOT_EQUAL, true),
-                value -> createSubQueryForAtomicClause(
-                        QWorkflowRevision.workflowRevision.name.notLike(value, '\\'))
-        );
+        builder.put(new AtomicLexicalClause(FieldType.NAME, Operator.NOT_EQUAL, true),
+                    value -> createSubQueryForAtomicClause(QWorkflowRevision.workflowRevision.name.notLike(value,
+                                                                                                           '\\')));
 
-        builder.put(
-                new AtomicLexicalClause(FieldType.PROJECT_NAME, Operator.EQUAL, true),
-                value -> createSubQueryForAtomicClause(
-                        QWorkflowRevision.workflowRevision.projectName.like(value, '\\'))
-        );
+        builder.put(new AtomicLexicalClause(FieldType.PROJECT_NAME, Operator.EQUAL, true),
+                    value -> createSubQueryForAtomicClause(QWorkflowRevision.workflowRevision.projectName.like(value,
+                                                                                                               '\\')));
 
-        builder.put(
-                new AtomicLexicalClause(FieldType.PROJECT_NAME, Operator.NOT_EQUAL, true),
-                value -> createSubQueryForAtomicClause(
-                        QWorkflowRevision.workflowRevision.projectName.notLike(value, '\\'))
-        );
+        builder.put(new AtomicLexicalClause(FieldType.PROJECT_NAME, Operator.NOT_EQUAL, true),
+                    value -> createSubQueryForAtomicClause(QWorkflowRevision.workflowRevision.projectName.notLike(value,
+                                                                                                                  '\\')));
 
         return builder.build();
     }
 
     private ListSubQuery<Long> createSubQueryForAtomicClause(BooleanExpression booleanExpression) {
-        return new JPASubQuery().from(QWorkflowRevision.workflowRevision).where(booleanExpression)
-                .list(QWorkflowRevision.workflowRevision.id);
+        return new JPASubQuery().from(QWorkflowRevision.workflowRevision)
+                                .where(booleanExpression)
+                                .list(QWorkflowRevision.workflowRevision.id);
     }
 
-
-    protected Map<KeyValueLexicalClause, BiFunction<String, String, ListSubQuery<Long>>> initKeyValueClausesToFuncMap() {
+    protected Map<KeyValueLexicalClause, BiFunction<String, String, ListSubQuery<Long>>>
+            initKeyValueClausesToFuncMap() {
         ImmutableMap.Builder<KeyValueLexicalClause, BiFunction<String, String, ListSubQuery<Long>>> builder = ImmutableMap.builder();
 
         // GENERIC INFORMATION
 
-        builder.put(
-                new KeyValueLexicalClause(PairType.GENERIC_INFORMATION, false, false),
-                (key, value) -> createSubQueryForGenericInformationKeyValueClause(
-                        QGenericInformation.genericInformation.key.eq(key).and(
-                                QGenericInformation.genericInformation.value.eq(value)))
-        );
+        builder.put(new KeyValueLexicalClause(PairType.GENERIC_INFORMATION, false, false),
+                    (key, value) -> createSubQueryForGenericInformationKeyValueClause(QGenericInformation.genericInformation.key.eq(key)
+                                                                                                                                .and(QGenericInformation.genericInformation.value.eq(value))));
 
-        builder.put(
-                new KeyValueLexicalClause(PairType.GENERIC_INFORMATION, true, false),
-                (key, value) -> createSubQueryForGenericInformationKeyValueClause(
-                        QGenericInformation.genericInformation.key.like(key, '\\').and(
-                                QGenericInformation.genericInformation.value.eq(value)))
-        );
+        builder.put(new KeyValueLexicalClause(PairType.GENERIC_INFORMATION, true, false),
+                    (key, value) -> createSubQueryForGenericInformationKeyValueClause(QGenericInformation.genericInformation.key.like(key,
+                                                                                                                                      '\\')
+                                                                                                                                .and(QGenericInformation.genericInformation.value.eq(value))));
 
-        builder.put(
-                new KeyValueLexicalClause(PairType.GENERIC_INFORMATION, false, true),
-                (key, value) -> createSubQueryForGenericInformationKeyValueClause(
-                        QGenericInformation.genericInformation.key.eq(key).and(
-                                QGenericInformation.genericInformation.value.like(value, '\\')))
-        );
+        builder.put(new KeyValueLexicalClause(PairType.GENERIC_INFORMATION, false, true),
+                    (key, value) -> createSubQueryForGenericInformationKeyValueClause(QGenericInformation.genericInformation.key.eq(key)
+                                                                                                                                .and(QGenericInformation.genericInformation.value.like(value,
+                                                                                                                                                                                       '\\'))));
 
-        builder.put(
-                new KeyValueLexicalClause(PairType.GENERIC_INFORMATION, true, true),
-                (key, value) -> createSubQueryForGenericInformationKeyValueClause(
-                        QGenericInformation.genericInformation.key.like(key, '\\').and(
-                                QGenericInformation.genericInformation.value.like(value, '\\')))
-        );
+        builder.put(new KeyValueLexicalClause(PairType.GENERIC_INFORMATION, true, true),
+                    (key, value) -> createSubQueryForGenericInformationKeyValueClause(QGenericInformation.genericInformation.key.like(key,
+                                                                                                                                      '\\')
+                                                                                                                                .and(QGenericInformation.genericInformation.value.like(value,
+                                                                                                                                                                                       '\\'))));
 
         // VARIABLES
 
-        builder.put(
-                new KeyValueLexicalClause(PairType.VARIABLE, false, false),
-                (key, value) -> createSubQueryForVarKeyValueClause(
-                        QVariable.variable.key.eq(key).and(QVariable.variable.value.eq(value)))
-        );
+        builder.put(new KeyValueLexicalClause(PairType.VARIABLE, false, false),
+                    (key, value) -> createSubQueryForVarKeyValueClause(QVariable.variable.key.eq(key)
+                                                                                             .and(QVariable.variable.value.eq(value))));
 
-        builder.put(
-                new KeyValueLexicalClause(PairType.VARIABLE, true, false),
-                (key, value) -> createSubQueryForVarKeyValueClause(
-                        QVariable.variable.key.like(key, '\\').and(QVariable.variable.value.eq(value)))
-        );
+        builder.put(new KeyValueLexicalClause(PairType.VARIABLE, true, false),
+                    (key, value) -> createSubQueryForVarKeyValueClause(QVariable.variable.key.like(key, '\\')
+                                                                                             .and(QVariable.variable.value.eq(value))));
 
-        builder.put(
-                new KeyValueLexicalClause(PairType.VARIABLE, false, true),
-                (key, value) -> createSubQueryForVarKeyValueClause(
-                        QVariable.variable.key.eq(key).and(QVariable.variable.value.like(value, '\\')))
-        );
+        builder.put(new KeyValueLexicalClause(PairType.VARIABLE, false, true),
+                    (key, value) -> createSubQueryForVarKeyValueClause(QVariable.variable.key.eq(key)
+                                                                                             .and(QVariable.variable.value.like(value,
+                                                                                                                                '\\'))));
 
-        builder.put(
-                new KeyValueLexicalClause(PairType.VARIABLE, true, true),
-                (key, value) -> createSubQueryForVarKeyValueClause(
-                        QVariable.variable.key.like(key, '\\').and(
-                                QVariable.variable.value.like(value, '\\')))
-        );
+        builder.put(new KeyValueLexicalClause(PairType.VARIABLE, true, true),
+                    (key, value) -> createSubQueryForVarKeyValueClause(QVariable.variable.key.like(key, '\\')
+                                                                                             .and(QVariable.variable.value.like(value,
+                                                                                                                                '\\'))));
 
         return builder.build();
     }
 
-    private ListSubQuery<Long> createSubQueryForGenericInformationKeyValueClause(
-            BooleanExpression booleanExpression) {
-        return new JPASubQuery().from(QGenericInformation.genericInformation).where(booleanExpression)
-                .list(QGenericInformation.genericInformation.workflowRevision.id);
+    private ListSubQuery<Long> createSubQueryForGenericInformationKeyValueClause(BooleanExpression booleanExpression) {
+        return new JPASubQuery().from(QGenericInformation.genericInformation)
+                                .where(booleanExpression)
+                                .list(QGenericInformation.genericInformation.workflowRevision.id);
     }
 
     private ListSubQuery<Long> createSubQueryForVarKeyValueClause(BooleanExpression booleanExpression) {
-        return new JPASubQuery().from(QVariable.variable).where(booleanExpression)
-                .list(QVariable.variable.workflowRevision.id);
+        return new JPASubQuery().from(QVariable.variable)
+                                .where(booleanExpression)
+                                .list(QVariable.variable.workflowRevision.id);
     }
 
 }

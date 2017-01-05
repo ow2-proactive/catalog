@@ -6,3 +6,4 @@ classes
 *.iml
 .idea
 .gradle
+gradle/ext/

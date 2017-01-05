@@ -1,38 +1,43 @@
 /*
- * ProActive Parallel Suite(TM): The Java(TM) library for
- *    Parallel, Distributed, Multi-Core Computing for
- *    Enterprise Grids & Clouds
+ * ProActive Parallel Suite(TM):
+ * The Open Source library for parallel and distributed
+ * Workflows & Scheduling, Orchestration, Cloud Automation
+ * and Big Data Analysis on Enterprise Grids & Clouds.
  *
- * Copyright (C) 1997-2016 INRIA/University of
- *                 Nice-Sophia Antipolis/ActiveEon
- * Contact: proactive@ow2.org or contact@activeeon.com
+ * Copyright (c) 2007 - 2017 ActiveEon
+ * Contact: contact@activeeon.com
  *
- * This library is free software; you can redistribute it and/or
+ * This library is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; version 3 of
+ * as published by the Free Software Foundation: version 3 of
  * the License.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Affero General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- * USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
- *
- * Initial developer(s):               The ProActive Team
- *                         http://proactive.inria.fr/team_members.htm
  */
-
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
-import com.jayway.restassured.path.json.JsonPath;
-import com.jayway.restassured.response.Response;
+import static com.google.common.truth.Truth.assertThat;
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,18 +51,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import com.jayway.restassured.path.json.JsonPath;
+import com.jayway.restassured.response.Response;
 
-import static com.google.common.truth.Truth.assertThat;
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.when;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 /**
  * @author ActiveEon Team
@@ -65,7 +61,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @ActiveProfiles("test")
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {Application.class})
+@SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest(randomPort = true)
 public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
@@ -81,14 +77,13 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String bucketName = "test";
         final String bucketOwner = "BucketControllerIntegrationTest";
 
-        Response response =
-                given().parameters("name", bucketName, "owner", bucketOwner).
-                        when().post(BUCKETS_RESOURCE);
+        Response response = given().parameters("name", bucketName, "owner", bucketOwner).when().post(BUCKETS_RESOURCE);
 
         Object createdAt = response.getBody().jsonPath().get("created_at");
         assertThat(createdAt).isNotNull();
 
-        response.then().assertThat()
+        response.then()
+                .assertThat()
                 .statusCode(HttpStatus.SC_CREATED)
                 .body("id", is(1))
                 .body("name", is(bucketName))
@@ -106,10 +101,16 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String bucketNameKey = "name";
         final String ownerValue = "toto";
         final String bucketNameValue = "TotosBucket";
-        given().parameters(ownerKey,ownerValue, bucketNameKey, bucketNameValue).post(BUCKETS_RESOURCE)
-                .then().assertThat().statusCode(HttpStatus.SC_CREATED);
-        given().parameters(ownerKey,ownerValue, bucketNameKey, bucketNameValue).post(BUCKETS_RESOURCE)
-                .then().assertThat().statusCode(HttpStatus.SC_CONFLICT);
+        given().parameters(ownerKey, ownerValue, bucketNameKey, bucketNameValue)
+               .post(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED);
+        given().parameters(ownerKey, ownerValue, bucketNameKey, bucketNameValue)
+               .post(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CONFLICT);
     }
 
     @Test
@@ -117,15 +118,21 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String ownerKey = "owner";
         final String bucketNameKey = "name";
         final String bucketNameValue = "OneSpecialBucket";
-        given().parameters(ownerKey, "Alice", bucketNameKey, bucketNameValue).post(BUCKETS_RESOURCE)
-                .then().assertThat().statusCode(HttpStatus.SC_CREATED);
-        given().parameters(ownerKey, "Bob", bucketNameKey, bucketNameValue).post(BUCKETS_RESOURCE)
-                .then().assertThat().statusCode(HttpStatus.SC_CREATED);
+        given().parameters(ownerKey, "Alice", bucketNameKey, bucketNameValue)
+               .post(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED);
+        given().parameters(ownerKey, "Bob", bucketNameKey, bucketNameValue)
+               .post(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED);
     }
 
     @Test
     public void testGetBucketShouldReturnSavedBucket() throws Exception {
-        Bucket bucket = bucketRepository.save(new Bucket("myBucket","BucketControllerIntegrationTestUser"));
+        Bucket bucket = bucketRepository.save(new Bucket("myBucket", "BucketControllerIntegrationTestUser"));
         final long bucketId = bucket.getId();
         final String bucketName = bucket.getName();
         final LocalDateTime bucketCreatedAt = bucket.getCreatedAt();
@@ -143,48 +150,56 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testListBucketsShouldReturnEmptyContent() {
-        when().get(BUCKETS_RESOURCE).then().assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("page.number", is(0))
-                .body("page.totalElements", is(0));
+        when().get(BUCKETS_RESOURCE)
+              .then()
+              .assertThat()
+              .statusCode(HttpStatus.SC_OK)
+              .body("page.number", is(0))
+              .body("page.totalElements", is(0));
     }
 
     @Test
     public void testListBucketsShouldReturnSavedBuckets() {
         List<Bucket> buckets = IntStream.rangeClosed(1, 25)
-                .mapToObj(i -> new Bucket("bucket" + i, "BucketResourceAssemblerTestUser"))
-                .collect(Collectors.toList());
+                                        .mapToObj(i -> new Bucket("bucket" + i, "BucketResourceAssemblerTestUser"))
+                                        .collect(Collectors.toList());
 
         bucketRepository.save(buckets);
 
-        when().get(BUCKETS_RESOURCE).then().assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("_embedded.bucketMetadataList", hasSize(20))
-                .body("page.number", is(0))
-                .body("page.totalElements", is(buckets.size()));
+        when().get(BUCKETS_RESOURCE)
+              .then()
+              .assertThat()
+              .statusCode(HttpStatus.SC_OK)
+              .body("_embedded.bucketMetadataList", hasSize(20))
+              .body("page.number", is(0))
+              .body("page.totalElements", is(buckets.size()));
     }
 
     @Test
     public void testListBucketsOwnerShouldReturnNothing() {
-        bucketRepository.save(new Bucket("TotosBucket","toto"));
+        bucketRepository.save(new Bucket("TotosBucket", "toto"));
 
-        given().param("owner", "nonExistingUser").get(BUCKETS_RESOURCE)
-                .then().assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("page.number", is(0))
-                .body("page.totalElements", is(0));
+        given().param("owner", "nonExistingUser")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("page.number", is(0))
+               .body("page.totalElements", is(0));
     }
 
     @Test
     public void testListBucketsOwnerShouldReturnOneBucketOnly() {
         final String owner = "toto";
-        bucketRepository.save(new Bucket("TotosBucket",owner));
+        bucketRepository.save(new Bucket("TotosBucket", owner));
 
-        given().param("owner", owner).get(BUCKETS_RESOURCE)
-                .then().assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("_embedded.bucketMetadataList", hasSize(1))
-                .body("page.number", is(0));
+        given().param("owner", owner)
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("_embedded.bucketMetadataList", hasSize(1))
+               .body("page.number", is(0));
     }
 
     @Test
@@ -196,25 +211,30 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         bucketRepository.save(new Bucket(bucketName, userBob));
 
         // list all -> should return the 2 buckets
-        when().get(BUCKETS_RESOURCE).then().assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("_embedded.bucketMetadataList", hasSize(2))
-                .body("page.number", is(0));
+        when().get(BUCKETS_RESOURCE)
+              .then()
+              .assertThat()
+              .statusCode(HttpStatus.SC_OK)
+              .body("_embedded.bucketMetadataList", hasSize(2))
+              .body("page.number", is(0));
 
         // list alice -> should return one only
-        given().param("owner", userAlice).get(BUCKETS_RESOURCE)
-                .then().assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("_embedded.bucketMetadataList", hasSize(1))
-                .body("page.number", is(0));
+        given().param("owner", userAlice)
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("_embedded.bucketMetadataList", hasSize(1))
+               .body("page.number", is(0));
 
         // list bob -> should return one only
-        given().param("owner", userBob).get(BUCKETS_RESOURCE)
-                .then().assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("_embedded.bucketMetadataList", hasSize(1))
-                .body("page.number", is(0));
+        given().param("owner", userBob)
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("_embedded.bucketMetadataList", hasSize(1))
+               .body("page.number", is(0));
     }
-
 
 }
