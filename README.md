@@ -5,7 +5,7 @@
 
 The purpose of the workflow catalog is to store ProActive workflows.
 
-A workflow catalog is subdivided into buckets. 
+A workflow catalog is subdivided into buckets.
 
 Each bucket manages zero, one or more versioned ProActive workflows.
 

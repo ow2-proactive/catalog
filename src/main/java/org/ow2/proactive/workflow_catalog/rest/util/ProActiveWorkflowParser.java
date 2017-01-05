@@ -1,34 +1,28 @@
 /*
- * ProActive Parallel Suite(TM): The Java(TM) library for
- *    Parallel, Distributed, Multi-Core Computing for
- *    Enterprise Grids & Clouds
+ * ProActive Parallel Suite(TM):
+ * The Open Source library for parallel and distributed
+ * Workflows & Scheduling, Orchestration, Cloud Automation
+ * and Big Data Analysis on Enterprise Grids & Clouds.
  *
- * Copyright (C) 1997-2016 INRIA/University of
- *                 Nice-Sophia Antipolis/ActiveEon
- * Contact: proactive@ow2.org or contact@activeeon.com
+ * Copyright (c) 2007 - 2017 ActiveEon
+ * Contact: contact@activeeon.com
  *
- * This library is free software; you can redistribute it and/or
+ * This library is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; version 3 of
+ * as published by the Free Software Foundation: version 3 of
  * the License.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Affero General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- * USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
- *
- * Initial developer(s):               The ProActive Team
- *                         http://proactive.inria.fr/team_members.htm
  */
-
 package org.ow2.proactive.workflow_catalog.rest.util;
 
 import java.io.InputStream;
@@ -42,7 +36,9 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
 
 import org.ow2.proactive.workflow_catalog.rest.service.UnprocessableEntityException;
+
 import com.google.common.collect.ImmutableMap;
+
 
 /**
  * ProActiveWorkflowParser aims to parse a ProActive XML workflow (whatever the schema version is)
@@ -169,12 +165,9 @@ public final class ProActiveWorkflowParser {
         // based on XSD definition, project name is optional
         String projectName = getProjectName().orElse("");
 
-        String name = getJobName().orElseThrow(
-                getMissingElementException("No job name defined.")
-        );
+        String name = getJobName().orElseThrow(getMissingElementException("No job name defined."));
 
-        return new ProActiveWorkflowParserResult(
-                projectName, name, getGenericInformation(), getVariables());
+        return new ProActiveWorkflowParserResult(projectName, name, getGenericInformation(), getVariables());
     }
 
     private Supplier<UnprocessableEntityException> getMissingElementException(String message) {
@@ -182,46 +175,39 @@ public final class ProActiveWorkflowParser {
     }
 
     private void handleGenericInformationElement(ImmutableMap.Builder<String, String> genericInformation) {
-        handleElementWithMultipleValues(
-                genericInformation,
-                ATTRIBUTE_GENERIC_INFORMATION_NAME,
-                ATTRIBUTE_GENERIC_INFORMATION_VALUE);
+        handleElementWithMultipleValues(genericInformation,
+                                        ATTRIBUTE_GENERIC_INFORMATION_NAME,
+                                        ATTRIBUTE_GENERIC_INFORMATION_VALUE);
     }
 
     private void handleJobElement() {
-        iterateOverAttributes(
-                (attributeName, attributeValue) -> {
-                    if (attributeName.equals(ATTRIBUTE_JOB_NAME)) {
-                        this.jobName = attributeValue;
-                    } else if (attributeName.equals(ATTRIBUTE_JOB_PROJECT_NAME)) {
-                        this.projectName = attributeValue;
-                    }
-                }
-        );
+        iterateOverAttributes((attributeName, attributeValue) -> {
+            if (attributeName.equals(ATTRIBUTE_JOB_NAME)) {
+                this.jobName = attributeValue;
+            } else if (attributeName.equals(ATTRIBUTE_JOB_PROJECT_NAME)) {
+                this.projectName = attributeValue;
+            }
+        });
 
         jobHandled = true;
     }
 
     private void handleVariableElement(ImmutableMap.Builder<String, String> variables) {
-        handleElementWithMultipleValues(
-                variables,
-                ATTRIBUTE_VARIABLE_NAME,
-                ATTRIBUTE_VARIABLE_VALUE);
+        handleElementWithMultipleValues(variables, ATTRIBUTE_VARIABLE_NAME, ATTRIBUTE_VARIABLE_VALUE);
     }
 
-    private void handleElementWithMultipleValues(ImmutableMap.Builder<String, String> store, String attributeNameForKey, String attributeNameForValue) {
+    private void handleElementWithMultipleValues(ImmutableMap.Builder<String, String> store, String attributeNameForKey,
+            String attributeNameForValue) {
         String[] key = new String[1];
         String[] value = new String[1];
 
-        iterateOverAttributes(
-                (attributeName, attributeValue) -> {
-                    if (attributeName.equals(attributeNameForKey)) {
-                        key[0] = attributeValue;
-                    } else if (attributeName.equals(attributeNameForValue)) {
-                        value[0] = attributeValue;
-                    }
-                }
-        );
+        iterateOverAttributes((attributeName, attributeValue) -> {
+            if (attributeName.equals(attributeNameForKey)) {
+                key[0] = attributeValue;
+            } else if (attributeName.equals(attributeNameForValue)) {
+                value[0] = attributeValue;
+            }
+        });
 
         store.put(key[0], value[0]);
     }

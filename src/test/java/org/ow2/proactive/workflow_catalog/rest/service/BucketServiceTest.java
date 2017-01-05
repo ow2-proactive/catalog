@@ -1,34 +1,37 @@
 /*
- * ProActive Parallel Suite(TM): The Java(TM) library for
- *    Parallel, Distributed, Multi-Core Computing for
- *    Enterprise Grids & Clouds
+ * ProActive Parallel Suite(TM):
+ * The Open Source library for parallel and distributed
+ * Workflows & Scheduling, Orchestration, Cloud Automation
+ * and Big Data Analysis on Enterprise Grids & Clouds.
  *
- * Copyright (C) 1997-2016 INRIA/University of
- *                 Nice-Sophia Antipolis/ActiveEon
- * Contact: proactive@ow2.org or contact@activeeon.com
+ * Copyright (c) 2007 - 2017 ActiveEon
+ * Contact: contact@activeeon.com
  *
- * This library is free software; you can redistribute it and/or
+ * This library is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; version 3 of
+ * as published by the Free Software Foundation: version 3 of
  * the License.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Affero General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- * USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
- *
- * Initial developer(s):               The ProActive Team
- *                         http://proactive.inria.fr/team_members.htm
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
+
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -44,13 +47,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 
-import java.io.File;
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author ActiveEon Team
@@ -77,8 +73,7 @@ public class BucketServiceTest {
     public void testCreateBucket() throws Exception {
         Bucket mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
         when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
-        BucketMetadata bucketMetadata = bucketService.createBucket(
-                "BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
+        BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
         verify(bucketRepository, times(1)).save(any(Bucket.class));
         assertEquals(mockedBucket.getName(), bucketMetadata.name);
         assertEquals(mockedBucket.getCreatedAt(), bucketMetadata.createdAt);
@@ -115,14 +110,14 @@ public class BucketServiceTest {
 
     @Test
     public void testPopulateCatalogAndFillBuckets() throws Exception {
-        final String[] buckets = {"Templates", "Cloud-automation"};
+        final String[] buckets = { "Templates", "Cloud-automation" };
         final String workflowsFolder = "/default-workflows";
-        Bucket mockedBucket = newMockedBucket(1L,"mockedBucket", null);
+        Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         int totalNbWorkflows = 0;
 
         for (String bucketName : buckets) {
-            File bucketFolder = new File(Application.class.getResource(workflowsFolder).getPath()
-                    + File.separator + bucketName);
+            File bucketFolder = new File(Application.class.getResource(workflowsFolder).getPath() + File.separator +
+                                         bucketName);
             if (bucketFolder.exists()) {
                 totalNbWorkflows += bucketFolder.list().length;
             }
@@ -135,8 +130,8 @@ public class BucketServiceTest {
 
     @Test
     public void testPopulateCatalogWithEmptyBuckets() throws Exception {
-        final String[] buckets = {"Titi", "Tata", "Toto"};
-        Bucket mockedBucket = newMockedBucket(1L,"mockedBucket", null);
+        final String[] buckets = { "Titi", "Tata", "Toto" };
+        Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
         bucketService.populateCatalog(buckets, "/default-workflows");
         verify(bucketRepository, times(buckets.length)).save(any(Bucket.class));
@@ -145,8 +140,8 @@ public class BucketServiceTest {
 
     @Test(expected = DefaultWorkflowsFolderNotFoundException.class)
     public void testPopulateCatalogFromInvalidFolder() throws Exception {
-        final String[] buckets = {"NonExistentBucket"};
-        Bucket mockedBucket = newMockedBucket(1L,"mockedBucket", null);
+        final String[] buckets = { "NonExistentBucket" };
+        Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
         bucketService.populateCatalog(buckets, "/this-folder-doesnt-exist");
     }
@@ -157,12 +152,10 @@ public class BucketServiceTest {
         bucketService.listBuckets(owner, null, mockedAssembler);
         if (owner.isPresent()) {
             verify(bucketRepository, times(1)).findByOwner(any(String.class), any(Pageable.class));
-        }
-        else {
+        } else {
             verify(bucketRepository, times(1)).findAll(any(Pageable.class));
         }
-        verify(mockedAssembler, times(1)).toResource(any(PageImpl.class),
-                any(BucketResourceAssembler.class));
+        verify(mockedAssembler, times(1)).toResource(any(PageImpl.class), any(BucketResourceAssembler.class));
     }
 
     private Bucket newMockedBucket(Long id, String name, LocalDateTime createdAt) {

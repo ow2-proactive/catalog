@@ -1,34 +1,37 @@
 /*
- * ProActive Parallel Suite(TM): The Java(TM) library for
- *    Parallel, Distributed, Multi-Core Computing for
- *    Enterprise Grids & Clouds
+ * ProActive Parallel Suite(TM):
+ * The Open Source library for parallel and distributed
+ * Workflows & Scheduling, Orchestration, Cloud Automation
+ * and Big Data Analysis on Enterprise Grids & Clouds.
  *
- * Copyright (C) 1997-2016 INRIA/University of
- *                 Nice-Sophia Antipolis/ActiveEon
- * Contact: proactive@ow2.org or contact@activeeon.com
+ * Copyright (c) 2007 - 2017 ActiveEon
+ * Contact: contact@activeeon.com
  *
- * This library is free software; you can redistribute it and/or
+ * This library is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; version 3 of
+ * as published by the Free Software Foundation: version 3 of
  * the License.
  *
- * This library is distributed in the hope that it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Affero General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- * USA
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
- *
- * Initial developer(s):               The ProActive Team
- *                         http://proactive.inria.fr/team_members.htm
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,6 +42,13 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
@@ -51,28 +61,15 @@ import org.ow2.proactive.workflow_catalog.rest.service.repository.VariableReposi
 import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRepository;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.WorkflowRevisionRepository;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
+
 
 /**
  * @author ActiveEon Team
@@ -98,10 +95,13 @@ public class WorkflowRevisionServiceTest {
     private VariableRepository variableRepository;
 
     private static final Long DUMMY_ID = 0L;
+
     private static final Long EXISTING_ID = 1L;
 
     private Bucket mockedBucket;
+
     private SortedSet<WorkflowRevision> revisions;
+
     private Workflow workflow2Rev;
 
     @Before
@@ -111,11 +111,8 @@ public class WorkflowRevisionServiceTest {
         workflowRevisionService = Mockito.spy(workflowRevisionService);
 
         Mockito.doReturn(new Link("test"))
-                .when(workflowRevisionService)
-                .createLink(
-                        Matchers.any(Long.class),
-                        Matchers.any(Long.class),
-                        Matchers.any(WorkflowRevision.class));
+               .when(workflowRevisionService)
+               .createLink(Matchers.any(Long.class), Matchers.any(Long.class), Matchers.any(WorkflowRevision.class));
 
         Long revCnt = EXISTING_ID;
         mockedBucket = newMockedBucket(EXISTING_ID);
@@ -129,44 +126,60 @@ public class WorkflowRevisionServiceTest {
     @Test(expected = BucketNotFoundException.class)
     public void testCreateWorkflowRevisionWithInvalidBucket() throws Exception {
         when(bucketRepository.findOne(Matchers.anyLong())).thenReturn(null);
-        workflowRevisionService.createWorkflowRevision(DUMMY_ID, Optional.empty(),
-                new ProActiveWorkflowParserResult("projectName", "name",
-                        ImmutableMap.of(), ImmutableMap.of()), Optional.empty(), new byte[0]);
+        workflowRevisionService.createWorkflowRevision(DUMMY_ID,
+                                                       Optional.empty(),
+                                                       new ProActiveWorkflowParserResult("projectName",
+                                                                                         "name",
+                                                                                         ImmutableMap.of(),
+                                                                                         ImmutableMap.of()),
+                                                       Optional.empty(),
+                                                       new byte[0]);
     }
 
     @Test
     public void testCreateWorkflowWithGenericInfosAndVariables1() throws IOException {
-        createWorkflow("WR-NAME-GI-VARS", "WR-PROJ-NAME-GI-VARS", "workflow.xml",
-                Optional.empty(), Optional.empty());
+        createWorkflow("WR-NAME-GI-VARS", "WR-PROJ-NAME-GI-VARS", "workflow.xml", Optional.empty(), Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithGenericInfosAndVariables2() throws IOException {
-        createWorkflow("WR-NAME-GI-VARS", "WR-PROJ-NAME-GI-VARS", "workflow.xml",
-                Optional.of(EXISTING_ID), Optional.empty());
+        createWorkflow("WR-NAME-GI-VARS",
+                       "WR-PROJ-NAME-GI-VARS",
+                       "workflow.xml",
+                       Optional.of(EXISTING_ID),
+                       Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithoutGenericInfosOrVariables1() throws IOException {
-        createWorkflow("WR-NAME", "WR-PROJ-NAME", "workflow-no-generic-information-no-variable.xml",
-                Optional.empty(), Optional.empty());
+        createWorkflow("WR-NAME",
+                       "WR-PROJ-NAME",
+                       "workflow-no-generic-information-no-variable.xml",
+                       Optional.empty(),
+                       Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithoutGenericInfosOrVariables2() throws IOException {
-        createWorkflow("WR-NAME", "WR-PROJ-NAME", "workflow-no-generic-information-no-variable.xml",
-                Optional.of(EXISTING_ID), Optional.empty());
+        createWorkflow("WR-NAME",
+                       "WR-PROJ-NAME",
+                       "workflow-no-generic-information-no-variable.xml",
+                       Optional.of(EXISTING_ID),
+                       Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithLayout() throws IOException {
-        createWorkflow("WR-NAME-GI-VARS", "WR-PROJ-NAME-GI-VARS", "workflow.xml",
-                Optional.empty(), Optional.of("{\"offsets\":{\"Linux_Bash_Task\":{\"top\":" +
-                        "222,\"left\":681.5}},\"project\":\"Deployment\",\"detailedView\":true}"));
+        createWorkflow("WR-NAME-GI-VARS",
+                       "WR-PROJ-NAME-GI-VARS",
+                       "workflow.xml",
+                       Optional.empty(),
+                       Optional.of("{\"offsets\":{\"Linux_Bash_Task\":{\"top\":" +
+                                   "222,\"left\":681.5}},\"project\":\"Deployment\",\"detailedView\":true}"));
         // assertions are done in the called method
     }
 
@@ -211,10 +224,8 @@ public class WorkflowRevisionServiceTest {
     public void testGetWorkflowWithInvalidRevisionId() throws Exception {
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(workflowRepository.findOne(anyLong())).thenReturn(mock(Workflow.class));
-        when(workflowRepository.getMostRecentWorkflowRevision(anyLong(), anyLong()))
-                .thenReturn(null);
-        workflowRevisionService.getWorkflow(DUMMY_ID, DUMMY_ID,
-                Optional.empty(), Optional.empty());
+        when(workflowRepository.getMostRecentWorkflowRevision(anyLong(), anyLong())).thenReturn(null);
+        workflowRevisionService.getWorkflow(DUMMY_ID, DUMMY_ID, Optional.empty(), Optional.empty());
     }
 
     @Test
@@ -228,20 +239,24 @@ public class WorkflowRevisionServiceTest {
         Workflow mockedWf = mock(Workflow.class);
         when(mockedWf.getId()).thenReturn(DUMMY_ID);
 
-        WorkflowRevision wfRev = new WorkflowRevision(DUMMY_ID, DUMMY_ID, "WR-TEST", "WR-PROJ-NAME",
-                LocalDateTime.now(), null,
-                Lists.newArrayList(), Lists.newArrayList(), getWorkflowAsByteArray("workflow.xml"));
+        WorkflowRevision wfRev = new WorkflowRevision(DUMMY_ID,
+                                                      DUMMY_ID,
+                                                      "WR-TEST",
+                                                      "WR-PROJ-NAME",
+                                                      LocalDateTime.now(),
+                                                      null,
+                                                      Lists.newArrayList(),
+                                                      Lists.newArrayList(),
+                                                      getWorkflowAsByteArray("workflow.xml"));
         wfRev.setWorkflow(mockedWf);
 
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(workflowRepository.findOne(anyLong())).thenReturn(mock(Workflow.class));
 
         if (revisionId.isPresent()) {
-            when(workflowRevisionRepository.getWorkflowRevision(anyLong(), anyLong(), anyLong()))
-                    .thenReturn(wfRev);
+            when(workflowRevisionRepository.getWorkflowRevision(anyLong(), anyLong(), anyLong())).thenReturn(wfRev);
         } else {
-            when(workflowRepository.getMostRecentWorkflowRevision(anyLong(), anyLong()))
-                    .thenReturn(wfRev);
+            when(workflowRepository.getMostRecentWorkflowRevision(anyLong(), anyLong())).thenReturn(wfRev);
         }
 
         workflowRevisionService.getWorkflow(DUMMY_ID, DUMMY_ID, revisionId, alt);
@@ -270,14 +285,23 @@ public class WorkflowRevisionServiceTest {
 
     @Test
     public void testDeleteWorkflowWith1Revision() throws Exception {
-        WorkflowRevision wfRev = new WorkflowRevision(DUMMY_ID, EXISTING_ID, "WR-TEST", "WR-PROJ-NAME",
-                LocalDateTime.now(), null,
-                Lists.newArrayList(), Lists.newArrayList(), getWorkflowAsByteArray("workflow.xml"));
-        Workflow workflow1Rev = newMockedWorkflow(EXISTING_ID, mockedBucket,
-                new TreeSet<WorkflowRevision>() {{ add(wfRev); }}, EXISTING_ID);
+        WorkflowRevision wfRev = new WorkflowRevision(DUMMY_ID,
+                                                      EXISTING_ID,
+                                                      "WR-TEST",
+                                                      "WR-PROJ-NAME",
+                                                      LocalDateTime.now(),
+                                                      null,
+                                                      Lists.newArrayList(),
+                                                      Lists.newArrayList(),
+                                                      getWorkflowAsByteArray("workflow.xml"));
+        Workflow workflow1Rev = newMockedWorkflow(EXISTING_ID, mockedBucket, new TreeSet<WorkflowRevision>() {
+            {
+                add(wfRev);
+            }
+        }, EXISTING_ID);
         when(workflowRepository.findOne(EXISTING_ID)).thenReturn(workflow1Rev);
-        when(workflowRepository.getMostRecentWorkflowRevision(mockedBucket.getId(), workflow1Rev.getId()))
-                .thenReturn(wfRev);
+        when(workflowRepository.getMostRecentWorkflowRevision(mockedBucket.getId(),
+                                                              workflow1Rev.getId())).thenReturn(wfRev);
         workflowRevisionService.delete(mockedBucket.getId(), EXISTING_ID, Optional.empty());
         verify(workflowRepository, times(1)).getMostRecentWorkflowRevision(EXISTING_ID, EXISTING_ID);
         verify(workflowRepository, times(1)).delete(workflow1Rev);
@@ -286,8 +310,8 @@ public class WorkflowRevisionServiceTest {
     @Test
     public void testDeleteWorkflowWith2RevisionsNoRevisionId() throws Exception {
         when(workflowRepository.findOne(EXISTING_ID)).thenReturn(workflow2Rev);
-        when(workflowRepository.getMostRecentWorkflowRevision(mockedBucket.getId(), workflow2Rev.getId()))
-                .thenReturn(revisions.first());
+        when(workflowRepository.getMostRecentWorkflowRevision(mockedBucket.getId(),
+                                                              workflow2Rev.getId())).thenReturn(revisions.first());
         workflowRevisionService.delete(mockedBucket.getId(), EXISTING_ID, Optional.empty());
         verify(workflowRepository, times(1)).getMostRecentWorkflowRevision(EXISTING_ID, EXISTING_ID);
         verify(workflowRepository, times(1)).delete(workflow2Rev);
@@ -297,11 +321,11 @@ public class WorkflowRevisionServiceTest {
     public void testDeleteWorkflowWith2RevisionsLastRevision() {
         Long expectedRevisionId = 2L;
         when(workflowRepository.findOne(EXISTING_ID)).thenReturn(workflow2Rev);
-        when(workflowRepository.getMostRecentWorkflowRevision(mockedBucket.getId(), EXISTING_ID))
-                .thenReturn(revisions.first());
-        when(workflowRevisionRepository.getWorkflowRevision(
-                mockedBucket.getId(), EXISTING_ID, expectedRevisionId))
-                .thenReturn(revisions.first());
+        when(workflowRepository.getMostRecentWorkflowRevision(mockedBucket.getId(),
+                                                              EXISTING_ID)).thenReturn(revisions.first());
+        when(workflowRevisionRepository.getWorkflowRevision(mockedBucket.getId(),
+                                                            EXISTING_ID,
+                                                            expectedRevisionId)).thenReturn(revisions.first());
         workflowRevisionService.delete(mockedBucket.getId(), EXISTING_ID, Optional.of(expectedRevisionId));
         verify(workflowRevisionRepository, times(1)).delete(revisions.first());
     }
@@ -309,19 +333,26 @@ public class WorkflowRevisionServiceTest {
     @Test
     public void testDeleteWorkflowWith2RevisionsPreviousRevision() {
         when(workflowRepository.findOne(EXISTING_ID)).thenReturn(workflow2Rev);
-        when(workflowRevisionRepository.getWorkflowRevision(mockedBucket.getId(), EXISTING_ID, EXISTING_ID))
-                .thenReturn(revisions.last());
+        when(workflowRevisionRepository.getWorkflowRevision(mockedBucket.getId(),
+                                                            EXISTING_ID,
+                                                            EXISTING_ID)).thenReturn(revisions.last());
         workflowRevisionService.delete(mockedBucket.getId(), EXISTING_ID, Optional.of(EXISTING_ID));
         verify(workflowRevisionRepository, times(1)).getWorkflowRevision(mockedBucket.getId(),
-                workflow2Rev.getId(), EXISTING_ID);
+                                                                         workflow2Rev.getId(),
+                                                                         EXISTING_ID);
         verify(workflowRevisionRepository, times(1)).delete(revisions.last());
     }
 
-    private WorkflowRevision newWorkflowRevision(Long bucketId, Long revisionId, LocalDateTime date)
-            throws Exception {
-        return new WorkflowRevision(bucketId, revisionId, "WR-TEST", "WR-PROJ-NAME",
-                date, null,
-                Lists.newArrayList(), Lists.newArrayList(), getWorkflowAsByteArray("workflow.xml"));
+    private WorkflowRevision newWorkflowRevision(Long bucketId, Long revisionId, LocalDateTime date) throws Exception {
+        return new WorkflowRevision(bucketId,
+                                    revisionId,
+                                    "WR-TEST",
+                                    "WR-PROJ-NAME",
+                                    date,
+                                    null,
+                                    Lists.newArrayList(),
+                                    Lists.newArrayList(),
+                                    getWorkflowAsByteArray("workflow.xml"));
     }
 
     private Bucket newMockedBucket(Long bucketId) {
@@ -337,7 +368,7 @@ public class WorkflowRevisionServiceTest {
         when(workflow.getBucket()).thenReturn(bucket);
         when(workflow.getRevisions()).thenReturn(revisions);
         when(workflow.getLastRevisionId()).thenReturn(lastRevisionId);
-        for (WorkflowRevision workflowRevision: revisions) {
+        for (WorkflowRevision workflowRevision : revisions) {
             workflowRevision.setWorkflow(workflow);
         }
         return workflow;
@@ -347,39 +378,45 @@ public class WorkflowRevisionServiceTest {
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(workflowRepository.findOne(anyLong())).thenReturn(mock(Workflow.class));
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
-        when(mockedAssembler.toResource(any(PageImpl.class), any(WorkflowRevisionResourceAssembler.class)))
-                .thenReturn(null);
+        when(mockedAssembler.toResource(any(PageImpl.class),
+                                        any(WorkflowRevisionResourceAssembler.class))).thenReturn(null);
 
         if (wId.isPresent()) {
-            when(workflowRevisionRepository.getRevisions(anyLong(), any(Pageable.class)))
-                    .thenReturn(mock(PageImpl.class));
+            when(workflowRevisionRepository.getRevisions(anyLong(),
+                                                         any(Pageable.class))).thenReturn(mock(PageImpl.class));
         } else {
-            when(workflowRepository.getMostRecentRevisions(anyLong(), any(Pageable.class)))
-                    .thenReturn(mock(PageImpl.class));
+            when(workflowRepository.getMostRecentRevisions(anyLong(),
+                                                           any(Pageable.class))).thenReturn(mock(PageImpl.class));
         }
 
         workflowRevisionService.listWorkflows(DUMMY_ID, wId, Optional.empty(), null, mockedAssembler);
     }
 
     private void createWorkflow(String name, String projectName, String fileName, Optional<Long> wId,
-            Optional<String> layout)
-            throws IOException {
+            Optional<String> layout) throws IOException {
         String layoutStr = layout.orElse("");
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(genericInformationRepository.save(any(List.class))).thenReturn(Lists.newArrayList());
         when(variableRepository.save(any(List.class))).thenReturn(Lists.newArrayList());
-        when(workflowRevisionRepository.save(any(WorkflowRevision.class)))
-                .thenReturn(new WorkflowRevision(EXISTING_ID, EXISTING_ID, name, projectName,
-                        LocalDateTime.now(), layoutStr, Lists.newArrayList(), Lists.newArrayList(),
-                        getWorkflowAsByteArray(fileName)));
+        when(workflowRevisionRepository.save(any(WorkflowRevision.class))).thenReturn(new WorkflowRevision(EXISTING_ID,
+                                                                                                           EXISTING_ID,
+                                                                                                           name,
+                                                                                                           projectName,
+                                                                                                           LocalDateTime.now(),
+                                                                                                           layoutStr,
+                                                                                                           Lists.newArrayList(),
+                                                                                                           Lists.newArrayList(),
+                                                                                                           getWorkflowAsByteArray(fileName)));
 
         if (wId.isPresent()) {
-            when(workflowRepository.findOne(anyLong()))
-                    .thenReturn(new Workflow(mock(Bucket.class), Lists.newArrayList()));
+            when(workflowRepository.findOne(anyLong())).thenReturn(new Workflow(mock(Bucket.class),
+                                                                                Lists.newArrayList()));
         }
 
-        WorkflowMetadata actualWFMetadata = workflowRevisionService.createWorkflowRevision(
-                DUMMY_ID, wId, getWorkflowAsByteArray(fileName), layout);
+        WorkflowMetadata actualWFMetadata = workflowRevisionService.createWorkflowRevision(DUMMY_ID,
+                                                                                           wId,
+                                                                                           getWorkflowAsByteArray(fileName),
+                                                                                           layout);
 
         verify(workflowRevisionRepository, times(1)).save(any(WorkflowRevision.class));
 
@@ -393,8 +430,7 @@ public class WorkflowRevisionServiceTest {
     }
 
     private static byte[] getWorkflowAsByteArray(String filename) throws IOException {
-        return ByteStreams.toByteArray(
-                new FileInputStream(getWorkflowFile(filename)));
+        return ByteStreams.toByteArray(new FileInputStream(getWorkflowFile(filename)));
     }
 
     private static File getWorkflowFile(String filename) {

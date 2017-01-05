@@ -1,45 +1,41 @@
 /*
- *  ProActive Parallel Suite(TM): The Java(TM) library for
- *     Parallel, Distributed, Multi-Core Computing for
- *     Enterprise Grids & Clouds
+ * ProActive Parallel Suite(TM):
+ * The Open Source library for parallel and distributed
+ * Workflows & Scheduling, Orchestration, Cloud Automation
+ * and Big Data Analysis on Enterprise Grids & Clouds.
  *
- *  Copyright (C) 1997-2016 INRIA/University of
- *                  Nice-Sophia Antipolis/ActiveEon
- *  Contact: proactive@ow2.org or contact@activeeon.com
+ * Copyright (c) 2007 - 2017 ActiveEon
+ * Contact: contact@activeeon.com
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Affero General Public License
- *  as published by the Free Software Foundation; version 3 of
- *  the License.
+ * This library is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation: version 3 of
+ * the License.
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Affero General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
  *
- *  You should have received a copy of the GNU Affero General Public License
- *  along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
- *  USA
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- *  If needed, contact us to obtain a release under GPL Version 2 or 3
- *  or a different license than the AGPL.
- *
- *  Initial developer(s):               The ProActive Team
- *                          http://proactive.inria.fr/team_members.htm
+ * If needed, contact us to obtain a release under GPL Version 2 or 3
+ * or a different license than the AGPL.
  */
 package org.ow2.proactive.workflow_catalog.rest.query;
-
-import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQueryLanguageParser;
+
 
 /**
  * Unit and functional tests associated to {@link WorkflowCatalogQueryLanguageListener}.
@@ -73,16 +69,14 @@ public class WorkflowCatalogQueryLanguageListenerTest {
      */
     @Test
     public void testWalkOnValidQuery() throws SyntaxException {
-        WorkflowCatalogQueryCompiler queryCompiler =
-                new WorkflowCatalogQueryCompiler();
+        WorkflowCatalogQueryCompiler queryCompiler = new WorkflowCatalogQueryCompiler();
 
         String query = "generic_information(\"Infrastructure\", \"Amazon EC2\") " +
-                "AND generic_information(\"Type\", \"Public\") "
-                + "AND variable(\"CPU\", \"*\") OR generic_information(\"Cloud\", \"Amazon EC2\") "
-                + "AND variable(\"CPU\", \"*\") OR name=\"Amazon\"";
+                       "AND generic_information(\"Type\", \"Public\") " +
+                       "AND variable(\"CPU\", \"*\") OR generic_information(\"Cloud\", \"Amazon EC2\") " +
+                       "AND variable(\"CPU\", \"*\") OR name=\"Amazon\"";
 
-        WorkflowCatalogQueryLanguageParser.StartContext context =
-                queryCompiler.compile(query);
+        WorkflowCatalogQueryLanguageParser.StartContext context = queryCompiler.compile(query);
 
         ParseTreeWalker walker = new ParseTreeWalker();
 
