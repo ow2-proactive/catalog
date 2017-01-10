@@ -5,7 +5,7 @@
 *.sh text eof=lf
 *.md text eof=lf
 
-*.bat text eof=crlf
+*.bat eof=crlf
 *.xml text
 
 *.png binary
