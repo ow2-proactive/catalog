@@ -1,5 +1,5 @@
 *.java text eol=lf
-*.gradle text eof=lf
+*.gradle eof=lf
 *.sh text eof=lf
 *.md text eof=lf
 
