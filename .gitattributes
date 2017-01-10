@@ -1,9 +1,9 @@
-*.java text eol=lf
-*.gradle eof=lf
-*.sh text eof=lf
-*.md text eof=lf
+*.java eol=lf
+*.gradle eol=lf
+*.sh eol=lf
+*.md eol=lf
 
-*.bat eof=crlf
+*.bat eol=crlf
 
 *.png binary
 *.jpg binary
