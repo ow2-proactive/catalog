@@ -1,4 +1,12 @@
-* text eol=lf
+* text=auto
+
+*.java text eol=lf
+*.gradle text eof=lf
+*.sh text eof=lf
+*.md text eof=lf
+
+*.bat text eof=crlf
+*.xml text
 
 *.png binary
 *.jpg binary
