@@ -1,13 +1,21 @@
-# ProActive Workflow Catalog
+# ProActive Catalog
 
-[![Build Status](http://jenkins.activeeon.com/buildStatus/icon?job=workflow-catalog)](http://jenkins.activeeon.com/job/workflow-catalog/)
-[![Coverage Status](https://coveralls.io/repos/github/ow2-proactive/workflow-catalog/badge.svg?branch=origin%2Fmaster)](https://coveralls.io/github/ow2-proactive/workflow-catalog?branch=origin%2Fmaster)
+[![Build Status](http://jenkins.activeeon.com/buildStatus/icon?job=catalog)](http://jenkins.activeeon.com/job/catalog/)
+[![Coverage Status](https://coveralls.io/repos/github/ow2-proactive/catalog/badge.svg?branch=origin%2Fmaster)](https://coveralls.io/github/ow2-proactive/catalog?branch=origin%2Fmaster)
 
-The purpose of the workflow catalog is to store ProActive workflows.
+The goal of the catalog is to store ProActive objects. It is the catalog for general purpose. 
 
-A workflow catalog is subdivided into buckets.
+The stored objects in the catalog could be: 
+- rule for PCW service 
+- workflow 
+- selection script
+- Proactive pre/post task
+- objects for authentication service 
+- any kind of other objects
 
-Each bucket manages zero, one or more versioned ProActive workflows.
+Catalog contains a set of objects organized into buckets with versioning capabilities.
+
+A single Bucket can store multiple kinds of objects
 
 ## Building and deploying
 
@@ -20,7 +28,7 @@ $ gradle clean build war
 Then, you can directly deploy the service with embedded Tomcat:
 
 ```
-$ java -jar build/libs/workflow-catalog-X.Y.Z-SNAPSHOT.war
+$ java -jar build/libs/catalog-X.Y.Z-SNAPSHOT.war
 ```
 
 The WAR file produced by Gradle can also be deployed in the embedded Jetty container started by an instance of [ProActive Server](https://github.com/ow2-proactive/scheduling).
@@ -56,48 +64,48 @@ Listing available buckets targeting page 42:
 $ http http://localhost:8080/buckets?page=42
 ```
 
-### Workflow resource
+### Object resource
 
-**REST actions related to existing workflows apply to the latest revision of the identified workflow.**
+**REST actions related to existing objects apply to the latest revision of the identified object.**
 
-Adding a new workflow in bucket with identifier 1:
+Adding a new object in bucket with identifier 1:
 ```
-$ http -f POST http://localhost:8080/buckets/1/workflows file@/path/to/workflow.xml
-```
-
-Getting workflow metadata for workflow with identifier 1 in bucket with id 1:
-```
-$ http http://localhost:8080/buckets/1/workflows/1
+$ http -f POST http://localhost:8080/buckets/1/objects file@/path/to/object.xml
 ```
 
-Fetching workflow XML payload for workflow with identifier 1 in bucket with id 1:
+Getting object metadata for object with identifier 1 in bucket with id 1:
 ```
-$ http http://localhost:8080/buckets/1/workflows/1?alt=xml
-```
-
-Listing workflows managed by bucket with identifier 1:
-```
-$ http http://localhost:8080/buckets/1/workflows
+$ http http://localhost:8080/buckets/1/objects/1
 ```
 
-### Workflow revision resource
-
-Adding a new workflow revision for workflow with identifier 1 in bucket with id 1:
+Fetching object XML payload for object with identifier 1 in bucket with id 1:
 ```
-$ http -f POST http://localhost:8080/buckets/1/workflows/1/revisions file@/path/to/workflow.xml
+$ http http://localhost:8080/buckets/1/objects/1?alt=xml
 ```
 
-Getting workflow metadata for workflow with identifier 1 and revision 1 in bucket with id 1:
+Listing objects managed by bucket with identifier 1:
 ```
-$ http http://localhost:8080/buckets/1/workflows/1/revisions/1
-```
-
-Fetching workflow XML payload for workflow with identifier 1 and revision 1 in bucket with id 1:
-```
-$ http http://localhost:8080/buckets/1/workflows/1/revisions/1?alt=xml
+$ http http://localhost:8080/buckets/1/objects
 ```
 
-Listing all revisions for workflow with identifier 1:
+### object revision resource
+
+Adding a new object revision for object with identifier 1 in bucket with id 1:
 ```
-$ http http://localhost:8080/buckets/1/workflows/1/revisions
+$ http -f POST http://localhost:8080/buckets/1/objects/1/revisions file@/path/to/object.xml
+```
+
+Getting object metadata for object with identifier 1 and revision 1 in bucket with id 1:
+```
+$ http http://localhost:8080/buckets/1/objects/1/revisions/1
+```
+
+Fetching object XML payload for object with identifier 1 and revision 1 in bucket with id 1:
+```
+$ http http://localhost:8080/buckets/1/objects/1/revisions/1?alt=xml
+```
+
+Listing all revisions for object with identifier 1:
+```
+$ http http://localhost:8080/buckets/1/objects/1/revisions
 ```
