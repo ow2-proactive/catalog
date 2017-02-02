@@ -7,3 +7,10 @@ classes
 .idea
 .gradle
 gradle/ext/
+/bin/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
