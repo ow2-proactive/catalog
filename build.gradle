@@ -132,9 +132,9 @@ dependencies {
 
     compile 'org.eclipse.jetty:jetty-servlets:9.2.14.v20151106'
 
-    providedCompile 'org.springframework.boot:spring-boot-starter-tomcat:1.3.5.RELEASE'
+    compile 'org.springframework.boot:spring-boot-starter-tomcat:1.3.5.RELEASE'
 
-    providedRuntime 'org.hsqldb:hsqldb:2.3.4'
+    runtime 'org.hsqldb:hsqldb:2.3.4'
 
     compile 'io.springfox:springfox-spring-web:2.4.0'
     compile 'io.springfox:springfox-swagger2:2.4.0'

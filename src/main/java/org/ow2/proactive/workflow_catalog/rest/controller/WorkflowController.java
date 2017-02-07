@@ -30,12 +30,17 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
@@ -78,12 +83,44 @@ public class WorkflowController {
         return workflowService.createWorkflow(bucketId, layout, file.getBytes());
     }
 
+    @ApiOperation(value = "Creates new workflows from zip archive")
+    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
+                            @ApiResponse(code = 422, message = "Invalid XML workflow content supplied") })
+    @RequestMapping(value = "/buckets/{bucketId}/workflowsarchive", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<WorkflowMetadata> createWorkflows(@PathVariable Long bucketId,
+            @ApiParam(value = "Layout describing the tasks position in the Workflow") @RequestParam(required = false) Optional<String> layout,
+            @RequestPart(value = "file") MultipartFile file) throws IOException {
+        return workflowService.createWorkflows(bucketId, layout, file.getBytes());
+    }
+
     @ApiOperation(value = "Gets a workflow's metadata by IDs", notes = "Returns metadata associated to the latest revision of the workflow.")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}", method = GET)
     public ResponseEntity<?> get(@PathVariable Long bucketId, @PathVariable Long workflowId,
             @ApiParam(value = "Force response to return workflow XML content when set to 'xml'.") @RequestParam(required = false) Optional<String> alt) {
         return workflowService.getWorkflowMetadata(bucketId, workflowId, alt);
+    }
+
+    @ApiOperation(value = "Gets workflows as ZIP archive", notes = "Returns an archive containing the workflows associated to the given list of IDs.")
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
+    @RequestMapping(value = "/buckets/{bucketId}/workflowsarchive/{idList}", method = GET)
+    public void getWorkflowsAsArchive(@PathVariable Long bucketId, @PathVariable List<Long> idList,
+            HttpServletResponse response) {
+
+        byte[] zip = workflowService.getWorkflowsAsArchive(bucketId, idList);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/zip");
+        response.addHeader("Content-Disposition", "attachment; filename=\"compress.zip\"");
+        response.addHeader("Content-Transfer-Encoding", "binary");
+        try {
+            response.getOutputStream().write(zip);
+            response.getOutputStream().flush();
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+
     }
 
     @ApiOperation(value = "Lists workflows metadata", notes = "Returns workflows metadata associated to the latest revision.")
