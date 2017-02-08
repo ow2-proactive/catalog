@@ -43,6 +43,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class ArchiveManagerHelper {
 
+    /**
+     * Get the name of the Workflow used into the archive (in order not to have twice the same
+     * name). If the name of the Workflow already exists, an index is append to the name.
+     * @param existingNames the set of names already used
+     * @param currentName the Workflow current name
+     * @return the name of the Workflow different from all existing names
+     */
     public String getName(Set<String> existingNames, String currentName) {
 
         if (!existingNames.contains(currentName))
@@ -59,20 +66,33 @@ public class ArchiveManagerHelper {
 
     }
 
-    public byte[] compressZIP(List<WorkflowRevision> filesByteArrayList) {
+    /**
+     * Compress a list of WorkflowRevision into a ZIP archive
+     * @param workflowsList the list of workflows to compress
+     * @return a byte array corresponding to the archive containing the workflows
+     */
+    public byte[] compressZIP(List<WorkflowRevision> workflowsList) {
 
-        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);) {
+        if (workflowsList == null || workflowsList.size() == 0) {
+            return null;
+        }
+
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
 
             Set<String> existingNames = new HashSet<>();
-            for (int i = 0; i < filesByteArrayList.size(); i++) {
-                WorkflowRevision file = filesByteArrayList.get(i);
+            for (WorkflowRevision file : workflowsList) {
                 String fileName = getName(existingNames, file.getName());
                 existingNames.add(fileName);
+
+                byte[] xmlByteArray = file.getXmlPayload();
+
                 ZipEntry entry = new ZipEntry(fileName);
-                entry.setSize(file.getXmlPayload().length);
+                entry.setSize(xmlByteArray.length);
+
                 zipOutputStream.putNextEntry(entry);
-                zipOutputStream.write(file.getXmlPayload());
+                zipOutputStream.write(xmlByteArray);
                 zipOutputStream.closeEntry();
             }
 
@@ -84,20 +104,26 @@ public class ArchiveManagerHelper {
 
     }
 
-    public List<byte[]> extractZIP(byte[] inputStreamArchive) {
+    /**
+     * Extract workflows from an archive
+     * @param byteArrayArchive the archive as byte array
+     * @return the list of Workflows byte arrays
+     */
+    public List<byte[]> extractZIP(byte[] byteArrayArchive) {
+
         List<byte[]> filesList = new ArrayList<>();
+        if (byteArrayArchive == null) {
+            return filesList;
+        }
 
         try {
-            ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(inputStreamArchive));
+            ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(byteArrayArchive));
 
-            ZipEntry entry = null;
-            while ((entry = zipInputStream.getNextEntry()) != null) {
+            while (zipInputStream.getNextEntry() != null) {
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 int data = 0;
-                int size = 0;
-                while (((data = zipInputStream.read()) != -1) && (size < entry.getSize())) {
+                while ((data = zipInputStream.read()) != -1) {
                     outputStream.write(data);
-                    size++;
                 }
                 outputStream.close();
                 filesList.add(outputStream.toByteArray());

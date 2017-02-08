@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -32,13 +33,20 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
@@ -86,6 +94,31 @@ public class WorkflowControllerTest {
         when(file.getBytes()).thenReturn(null);
         workflowController.create(1L, Optional.empty(), file);
         verify(workflowService, times(1)).createWorkflow(1L, Optional.empty(), null);
+    }
+
+    @Test
+    public void testCreateWorkflows() throws IOException {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.getBytes()).thenReturn(null);
+        workflowController.createWorkflowsFromArchive(1L, Optional.empty(), file);
+        verify(workflowService, times(1)).createWorkflows(1L, Optional.empty(), null);
+    }
+
+    @Test
+    public void testGetWorkflowsAsArchive() throws IOException {
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        ServletOutputStream sos = mock(ServletOutputStream.class);
+        when(response.getOutputStream()).thenReturn(sos);
+        List<Long> idList = new ArrayList<>();
+        idList.add(0L);
+        workflowController.getWorkflowsAsArchive(1L, idList, response);
+        verify(workflowService, times(1)).getWorkflowsAsArchive(1L, idList);
+        verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
+        verify(response, times(1)).setContentType("application/zip");
+        verify(response, times(1)).addHeader("Content-Transfer-Encoding", "binary");
+        verify(response, times(1)).addHeader("Content-Disposition", "attachment; filename=\"archive.zip\"");
+        verify(sos, times(1)).write(Mockito.any());
+        verify(sos, times(1)).flush();
     }
 
     @Test

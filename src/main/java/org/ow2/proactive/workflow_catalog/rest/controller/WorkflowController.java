@@ -39,8 +39,6 @@ import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
@@ -88,7 +86,7 @@ public class WorkflowController {
                             @ApiResponse(code = 422, message = "Invalid XML workflow content supplied") })
     @RequestMapping(value = "/buckets/{bucketId}/workflowsarchive", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public List<WorkflowMetadata> createWorkflows(@PathVariable Long bucketId,
+    public List<WorkflowMetadata> createWorkflowsFromArchive(@PathVariable Long bucketId,
             @ApiParam(value = "Layout describing the tasks position in the Workflow") @RequestParam(required = false) Optional<String> layout,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
         return workflowService.createWorkflows(bucketId, layout, file.getBytes());
@@ -112,7 +110,7 @@ public class WorkflowController {
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/zip");
-        response.addHeader("Content-Disposition", "attachment; filename=\"compress.zip\"");
+        response.addHeader("Content-Disposition", "attachment; filename=\"archive.zip\"");
         response.addHeader("Content-Transfer-Encoding", "binary");
         try {
             response.getOutputStream().write(zip);
