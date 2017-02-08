@@ -69,6 +69,8 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private static final String WORKFLOWS_RESOURCE = "/buckets/{bucketId}/workflows";
 
+    private static final String ARCHIVES_RESOURCE = "/buckets/{bucketId}/workflowsarchive";
+
     private static final String WORKFLOW_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}";
 
     private static final String layoutMetadata = "{\"offsets\":{\"Linux_Bash_Task\":{\"top\":222" +
@@ -293,6 +295,55 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
                .pathParam("workflowId", 42)
                .when()
                .delete(WORKFLOW_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void testCreateWorkflowsFromArchive() {
+        given().pathParam("bucketId", bucket.getId())
+               .queryParam("layout", layoutMetadata)
+               .multiPart(IntegrationTestUtil.getArchiveFile("archive.zip"))
+               .when()
+               .post(ARCHIVES_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED);
+    }
+
+    @Test
+    public void testCreateWorkflowsFromArchiveWithBadArchive() {
+        given().pathParam("bucketId", bucket.getId())
+               .queryParam("layout", layoutMetadata)
+               .multiPart(IntegrationTestUtil.getArchiveFile("workflow_0.xml"))
+               .when()
+               .post(ARCHIVES_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+    }
+
+    @Test
+    public void testGetWorkflowsAsArchive() {
+        given().pathParam("bucketId", bucket.getId())
+               .pathParam("idList", workflow.id)
+               .queryParam("layout", layoutMetadata)
+               .when()
+               .get(ARCHIVES_RESOURCE + "/{idList}")
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .contentType("application/zip");
+    }
+
+    @Test
+    public void testGetWorkflowsAsArchiveWithNotExistingWorkflow() {
+        given().pathParam("bucketId", bucket.getId())
+               .pathParam("idList", "1,2")
+               .queryParam("layout", layoutMetadata)
+               .when()
+               .get(ARCHIVES_RESOURCE + "/{idList}")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);

@@ -83,7 +83,7 @@ public class WorkflowController {
 
     @ApiOperation(value = "Creates new workflows from zip archive")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
-                            @ApiResponse(code = 422, message = "Invalid XML workflow content supplied") })
+                            @ApiResponse(code = 422, message = "Invalid ZIP archive") })
     @RequestMapping(value = "/buckets/{bucketId}/workflowsarchive", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public List<WorkflowMetadata> createWorkflowsFromArchive(@PathVariable Long bucketId,

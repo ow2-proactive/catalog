@@ -25,26 +25,20 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.util.ArchiveManagerHelper;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 
 /**
@@ -78,10 +72,14 @@ public class WorkflowService {
     public List<WorkflowMetadata> createWorkflows(Long bucketId, Optional<String> layout,
             byte[] proActiveWorkflowsArchive) {
 
-        return archiveManagerHelper.extractZIP(proActiveWorkflowsArchive)
-                                   .stream()
-                                   .map(workflowFile -> createWorkflow(bucketId, layout, workflowFile))
-                                   .collect(Collectors.toList());
+        List<byte[]> extractedWorkflows = archiveManagerHelper.extractZIP(proActiveWorkflowsArchive);
+        if (extractedWorkflows.isEmpty()) {
+            throw new UnprocessableEntityException("Marformed archive");
+        } else {
+            return extractedWorkflows.stream()
+                                     .map(workflowFile -> createWorkflow(bucketId, layout, workflowFile))
+                                     .collect(Collectors.toList());
+        }
     }
 
     public ResponseEntity<?> getWorkflowMetadata(long bucketId, long workflowId, Optional<String> alt) {
