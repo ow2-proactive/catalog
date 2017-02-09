@@ -25,7 +25,6 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -33,9 +32,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -92,7 +91,7 @@ public class WorkflowControllerTest {
     public void testCreate() throws IOException {
         MultipartFile file = mock(MultipartFile.class);
         when(file.getBytes()).thenReturn(null);
-        workflowController.create(1L, Optional.empty(), file);
+        workflowController.create(1L, Optional.empty(), Optional.empty(), file);
         verify(workflowService, times(1)).createWorkflow(1L, Optional.empty(), null);
     }
 
@@ -100,7 +99,7 @@ public class WorkflowControllerTest {
     public void testCreateWorkflows() throws IOException {
         MultipartFile file = mock(MultipartFile.class);
         when(file.getBytes()).thenReturn(null);
-        workflowController.createWorkflowsFromArchive(1L, Optional.empty(), file);
+        workflowController.create(1L, Optional.empty(), Optional.of("zip"), file);
         verify(workflowService, times(1)).createWorkflows(1L, Optional.empty(), null);
     }
 
@@ -111,7 +110,7 @@ public class WorkflowControllerTest {
         when(response.getOutputStream()).thenReturn(sos);
         List<Long> idList = new ArrayList<>();
         idList.add(0L);
-        workflowController.getWorkflowsAsArchive(1L, idList, response);
+        workflowController.get(1L, idList, Optional.of("zip"), response);
         verify(workflowService, times(1)).getWorkflowsAsArchive(1L, idList);
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
         verify(response, times(1)).setContentType("application/zip");
@@ -136,7 +135,8 @@ public class WorkflowControllerTest {
 
     @Test
     public void testGet() throws Exception {
-        workflowController.get(1L, 2L, Optional.empty());
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        workflowController.get(1L, Collections.singletonList(2L), Optional.empty(), response);
         verify(workflowService, times(1)).getWorkflowMetadata(1L, 2L, Optional.empty());
     }
 

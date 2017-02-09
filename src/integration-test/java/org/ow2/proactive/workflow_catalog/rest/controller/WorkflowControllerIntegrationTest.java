@@ -69,8 +69,6 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private static final String WORKFLOWS_RESOURCE = "/buckets/{bucketId}/workflows";
 
-    private static final String ARCHIVES_RESOURCE = "/buckets/{bucketId}/workflowsarchive";
-
     private static final String WORKFLOW_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}";
 
     private static final String layoutMetadata = "{\"offsets\":{\"Linux_Bash_Task\":{\"top\":222" +
@@ -110,22 +108,22 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED)
-               .body("bucket_id", is(bucket.getId().intValue()))
-               .body("id", is(2))
-               .body("name", is("Valid Workflow"))
-               .body("project_name", is("Project Name"))
-               .body("revision_id", is(1))
-               .body("generic_information", hasSize(2))
-               .body("generic_information[0].key", is("genericInfo1"))
-               .body("generic_information[0].value", is("genericInfo1Value"))
-               .body("generic_information[1].key", is("genericInfo2"))
-               .body("generic_information[1].value", is("genericInfo2Value"))
-               .body("variables", hasSize(2))
-               .body("variables[0].key", is("var1"))
-               .body("variables[0].value", is("var1Value"))
-               .body("variables[1].key", is("var2"))
-               .body("variables[1].value", is("var2Value"))
-               .body("layout", is(layoutMetadata));
+               .body("workflow[0].bucket_id", is(bucket.getId().intValue()))
+               .body("workflow[0].id", is(2))
+               .body("workflow[0].name", is("Valid Workflow"))
+               .body("workflow[0].project_name", is("Project Name"))
+               .body("workflow[0].revision_id", is(1))
+               .body("workflow[0].generic_information", hasSize(2))
+               .body("workflow[0].generic_information[0].key", is("genericInfo1"))
+               .body("workflow[0].generic_information[0].value", is("genericInfo1Value"))
+               .body("workflow[0].generic_information[1].key", is("genericInfo2"))
+               .body("workflow[0].generic_information[1].value", is("genericInfo2Value"))
+               .body("workflow[0].variables", hasSize(2))
+               .body("workflow[0].variables[0].key", is("var1"))
+               .body("workflow[0].variables[0].value", is("var1Value"))
+               .body("workflow[0].variables[1].key", is("var2"))
+               .body("workflow[0].variables[1].value", is("var2Value"))
+               .body("workflow[0].layout", is(layoutMetadata));
     }
 
     @Test
@@ -304,9 +302,10 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
     public void testCreateWorkflowsFromArchive() {
         given().pathParam("bucketId", bucket.getId())
                .queryParam("layout", layoutMetadata)
+               .queryParam("alt", "zip")
                .multiPart(IntegrationTestUtil.getArchiveFile("archive.zip"))
                .when()
-               .post(ARCHIVES_RESOURCE)
+               .post(WORKFLOWS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED);
@@ -316,9 +315,10 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
     public void testCreateWorkflowsFromArchiveWithBadArchive() {
         given().pathParam("bucketId", bucket.getId())
                .queryParam("layout", layoutMetadata)
+               .queryParam("alt", "zip")
                .multiPart(IntegrationTestUtil.getArchiveFile("workflow_0.xml"))
                .when()
-               .post(ARCHIVES_RESOURCE)
+               .post(WORKFLOWS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
@@ -327,10 +327,10 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
     @Test
     public void testGetWorkflowsAsArchive() {
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("idList", workflow.id)
+               .pathParam("workflowId", workflow.id)
                .queryParam("layout", layoutMetadata)
                .when()
-               .get(ARCHIVES_RESOURCE + "/{idList}")
+               .get(WORKFLOW_RESOURCE + "?alt=zip")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
@@ -340,10 +340,10 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
     @Test
     public void testGetWorkflowsAsArchiveWithNotExistingWorkflow() {
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("idList", "1,2")
+               .pathParam("workflowId", "1,2")
                .queryParam("layout", layoutMetadata)
                .when()
-               .get(ARCHIVES_RESOURCE + "/{idList}")
+               .get(WORKFLOW_RESOURCE + "?alt=zip")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);

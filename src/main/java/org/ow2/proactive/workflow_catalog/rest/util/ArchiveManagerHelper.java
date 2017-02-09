@@ -28,16 +28,17 @@ package org.ow2.proactive.workflow_catalog.rest.util;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 import org.springframework.stereotype.Component;
+import org.zeroturnaround.zip.ByteSource;
+import org.zeroturnaround.zip.ZipEntrySource;
+import org.zeroturnaround.zip.ZipUtil;
 
 
 @Component
@@ -50,20 +51,14 @@ public class ArchiveManagerHelper {
      * @param currentName the Workflow current name
      * @return the name of the Workflow different from all existing names
      */
-    public String getName(Set<String> existingNames, String currentName) {
+    private String getName(WorkflowRevision workflow) {
+        StringBuilder builder = new StringBuilder();
 
-        if (!existingNames.contains(currentName))
-            return currentName;
+        builder.append(workflow.getName());
+        builder.append("_id");
+        builder.append(workflow.getId());
 
-        for (int i = 1; i <= existingNames.size(); i++) {
-            String newName = currentName + "_" + i;
-            if (!existingNames.contains(newName)) {
-                return newName;
-            }
-        }
-
-        return currentName + "_0";
-
+        return builder.toString();
     }
 
     /**
@@ -77,26 +72,14 @@ public class ArchiveManagerHelper {
             return null;
         }
 
-        try {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
 
-            Set<String> existingNames = new HashSet<>();
-            for (WorkflowRevision file : workflowsList) {
-                String fileName = getName(existingNames, file.getName());
-                existingNames.add(fileName);
+            Stream<ZipEntrySource> streamSources = workflowsList.stream()
+                                                                .map(workflowRevision -> new ByteSource(getName(workflowRevision),
+                                                                                                        workflowRevision.getXmlPayload()));
+            ZipEntrySource[] sources = streamSources.toArray(size -> new ZipEntrySource[size]);
+            ZipUtil.pack(sources, byteArrayOutputStream);
 
-                byte[] xmlByteArray = file.getXmlPayload();
-
-                ZipEntry entry = new ZipEntry(fileName);
-                entry.setSize(xmlByteArray.length);
-
-                zipOutputStream.putNextEntry(entry);
-                zipOutputStream.write(xmlByteArray);
-                zipOutputStream.closeEntry();
-            }
-
-            zipOutputStream.close();
             return byteArrayOutputStream.toByteArray();
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
@@ -116,22 +99,30 @@ public class ArchiveManagerHelper {
             return filesList;
         }
 
-        try {
-            ZipInputStream zipInputStream = new ZipInputStream(new ByteArrayInputStream(byteArrayArchive));
-
-            while (zipInputStream.getNextEntry() != null) {
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                int data = 0;
-                while ((data = zipInputStream.read()) != -1) {
-                    outputStream.write(data);
-                }
-                outputStream.close();
-                filesList.add(outputStream.toByteArray());
-            }
-            zipInputStream.close();
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayArchive)) {
+            ZipUtil.iterate(byteArrayInputStream, (in, zipEntry) -> process(in, zipEntry, filesList));
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
+
         return filesList;
+    }
+
+    /**
+     * Extract ZIP entry into a byte array
+     * @param in entry content
+     * @param zipEntry entry
+     * @param filesList list of files
+     */
+    private void process(InputStream in, ZipEntry zipEntry, List<byte[]> filesList) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            int data = 0;
+            while ((data = in.read()) != -1) {
+                outputStream.write(data);
+            }
+            filesList.add(outputStream.toByteArray());
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
     }
 }

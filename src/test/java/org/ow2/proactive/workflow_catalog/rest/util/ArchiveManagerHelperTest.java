@@ -40,9 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -121,20 +119,6 @@ public class ArchiveManagerHelperTest {
     @Test
     public void testExtractZipWrongFormat() throws IOException {
         assertTrue(archiveManager.extractZIP(convertFromURIToByteArray(XML_FILE_0)).isEmpty());
-    }
-
-    @Test
-    public void testGetName() throws IOException {
-
-        Set<String> existingNames = new HashSet<>();
-        existingNames.add("file1");
-        existingNames.add("file2");
-        existingNames.add("file2_1");
-        existingNames.add("file2_2");
-        assertEquals("file0", archiveManager.getName(existingNames, "file0"));
-        assertEquals("file1_1", archiveManager.getName(existingNames, "file1"));
-        assertEquals("file2_3", archiveManager.getName(existingNames, "file2"));
-
     }
 
     /**

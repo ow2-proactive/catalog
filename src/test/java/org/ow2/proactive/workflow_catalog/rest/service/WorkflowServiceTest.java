@@ -32,8 +32,6 @@ import static org.mockito.Mockito.when;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -112,7 +110,7 @@ public class WorkflowServiceTest {
     public void testCreateWorkflows() throws Exception {
         byte[] archive = Files.readAllBytes(Paths.get(WorkflowServiceTest.class.getResource("/archives/archive.zip")
                                                                                .toURI()));
-        List<byte[]> workflows = new ArrayList<>();
+        List<byte[]> workflows = new ArrayList<>(2);
         workflows.add(Files.readAllBytes(Paths.get(WorkflowServiceTest.class.getResource("/archives/workflow_0.xml")
                                                                             .toURI())));
         workflows.add(Files.readAllBytes(Paths.get(WorkflowServiceTest.class.getResource("/archives/workflow_1.xml")

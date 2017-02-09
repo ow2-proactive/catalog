@@ -74,7 +74,7 @@ public class WorkflowService {
 
         List<byte[]> extractedWorkflows = archiveManagerHelper.extractZIP(proActiveWorkflowsArchive);
         if (extractedWorkflows.isEmpty()) {
-            throw new UnprocessableEntityException("Marformed archive");
+            throw new UnprocessableEntityException("Malformed archive");
         } else {
             return extractedWorkflows.stream()
                                      .map(workflowFile -> createWorkflow(bucketId, layout, workflowFile))
