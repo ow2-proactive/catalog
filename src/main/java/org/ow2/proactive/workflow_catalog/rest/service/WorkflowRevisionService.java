@@ -246,17 +246,7 @@ public class WorkflowRevisionService {
         findBucket(bucketId);
         findWorkflow(workflowId);
 
-        WorkflowRevision workflowRevision;
-
-        if (revisionId.isPresent()) {
-            workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId, workflowId, revisionId.get());
-        } else {
-            workflowRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
-        }
-
-        if (workflowRevision == null) {
-            throw new RevisionNotFoundException();
-        }
+        WorkflowRevision workflowRevision = getWorkflowRevision(bucketId, workflowId, revisionId);
 
         if (alt.isPresent()) {
             String altValue = alt.get();
@@ -279,6 +269,32 @@ public class WorkflowRevisionService {
         workflowMetadata.add(createLink(bucketId, workflowId, workflowRevision));
 
         return ResponseEntity.ok(workflowMetadata);
+    }
+
+    public List<WorkflowRevision> getWorkflowsRevisions(Long bucketId, List<Long> idList) {
+        findBucket(bucketId);
+        List<WorkflowRevision> workflows = idList.stream()
+                                                 .map(workflowId -> getWorkflowRevision(bucketId,
+                                                                                        workflowId,
+                                                                                        Optional.empty()))
+                                                 .collect(Collectors.toList());
+        return workflows;
+    }
+
+    private WorkflowRevision getWorkflowRevision(Long bucketId, Long workflowId, Optional<Long> revisionId) {
+        WorkflowRevision workflowRevision;
+
+        if (revisionId.isPresent()) {
+            workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId, workflowId, revisionId.get());
+        } else {
+            workflowRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
+        }
+
+        if (workflowRevision == null) {
+            throw new RevisionNotFoundException();
+        }
+
+        return workflowRevision;
     }
 
     /**

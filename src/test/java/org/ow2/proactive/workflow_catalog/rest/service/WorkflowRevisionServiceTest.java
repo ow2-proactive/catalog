@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
@@ -341,6 +342,20 @@ public class WorkflowRevisionServiceTest {
                                                                          workflow2Rev.getId(),
                                                                          EXISTING_ID);
         verify(workflowRevisionRepository, times(1)).delete(revisions.last());
+    }
+
+    @Test
+    public void testGetWorkflowsRevisions() {
+        List<Long> idList = new ArrayList<>();
+        idList.add(0L);
+        idList.add(2L);
+        when(bucketRepository.findOne(mockedBucket.getId())).thenReturn(mockedBucket);
+        when(workflowRepository.getMostRecentWorkflowRevision(mockedBucket.getId(), 0L)).thenReturn(revisions.first());
+        when(workflowRepository.getMostRecentWorkflowRevision(mockedBucket.getId(), 2L)).thenReturn(revisions.last());
+        workflowRevisionService.getWorkflowsRevisions(mockedBucket.getId(), idList);
+        verify(workflowRevisionService, times(1)).findBucket(mockedBucket.getId());
+        verify(workflowRepository, times(1)).getMostRecentWorkflowRevision(mockedBucket.getId(), 0L);
+        verify(workflowRepository, times(1)).getMostRecentWorkflowRevision(mockedBucket.getId(), 2L);
     }
 
     private WorkflowRevision newWorkflowRevision(Long bucketId, Long revisionId, LocalDateTime date) throws Exception {

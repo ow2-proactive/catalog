@@ -108,22 +108,22 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED)
-               .body("bucket_id", is(bucket.getId().intValue()))
-               .body("id", is(2))
-               .body("name", is("Valid Workflow"))
-               .body("project_name", is("Project Name"))
-               .body("revision_id", is(1))
-               .body("generic_information", hasSize(2))
-               .body("generic_information[0].key", is("genericInfo1"))
-               .body("generic_information[0].value", is("genericInfo1Value"))
-               .body("generic_information[1].key", is("genericInfo2"))
-               .body("generic_information[1].value", is("genericInfo2Value"))
-               .body("variables", hasSize(2))
-               .body("variables[0].key", is("var1"))
-               .body("variables[0].value", is("var1Value"))
-               .body("variables[1].key", is("var2"))
-               .body("variables[1].value", is("var2Value"))
-               .body("layout", is(layoutMetadata));
+               .body("workflow[0].bucket_id", is(bucket.getId().intValue()))
+               .body("workflow[0].id", is(2))
+               .body("workflow[0].name", is("Valid Workflow"))
+               .body("workflow[0].project_name", is("Project Name"))
+               .body("workflow[0].revision_id", is(1))
+               .body("workflow[0].generic_information", hasSize(2))
+               .body("workflow[0].generic_information[0].key", is("genericInfo1"))
+               .body("workflow[0].generic_information[0].value", is("genericInfo1Value"))
+               .body("workflow[0].generic_information[1].key", is("genericInfo2"))
+               .body("workflow[0].generic_information[1].value", is("genericInfo2Value"))
+               .body("workflow[0].variables", hasSize(2))
+               .body("workflow[0].variables[0].key", is("var1"))
+               .body("workflow[0].variables[0].value", is("var1Value"))
+               .body("workflow[0].variables[1].key", is("var2"))
+               .body("workflow[0].variables[1].value", is("var2Value"))
+               .body("workflow[0].layout", is(layoutMetadata));
     }
 
     @Test
@@ -293,6 +293,57 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
                .pathParam("workflowId", 42)
                .when()
                .delete(WORKFLOW_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void testCreateWorkflowsFromArchive() {
+        given().pathParam("bucketId", bucket.getId())
+               .queryParam("layout", layoutMetadata)
+               .queryParam("alt", "zip")
+               .multiPart(IntegrationTestUtil.getArchiveFile("archive.zip"))
+               .when()
+               .post(WORKFLOWS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED);
+    }
+
+    @Test
+    public void testCreateWorkflowsFromArchiveWithBadArchive() {
+        given().pathParam("bucketId", bucket.getId())
+               .queryParam("layout", layoutMetadata)
+               .queryParam("alt", "zip")
+               .multiPart(IntegrationTestUtil.getArchiveFile("workflow_0.xml"))
+               .when()
+               .post(WORKFLOWS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+    }
+
+    @Test
+    public void testGetWorkflowsAsArchive() {
+        given().pathParam("bucketId", bucket.getId())
+               .pathParam("workflowId", workflow.id)
+               .queryParam("layout", layoutMetadata)
+               .when()
+               .get(WORKFLOW_RESOURCE + "?alt=zip")
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .contentType("application/zip");
+    }
+
+    @Test
+    public void testGetWorkflowsAsArchiveWithNotExistingWorkflow() {
+        given().pathParam("bucketId", bucket.getId())
+               .pathParam("workflowId", "1,2")
+               .queryParam("layout", layoutMetadata)
+               .when()
+               .get(WORKFLOW_RESOURCE + "?alt=zip")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
