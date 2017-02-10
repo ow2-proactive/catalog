@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +72,8 @@ public class WorkflowController {
     @Autowired
     private WorkflowService workflowService;
 
+    private static String ZIP_EXTENSION = "zip";
+
     @ApiOperation(value = "Creates a new workflow")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
                             @ApiResponse(code = 422, message = "Invalid XML workflow content supplied") })
@@ -80,7 +83,7 @@ public class WorkflowController {
             @ApiParam(value = "Layout describing the tasks position in the Workflow") @RequestParam(required = false) Optional<String> layout,
             @ApiParam(value = "Import workflows from ZIP when set to 'zip'.") @RequestParam(required = false) Optional<String> alt,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        if (alt.isPresent() && "zip".equals(alt.get())) {
+        if (alt.isPresent() && ZIP_EXTENSION.equals(alt.get())) {
             return new WorkflowMetadataList(workflowService.createWorkflows(bucketId, layout, file.getBytes()));
         } else {
             return new WorkflowMetadataList(workflowService.createWorkflow(bucketId, layout, file.getBytes()));
@@ -93,13 +96,13 @@ public class WorkflowController {
     public ResponseEntity<?> get(@PathVariable Long bucketId, @PathVariable List<Long> idList,
             @ApiParam(value = "Force response to return workflow XML content when set to 'xml'. Or extract workflows as ZIP when set to 'zip'.") @RequestParam(required = false) Optional<String> alt,
             HttpServletResponse response) throws MalformedURLException {
-        if (alt.isPresent() && "zip".equals(alt.get())) {
+        if (alt.isPresent() && ZIP_EXTENSION.equals(alt.get())) {
             byte[] zip = workflowService.getWorkflowsAsArchive(bucketId, idList);
 
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/zip");
-            response.addHeader("Content-Disposition", "attachment; filename=\"archive.zip\"");
-            response.addHeader("Content-Transfer-Encoding", "binary");
+            response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
+            response.addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
             try {
                 response.getOutputStream().write(zip);
                 response.getOutputStream().flush();
@@ -108,10 +111,10 @@ public class WorkflowController {
             }
             return ResponseEntity.ok().build();
         } else {
-            if (idList.size() >= 1) {
+            if (idList.size() == 1) {
                 return workflowService.getWorkflowMetadata(bucketId, idList.get(0), alt);
             } else {
-                throw new MalformedURLException();
+                return ResponseEntity.badRequest().build();
             }
         }
     }

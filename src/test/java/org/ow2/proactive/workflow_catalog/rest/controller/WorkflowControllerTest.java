@@ -56,6 +56,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -114,8 +115,8 @@ public class WorkflowControllerTest {
         verify(workflowService, times(1)).getWorkflowsAsArchive(1L, idList);
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
         verify(response, times(1)).setContentType("application/zip");
-        verify(response, times(1)).addHeader("Content-Transfer-Encoding", "binary");
-        verify(response, times(1)).addHeader("Content-Disposition", "attachment; filename=\"archive.zip\"");
+        verify(response, times(1)).addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
+        verify(response, times(1)).addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
         verify(sos, times(1)).write(Mockito.any());
         verify(sos, times(1)).flush();
     }
