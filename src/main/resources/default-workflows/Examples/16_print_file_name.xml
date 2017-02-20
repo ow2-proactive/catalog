@@ -3,15 +3,16 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns="urn:proactive:jobdescriptor:3.8"
      xsi:schemaLocation="urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd"
-    name="PrintFileName" 
+    name="16_print_file_name" 
     priority="normal"
     onTaskError="continueJobExecution"
-     maxNumberOfExecution="2">
+     maxNumberOfExecution="2"
+>
   <variables>
     <variable name="file" value="undefined" />
   </variables>
   <taskFlow>
-    <task name="PrintFileName">
+    <task name="print_file_name">
       <description>
         <![CDATA[ The simplest task, ran by a javascript engine. ]]>
       </description>
