@@ -25,11 +25,6 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
-import static com.jayway.restassured.RestAssured.when;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
-
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +34,11 @@ import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static com.jayway.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 
 /**
@@ -59,11 +59,11 @@ public class DefaultConfigurationIntegrationTest extends AbstractRestAssuredTest
               .then()
               .assertThat()
               .statusCode(HttpStatus.SC_OK)
-              .body("_embedded.bucketMetadataList", hasSize(2))
+              .body("_embedded.bucketMetadataList", hasSize(3))
               .body("_embedded.bucketMetadataList[0].name", is("Examples"))
               .body("_embedded.bucketMetadataList[1].name", is("Cloud-automation"))
               .body("_embedded.bucketMetadataList[2].name", is("Application"))
-              .body("page.totalElements", is(2));
+              .body("page.totalElements", is(3));
     }
 
 }
