@@ -25,6 +25,11 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.controller;
 
+import static com.jayway.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
+
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,11 +39,6 @@ import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static com.jayway.restassured.RestAssured.when;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
 
 /**
