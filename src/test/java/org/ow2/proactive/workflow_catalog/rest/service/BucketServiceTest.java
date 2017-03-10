@@ -110,7 +110,7 @@ public class BucketServiceTest {
 
     @Test
     public void testPopulateCatalogAndFillBuckets() throws Exception {
-        final String[] buckets = { "Examples", "Cloud-automation" };
+        final String[] buckets = { "Examples", "Cloud-automation", "Applications" };
         final String workflowsFolder = "/default-workflows";
         Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         int totalNbWorkflows = 0;

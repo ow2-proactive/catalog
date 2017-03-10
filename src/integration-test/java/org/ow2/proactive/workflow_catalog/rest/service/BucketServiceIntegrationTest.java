@@ -87,7 +87,7 @@ public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
      */
     @Test
     public void testPopulateCatalogCheckBucketsCreation() throws Exception {
-        final String[] buckets = { "Examples", "Cloud-automation", "Toto" };
+        final String[] buckets = { "Examples", "Cloud-automation", "Toto", "Application" };
         bucketService.populateCatalog(buckets, DEFAULT_WORKFLOWS_FOLDER);
 
         // verify that all buckets have been created in the Catalog

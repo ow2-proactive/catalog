@@ -62,6 +62,7 @@ public class DefaultConfigurationIntegrationTest extends AbstractRestAssuredTest
               .body("_embedded.bucketMetadataList", hasSize(2))
               .body("_embedded.bucketMetadataList[0].name", is("Examples"))
               .body("_embedded.bucketMetadataList[1].name", is("Cloud-automation"))
+              .body("_embedded.bucketMetadataList[2].name", is("Application"))
               .body("page.totalElements", is(2));
     }
 
