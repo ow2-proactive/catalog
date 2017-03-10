@@ -59,10 +59,11 @@ public class DefaultConfigurationIntegrationTest extends AbstractRestAssuredTest
               .then()
               .assertThat()
               .statusCode(HttpStatus.SC_OK)
-              .body("_embedded.bucketMetadataList", hasSize(2))
+              .body("_embedded.bucketMetadataList", hasSize(3))
               .body("_embedded.bucketMetadataList[0].name", is("Examples"))
               .body("_embedded.bucketMetadataList[1].name", is("Cloud-automation"))
-              .body("page.totalElements", is(2));
+              .body("_embedded.bucketMetadataList[2].name", is("Application"))
+              .body("page.totalElements", is(3));
     }
 
 }
