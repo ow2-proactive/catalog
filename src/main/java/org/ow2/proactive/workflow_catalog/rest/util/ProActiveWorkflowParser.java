@@ -70,6 +70,8 @@ public final class ProActiveWorkflowParser {
 
     private static final String ELEMENT_JOB = "job";
 
+    private static final String ELEMENT_TASK_FLOW = "taskFlow";
+
     private static final String ELEMENT_VARIABLE = "variable";
 
     private static final String ELEMENT_VARIABLES = "variables";
@@ -77,9 +79,8 @@ public final class ProActiveWorkflowParser {
     private final XMLStreamReader xmlStreamReader;
 
     /*
-     * Variables indicating which parts of the document have been parsed.
-     * Thanks to these information, parsing can be stopped once required
-     * information have been extracted.
+     * Variables indicating which parts of the document have been parsed. Thanks to these
+     * information, parsing can be stopped once required information have been extracted.
      */
 
     private boolean jobHandled = false;
@@ -115,7 +116,7 @@ public final class ProActiveWorkflowParser {
 
         ImmutableMap.Builder<String, String> genericInformation = ImmutableMap.builder();
         ImmutableMap.Builder<String, String> variables = ImmutableMap.builder();
-
+        boolean isTaskFlow = false;
         try {
             while (xmlStreamReader.hasNext() && !allElementHandled()) {
                 eventType = xmlStreamReader.next();
@@ -128,11 +129,18 @@ public final class ProActiveWorkflowParser {
                             case ELEMENT_JOB:
                                 handleJobElement();
                                 break;
+                            case ELEMENT_TASK_FLOW:
+                                isTaskFlow = true;
+                                break;
                             case ELEMENT_GENERIC_INFORMATION_INFO:
-                                handleGenericInformationElement(genericInformation);
+                                if (!isTaskFlow) {
+                                    handleGenericInformationElement(genericInformation);
+                                }
                                 break;
                             case ELEMENT_VARIABLE:
-                                handleVariableElement(variables);
+                                if (!isTaskFlow) {
+                                    handleVariableElement(variables);
+                                }
                                 break;
                         }
 
@@ -140,13 +148,22 @@ public final class ProActiveWorkflowParser {
                     case XMLEvent.END_ELEMENT:
                         elementLocalPart = xmlStreamReader.getName().getLocalPart();
 
-                        if (elementLocalPart.equals(ELEMENT_GENERIC_INFORMATION)) {
-                            this.genericInformationHandled = true;
-                        } else if (elementLocalPart.equals(ELEMENT_VARIABLES)) {
-                            this.variablesHandled = true;
-                        }
+                        switch (elementLocalPart) {
+                            case ELEMENT_TASK_FLOW:
+                                isTaskFlow = false;
+                                break;
+                            case ELEMENT_GENERIC_INFORMATION:
+                                if (!isTaskFlow) {
+                                    this.genericInformationHandled = true;
+                                }
+                                break;
+                            case ELEMENT_VARIABLES:
+                                if (!isTaskFlow) {
+                                    this.variablesHandled = true;
+                                }
+                                break;
 
-                        break;
+                        }
                     default:
                         break;
                 }
