@@ -23,6 +23,10 @@
             <description>
                 <![CDATA[ The simplest task, ran by a cmd engine. ]]>
             </description>
+            <variables>
+		        <variable name="var1" value="task_var1Value"/>
+		        <variable value="var2Value" name="task_var2"/>
+		    </variables>
             <scriptExecutable>
                 <script>
                     <code language="cmd">
