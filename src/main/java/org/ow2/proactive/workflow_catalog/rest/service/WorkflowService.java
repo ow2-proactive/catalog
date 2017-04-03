@@ -25,10 +25,13 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
+import org.ow2.proactive.workflow_catalog.rest.util.ArchiveManagerHelper;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +50,9 @@ public class WorkflowService {
     @Autowired
     private WorkflowRevisionService workflowRevisionService;
 
+    @Autowired
+    private ArchiveManagerHelper archiveManagerHelper;
+
     public WorkflowMetadata createWorkflow(Long bucketId, ProActiveWorkflowParserResult proActiveWorkflowParserResult,
             byte[] proActiveWorkflowXmlContent) {
         return workflowRevisionService.createWorkflowRevision(bucketId,
@@ -63,6 +69,19 @@ public class WorkflowService {
                                                               layout);
     }
 
+    public List<WorkflowMetadata> createWorkflows(Long bucketId, Optional<String> layout,
+            byte[] proActiveWorkflowsArchive) {
+
+        List<byte[]> extractedWorkflows = archiveManagerHelper.extractZIP(proActiveWorkflowsArchive);
+        if (extractedWorkflows.isEmpty()) {
+            throw new UnprocessableEntityException("Malformed archive");
+        } else {
+            return extractedWorkflows.stream()
+                                     .map(workflowFile -> createWorkflow(bucketId, layout, workflowFile))
+                                     .collect(Collectors.toList());
+        }
+    }
+
     public ResponseEntity<?> getWorkflowMetadata(long bucketId, long workflowId, Optional<String> alt) {
         return workflowRevisionService.getWorkflow(bucketId, workflowId, Optional.empty(), alt);
     }
@@ -74,6 +93,10 @@ public class WorkflowService {
 
     public ResponseEntity<?> delete(Long bucketId, Long workflowId) {
         return workflowRevisionService.delete(bucketId, workflowId, Optional.empty());
+    }
+
+    public byte[] getWorkflowsAsArchive(Long bucketId, List<Long> idList) {
+        return archiveManagerHelper.compressZIP(workflowRevisionService.getWorkflowsRevisions(bucketId, idList));
     }
 
 }

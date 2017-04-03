@@ -72,6 +72,9 @@ generateGrammarSource {
 
 repositories {
     jcenter()
+    maven {
+        url "http://repository.activeeon.com/content/groups/proactive/"
+    }
 }
 
 sourceSets {
@@ -134,11 +137,13 @@ dependencies {
 
     providedCompile 'org.springframework.boot:spring-boot-starter-tomcat:1.3.5.RELEASE'
 
-    providedRuntime 'org.hsqldb:hsqldb:2.3.4'
+    providedRuntime 'org.hsqldb:hsqldb:r5658-f2e27a7'
 
     compile 'io.springfox:springfox-spring-web:2.4.0'
     compile 'io.springfox:springfox-swagger2:2.4.0'
     compile 'io.springfox:springfox-swagger-ui:2.4.0'
+
+    compile 'org.zeroturnaround:zt-zip:1.11'
 
     testCompile 'com.google.truth:truth:0.28'
     testCompile 'junit:junit:4.12'
