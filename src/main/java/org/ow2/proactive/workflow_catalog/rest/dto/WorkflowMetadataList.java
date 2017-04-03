@@ -23,30 +23,28 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.workflow_catalog.rest.util;
+package org.ow2.proactive.workflow_catalog.rest.dto;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
-import com.google.common.io.ByteStreams;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 /**
  * @author ActiveEon Team
  */
-public class IntegrationTestUtil {
+public final class WorkflowMetadataList {
 
-    public static byte[] getWorkflowAsByteArray(String filename) throws IOException {
-        return ByteStreams.toByteArray(new FileInputStream(getWorkflowFile(filename)));
+    @JsonProperty("workflow")
+    public final List<WorkflowMetadata> workflowMetadataList;
+
+    public WorkflowMetadataList(List<WorkflowMetadata> workflowMetadataList) {
+        this.workflowMetadataList = workflowMetadataList;
     }
 
-    public static File getWorkflowFile(String filename) {
-        return new File(IntegrationTestUtil.class.getResource("/workflows/" + filename).getFile());
-    }
-
-    public static File getArchiveFile(String filename) {
-        return new File(IntegrationTestUtil.class.getResource("/archives/" + filename).getFile());
+    public WorkflowMetadataList(WorkflowMetadata workflowMetadata) {
+        this.workflowMetadataList = Collections.singletonList(workflowMetadata);
     }
 
 }
