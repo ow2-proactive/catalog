@@ -37,13 +37,13 @@ import org.junit.Test;
  *
  * @author ActiveEon Team
  */
-public class ProActiveWorkflowParserTest {
+public class ProActiveCatalogObjectParserTest {
 
     @Test
     public void testParseWorkflow() throws Exception {
         ProActiveWorkflowParserResult result = parseWorkflow("workflow.xml");
 
-        assertThat(result.getJobName()).isEqualTo("Valid Workflow");
+        assertThat(result.getJobName()).isEqualTo("Valid CatalogObject");
 
         assertThat(result.getProjectName()).isEqualTo("Project Name");
 
@@ -58,7 +58,7 @@ public class ProActiveWorkflowParserTest {
     public void testParseWorkflowContainingNoGenericInformationAndNoVariable() throws Exception {
         ProActiveWorkflowParserResult result = parseWorkflow("workflow-no-generic-information-no-variable.xml");
 
-        assertThat(result.getJobName()).isEqualTo("Valid Workflow");
+        assertThat(result.getJobName()).isEqualTo("Valid CatalogObject");
 
         assertThat(result.getProjectName()).isEqualTo("Project Name");
 
@@ -73,7 +73,7 @@ public class ProActiveWorkflowParserTest {
     }
 
     private ProActiveWorkflowParserResult parseWorkflow(String xmlFilename) throws XMLStreamException {
-        ProActiveWorkflowParser parser = new ProActiveWorkflowParser(ProActiveWorkflowParserTest.class.getResourceAsStream("/workflows/" +
+        ProActiveWorkflowParser parser = new ProActiveWorkflowParser(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/workflows/" +
                                                                                                                            xmlFilename));
 
         return parser.parse();

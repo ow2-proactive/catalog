@@ -51,10 +51,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.dto.ObjectMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
-import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObject;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObjectRevision;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.workflow_catalog.rest.service.repository.GenericInformationRepository;
@@ -75,7 +75,7 @@ import com.google.common.io.ByteStreams;
 /**
  * @author ActiveEon Team
  */
-public class WorkflowRevisionServiceTest {
+public class CatalogObjectRevisionServiceTest {
 
     @InjectMocks
     private WorkflowRevisionService workflowRevisionService;
@@ -101,9 +101,9 @@ public class WorkflowRevisionServiceTest {
 
     private Bucket mockedBucket;
 
-    private SortedSet<WorkflowRevision> revisions;
+    private SortedSet<CatalogObjectRevision> revisions;
 
-    private Workflow workflow2Rev;
+    private CatalogObject catalogObject2Rev;
 
     @Before
     public void setUp() throws Exception {
@@ -113,7 +113,7 @@ public class WorkflowRevisionServiceTest {
 
         Mockito.doReturn(new Link("test"))
                .when(workflowRevisionService)
-               .createLink(Matchers.any(Long.class), Matchers.any(Long.class), Matchers.any(WorkflowRevision.class));
+               .createLink(Matchers.any(Long.class), Matchers.any(Long.class), Matchers.any(CatalogObjectRevision.class));
 
         Long revCnt = EXISTING_ID;
         mockedBucket = newMockedBucket(EXISTING_ID);
@@ -121,7 +121,7 @@ public class WorkflowRevisionServiceTest {
         revisions.add(newWorkflowRevision(mockedBucket.getId(), revCnt++, LocalDateTime.now().minusHours(1)));
         revisions.add(newWorkflowRevision(mockedBucket.getId(), revCnt, LocalDateTime.now()));
 
-        workflow2Rev = newMockedWorkflow(EXISTING_ID, mockedBucket, revisions, 2L);
+        catalogObject2Rev = newMockedWorkflow(EXISTING_ID, mockedBucket, revisions, 2L);
     }
 
     @Test(expected = BucketNotFoundException.class)
@@ -192,7 +192,7 @@ public class WorkflowRevisionServiceTest {
 
     @Test
     public void testFindWorkflow() throws Exception {
-        when(workflowRepository.findOne(EXISTING_ID)).thenReturn(mock(Workflow.class));
+        when(workflowRepository.findOne(EXISTING_ID)).thenReturn(mock(CatalogObject.class));
         workflowRevisionService.findWorkflow(EXISTING_ID);
         verify(workflowRepository, times(1)).findOne(EXISTING_ID);
     }
@@ -224,7 +224,7 @@ public class WorkflowRevisionServiceTest {
     @Test(expected = RevisionNotFoundException.class)
     public void testGetWorkflowWithInvalidRevisionId() throws Exception {
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
-        when(workflowRepository.findOne(anyLong())).thenReturn(mock(Workflow.class));
+        when(workflowRepository.findOne(anyLong())).thenReturn(mock(CatalogObject.class));
         when(workflowRepository.getMostRecentWorkflowRevision(anyLong(), anyLong())).thenReturn(null);
         workflowRevisionService.getWorkflow(DUMMY_ID, DUMMY_ID, Optional.empty(), Optional.empty());
     }
@@ -237,10 +237,10 @@ public class WorkflowRevisionServiceTest {
 
     private void getWorkflow(Optional<Long> revisionId, Optional<String> alt) throws IOException {
 
-        Workflow mockedWf = mock(Workflow.class);
+        CatalogObject mockedWf = mock(CatalogObject.class);
         when(mockedWf.getId()).thenReturn(DUMMY_ID);
 
-        WorkflowRevision wfRev = new WorkflowRevision(DUMMY_ID,
+        CatalogObjectRevision wfRev = new CatalogObjectRevision(DUMMY_ID,
                                                       DUMMY_ID,
                                                       "WR-TEST",
                                                       "WR-PROJ-NAME",
@@ -249,10 +249,10 @@ public class WorkflowRevisionServiceTest {
                                                       Lists.newArrayList(),
                                                       Lists.newArrayList(),
                                                       getWorkflowAsByteArray("workflow.xml"));
-        wfRev.setWorkflow(mockedWf);
+        wfRev.setCatalogObject(mockedWf);
 
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
-        when(workflowRepository.findOne(anyLong())).thenReturn(mock(Workflow.class));
+        when(workflowRepository.findOne(anyLong())).thenReturn(mock(CatalogObject.class));
 
         if (revisionId.isPresent()) {
             when(workflowRevisionRepository.getWorkflowRevision(anyLong(), anyLong(), anyLong())).thenReturn(wfRev);
@@ -286,7 +286,7 @@ public class WorkflowRevisionServiceTest {
 
     @Test
     public void testDeleteWorkflowWith1Revision() throws Exception {
-        WorkflowRevision wfRev = new WorkflowRevision(DUMMY_ID,
+        CatalogObjectRevision wfRev = new CatalogObjectRevision(DUMMY_ID,
                                                       EXISTING_ID,
                                                       "WR-TEST",
                                                       "WR-PROJ-NAME",
@@ -295,33 +295,33 @@ public class WorkflowRevisionServiceTest {
                                                       Lists.newArrayList(),
                                                       Lists.newArrayList(),
                                                       getWorkflowAsByteArray("workflow.xml"));
-        Workflow workflow1Rev = newMockedWorkflow(EXISTING_ID, mockedBucket, new TreeSet<WorkflowRevision>() {
+        CatalogObject catalogObject1Rev = newMockedWorkflow(EXISTING_ID, mockedBucket, new TreeSet<CatalogObjectRevision>() {
             {
                 add(wfRev);
             }
         }, EXISTING_ID);
-        when(workflowRepository.findOne(EXISTING_ID)).thenReturn(workflow1Rev);
+        when(workflowRepository.findOne(EXISTING_ID)).thenReturn(catalogObject1Rev);
         when(workflowRepository.getMostRecentWorkflowRevision(mockedBucket.getId(),
-                                                              workflow1Rev.getId())).thenReturn(wfRev);
+                                                              catalogObject1Rev.getId())).thenReturn(wfRev);
         workflowRevisionService.delete(mockedBucket.getId(), EXISTING_ID, Optional.empty());
         verify(workflowRepository, times(1)).getMostRecentWorkflowRevision(EXISTING_ID, EXISTING_ID);
-        verify(workflowRepository, times(1)).delete(workflow1Rev);
+        verify(workflowRepository, times(1)).delete(catalogObject1Rev);
     }
 
     @Test
     public void testDeleteWorkflowWith2RevisionsNoRevisionId() throws Exception {
-        when(workflowRepository.findOne(EXISTING_ID)).thenReturn(workflow2Rev);
+        when(workflowRepository.findOne(EXISTING_ID)).thenReturn(catalogObject2Rev);
         when(workflowRepository.getMostRecentWorkflowRevision(mockedBucket.getId(),
-                                                              workflow2Rev.getId())).thenReturn(revisions.first());
+                                                              catalogObject2Rev.getId())).thenReturn(revisions.first());
         workflowRevisionService.delete(mockedBucket.getId(), EXISTING_ID, Optional.empty());
         verify(workflowRepository, times(1)).getMostRecentWorkflowRevision(EXISTING_ID, EXISTING_ID);
-        verify(workflowRepository, times(1)).delete(workflow2Rev);
+        verify(workflowRepository, times(1)).delete(catalogObject2Rev);
     }
 
     @Test
     public void testDeleteWorkflowWith2RevisionsLastRevision() {
         Long expectedRevisionId = 2L;
-        when(workflowRepository.findOne(EXISTING_ID)).thenReturn(workflow2Rev);
+        when(workflowRepository.findOne(EXISTING_ID)).thenReturn(catalogObject2Rev);
         when(workflowRepository.getMostRecentWorkflowRevision(mockedBucket.getId(),
                                                               EXISTING_ID)).thenReturn(revisions.first());
         when(workflowRevisionRepository.getWorkflowRevision(mockedBucket.getId(),
@@ -333,13 +333,13 @@ public class WorkflowRevisionServiceTest {
 
     @Test
     public void testDeleteWorkflowWith2RevisionsPreviousRevision() {
-        when(workflowRepository.findOne(EXISTING_ID)).thenReturn(workflow2Rev);
+        when(workflowRepository.findOne(EXISTING_ID)).thenReturn(catalogObject2Rev);
         when(workflowRevisionRepository.getWorkflowRevision(mockedBucket.getId(),
                                                             EXISTING_ID,
                                                             EXISTING_ID)).thenReturn(revisions.last());
         workflowRevisionService.delete(mockedBucket.getId(), EXISTING_ID, Optional.of(EXISTING_ID));
         verify(workflowRevisionRepository, times(1)).getWorkflowRevision(mockedBucket.getId(),
-                                                                         workflow2Rev.getId(),
+                                                                         catalogObject2Rev.getId(),
                                                                          EXISTING_ID);
         verify(workflowRevisionRepository, times(1)).delete(revisions.last());
     }
@@ -358,8 +358,8 @@ public class WorkflowRevisionServiceTest {
         verify(workflowRepository, times(1)).getMostRecentWorkflowRevision(mockedBucket.getId(), 2L);
     }
 
-    private WorkflowRevision newWorkflowRevision(Long bucketId, Long revisionId, LocalDateTime date) throws Exception {
-        return new WorkflowRevision(bucketId,
+    private CatalogObjectRevision newWorkflowRevision(Long bucketId, Long revisionId, LocalDateTime date) throws Exception {
+        return new CatalogObjectRevision(bucketId,
                                     revisionId,
                                     "WR-TEST",
                                     "WR-PROJ-NAME",
@@ -376,22 +376,22 @@ public class WorkflowRevisionServiceTest {
         return mockedBucket;
     }
 
-    private Workflow newMockedWorkflow(Long id, Bucket bucket, SortedSet<WorkflowRevision> revisions,
-            Long lastRevisionId) {
-        Workflow workflow = mock(Workflow.class);
-        when(workflow.getId()).thenReturn(id);
-        when(workflow.getBucket()).thenReturn(bucket);
-        when(workflow.getRevisions()).thenReturn(revisions);
-        when(workflow.getLastRevisionId()).thenReturn(lastRevisionId);
-        for (WorkflowRevision workflowRevision : revisions) {
-            workflowRevision.setWorkflow(workflow);
+    private CatalogObject newMockedWorkflow(Long id, Bucket bucket, SortedSet<CatalogObjectRevision> revisions,
+                                            Long lastRevisionId) {
+        CatalogObject catalogObject = mock(CatalogObject.class);
+        when(catalogObject.getId()).thenReturn(id);
+        when(catalogObject.getBucket()).thenReturn(bucket);
+        when(catalogObject.getRevisions()).thenReturn(revisions);
+        when(catalogObject.getLastRevisionId()).thenReturn(lastRevisionId);
+        for (CatalogObjectRevision catalogObjectRevision : revisions) {
+            catalogObjectRevision.setCatalogObject(catalogObject);
         }
-        return workflow;
+        return catalogObject;
     }
 
     private void listWorkflows(Optional<Long> wId) throws QueryExpressionBuilderException {
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
-        when(workflowRepository.findOne(anyLong())).thenReturn(mock(Workflow.class));
+        when(workflowRepository.findOne(anyLong())).thenReturn(mock(CatalogObject.class));
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
         when(mockedAssembler.toResource(any(PageImpl.class),
                                         any(WorkflowRevisionResourceAssembler.class))).thenReturn(null);
@@ -413,7 +413,7 @@ public class WorkflowRevisionServiceTest {
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(genericInformationRepository.save(any(List.class))).thenReturn(Lists.newArrayList());
         when(variableRepository.save(any(List.class))).thenReturn(Lists.newArrayList());
-        when(workflowRevisionRepository.save(any(WorkflowRevision.class))).thenReturn(new WorkflowRevision(EXISTING_ID,
+        when(workflowRevisionRepository.save(any(CatalogObjectRevision.class))).thenReturn(new CatalogObjectRevision(EXISTING_ID,
                                                                                                            EXISTING_ID,
                                                                                                            name,
                                                                                                            projectName,
@@ -424,16 +424,16 @@ public class WorkflowRevisionServiceTest {
                                                                                                            getWorkflowAsByteArray(fileName)));
 
         if (wId.isPresent()) {
-            when(workflowRepository.findOne(anyLong())).thenReturn(new Workflow(mock(Bucket.class),
+            when(workflowRepository.findOne(anyLong())).thenReturn(new CatalogObject(mock(Bucket.class),
                                                                                 Lists.newArrayList()));
         }
 
-        WorkflowMetadata actualWFMetadata = workflowRevisionService.createWorkflowRevision(DUMMY_ID,
+        ObjectMetadata actualWFMetadata = workflowRevisionService.createWorkflowRevision(DUMMY_ID,
                                                                                            wId,
                                                                                            getWorkflowAsByteArray(fileName),
                                                                                            layout);
 
-        verify(workflowRevisionRepository, times(1)).save(any(WorkflowRevision.class));
+        verify(workflowRevisionRepository, times(1)).save(any(CatalogObjectRevision.class));
 
         assertEquals(name, actualWFMetadata.name);
         assertEquals(projectName, actualWFMetadata.projectName);
@@ -449,6 +449,6 @@ public class WorkflowRevisionServiceTest {
     }
 
     private static File getWorkflowFile(String filename) {
-        return new File(WorkflowRevisionServiceTest.class.getResource("/workflows/" + filename).getFile());
+        return new File(CatalogObjectRevisionServiceTest.class.getResource("/workflows/" + filename).getFile());
     }
 }

@@ -28,7 +28,8 @@ package org.ow2.proactive.workflow_catalog.rest.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObjectRevision;
+import org.ow2.proactive.workflow_catalog.rest.util.KeyValueEntityToDtoTransformer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -36,7 +37,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author ActiveEon Team
  */
-public final class WorkflowMetadata extends NamedMetadata {
+public final class ObjectMetadata extends NamedMetadata {
+
+    @JsonProperty("kind")
+    public final String kind;
 
     @JsonProperty("revision_id")
     public final Long revisionId;
@@ -50,33 +54,31 @@ public final class WorkflowMetadata extends NamedMetadata {
     @JsonProperty("layout")
     public final String layout;
 
-    @JsonProperty("generic_information")
-    public final List<GenericInformation> genericInformation;
+    @JsonProperty("object_key_values")
+    public final List<KeyValueMetadata> keyValueMetadataList;
 
-    public final List<Variable> variables;
-
-    public WorkflowMetadata(WorkflowRevision workflowRevision) {
-        this(workflowRevision.getBucketId(),
-             workflowRevision.getWorkflow().getId(),
-             workflowRevision.getCreatedAt(),
-             workflowRevision.getName(),
-             workflowRevision.getProjectName(),
-             workflowRevision.getLayout(),
-             workflowRevision.getRevisionId(),
-             GenericInformation.to(workflowRevision.getGenericInformation()),
-             Variable.to(workflowRevision.getVariables()));
+    public ObjectMetadata(CatalogObjectRevision catalogObjectRevision) {
+        this(catalogObjectRevision.getKind(),
+             catalogObjectRevision.getBucketId(),
+             catalogObjectRevision.getCatalogObject().getId(),
+             catalogObjectRevision.getCreatedAt(),
+             catalogObjectRevision.getName(),
+             catalogObjectRevision.getProjectName(),
+             catalogObjectRevision.getLayout(),
+             catalogObjectRevision.getRevisionId(),
+             KeyValueEntityToDtoTransformer.to(catalogObjectRevision.getKeyValueMetadataList()));
     }
 
-    public WorkflowMetadata(Long bucketId, Long id, LocalDateTime createdAt, String name, String projectName,
-            String layout, Long revisionId, List<GenericInformation> genericInformation, List<Variable> variables) {
+    public ObjectMetadata(String kind, Long bucketId, Long id, LocalDateTime createdAt, String name,
+                          String projectName, String layout, Long revisionId, List<KeyValueMetadata> keyValueMetadataList) {
 
         super(id, name, createdAt);
+        this.kind = kind;
         this.layout = layout;
         this.revisionId = revisionId;
         this.bucketId = bucketId;
         this.projectName = projectName;
-        this.genericInformation = genericInformation;
-        this.variables = variables;
+        this.keyValueMetadataList = keyValueMetadataList;
     }
 
 }

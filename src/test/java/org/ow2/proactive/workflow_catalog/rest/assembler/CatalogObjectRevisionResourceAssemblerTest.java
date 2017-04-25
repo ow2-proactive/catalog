@@ -38,9 +38,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.dto.ObjectMetadata;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObject;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObjectRevision;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
@@ -49,7 +49,7 @@ import com.google.common.io.ByteStreams;
 /**
  * @author ActiveEon Team
  */
-public class WorkflowRevisionResourceAssemblerTest {
+public class CatalogObjectRevisionResourceAssemblerTest {
 
     @InjectMocks
     private WorkflowRevisionResourceAssembler workflowRevisionResourceAssembler;
@@ -61,7 +61,7 @@ public class WorkflowRevisionResourceAssemblerTest {
 
     @Test
     public void testToResource() throws Exception {
-        WorkflowRevision workflowRevision = new WorkflowRevision(1L,
+        CatalogObjectRevision catalogObjectRevision = new CatalogObjectRevision(1L,
                                                                  1L,
                                                                  "WR-TEST",
                                                                  "WR-PROJ-TEST",
@@ -70,16 +70,16 @@ public class WorkflowRevisionResourceAssemblerTest {
                                                                  Lists.newArrayList(),
                                                                  Lists.newArrayList(),
                                                                  getWorkflowAsByteArray("workflow.xml"));
-        Workflow mockedWorkflow = mock(Workflow.class);
-        when(mockedWorkflow.getId()).thenReturn(1L);
-        workflowRevision.setWorkflow(mockedWorkflow);
-        WorkflowMetadata workflowMetadata = workflowRevisionResourceAssembler.toResource(workflowRevision);
-        assertEquals(workflowRevision.getName(), workflowMetadata.name);
-        assertEquals(workflowRevision.getProjectName(), workflowMetadata.projectName);
+        CatalogObject mockedCatalogObject = mock(CatalogObject.class);
+        when(mockedCatalogObject.getId()).thenReturn(1L);
+        catalogObjectRevision.setCatalogObject(mockedCatalogObject);
+        ObjectMetadata objectMetadata = workflowRevisionResourceAssembler.toResource(catalogObjectRevision);
+        assertEquals(catalogObjectRevision.getName(), objectMetadata.name);
+        assertEquals(catalogObjectRevision.getProjectName(), objectMetadata.projectName);
     }
 
     private static byte[] getWorkflowAsByteArray(String filename) throws IOException {
-        return ByteStreams.toByteArray(new FileInputStream(new File(WorkflowRevisionResourceAssemblerTest.class.getResource("/workflows/" +
+        return ByteStreams.toByteArray(new FileInputStream(new File(CatalogObjectRevisionResourceAssemblerTest.class.getResource("/workflows/" +
                                                                                                                             filename)
                                                                                                                .getFile())));
     }

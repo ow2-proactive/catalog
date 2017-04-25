@@ -43,56 +43,56 @@ import com.google.common.collect.Lists;
 /**
  * @author ActiveEon Team
  */
-public class WorkflowTest {
+public class CatalogObjectTest {
 
     private Bucket bucket;
 
-    private Workflow workflow;
+    private CatalogObject catalogObject;
 
-    private WorkflowRevision workflowRevision;
+    private CatalogObjectRevision catalogObjectRevision;
 
     @Before
     public void setUp() {
         bucket = new Bucket("test", "WorkflowTestUser");
-        workflowRevision = newWorkflowRevision(1L, LocalDateTime.now());
-        workflow = new Workflow(bucket);
+        catalogObjectRevision = newWorkflowRevision(1L, LocalDateTime.now());
+        catalogObject = new CatalogObject(bucket);
     }
 
     @Test
     public void testAddRevision() throws Exception {
 
-        assertThat(workflow.getLastRevisionId()).isEqualTo(0L);
-        assertThat(workflow.getRevisions()).hasSize(0);
+        assertThat(catalogObject.getLastRevisionId()).isEqualTo(0L);
+        assertThat(catalogObject.getRevisions()).hasSize(0);
 
-        workflow.addRevision(workflowRevision);
+        catalogObject.addRevision(catalogObjectRevision);
 
-        assertThat(workflow.getLastRevisionId()).isEqualTo(1L);
-        assertThat(workflow.getRevisions()).hasSize(1);
+        assertThat(catalogObject.getLastRevisionId()).isEqualTo(1L);
+        assertThat(catalogObject.getRevisions()).hasSize(1);
     }
 
     @Test
     public void testSetRevisions() throws Exception {
-        SortedSet<WorkflowRevision> revisions = ImmutableSortedSet.of(workflowRevision);
-        workflow.setRevisions(revisions);
-        assertEquals(revisions, workflow.getRevisions());
+        SortedSet<CatalogObjectRevision> revisions = ImmutableSortedSet.of(catalogObjectRevision);
+        catalogObject.setRevisions(revisions);
+        assertEquals(revisions, catalogObject.getRevisions());
     }
 
     @Test
     public void testGetRevisions() throws Exception {
-        SortedSet<WorkflowRevision> revisions = new TreeSet<>();
-        revisions.add(workflowRevision);
+        SortedSet<CatalogObjectRevision> revisions = new TreeSet<>();
+        revisions.add(catalogObjectRevision);
         revisions.add(newWorkflowRevision(10L, LocalDateTime.now().plusHours(1)));
         revisions.add(newWorkflowRevision(2L, LocalDateTime.now().plusHours(2)));
-        workflow.setRevisions(revisions);
-        assertEquals(revisions, workflow.getRevisions());
-        Iterator iterator = workflow.getRevisions().iterator();
-        assertEquals(2L, ((WorkflowRevision) iterator.next()).getRevisionId().longValue());
-        assertEquals(10L, ((WorkflowRevision) iterator.next()).getRevisionId().longValue());
-        assertEquals(1L, ((WorkflowRevision) iterator.next()).getRevisionId().longValue());
+        catalogObject.setRevisions(revisions);
+        assertEquals(revisions, catalogObject.getRevisions());
+        Iterator iterator = catalogObject.getRevisions().iterator();
+        assertEquals(2L, ((CatalogObjectRevision) iterator.next()).getRevisionId().longValue());
+        assertEquals(10L, ((CatalogObjectRevision) iterator.next()).getRevisionId().longValue());
+        assertEquals(1L, ((CatalogObjectRevision) iterator.next()).getRevisionId().longValue());
     }
 
-    private WorkflowRevision newWorkflowRevision(Long revisionId, LocalDateTime date) {
-        return new WorkflowRevision(1L,
+    private CatalogObjectRevision newWorkflowRevision(Long revisionId, LocalDateTime date) {
+        return new CatalogObjectRevision(1L,
                                     revisionId,
                                     "Test",
                                     "Test Project",

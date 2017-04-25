@@ -44,7 +44,7 @@ import org.junit.runners.Parameterized;
  * @see WorkflowCatalogQueryCompiler
  */
 @RunWith(Parameterized.class)
-public class WorkflowCatalogQueryCompilerTest {
+public class CatalogObjectCatalogQueryCompilerTest {
 
     private final WorkflowCatalogQueryCompiler compiler;
 
@@ -215,7 +215,7 @@ public class WorkflowCatalogQueryCompilerTest {
                                                invalidTestInput("generic_information(\"name1\", \"value\") or project_name!=\"name2\""), });
     }
 
-    public WorkflowCatalogQueryCompilerTest(Assertion assertion) {
+    public CatalogObjectCatalogQueryCompilerTest(Assertion assertion) {
         this.compiler = new WorkflowCatalogQueryCompiler();
         this.assertion = assertion;
     }

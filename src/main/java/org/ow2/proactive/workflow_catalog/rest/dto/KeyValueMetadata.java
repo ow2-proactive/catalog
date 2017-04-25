@@ -25,32 +25,48 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Objects;
 
 
 /**
  * @author ActiveEon Team
  */
-public final class Variable extends KeyValue {
+public class KeyValueMetadata {
 
-    public Variable(String key, String value) {
-        super(key, value);
+    public final String key;
+
+    public final String value;
+
+    public final String label;
+
+    public KeyValueMetadata(String key, String value, String label) {
+        this.key = key;
+        this.value = value;
+        this.label = label;
     }
 
-    @JsonIgnore
-    public String getName() {
-        return super.key;
+    @Override
+    public final boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (!(other instanceof KeyValueMetadata)) {
+            return false;
+        }
+
+        KeyValueMetadata that = (KeyValueMetadata) other;
+
+        if (!Objects.equals(key, that.key)) {
+            return false;
+        }
+
+        return Objects.equals(value, that.value);
     }
 
-    public static List<Variable>
-            to(Collection<? extends org.ow2.proactive.workflow_catalog.rest.entity.Variable> from) {
-        return from.stream()
-                   .map(entity -> new Variable(entity.getKey(), entity.getValue()))
-                   .collect(Collectors.toList());
+    @Override
+    public final int hashCode() {
+        return Objects.hash(key, value);
     }
 
 }

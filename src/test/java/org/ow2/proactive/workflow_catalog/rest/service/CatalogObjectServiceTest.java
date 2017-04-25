@@ -41,7 +41,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObjectRevision;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.util.ArchiveManagerHelper;
 
@@ -49,7 +49,7 @@ import org.ow2.proactive.workflow_catalog.rest.util.ArchiveManagerHelper;
 /**
  * @author ActiveEon Team
  */
-public class WorkflowServiceTest {
+public class CatalogObjectServiceTest {
 
     @InjectMocks
     private WorkflowService workflowService;
@@ -103,17 +103,17 @@ public class WorkflowServiceTest {
         List<Long> idList = new ArrayList<>();
         workflowService.getWorkflowsAsArchive(1L, idList);
         verify(workflowRevisionService, times(1)).getWorkflowsRevisions(1L, idList);
-        verify(archiveManagerHelper, times(1)).compressZIP(Mockito.anyListOf(WorkflowRevision.class));
+        verify(archiveManagerHelper, times(1)).compressZIP(Mockito.anyListOf(CatalogObjectRevision.class));
     }
 
     @Test
     public void testCreateWorkflows() throws Exception {
-        byte[] archive = Files.readAllBytes(Paths.get(WorkflowServiceTest.class.getResource("/archives/archive.zip")
+        byte[] archive = Files.readAllBytes(Paths.get(CatalogObjectServiceTest.class.getResource("/archives/archive.zip")
                                                                                .toURI()));
         List<byte[]> workflows = new ArrayList<>(2);
-        workflows.add(Files.readAllBytes(Paths.get(WorkflowServiceTest.class.getResource("/archives/workflow_0.xml")
+        workflows.add(Files.readAllBytes(Paths.get(CatalogObjectServiceTest.class.getResource("/archives/workflow_0.xml")
                                                                             .toURI())));
-        workflows.add(Files.readAllBytes(Paths.get(WorkflowServiceTest.class.getResource("/archives/workflow_1.xml")
+        workflows.add(Files.readAllBytes(Paths.get(CatalogObjectServiceTest.class.getResource("/archives/workflow_1.xml")
                                                                             .toURI())));
         when(archiveManagerHelper.extractZIP(archive)).thenReturn(workflows);
 

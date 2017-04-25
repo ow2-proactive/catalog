@@ -42,9 +42,9 @@ import javax.persistence.Table;
  * @author ActiveEon Team
  */
 @Entity
-@Table(name = "WORKFLOW_KEY_VALUE", indexes = { @Index(columnList = "KEY"), @Index(columnList = "VALUE") })
+@Table(name = "METADATA_KEY_VALUE", indexes = {@Index(columnList = "KEY"), @Index(columnList = "VALUE") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class KeyValue {
+public class KeyValueMetadata {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -57,15 +57,19 @@ public abstract class KeyValue {
     @Column(name = "VALUE", nullable = false)
     protected String value;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    protected WorkflowRevision workflowRevision;
+    @Column(name = "LABEL", nullable = true)
+    protected String label;
 
-    public KeyValue() {
+    @ManyToOne(cascade = CascadeType.ALL)
+    protected CatalogObjectRevision catalogObjectRevision;
+
+    public KeyValueMetadata() {
     }
 
-    public KeyValue(String key, String value) {
+    public KeyValueMetadata(String key, String value, String label) {
         this.key = key;
         this.value = value;
+        this.label = label;
     }
 
     public Long getId() {
@@ -80,8 +84,12 @@ public abstract class KeyValue {
         return value;
     }
 
-    public WorkflowRevision getWorkflowRevision() {
-        return workflowRevision;
+    public String getLabel() {
+        return label;
+    }
+
+    public CatalogObjectRevision getCatalogObjectRevision() {
+        return catalogObjectRevision;
     }
 
     public void setKey(String key) {
@@ -92,13 +100,17 @@ public abstract class KeyValue {
         this.value = value;
     }
 
-    public void setWorkflowRevision(WorkflowRevision workflowRevision) {
-        this.workflowRevision = workflowRevision;
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public void setCatalogObjectRevision(CatalogObjectRevision catalogObjectRevision) {
+        this.catalogObjectRevision = catalogObjectRevision;
     }
 
     @Override
     public String toString() {
-        return "KeyValue{" + "id=" + id + ", key='" + key + '\'' + ", value='" + value + '\'' + '}';
+        return "KeyValueMetadata{" + "id=" + id + ", key='" + key + '\'' + ", value='" + value + '\'' + '}';
     }
 
 }

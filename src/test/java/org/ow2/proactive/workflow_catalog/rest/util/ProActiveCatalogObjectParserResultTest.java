@@ -38,7 +38,7 @@ import com.google.common.collect.ImmutableMap;
  *
  * @author ProActive Team
  */
-public class ProActiveWorkflowParserResultTest {
+public class ProActiveCatalogObjectParserResultTest {
 
     private ProActiveWorkflowParserResult proActiveWorkflowParserResult;
 
