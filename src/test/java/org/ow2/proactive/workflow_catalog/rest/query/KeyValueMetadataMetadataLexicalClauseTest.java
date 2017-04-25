@@ -39,7 +39,7 @@ import nl.jqno.equalsverifier.EqualsVerifier;
  *
  * @author ActiveEon Team
  */
-public class KeyValueLexicalClauseTest {
+public class KeyValueMetadataMetadataLexicalClauseTest {
 
     @Test
     public void testEqualsContract() {

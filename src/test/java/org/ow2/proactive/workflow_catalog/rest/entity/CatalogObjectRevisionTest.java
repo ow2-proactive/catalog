@@ -38,35 +38,35 @@ import com.google.common.collect.Lists;
 /**
  * @author ActiveEon Team
  */
-public class WorkflowRevisionTest {
+public class CatalogObjectRevisionTest {
 
     @Test
     public void testAddGenericInformation() throws Exception {
-        WorkflowRevision workflowRevision = createWorkflowRevision();
+        CatalogObjectRevision catalogObjectRevision = createWorkflowRevision();
 
-        assertThat(workflowRevision.getGenericInformation()).hasSize(1);
+        assertThat(catalogObjectRevision.getGenericInformation()).hasSize(1);
 
-        workflowRevision.addGenericInformation(Mockito.mock(GenericInformation.class));
+        catalogObjectRevision.addGenericInformation(Mockito.mock(GenericInformation.class));
 
-        assertThat(workflowRevision.getGenericInformation()).hasSize(2);
+        assertThat(catalogObjectRevision.getGenericInformation()).hasSize(2);
     }
 
     @Test
     public void testAddVariable() throws Exception {
-        WorkflowRevision workflowRevision = createWorkflowRevision();
+        CatalogObjectRevision catalogObjectRevision = createWorkflowRevision();
 
-        assertThat(workflowRevision.getVariables()).hasSize(1);
+        assertThat(catalogObjectRevision.getVariables()).hasSize(1);
 
-        workflowRevision.addVariable(Mockito.mock(Variable.class));
+        catalogObjectRevision.addVariable(Mockito.mock(Variable.class));
 
-        assertThat(workflowRevision.getVariables()).hasSize(2);
+        assertThat(catalogObjectRevision.getVariables()).hasSize(2);
     }
 
-    private WorkflowRevision createWorkflowRevision() {
+    private CatalogObjectRevision createWorkflowRevision() {
         GenericInformation genericInformationMock = Mockito.mock(GenericInformation.class);
         Variable variableMock = Mockito.mock(Variable.class);
 
-        WorkflowRevision workflowRevision = new WorkflowRevision(1L,
+        CatalogObjectRevision catalogObjectRevision = new CatalogObjectRevision(1L,
                                                                  1L,
                                                                  "test",
                                                                  "test",
@@ -76,7 +76,7 @@ public class WorkflowRevisionTest {
                                                                  Lists.newArrayList(variableMock),
                                                                  new byte[0]);
 
-        return workflowRevision;
+        return catalogObjectRevision;
     }
 
 }

@@ -55,12 +55,12 @@ public class BucketTest {
 
     @Test
     public void testAddWorkflow() throws Exception {
-        Workflow workflow = new Workflow(bucket);
+        CatalogObject catalogObject = new CatalogObject(bucket);
 
-        bucket.addWorkflow(workflow);
+        bucket.addWorkflow(catalogObject);
 
-        assertThat(bucket.getWorkflows()).hasSize(1);
-        assertThat(workflow.getBucket()).isEqualTo(bucket);
+        assertThat(bucket.getCatalogObjects()).hasSize(1);
+        assertThat(catalogObject.getBucket()).isEqualTo(bucket);
     }
 
     @Test
@@ -72,9 +72,9 @@ public class BucketTest {
 
     @Test
     public void testSetWorkflows() throws Exception {
-        List<Workflow> workflowList = ImmutableList.of();
-        bucket.setWorkflows(workflowList);
-        assertEquals(workflowList, bucket.getWorkflows());
+        List<CatalogObject> catalogObjectList = ImmutableList.of();
+        bucket.setCatalogObjects(catalogObjectList);
+        assertEquals(catalogObjectList, bucket.getCatalogObjects());
     }
 
     @Test
@@ -98,9 +98,9 @@ public class BucketTest {
 
     @Test
     public void testGetWorkflows() throws Exception {
-        List<Workflow> workflowList = ImmutableList.of();
-        bucket.setWorkflows(workflowList);
-        assertEquals(workflowList, bucket.getWorkflows());
+        List<CatalogObject> catalogObjectList = ImmutableList.of();
+        bucket.setCatalogObjects(catalogObjectList);
+        assertEquals(catalogObjectList, bucket.getCatalogObjects());
     }
 
     @Test

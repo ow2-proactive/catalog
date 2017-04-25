@@ -46,7 +46,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author ActiveEon Team
  */
-public class WorkflowRevisionControllerTest {
+public class CatalogObjectRevisionControllerTest {
 
     @InjectMocks
     private WorkflowRevisionController workflowRevisionController;

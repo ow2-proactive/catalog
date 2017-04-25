@@ -68,7 +68,7 @@ public class Bucket {
     protected String owner;
 
     @OneToMany(mappedBy = "bucket")
-    private List<Workflow> workflows;
+    private List<CatalogObject> catalogObjects;
 
     public Bucket() {
     }
@@ -78,23 +78,23 @@ public class Bucket {
     }
 
     public Bucket(String name, LocalDateTime createdAt, String owner) {
-        this(name, createdAt, owner, new Workflow[0]);
+        this(name, createdAt, owner, new CatalogObject[0]);
     }
 
-    public Bucket(String name, String owner, Workflow... workflows) {
-        this(name, LocalDateTime.now(), owner, workflows);
+    public Bucket(String name, String owner, CatalogObject... catalogObjects) {
+        this(name, LocalDateTime.now(), owner, catalogObjects);
     }
 
-    public Bucket(String name, LocalDateTime createdAt, String owner, Workflow... workflows) {
+    public Bucket(String name, LocalDateTime createdAt, String owner, CatalogObject... catalogObjects) {
         this.name = name;
         this.createdAt = createdAt;
         this.owner = owner;
-        this.workflows = Lists.newArrayList(workflows);
+        this.catalogObjects = Lists.newArrayList(catalogObjects);
     }
 
-    public void addWorkflow(Workflow workflow) {
-        this.workflows.add(workflow);
-        workflow.setBucket(this);
+    public void addWorkflow(CatalogObject catalogObject) {
+        this.catalogObjects.add(catalogObject);
+        catalogObject.setBucket(this);
     }
 
     public Long getId() {
@@ -109,16 +109,16 @@ public class Bucket {
         return name;
     }
 
-    public List<Workflow> getWorkflows() {
-        return workflows;
+    public List<CatalogObject> getCatalogObjects() {
+        return catalogObjects;
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public void setWorkflows(List<Workflow> workflows) {
-        this.workflows = workflows;
+    public void setCatalogObjects(List<CatalogObject> catalogObjects) {
+        this.catalogObjects = catalogObjects;
     }
 
     public String getOwner() {

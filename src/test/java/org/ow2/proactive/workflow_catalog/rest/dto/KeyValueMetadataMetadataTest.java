@@ -25,26 +25,19 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
-import java.util.Collections;
-import java.util.List;
+import org.junit.Test;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import nl.jqno.equalsverifier.EqualsVerifier;
 
 
 /**
  * @author ActiveEon Team
  */
-public final class WorkflowMetadataList {
+public class KeyValueMetadataMetadataTest {
 
-    @JsonProperty("workflow")
-    public final List<WorkflowMetadata> workflowMetadataList;
-
-    public WorkflowMetadataList(List<WorkflowMetadata> workflowMetadataList) {
-        this.workflowMetadataList = workflowMetadataList;
-    }
-
-    public WorkflowMetadataList(WorkflowMetadata workflowMetadata) {
-        this.workflowMetadataList = Collections.singletonList(workflowMetadata);
+    @Test
+    public void testEqualsContract() {
+        EqualsVerifier.forClass(KeyValueMetadata.class).verify();
     }
 
 }

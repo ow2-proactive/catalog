@@ -25,45 +25,26 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.dto;
 
-import java.util.Objects;
+import java.util.Collections;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 /**
  * @author ActiveEon Team
  */
-public abstract class KeyValue {
+public final class ObjectMetadataList {
 
-    public final String key;
+    @JsonProperty("object")
+    public final List<ObjectMetadata> objectMetadataList;
 
-    public final String value;
-
-    public KeyValue(String key, String value) {
-        this.key = key;
-        this.value = value;
+    public ObjectMetadataList(List<ObjectMetadata> objectMetadataList) {
+        this.objectMetadataList = objectMetadataList;
     }
 
-    @Override
-    public final boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-
-        if (!(other instanceof KeyValue)) {
-            return false;
-        }
-
-        KeyValue that = (KeyValue) other;
-
-        if (!Objects.equals(key, that.key)) {
-            return false;
-        }
-
-        return Objects.equals(value, that.value);
-    }
-
-    @Override
-    public final int hashCode() {
-        return Objects.hash(key, value);
+    public ObjectMetadataList(ObjectMetadata objectMetadata) {
+        this.objectMetadataList = Collections.singletonList(objectMetadata);
     }
 
 }

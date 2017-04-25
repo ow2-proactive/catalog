@@ -48,7 +48,7 @@ import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQuery
  *
  * @author ActiveEon Team
  */
-public class WorkflowCatalogQueryExpressionBuilderTest {
+public class CatalogObjectCatalogQueryExpressionBuilderTest {
 
     @Mock
     private WorkflowCatalogQueryCompiler queryCompiler;

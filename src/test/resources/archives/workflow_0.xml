@@ -4,7 +4,7 @@
      xsi:schemaLocation="urn:proactive:jobdescriptor:3.3 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.3/schedulerjob.xsd"
      name="01_simple_task" projectName="" priority="normal" cancelJobOnError="false">
     <description>
-        A workflow with just one task printing some text.
+        A catalogObject with just one task printing some text.
     </description>
     <taskFlow>
         <task name="simple_task">

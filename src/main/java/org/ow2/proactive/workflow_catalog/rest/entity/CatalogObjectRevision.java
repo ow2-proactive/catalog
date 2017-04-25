@@ -53,8 +53,11 @@ import org.springframework.data.annotation.CreatedDate;
  * @author ActiveEon Team
  */
 @Entity
-@Table(name = "WORKFLOW_REVISION", indexes = { @Index(columnList = "NAME"), @Index(columnList = "PROJECT_NAME") })
-public class WorkflowRevision implements Comparable {
+@Table(name = "CATALOG_OBJECT_REVISION", indexes = { @Index(columnList = "NAME"), @Index(columnList = "PROJECT_NAME") })
+public class CatalogObjectRevision implements Comparable {
+
+    @Column(name = "KIND", nullable = false)
+    protected String kind;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -76,8 +79,8 @@ public class WorkflowRevision implements Comparable {
     private Long bucketId;
 
     @ManyToOne
-    @JoinColumn(name = "WORKFLOW_ID")
-    private Workflow workflow;
+    @JoinColumn(name = "CATALOG_OBJECT_ID")
+    private CatalogObject catalogObject;
 
     @Column(name = "PROJECT_NAME", nullable = false)
     private String projectName;
@@ -87,24 +90,20 @@ public class WorkflowRevision implements Comparable {
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(nullable = true)
-    private List<GenericInformation> genericInformation;
-
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(nullable = true)
-    private List<Variable> variables;
+    private List<KeyValueMetadata> keyValueMetadataList;
 
     @Lob
     @Column(name = "XML_PAYLOAD", columnDefinition = "blob", nullable = false)
     private byte[] xmlPayload;
 
-    public WorkflowRevision() {
-        this.genericInformation = new ArrayList<>();
-        this.variables = new ArrayList<>();
+    public CatalogObjectRevision() {
+        this.keyValueMetadataList = new ArrayList<>();
     }
 
-    public WorkflowRevision(Long bucketId, Long revisionId, String name, String projectName, LocalDateTime createdAt,
-            String layout, byte[] xmlPayload) {
+    public CatalogObjectRevision(String kind, Long bucketId, Long revisionId, String name, String projectName, LocalDateTime createdAt,
+                                 String layout, byte[] xmlPayload) {
         this();
+        this.kind = kind;
         this.bucketId = bucketId;
         this.revisionId = revisionId;
         this.name = name;
@@ -114,11 +113,10 @@ public class WorkflowRevision implements Comparable {
         this.xmlPayload = xmlPayload;
     }
 
-    public WorkflowRevision(Long bucketId, Long revisionId, String name, String projectName, LocalDateTime createdAt,
-            String layout, List<GenericInformation> genericInformation, List<Variable> variables, byte[] xmlPayload) {
-        this(bucketId, revisionId, name, projectName, createdAt, layout, xmlPayload);
-        this.genericInformation = genericInformation;
-        this.variables = variables;
+    public CatalogObjectRevision(String kind, Long bucketId, Long revisionId, String name, String projectName, LocalDateTime createdAt,
+                                 String layout, List<KeyValueMetadata> keyValueMetadataList, byte[] xmlPayload) {
+        this(kind, bucketId, revisionId, name, projectName, createdAt, layout, xmlPayload);
+        this.keyValueMetadataList = keyValueMetadataList;
     }
 
     public Long getBucketId() {
@@ -133,26 +131,21 @@ public class WorkflowRevision implements Comparable {
         return createdAt;
     }
 
-    public void addGenericInformation(GenericInformation genericInformation) {
-        this.genericInformation.add(genericInformation);
-        genericInformation.setWorkflowRevision(this);
+    public void addKeyValue(KeyValueMetadata keyValueMetadata) {
+        this.keyValueMetadataList.add(keyValueMetadata);
+        keyValueMetadata.setCatalogObjectRevision(this);
     }
 
-    public void addGenericInformation(Collection<GenericInformation> genericInformation) {
-        genericInformation.forEach(gi -> addGenericInformation(gi));
+    public void addKeyValueList(Collection<KeyValueMetadata> keyValueMetadataList) {
+        keyValueMetadataList.forEach(kv -> addKeyValue(kv));
     }
 
-    public void addVariable(Variable variable) {
-        this.variables.add(variable);
-        variable.setWorkflowRevision(this);
+    public List<KeyValueMetadata> getKeyValueMetadataList() {
+        return keyValueMetadataList;
     }
 
-    public void addVariables(Collection<Variable> variables) {
-        variables.forEach(var -> addVariable(var));
-    }
-
-    public List<GenericInformation> getGenericInformation() {
-        return genericInformation;
+    public String getKind() {
+        return kind;
     }
 
     public String getName() {
@@ -167,12 +160,8 @@ public class WorkflowRevision implements Comparable {
         return revisionId;
     }
 
-    public List<Variable> getVariables() {
-        return variables;
-    }
-
-    public Workflow getWorkflow() {
-        return workflow;
+    public CatalogObject getCatalogObject() {
+        return catalogObject;
     }
 
     public byte[] getXmlPayload() {
@@ -187,8 +176,12 @@ public class WorkflowRevision implements Comparable {
         this.createdAt = createdAt;
     }
 
-    public void setGenericInformation(List<GenericInformation> genericInformation) {
-        this.genericInformation = genericInformation;
+    public void setKeyValues(List<KeyValueMetadata> keyValueMetadatas) {
+        this.keyValueMetadataList = keyValueMetadatas;
+    }
+
+    public void setKind(String name) {
+        this.kind = kind;
     }
 
     public void setName(String name) {
@@ -203,12 +196,8 @@ public class WorkflowRevision implements Comparable {
         this.revisionId = revisionId;
     }
 
-    public void setVariables(List<Variable> variables) {
-        this.variables = variables;
-    }
-
-    public void setWorkflow(Workflow workflow) {
-        this.workflow = workflow;
+    public void setCatalogObject(CatalogObject catalogObject) {
+        this.catalogObject = catalogObject;
     }
 
     public void setXmlPayload(byte[] xmlPayload) {
@@ -217,9 +206,9 @@ public class WorkflowRevision implements Comparable {
 
     @Override
     public String toString() {
-        return "WorkflowRevision{" + "id=" + id + ", createdAt=" + createdAt + ", name='" + name + '\'' +
-               ", revisionId=" + revisionId + ", bucketId=" + bucketId + ", workflow=" + workflow + ", projectName='" +
-               projectName + '\'' + ", genericInformation=" + genericInformation + ", variables=" + variables + '}';
+        return "CatalogObjectRevision{" + "id=" + id + ", createdAt=" + createdAt + ", name='" + name + '\'' +
+               ", revisionId=" + revisionId + ", bucketId=" + bucketId + ", catalogObject=" + catalogObject + ", projectName='" +
+               projectName + '\'' + ", keyValues=" + keyValueMetadataList + '}';
     }
 
     public String getLayout() {
@@ -228,6 +217,6 @@ public class WorkflowRevision implements Comparable {
 
     @Override
     public int compareTo(Object o) {
-        return ((WorkflowRevision) o).createdAt.compareTo(createdAt);
+        return ((CatalogObjectRevision) o).createdAt.compareTo(createdAt);
     }
 }

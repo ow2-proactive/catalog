@@ -9,7 +9,7 @@
         priority="normal"
         cancelJobOnError="false">
     <description>
-        <![CDATA[ A workflow that executes cmd in JVM. ]]>
+        <![CDATA[ A catalogObject that executes cmd in JVM. ]]>
     </description>
     <taskFlow>
         <task name="Windows_Cmd_Task">

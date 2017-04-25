@@ -48,8 +48,8 @@ import com.google.common.collect.Lists;
  * @author ActiveEon Team
  */
 @Entity
-@Table(name = "WORKFLOW", indexes = { @Index(columnList = "LAST_REVISION_ID"), })
-public class Workflow {
+@Table(name = "CATALOG_OBJECT", indexes = { @Index(columnList = "LAST_REVISION_ID"), })
+public class CatalogObject {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -60,31 +60,31 @@ public class Workflow {
     @JoinColumn(name = "BUCKET_ID", nullable = false)
     private Bucket bucket;
 
-    @OneToMany(mappedBy = "workflow", orphanRemoval = true)
+    @OneToMany(mappedBy = "catalogObject", orphanRemoval = true)
     @OrderBy("createdAt DESC")
-    private SortedSet<WorkflowRevision> revisions;
+    private SortedSet<CatalogObjectRevision> revisions;
 
     @Column(name = "LAST_REVISION_ID")
     private Long lastRevisionId = 0L;
 
-    public Workflow() {
-        this.revisions = new TreeSet<WorkflowRevision>();
+    public CatalogObject() {
+        this.revisions = new TreeSet<CatalogObjectRevision>();
     }
 
-    public Workflow(Bucket bucket, WorkflowRevision... revisions) {
+    public CatalogObject(Bucket bucket, CatalogObjectRevision... revisions) {
         this(bucket, Lists.newArrayList(revisions));
     }
 
-    public Workflow(Bucket bucket, List<WorkflowRevision> revisions) {
+    public CatalogObject(Bucket bucket, List<CatalogObjectRevision> revisions) {
         this.bucket = bucket;
-        this.revisions = new TreeSet<WorkflowRevision>();
+        this.revisions = new TreeSet<CatalogObjectRevision>();
         revisions.forEach(this::addRevision);
     }
 
-    public void addRevision(WorkflowRevision workflowRevision) {
-        this.revisions.add(workflowRevision);
+    public void addRevision(CatalogObjectRevision catalogObjectRevision) {
+        this.revisions.add(catalogObjectRevision);
         this.lastRevisionId++;
-        workflowRevision.setWorkflow(this);
+        catalogObjectRevision.setCatalogObject(this);
     }
 
     public Long getId() {
@@ -99,7 +99,7 @@ public class Workflow {
         return lastRevisionId;
     }
 
-    public SortedSet<WorkflowRevision> getRevisions() {
+    public SortedSet<CatalogObjectRevision> getRevisions() {
         return revisions;
     }
 
@@ -111,13 +111,13 @@ public class Workflow {
         this.lastRevisionId = lastRevisionId;
     }
 
-    public void setRevisions(SortedSet<WorkflowRevision> revisions) {
+    public void setRevisions(SortedSet<CatalogObjectRevision> revisions) {
         this.revisions = revisions;
     }
 
     @Override
     public String toString() {
-        return "Workflow{" + "id=" + id + ", bucket=" + bucket + ", lastRevisionId=" + lastRevisionId + '}';
+        return "CatalogObject{" + "id=" + id + ", bucket=" + bucket + ", lastRevisionId=" + lastRevisionId + '}';
     }
 
 }

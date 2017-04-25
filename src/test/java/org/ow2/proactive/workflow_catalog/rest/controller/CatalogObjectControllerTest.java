@@ -63,7 +63,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author ActiveEon Team
  */
-public class WorkflowControllerTest {
+public class CatalogObjectControllerTest {
 
     @InjectMocks
     private WorkflowController workflowController;

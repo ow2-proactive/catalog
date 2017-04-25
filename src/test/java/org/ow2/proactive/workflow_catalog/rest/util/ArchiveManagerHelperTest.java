@@ -47,7 +47,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObjectRevision;
 
 
 public class ArchiveManagerHelperTest {
@@ -81,15 +81,15 @@ public class ArchiveManagerHelperTest {
 
         byte[] workflowByteArray0 = convertFromURIToByteArray(XML_FILE_0);
         byte[] workflowByteArray1 = convertFromURIToByteArray(XML_FILE_1);
-        List<WorkflowRevision> expectedFiles = new ArrayList<>();
-        expectedFiles.add(new WorkflowRevision(1L,
+        List<CatalogObjectRevision> expectedFiles = new ArrayList<>();
+        expectedFiles.add(new CatalogObjectRevision(1L,
                                                1L,
                                                new File(XML_FILE_0).getName(),
                                                null,
                                                LocalDateTime.now(),
                                                null,
                                                workflowByteArray0));
-        expectedFiles.add(new WorkflowRevision(1L,
+        expectedFiles.add(new CatalogObjectRevision(1L,
                                                1L,
                                                new File(XML_FILE_1).getName(),
                                                null,

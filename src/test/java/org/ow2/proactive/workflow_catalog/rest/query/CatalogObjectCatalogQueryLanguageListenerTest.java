@@ -43,7 +43,7 @@ import org.ow2.proactive.workflow_catalog.rest.query.parser.WorkflowCatalogQuery
  * @author ActiveEon Team
  * @see WorkflowCatalogQueryCompiler
  */
-public class WorkflowCatalogQueryLanguageListenerTest {
+public class CatalogObjectCatalogQueryLanguageListenerTest {
 
     private WorkflowCatalogQueryLanguageListener listener;
 
