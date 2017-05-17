@@ -32,7 +32,7 @@ import com.google.common.base.Joiner;
 
 /**
  * Exception thrown if one or more syntax errors are detected while
- * compiling a Workflow Catalog Query.
+ * compiling a CatalogObject Catalog Query.
  *
  * @see WorkflowCatalogQueryCompiler
  *

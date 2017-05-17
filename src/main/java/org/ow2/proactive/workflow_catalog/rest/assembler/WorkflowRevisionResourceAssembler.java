@@ -26,8 +26,8 @@
 package org.ow2.proactive.workflow_catalog.rest.assembler;
 
 import org.ow2.proactive.workflow_catalog.rest.controller.WorkflowController;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.dto.ObjectMetadata;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObjectRevision;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Component;
 
@@ -36,15 +36,15 @@ import org.springframework.stereotype.Component;
  * @author ActiveEon Team
  */
 @Component
-public class WorkflowRevisionResourceAssembler extends ResourceAssemblerSupport<WorkflowRevision, WorkflowMetadata> {
+public class WorkflowRevisionResourceAssembler extends ResourceAssemblerSupport<CatalogObjectRevision, ObjectMetadata> {
 
     public WorkflowRevisionResourceAssembler() {
-        super(WorkflowController.class, WorkflowMetadata.class);
+        super(WorkflowController.class, ObjectMetadata.class);
     }
 
     @Override
-    public WorkflowMetadata toResource(WorkflowRevision workflow) {
-        return new WorkflowMetadata(workflow);
+    public ObjectMetadata toResource(CatalogObjectRevision workflow) {
+        return new ObjectMetadata(workflow);
     }
 
 }

@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.dto.ObjectMetadata;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.util.ArchiveManagerHelper;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
@@ -53,8 +53,8 @@ public class WorkflowService {
     @Autowired
     private ArchiveManagerHelper archiveManagerHelper;
 
-    public WorkflowMetadata createWorkflow(Long bucketId, ProActiveWorkflowParserResult proActiveWorkflowParserResult,
-            byte[] proActiveWorkflowXmlContent) {
+    public ObjectMetadata createWorkflow(Long bucketId, ProActiveWorkflowParserResult proActiveWorkflowParserResult,
+                                         byte[] proActiveWorkflowXmlContent) {
         return workflowRevisionService.createWorkflowRevision(bucketId,
                                                               Optional.empty(),
                                                               proActiveWorkflowParserResult,
@@ -62,15 +62,15 @@ public class WorkflowService {
                                                               proActiveWorkflowXmlContent);
     }
 
-    public WorkflowMetadata createWorkflow(Long bucketId, Optional<String> layout, byte[] proActiveWorkflowXmlContent) {
+    public ObjectMetadata createWorkflow(Long bucketId, Optional<String> layout, byte[] proActiveWorkflowXmlContent) {
         return workflowRevisionService.createWorkflowRevision(bucketId,
                                                               Optional.empty(),
                                                               proActiveWorkflowXmlContent,
                                                               layout);
     }
 
-    public List<WorkflowMetadata> createWorkflows(Long bucketId, Optional<String> layout,
-            byte[] proActiveWorkflowsArchive) {
+    public List<ObjectMetadata> createWorkflows(Long bucketId, Optional<String> layout,
+                                                byte[] proActiveWorkflowsArchive) {
 
         List<byte[]> extractedWorkflows = archiveManagerHelper.extractZIP(proActiveWorkflowsArchive);
         if (extractedWorkflows.isEmpty()) {

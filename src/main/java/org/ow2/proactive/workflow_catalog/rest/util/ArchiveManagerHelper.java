@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObjectRevision;
 import org.springframework.stereotype.Component;
 import org.zeroturnaround.zip.ByteSource;
 import org.zeroturnaround.zip.ZipEntrySource;
@@ -45,13 +45,13 @@ import org.zeroturnaround.zip.ZipUtil;
 public class ArchiveManagerHelper {
 
     /**
-     * Get the name of the Workflow used into the archive (in order not to have twice the same
-     * name). If the name of the Workflow already exists, an index is append to the name.
+     * Get the name of the CatalogObject used into the archive (in order not to have twice the same
+     * name). If the name of the CatalogObject already exists, an index is append to the name.
      * @param existingNames the set of names already used
-     * @param currentName the Workflow current name
-     * @return the name of the Workflow different from all existing names
+     * @param currentName the CatalogObject current name
+     * @return the name of the CatalogObject different from all existing names
      */
-    private String getName(WorkflowRevision workflow) {
+    private String getName(CatalogObjectRevision workflow) {
         StringBuilder builder = new StringBuilder();
 
         builder.append(workflow.getName());
@@ -62,11 +62,11 @@ public class ArchiveManagerHelper {
     }
 
     /**
-     * Compress a list of WorkflowRevision into a ZIP archive
+     * Compress a list of CatalogObjectRevision into a ZIP archive
      * @param workflowsList the list of workflows to compress
      * @return a byte array corresponding to the archive containing the workflows
      */
-    public byte[] compressZIP(List<WorkflowRevision> workflowsList) {
+    public byte[] compressZIP(List<CatalogObjectRevision> workflowsList) {
 
         if (workflowsList == null || workflowsList.size() == 0) {
             return null;

@@ -23,22 +23,24 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.workflow_catalog.rest.entity;
+package org.ow2.proactive.workflow_catalog.rest.util;
 
-import javax.persistence.Entity;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import org.ow2.proactive.workflow_catalog.rest.entity.KeyValueMetadata;
 
 /**
  * @author ActiveEon Team
+ * @since 4/25/2017
  */
-@Entity
-public class GenericInformation extends KeyValue {
+public final class KeyValueEntityToDtoTransformer {
 
-    public GenericInformation() {
+    public static List<org.ow2.proactive.workflow_catalog.rest.dto.KeyValueMetadata>
+    to(Collection<? extends KeyValueMetadata> from) {
+        return from.stream()
+                .map(entity -> new org.ow2.proactive.workflow_catalog.rest.dto.KeyValueMetadata(entity.getKey(), entity.getValue(), entity.getLabel()))
+                .collect(Collectors.toList());
     }
-
-    public GenericInformation(String key, String value) {
-        super(key, value);
-    }
-
 }

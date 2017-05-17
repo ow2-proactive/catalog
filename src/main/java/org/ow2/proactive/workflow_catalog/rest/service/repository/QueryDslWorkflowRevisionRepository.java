@@ -29,7 +29,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
 import org.ow2.proactive.workflow_catalog.rest.entity.QWorkflowRevision;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObjectRevision;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -55,11 +55,11 @@ public class QueryDslWorkflowRevisionRepository extends QueryDslRepositorySuppor
     private QWorkflowRevision qWorkflowRevision = QWorkflowRevision.workflowRevision;
 
     public QueryDslWorkflowRevisionRepository() {
-        super(WorkflowRevision.class);
+        super(CatalogObjectRevision.class);
     }
 
-    public Page<WorkflowRevision> findAllWorkflowRevisions(long bucketId, Long workflowId,
-            QueryExpressionContext context, Pageable pageable) {
+    public Page<CatalogObjectRevision> findAllWorkflowRevisions(long bucketId, Long workflowId,
+                                                                QueryExpressionContext context, Pageable pageable) {
         ListSubQuery<Long> allWorkflowRevisions = createFindAllWorkflowRevisionsSubQuery(bucketId, workflowId);
 
         return findWorkflowRevisions(allWorkflowRevisions, context, pageable);
@@ -73,8 +73,8 @@ public class QueryDslWorkflowRevisionRepository extends QueryDslRepositorySuppor
                                 .list(qWorkflowRevision.id);
     }
 
-    public Page<WorkflowRevision> findMostRecentWorkflowRevisions(long bucketId, QueryExpressionContext context,
-            Pageable pageable) {
+    public Page<CatalogObjectRevision> findMostRecentWorkflowRevisions(long bucketId, QueryExpressionContext context,
+                                                                       Pageable pageable) {
 
         ListSubQuery<Long> allMostRecentRevisions = createFindMostRecentRevisionsSubQuery(bucketId);
 
@@ -89,8 +89,8 @@ public class QueryDslWorkflowRevisionRepository extends QueryDslRepositorySuppor
                                 .list(qWorkflowRevision.id);
     }
 
-    private Page<WorkflowRevision> findWorkflowRevisions(ListSubQuery<Long> workflowRevisionIds,
-            QueryExpressionContext context, Pageable pageable) {
+    private Page<CatalogObjectRevision> findWorkflowRevisions(ListSubQuery<Long> workflowRevisionIds,
+                                                              QueryExpressionContext context, Pageable pageable) {
         JPAQuery query = new JPAQuery(entityManager).from(QWorkflowRevision.workflowRevision);
 
         query = query.where(qWorkflowRevision.id.in(workflowRevisionIds).and(context.getExpression())).distinct();

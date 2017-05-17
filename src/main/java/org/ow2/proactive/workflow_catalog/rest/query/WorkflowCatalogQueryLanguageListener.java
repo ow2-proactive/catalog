@@ -39,7 +39,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.ow2.proactive.workflow_catalog.rest.entity.QGenericInformation;
 import org.ow2.proactive.workflow_catalog.rest.entity.QVariable;
 import org.ow2.proactive.workflow_catalog.rest.entity.QWorkflowRevision;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObjectRevision;
 import org.ow2.proactive.workflow_catalog.rest.query.AtomicLexicalClause.FieldType;
 import org.ow2.proactive.workflow_catalog.rest.query.AtomicLexicalClause.Operator;
 import org.ow2.proactive.workflow_catalog.rest.query.KeyValueLexicalClause.PairType;
@@ -54,10 +54,10 @@ import com.mysema.query.types.query.ListSubQuery;
 
 
 /**
- * Workflow Catalog parse-tree listener.
+ * CatalogObject Catalog parse-tree listener.
  * <p>
  * The listener operates on events triggered by the built-in ANTLR tree walker.
- * The events are defined based on the Workflow Catalog grammar.
+ * The events are defined based on the CatalogObject Catalog grammar.
  * <p>
  * The purpose of the listener is to create a boolean expression that will be
  * used to query and filter results from the SQL database that indexes
@@ -110,7 +110,7 @@ public class WorkflowCatalogQueryLanguageListener
 
     protected Stack<Context> stackOfContexts;
 
-    protected Stack<ListSubQuery<WorkflowRevision>> stackOfSubQueries;
+    protected Stack<ListSubQuery<CatalogObjectRevision>> stackOfSubQueries;
 
     // Result object
 
@@ -149,7 +149,7 @@ public class WorkflowCatalogQueryLanguageListener
         booleanExpression = null;
 
         while (!stackOfSubQueries.empty()) {
-            ListSubQuery<WorkflowRevision> subQuery = stackOfSubQueries.pop();
+            ListSubQuery<CatalogObjectRevision> subQuery = stackOfSubQueries.pop();
             if (booleanExpression == null) {
                 booleanExpression = workflowRevision.in(subQuery);
             } else {

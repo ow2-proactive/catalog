@@ -50,14 +50,14 @@ resultMetadata.put("content.type", MediaType.PNG.toString())
 // You can download it or save it.
 import com.google.common.net.MediaType
 
-def url = 'http://www.activeeon.com/resources/activeeon-datasheet-proactive-workflows-scheduling-en.pdf'  
-def file = new File('activeeon-datasheet-proactive-workflows-scheduling-en.pdf').newOutputStream()  
+def url = 'http://www.activeeon.com/resources/activeeon-datasheet-proactive-catalogObjects-scheduling-en.pdf'
+def file = new File('activeeon-datasheet-proactive-catalogObjects-scheduling-en.pdf').newOutputStream()
 file << new URL(url).openStream()  
 file.close()  
 
-file = new File("activeeon-datasheet-proactive-workflows-scheduling-en.pdf")
+file = new File("activeeon-datasheet-proactive-catalogObjects-scheduling-en.pdf")
 result = file.getBytes()
-resultMetadata.put("file.name", "activeeon-datasheet-proactive-workflows-scheduling-en.pdf")
+resultMetadata.put("file.name", "activeeon-datasheet-proactive-catalogObjects-scheduling-en.pdf")
 resultMetadata.put("content.type", MediaType.PDF.toString())
 ]]>
           </code>

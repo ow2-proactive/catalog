@@ -32,7 +32,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import java.io.IOException;
 import java.util.Optional;
 
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.dto.ObjectMetadata;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,9 +72,9 @@ public class WorkflowRevisionController {
                             @ApiResponse(code = 422, message = "Invalid XML workflow content supplied") })
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public WorkflowMetadata create(@PathVariable Long bucketId, @PathVariable Long workflowId,
-            @ApiParam(value = "Layout describing the tasks position in the Workflow Revision") @RequestParam(required = false) Optional<String> layout,
-            @RequestPart(value = "file") MultipartFile file) throws IOException {
+    public ObjectMetadata create(@PathVariable Long bucketId, @PathVariable Long workflowId,
+                                 @ApiParam(value = "Layout describing the tasks position in the CatalogObject Revision") @RequestParam(required = false) Optional<String> layout,
+                                 @RequestPart(value = "file") MultipartFile file) throws IOException {
         return workflowRevisionService.createWorkflowRevision(bucketId,
                                                               Optional.of(workflowId),
                                                               file.getBytes(),
@@ -108,7 +108,7 @@ public class WorkflowRevisionController {
                                                      assembler);
     }
 
-    @ApiOperation(value = "Delete a workflow's revision", notes = "If the revisionId references the latest revision, it is deleted and the workflow then points to the previous revision. If the revisionId doesn't references the latest revision, it is simply deleted without any impact on the current workflow. Returns the deleted WorkflowRevision metadata.")
+    @ApiOperation(value = "Delete a workflow's revision", notes = "If the revisionId references the latest revision, it is deleted and the workflow then points to the previous revision. If the revisionId doesn't references the latest revision, it is simply deleted without any impact on the current workflow. Returns the deleted CatalogObjectRevision metadata.")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}/revisions/{revisionId}", method = DELETE)
     public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable Long workflowId,

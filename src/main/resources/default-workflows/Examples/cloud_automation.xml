@@ -7,7 +7,7 @@
         priority="normal"
         onTaskError="continueJobExecution">
   <description>
-    <![CDATA[ A workflow that simulates cloud automation. ]]>
+    <![CDATA[ A catalogObject that simulates cloud automation. ]]>
   </description>
   <genericInformation>
     <info name="pca.action.icon" value="/cloud-automation/styles/patterns/img/cloud-automation_try.png"/>

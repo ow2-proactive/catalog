@@ -28,7 +28,7 @@
         <script>
           <code language="groovy">
             <![CDATA[
-println "This workflow will calculate the maximum angular coverage according to the number of lights and their"
+println "This catalogObject will calculate the maximum angular coverage according to the number of lights and their"
 println "covering angle defined in the Job Variables."
 
 Integer coveredAnglePerLight=variables.get("coveredAnglePerLight").toInteger()

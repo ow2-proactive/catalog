@@ -36,7 +36,7 @@ import com.google.common.base.Joiner;
 
 
 /**
- * Listener used for receiving syntax errors while a Workflow Catalog
+ * Listener used for receiving syntax errors while a CatalogObject Catalog
  * Query is parsed.
  *
  * @author ActiveEon Team
