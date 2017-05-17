@@ -43,7 +43,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.dto.ObjectMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -64,15 +64,15 @@ import com.jayway.restassured.response.Response;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest(randomPort = true)
-public class WorkflowRevisionControllerIntegrationTest extends AbstractWorkflowRevisionControllerTest {
+public class CatalogObjectRevisionControllerIntegrationTest extends AbstractWorkflowRevisionControllerTest {
 
     protected Bucket bucket;
 
-    protected WorkflowMetadata firstWorkflowRevision;
+    protected ObjectMetadata firstWorkflowRevision;
 
-    protected WorkflowMetadata secondWorkflowRevision;
+    protected ObjectMetadata secondWorkflowRevision;
 
-    protected WorkflowMetadata workflowRevisionAlone;
+    protected ObjectMetadata workflowRevisionAlone;
 
     @Before
     public void setup() throws IOException {
@@ -107,7 +107,7 @@ public class WorkflowRevisionControllerIntegrationTest extends AbstractWorkflowR
                .body("bucket_id", is(bucket.getId().intValue()))
                .body("id", is(firstWorkflowRevision.id.intValue()))
                .body("id", is(secondWorkflowRevision.id.intValue()))
-               .body("name", is("Valid Workflow"))
+               .body("name", is("Valid CatalogObject"))
                .body("project_name", is("Project Name"))
                .body("revision_id", is(secondWorkflowRevision.revisionId.intValue() + 1))
                .body("generic_information", hasSize(2))
@@ -333,7 +333,7 @@ public class WorkflowRevisionControllerIntegrationTest extends AbstractWorkflowR
         response.then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body("_embedded.workflowMetadataList", hasSize(pageSize))
+                .body("_embedded.objectMetadataList", hasSize(pageSize))
                 .body("page.number", is(0))
                 .body("page.totalElements", is(25 + 2));
     }

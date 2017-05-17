@@ -39,7 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.dto.ObjectMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowRevisionService;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
@@ -65,7 +65,7 @@ import com.jayway.restassured.response.Response;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest(randomPort = true)
-public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
+public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private static final String WORKFLOWS_RESOURCE = "/buckets/{bucketId}/workflows";
 
@@ -88,7 +88,7 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private Bucket bucket;
 
-    private WorkflowMetadata workflow;
+    private ObjectMetadata workflow;
 
     @Before
     public void setup() throws IOException {
@@ -110,7 +110,7 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
                .statusCode(HttpStatus.SC_CREATED)
                .body("workflow[0].bucket_id", is(bucket.getId().intValue()))
                .body("workflow[0].id", is(2))
-               .body("workflow[0].name", is("Valid Workflow"))
+               .body("workflow[0].name", is("Valid CatalogObject"))
                .body("workflow[0].project_name", is("Project Name"))
                .body("workflow[0].revision_id", is(1))
                .body("workflow[0].generic_information", hasSize(2))
@@ -149,7 +149,7 @@ public class WorkflowControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testGetWorkflowShouldReturnLatestSavedWorkflowRevision() throws IOException {
-        WorkflowMetadata secondWorkflowRevision = workflowRevisionService.createWorkflowRevision(workflow.bucketId,
+        ObjectMetadata secondWorkflowRevision = workflowRevisionService.createWorkflowRevision(workflow.bucketId,
                                                                                                  Optional.of(workflow.id),
                                                                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"),
                                                                                                  Optional.empty());

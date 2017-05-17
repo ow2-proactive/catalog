@@ -39,12 +39,10 @@ import javax.xml.stream.XMLStreamException;
 
 import org.ow2.proactive.workflow_catalog.rest.assembler.WorkflowRevisionResourceAssembler;
 import org.ow2.proactive.workflow_catalog.rest.controller.WorkflowRevisionController;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.dto.ObjectMetadata;
 import org.ow2.proactive.workflow_catalog.rest.entity.Bucket;
-import org.ow2.proactive.workflow_catalog.rest.entity.GenericInformation;
-import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
-import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObject;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObjectRevision;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionContext;
 import org.ow2.proactive.workflow_catalog.rest.query.WorkflowCatalogQueryExpressionBuilder;
@@ -107,12 +105,12 @@ public class WorkflowRevisionService {
     private WorkflowRevisionRepository workflowRevisionRepository;
 
     @Transactional
-    public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId,
-            byte[] proActiveWorkflowXmlContent, Optional<String> layout) {
+    public ObjectMetadata createWorkflowRevision(String kind, Long bucketId, Optional<Long> workflowId,
+                                                 byte[] proActiveWorkflowXmlContent, Optional<String> layout) {
         try {
             ProActiveWorkflowParser proActiveWorkflowParser = new ProActiveWorkflowParser(new ByteArrayInputStream(proActiveWorkflowXmlContent));
 
-            return createWorkflowRevision(bucketId,
+            return createWorkflowRevision(kind, bucketId,
                                           workflowId,
                                           proActiveWorkflowParser.parse(),
                                           layout,
@@ -123,23 +121,23 @@ public class WorkflowRevisionService {
     }
 
     @Transactional
-    public WorkflowMetadata createWorkflowRevision(Long bucketId, Optional<Long> workflowId,
-            ProActiveWorkflowParserResult proActiveWorkflowParserResult, Optional<String> layout,
-            byte[] proActiveWorkflowXmlContent) {
+    public ObjectMetadata createWorkflowRevision(String kind, Long bucketId, Optional<Long> workflowId,
+                                                 ProActiveWorkflowParserResult proActiveWorkflowParserResult, Optional<String> layout,
+                                                 byte[] proActiveWorkflowXmlContent) {
         Bucket bucket = findBucket(bucketId);
 
-        Workflow workflow = null;
-        WorkflowRevision workflowRevision;
+        CatalogObject catalogObject = null;
+        CatalogObjectRevision catalogObjectRevision;
         String layoutValue = layout.orElse("");
 
         long revisionNumber = 1;
 
         if (workflowId.isPresent()) {
-            workflow = findWorkflow(workflowId.get());
-            revisionNumber = workflow.getLastRevisionId() + 1;
+            catalogObject = findWorkflow(workflowId.get());
+            revisionNumber = catalogObject.getLastRevisionId() + 1;
         }
 
-        workflowRevision = new WorkflowRevision(bucketId,
+        catalogObjectRevision = new CatalogObjectRevision(kind, bucketId,
                                                 revisionNumber,
                                                 proActiveWorkflowParserResult.getJobName(),
                                                 proActiveWorkflowParserResult.getProjectName(),
@@ -147,21 +145,23 @@ public class WorkflowRevisionService {
                                                 layoutValue,
                                                 proActiveWorkflowXmlContent);
 
-        workflowRevision.addGenericInformation(createEntityGenericInformation(proActiveWorkflowParserResult.getGenericInformation()));
+        catalogObjectRevision.addKeyValueList();
 
-        workflowRevision.addVariables(createEntityVariable(proActiveWorkflowParserResult.getVariables()));
+        catalogObjectRevision.addGenericInformation(createEntityGenericInformation(proActiveWorkflowParserResult.getGenericInformation()));
 
-        workflowRevision = workflowRevisionRepository.save(workflowRevision);
+        catalogObjectRevision.addVariables(createEntityVariable(proActiveWorkflowParserResult.getVariables()));
+
+        catalogObjectRevision = workflowRevisionRepository.save(catalogObjectRevision);
 
         if (!workflowId.isPresent()) {
-            workflow = new Workflow(bucket, workflowRevision);
+            catalogObject = new CatalogObject(bucket, catalogObjectRevision);
         } else {
-            workflow.addRevision(workflowRevision);
+            catalogObject.addRevision(catalogObjectRevision);
         }
 
-        workflowRepository.save(workflow);
+        workflowRepository.save(catalogObject);
 
-        return new WorkflowMetadata(workflowRevision);
+        return new ObjectMetadata(catalogObjectRevision);
     }
 
     protected List<GenericInformation> createEntityGenericInformation(ImmutableMap<String, String> genericInformation) {
@@ -178,14 +178,14 @@ public class WorkflowRevisionService {
                         .collect(Collectors.toList());
     }
 
-    protected Workflow findWorkflow(long workflowId) {
-        Workflow workflow = workflowRepository.findOne(workflowId);
+    protected CatalogObject findWorkflow(long workflowId) {
+        CatalogObject catalogObject = workflowRepository.findOne(workflowId);
 
-        if (workflow == null) {
+        if (catalogObject == null) {
             throw new WorkflowNotFoundException();
         }
 
-        return workflow;
+        return catalogObject;
     }
 
     protected Bucket findBucket(Long bucketId) {
@@ -202,7 +202,7 @@ public class WorkflowRevisionService {
             Pageable pageable, PagedResourcesAssembler assembler) throws QueryExpressionBuilderException {
 
         findBucket(bucketId);
-        Page<WorkflowRevision> page;
+        Page<CatalogObjectRevision> page;
 
         if (workflowId.isPresent()) {
             findWorkflow(workflowId.get());
@@ -246,7 +246,7 @@ public class WorkflowRevisionService {
         findBucket(bucketId);
         findWorkflow(workflowId);
 
-        WorkflowRevision workflowRevision = getWorkflowRevision(bucketId, workflowId, revisionId);
+        CatalogObjectRevision catalogObjectRevision = getWorkflowRevision(bucketId, workflowId, revisionId);
 
         if (alt.isPresent()) {
             String altValue = alt.get();
@@ -256,7 +256,7 @@ public class WorkflowRevisionService {
                                                         SUPPORTED_ALT_VALUE + "' is allowed)");
             }
 
-            byte[] bytes = workflowRevision.getXmlPayload();
+            byte[] bytes = catalogObjectRevision.getXmlPayload();
 
             return ResponseEntity.ok()
                                  .contentLength(bytes.length)
@@ -264,16 +264,16 @@ public class WorkflowRevisionService {
                                  .body(new InputStreamResource(new ByteArrayInputStream(bytes)));
         }
 
-        WorkflowMetadata workflowMetadata = new WorkflowMetadata(workflowRevision);
+        ObjectMetadata objectMetadata = new ObjectMetadata(catalogObjectRevision);
 
-        workflowMetadata.add(createLink(bucketId, workflowId, workflowRevision));
+        objectMetadata.add(createLink(bucketId, workflowId, catalogObjectRevision));
 
-        return ResponseEntity.ok(workflowMetadata);
+        return ResponseEntity.ok(objectMetadata);
     }
 
-    public List<WorkflowRevision> getWorkflowsRevisions(Long bucketId, List<Long> idList) {
+    public List<CatalogObjectRevision> getWorkflowsRevisions(Long bucketId, List<Long> idList) {
         findBucket(bucketId);
-        List<WorkflowRevision> workflows = idList.stream()
+        List<CatalogObjectRevision> workflows = idList.stream()
                                                  .map(workflowId -> getWorkflowRevision(bucketId,
                                                                                         workflowId,
                                                                                         Optional.empty()))
@@ -281,68 +281,68 @@ public class WorkflowRevisionService {
         return workflows;
     }
 
-    private WorkflowRevision getWorkflowRevision(Long bucketId, Long workflowId, Optional<Long> revisionId) {
-        WorkflowRevision workflowRevision;
+    private CatalogObjectRevision getWorkflowRevision(Long bucketId, Long workflowId, Optional<Long> revisionId) {
+        CatalogObjectRevision catalogObjectRevision;
 
         if (revisionId.isPresent()) {
-            workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId, workflowId, revisionId.get());
+            catalogObjectRevision = workflowRevisionRepository.getWorkflowRevision(bucketId, workflowId, revisionId.get());
         } else {
-            workflowRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
+            catalogObjectRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
         }
 
-        if (workflowRevision == null) {
+        if (catalogObjectRevision == null) {
             throw new RevisionNotFoundException();
         }
 
-        return workflowRevision;
+        return catalogObjectRevision;
     }
 
     /**
-     * Generic method to delete either a specific WorkflowRevision or a complete Workflow
+     * Generic method to delete either a specific CatalogObjectRevision or a complete CatalogObject
      * and all of its dependencies.
-     * Deleting a previous WorkflowRevision will not impact the current revision of a Workflow.
-     * Deleting the current WorkflowRevision will:
+     * Deleting a previous CatalogObjectRevision will not impact the current revision of a CatalogObject.
+     * Deleting the current CatalogObjectRevision will:
      * <ul>
-     *     <li>also delete the Workflow if it has only one WorkflowRevision</li>
-     *     <li>impact the Workflow by referencing the previous WorkflowRevision if it had more than one WorkflowRevision.</li>
+     *     <li>also delete the CatalogObject if it has only one CatalogObjectRevision</li>
+     *     <li>impact the CatalogObject by referencing the previous CatalogObjectRevision if it had more than one CatalogObjectRevision.</li>
      * </ul>
-     * @param bucketId The id of the Bucket containing the Workflow
-     * @param workflowId The id of the Workflow containing the WorkflowRevision
-     * @param revisionId The revision number of the Workflow
-     * @return The deleted WorkflowRevision metadata
+     * @param bucketId The id of the Bucket containing the CatalogObject
+     * @param workflowId The id of the CatalogObject containing the CatalogObjectRevision
+     * @param revisionId The revision number of the CatalogObject
+     * @return The deleted CatalogObjectRevision metadata
      */
     public ResponseEntity<?> delete(Long bucketId, Long workflowId, Optional<Long> revisionId) {
-        Workflow workflow = findWorkflow(workflowId);
-        WorkflowRevision workflowRevision = null;
-        if (revisionId.isPresent() && workflow.getRevisions().size() > 1) {
-            if (revisionId.get() == workflow.getLastRevisionId()) {
-                Iterator iter = workflow.getRevisions().iterator();
-                workflowRevision = (WorkflowRevision) iter.next();
-                WorkflowRevision newWorkflowRevisionReference = (WorkflowRevision) iter.next();
-                workflow.setLastRevisionId(newWorkflowRevisionReference.getRevisionId());
-                workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId,
+        CatalogObject catalogObject = findWorkflow(workflowId);
+        CatalogObjectRevision catalogObjectRevision = null;
+        if (revisionId.isPresent() && catalogObject.getRevisions().size() > 1) {
+            if (revisionId.get() == catalogObject.getLastRevisionId()) {
+                Iterator iter = catalogObject.getRevisions().iterator();
+                catalogObjectRevision = (CatalogObjectRevision) iter.next();
+                CatalogObjectRevision newCatalogObjectRevisionReference = (CatalogObjectRevision) iter.next();
+                catalogObject.setLastRevisionId(newCatalogObjectRevisionReference.getRevisionId());
+                catalogObjectRevision = workflowRevisionRepository.getWorkflowRevision(bucketId,
                                                                                   workflowId,
-                                                                                  workflowRevision.getRevisionId());
-                workflowRevisionRepository.delete(workflowRevision);
+                                                                                  catalogObjectRevision.getRevisionId());
+                workflowRevisionRepository.delete(catalogObjectRevision);
             } else {
-                workflowRevision = workflowRevisionRepository.getWorkflowRevision(bucketId,
+                catalogObjectRevision = workflowRevisionRepository.getWorkflowRevision(bucketId,
                                                                                   workflowId,
                                                                                   revisionId.get());
-                workflowRevisionRepository.delete(workflowRevision);
+                workflowRevisionRepository.delete(catalogObjectRevision);
             }
         } else {
-            workflowRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
-            workflowRepository.delete(workflow);
+            catalogObjectRevision = workflowRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
+            workflowRepository.delete(catalogObject);
         }
-        WorkflowMetadata workflowMetadata = new WorkflowMetadata(workflowRevision);
-        workflowMetadata.add(createLink(bucketId, workflowId, workflowRevision));
-        return ResponseEntity.ok(workflowMetadata);
+        ObjectMetadata objectMetadata = new ObjectMetadata(catalogObjectRevision);
+        objectMetadata.add(createLink(bucketId, workflowId, catalogObjectRevision));
+        return ResponseEntity.ok(objectMetadata);
     }
 
-    public Link createLink(Long bucketId, Long workflowId, WorkflowRevision workflowRevision) {
+    public Link createLink(Long bucketId, Long workflowId, CatalogObjectRevision catalogObjectRevision) {
         ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(WorkflowRevisionController.class).get(bucketId,
                                                                                                             workflowId,
-                                                                                                            workflowRevision.getRevisionId(),
+                                                                                                            catalogObjectRevision.getRevisionId(),
                                                                                                             null));
 
         // alt request parameter name and value is added manually

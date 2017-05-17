@@ -36,7 +36,7 @@ import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadataList;
+import org.ow2.proactive.workflow_catalog.rest.dto.ObjectMetadataList;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.workflow_catalog.rest.service.WorkflowService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,14 +79,14 @@ public class WorkflowController {
                             @ApiResponse(code = 422, message = "Invalid XML workflow content supplied") })
     @RequestMapping(value = "/buckets/{bucketId}/workflows", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public WorkflowMetadataList create(@PathVariable Long bucketId,
-            @ApiParam(value = "Layout describing the tasks position in the Workflow") @RequestParam(required = false) Optional<String> layout,
-            @ApiParam(value = "Import workflows from ZIP when set to 'zip'.") @RequestParam(required = false) Optional<String> alt,
-            @RequestPart(value = "file") MultipartFile file) throws IOException {
+    public ObjectMetadataList create(@PathVariable Long bucketId,
+                                     @ApiParam(value = "Layout describing the tasks position in the CatalogObject") @RequestParam(required = false) Optional<String> layout,
+                                     @ApiParam(value = "Import workflows from ZIP when set to 'zip'.") @RequestParam(required = false) Optional<String> alt,
+                                     @RequestPart(value = "file") MultipartFile file) throws IOException {
         if (alt.isPresent() && ZIP_EXTENSION.equals(alt.get())) {
-            return new WorkflowMetadataList(workflowService.createWorkflows(bucketId, layout, file.getBytes()));
+            return new ObjectMetadataList(workflowService.createWorkflows(bucketId, layout, file.getBytes()));
         } else {
-            return new WorkflowMetadataList(workflowService.createWorkflow(bucketId, layout, file.getBytes()));
+            return new ObjectMetadataList(workflowService.createWorkflow(bucketId, layout, file.getBytes()));
         }
     }
 
@@ -133,7 +133,7 @@ public class WorkflowController {
         return workflowService.listWorkflows(bucketId, query, pageable, assembler);
     }
 
-    @ApiOperation(value = "Delete a workflow", notes = "Delete the entire workflow as well as its revisions. Returns the deleted Workflow's metadata")
+    @ApiOperation(value = "Delete a workflow", notes = "Delete the entire workflow as well as its revisions. Returns the deleted CatalogObject's metadata")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
     @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}", method = DELETE)
     public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable Long workflowId) {

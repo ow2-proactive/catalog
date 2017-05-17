@@ -155,7 +155,7 @@ public class Application extends WebMvcConfigurerAdapter {
     @Bean
     public Docket workflowCatalogApi() {
         return new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo())
-                                                      .groupName("Workflow Catalog")
+                                                      .groupName("CatalogObject Catalog")
                                                       .ignoredParameterTypes(Pageable.class,
                                                                              PagedResourcesAssembler.class)
                                                       .select()
@@ -164,7 +164,7 @@ public class Application extends WebMvcConfigurerAdapter {
     }
 
     private ApiInfo apiInfo() {
-        return new ApiInfoBuilder().title("Workflow Catalog API")
+        return new ApiInfoBuilder().title("CatalogObject Catalog API")
                                    .description("The purpose of the workflow catalog is to store ProActive workflows.\n" +
                                                 "\n" +
                                                 "A workflow catalog is subdivided into buckets.\n\n Each bucket manages zero, one or more\n" +

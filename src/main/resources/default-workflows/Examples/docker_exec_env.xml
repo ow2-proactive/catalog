@@ -8,7 +8,7 @@
         onTaskError="continueJobExecution"
 >
   <description>
-    <![CDATA[ This workflow demonstrates the usage of a Docker Fork Execution Environment. Including the usage of variables passing and Dataspaces ]]>
+    <![CDATA[ This catalogObject demonstrates the usage of a Docker Fork Execution Environment. Including the usage of variables passing and Dataspaces ]]>
   </description>
     <genericInformation>
         <info name="pca.action.icon" value="/cloud-automation/styles/patterns/img/docker-exec-env.png"/>

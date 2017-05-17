@@ -13,7 +13,7 @@
     <variable name="infrastructure_name" value="local"/>
   </variables>
   <description>
-    <![CDATA[ A workflow that executes bash in JVM. ]]>
+    <![CDATA[ A catalogObject that executes bash in JVM. ]]>
   </description>
   <genericInformation>
     <info name="pca.service.model" value="9"/>

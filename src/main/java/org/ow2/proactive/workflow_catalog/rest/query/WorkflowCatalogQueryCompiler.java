@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Compile a Workflow Catalog query as input String to an Abstract Syntax Tree (AST).
+ * Compile a CatalogObject Catalog query as input String to an Abstract Syntax Tree (AST).
  *
  * @author ActiveEon Team
  */
@@ -44,9 +44,9 @@ public class WorkflowCatalogQueryCompiler {
     private static final Logger log = LoggerFactory.getLogger(WorkflowCatalogQueryCompiler.class);
 
     /**
-     * Compile the specified Workflow Catalog to an AST.
+     * Compile the specified CatalogObject Catalog to an AST.
      *
-     * @param input the Workflow Catalog query to compile.
+     * @param input the CatalogObject Catalog query to compile.
      * @return the root of the AST.
      * @throws SyntaxException if one or more syntax errors are detected while compiling.
      */

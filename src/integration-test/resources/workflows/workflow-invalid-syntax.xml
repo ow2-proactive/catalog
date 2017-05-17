@@ -12,7 +12,7 @@
         <variable value="var2Value" name="var2"/>
     </variables>
     <description>
-        <![CDATA[ A workflow that executes cmd in JVM. ]]>
+        <![CDATA[ A catalogObject that executes cmd in JVM. ]]>
     </description>
     <genericInformation>
         <info value="genericInfo1Value" name="genericInfo1"/>

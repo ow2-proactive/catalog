@@ -48,7 +48,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.dto.ObjectMetadata;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +80,7 @@ import com.jayway.restassured.response.ValidatableResponse;
 @RunWith(Parameterized.class)
 @SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest(randomPort = true)
-public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWorkflowRevisionControllerTest {
+public class CatalogObjectRevisionControllerQueryIntegrationTest extends AbstractWorkflowRevisionControllerTest {
 
     @ClassRule
     public static final SpringClassRule SPRING_CLASS_RULE = new SpringClassRule();
@@ -88,11 +88,11 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
     @Rule
     public final SpringMethodRule springMethodRule = new SpringMethodRule();
 
-    private Logger log = LoggerFactory.getLogger(WorkflowRevisionControllerQueryIntegrationTest.class);
+    private Logger log = LoggerFactory.getLogger(CatalogObjectRevisionControllerQueryIntegrationTest.class);
 
     private BucketMetadata firstBucket;
 
-    private WorkflowMetadata workflowA;
+    private ObjectMetadata workflowA;
 
     private BucketMetadata secondBucket;
 
@@ -292,7 +292,7 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
 
     private final Assertion assertion;
 
-    public WorkflowRevisionControllerQueryIntegrationTest(Assertion assertion) {
+    public CatalogObjectRevisionControllerQueryIntegrationTest(Assertion assertion) {
         this.assertion = assertion;
     }
 
@@ -300,8 +300,8 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
     public void setup() throws Exception {
         firstBucket = bucketService.createBucket("first");
 
-        // Workflow A
-        ImmutablePair<WorkflowMetadata, ProActiveWorkflowParserResult> workflow = createWorkflowFirstBucket("",
+        // CatalogObject A
+        ImmutablePair<ObjectMetadata, ProActiveWorkflowParserResult> workflow = createWorkflowFirstBucket("",
                                                                                                             "A-small",
                                                                                                             ImmutableMap.of("Infrastructure",
                                                                                                                             "Amazon EC2",
@@ -362,7 +362,7 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
 
         workflowA = workflow.getLeft();
 
-        // Workflow B
+        // CatalogObject B
         workflow = createWorkflowFirstBucket("",
                                              "B",
                                              ImmutableMap.of("Cloud", "Amazon EC2", "Type", "private"),
@@ -374,38 +374,38 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                                                        Optional.empty(),
                                                        new byte[0]);
 
-        // Workflow C
+        // CatalogObject C
         createWorkflowFirstBucket("", "C", ImmutableMap.of("Infrastructure", "OpenStack"), ImmutableMap.of());
 
-        // Workflow D
+        // CatalogObject D
         createWorkflowFirstBucket("", "D", ImmutableMap.of(), ImmutableMap.of("CPU", "5"));
 
-        // Workflow E
+        // CatalogObject E
         createWorkflowFirstBucket("FabienExample",
                                   "E",
                                   ImmutableMap.of("Provider", "Google", "Fournisseur", "Amazon"),
                                   ImmutableMap.of("Provider", "Google", "Fournisseur", "Amazon"));
 
-        // Workflow F
+        // CatalogObject F
         createWorkflowFirstBucket("FabienExample",
                                   "F",
                                   ImmutableMap.of("Provider", "Amazon"),
                                   ImmutableMap.of("Provider", "Amazon"));
 
-        // Workflow G
+        // CatalogObject G
         createWorkflowFirstBucket("CharacterEscaping", "G*", ImmutableMap.of("linebreak", "\\r\\n"), ImmutableMap.of());
 
-        // Workflow Amazon
+        // CatalogObject Amazon
         createWorkflowFirstBucket("", "Amazon", ImmutableMap.of(), ImmutableMap.of());
 
         // Workflows that belong to second bucket
 
         secondBucket = bucketService.createBucket("second");
 
-        // Workflow Dummy
+        // CatalogObject Dummy
         createWorkflow(secondBucket, "", "Dummy", ImmutableMap.of(), ImmutableMap.of());
 
-        // Workflow A
+        // CatalogObject A
         createWorkflow(secondBucket,
                        "",
                        "A",
@@ -413,21 +413,21 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
                        ImmutableMap.of("CPU", "4096"));
     }
 
-    private ImmutablePair<WorkflowMetadata, ProActiveWorkflowParserResult> createWorkflowFirstBucket(String projectName,
-            String name, ImmutableMap<String, String> genericInformation, ImmutableMap<String, String> variable) {
+    private ImmutablePair<ObjectMetadata, ProActiveWorkflowParserResult> createWorkflowFirstBucket(String projectName,
+                                                                                                   String name, ImmutableMap<String, String> genericInformation, ImmutableMap<String, String> variable) {
         return createWorkflow(firstBucket, projectName, name, genericInformation, variable);
     }
 
-    private ImmutablePair<WorkflowMetadata, ProActiveWorkflowParserResult> createWorkflow(BucketMetadata bucket,
-            String projectName, String name, ImmutableMap<String, String> genericInformation,
-            ImmutableMap<String, String> variable) {
+    private ImmutablePair<ObjectMetadata, ProActiveWorkflowParserResult> createWorkflow(BucketMetadata bucket,
+                                                                                        String projectName, String name, ImmutableMap<String, String> genericInformation,
+                                                                                        ImmutableMap<String, String> variable) {
 
         ProActiveWorkflowParserResult proActiveWorkflowParserResult = new ProActiveWorkflowParserResult(projectName,
                                                                                                         name,
                                                                                                         genericInformation,
                                                                                                         variable);
 
-        WorkflowMetadata workflow = workflowService.createWorkflow(bucket.id,
+        ObjectMetadata workflow = workflowService.createWorkflow(bucket.id,
                                                                    proActiveWorkflowParserResult,
                                                                    new byte[0]);
 
@@ -491,7 +491,7 @@ public class WorkflowRevisionControllerQueryIntegrationTest extends AbstractWork
         ArrayList<HashMap<Object, Object>> workflowRevisionsFound = response.extract()
                                                                             .body()
                                                                             .jsonPath()
-                                                                            .get("_embedded.workflowMetadataList");
+                                                                            .get("_embedded.objectMetadataList");
 
         Set<String> names = workflowRevisionsFound.stream()
                                                   .map(workflowRevision -> (String) workflowRevision.get("name"))

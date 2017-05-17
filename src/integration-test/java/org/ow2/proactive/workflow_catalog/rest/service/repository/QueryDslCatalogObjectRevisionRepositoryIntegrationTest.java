@@ -41,11 +41,10 @@ import org.junit.runner.RunWith;
 import org.ow2.proactive.workflow_catalog.rest.Application;
 import org.ow2.proactive.workflow_catalog.rest.controller.AbstractWorkflowRevisionControllerTest;
 import org.ow2.proactive.workflow_catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.workflow_catalog.rest.dto.WorkflowMetadata;
+import org.ow2.proactive.workflow_catalog.rest.dto.ObjectMetadata;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObjectRevision;
 import org.ow2.proactive.workflow_catalog.rest.entity.QGenericInformation;
 import org.ow2.proactive.workflow_catalog.rest.entity.QWorkflowRevision;
-import org.ow2.proactive.workflow_catalog.rest.entity.Variable;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
 import org.ow2.proactive.workflow_catalog.rest.query.QueryExpressionContext;
 import org.ow2.proactive.workflow_catalog.rest.util.ProActiveWorkflowParserResult;
 import org.slf4j.Logger;
@@ -80,9 +79,9 @@ import com.mysema.query.types.query.ListSubQuery;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest(randomPort = true)
-public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractWorkflowRevisionControllerTest {
+public class QueryDslCatalogObjectRevisionRepositoryIntegrationTest extends AbstractWorkflowRevisionControllerTest {
 
-    private static final Logger log = LoggerFactory.getLogger(QueryDslWorkflowRevisionRepositoryIntegrationTest.class);
+    private static final Logger log = LoggerFactory.getLogger(QueryDslCatalogObjectRevisionRepositoryIntegrationTest.class);
 
     private static final int NUMBER_OF_BUCKETS = 2; // must be >= 2
 
@@ -113,7 +112,7 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
                                                                                                                                 workflowIndex,
                                                                                                                                 1));
 
-                WorkflowMetadata workflow = workflowService.createWorkflow(bucket.id,
+                ObjectMetadata workflow = workflowService.createWorkflow(bucket.id,
                                                                            proActiveWorkflowParserResult,
                                                                            new byte[0]);
 
@@ -155,14 +154,14 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
 
     @Test
     public void testFindAllWorkflowRevisions4() {
-        ListSubQuery<WorkflowRevision> revisionSubQuery = new JPASubQuery().from(QGenericInformation.genericInformation)
+        ListSubQuery<CatalogObjectRevision> revisionSubQuery = new JPASubQuery().from(QGenericInformation.genericInformation)
                                                                            .where(QGenericInformation.genericInformation.key.eq("revisionIndex")
                                                                                                                             .and(QGenericInformation.genericInformation.value.eq(Integer.toString(NUMBER_OF_WORKFLOWS))))
                                                                            .list(QGenericInformation.genericInformation.workflowRevision);
 
         BucketMetadata bucket = buckets.get(0);
 
-        Page<WorkflowRevision> result = findAllWorkflowRevisions(bucket,
+        Page<CatalogObjectRevision> result = findAllWorkflowRevisions(bucket,
                                                                  NUMBER_OF_WORKFLOWS,
                                                                  Optional.of(QWorkflowRevision.workflowRevision.in(new JPASubQuery().from(QWorkflowRevision.workflowRevision)
                                                                                                                                     .where(QWorkflowRevision.workflowRevision.in(revisionSubQuery))
@@ -195,14 +194,14 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
                                         1);
     }
 
-    private Page<WorkflowRevision> findMostRecentWorkflowRevisions(BucketMetadata bucket) {
+    private Page<CatalogObjectRevision> findMostRecentWorkflowRevisions(BucketMetadata bucket) {
         return findMostRecentWorkflowRevisions(bucket, Optional.empty(), NUMBER_OF_WORKFLOWS);
     }
 
-    private Page<WorkflowRevision> findMostRecentWorkflowRevisions(BucketMetadata bucket,
-            Optional<BooleanExpression> booleanExpression, int expectedNumberOfWorkflowRevisions) {
+    private Page<CatalogObjectRevision> findMostRecentWorkflowRevisions(BucketMetadata bucket,
+                                                                        Optional<BooleanExpression> booleanExpression, int expectedNumberOfWorkflowRevisions) {
 
-        Page<WorkflowRevision> result = doQueryfindMostRecentWorkflowRevisions(bucket, booleanExpression);
+        Page<CatalogObjectRevision> result = doQueryfindMostRecentWorkflowRevisions(bucket, booleanExpression);
 
         assertContainRightVariable(bucket, result);
 
@@ -211,23 +210,23 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
         return result;
     }
 
-    private void assertContainRightVariable(BucketMetadata bucket, Page<WorkflowRevision> result) {
-        for (WorkflowRevision workflowRevision : result.getContent()) {
-            assertThat(bucket.id).isEqualTo(findBucketIndex(workflowRevision));
+    private void assertContainRightVariable(BucketMetadata bucket, Page<CatalogObjectRevision> result) {
+        for (CatalogObjectRevision catalogObjectRevision : result.getContent()) {
+            assertThat(bucket.id).isEqualTo(findBucketIndex(catalogObjectRevision));
         }
     }
 
-    private Page<WorkflowRevision> findAllWorkflowRevisions(BucketMetadata bucket, int workflowIndex) {
+    private Page<CatalogObjectRevision> findAllWorkflowRevisions(BucketMetadata bucket, int workflowIndex) {
         return findAllWorkflowRevisions(bucket,
                                         workflowIndex,
                                         Optional.empty(),
                                         getNumberOfWorkflowRevisions(workflowIndex));
     }
 
-    private Page<WorkflowRevision> findAllWorkflowRevisions(BucketMetadata bucket, int workflowIndex,
-            Optional<BooleanExpression> booleanExpression, int expectedNumberOfWorkflowRevisions) {
+    private Page<CatalogObjectRevision> findAllWorkflowRevisions(BucketMetadata bucket, int workflowIndex,
+                                                                 Optional<BooleanExpression> booleanExpression, int expectedNumberOfWorkflowRevisions) {
 
-        Page<WorkflowRevision> result = doQueryfindAllWorkflowRevisions(bucket, workflowIndex, booleanExpression);
+        Page<CatalogObjectRevision> result = doQueryfindAllWorkflowRevisions(bucket, workflowIndex, booleanExpression);
 
         assertContainRightVariable(bucket, result);
 
@@ -236,8 +235,8 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
         return result;
     }
 
-    private int findBucketIndex(WorkflowRevision workflowRevision) {
-        List<Variable> variables = workflowRevision.getVariables();
+    private int findBucketIndex(CatalogObjectRevision catalogObjectRevision) {
+        List<Variable> variables = catalogObjectRevision.getVariables();
 
         int bucketIndex = -1;
 
@@ -250,8 +249,8 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
         return bucketIndex;
     }
 
-    private Page<WorkflowRevision> doQueryfindAllWorkflowRevisions(BucketMetadata bucket, long workflowId,
-            Optional<BooleanExpression> booleanExpression) {
+    private Page<CatalogObjectRevision> doQueryfindAllWorkflowRevisions(BucketMetadata bucket, long workflowId,
+                                                                        Optional<BooleanExpression> booleanExpression) {
 
         return queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(bucket.id,
                                                                            workflowId,
@@ -260,8 +259,8 @@ public class QueryDslWorkflowRevisionRepositoryIntegrationTest extends AbstractW
                                                                                            getTotalNumberOfWorkflowRevisions()));
     }
 
-    private Page<WorkflowRevision> doQueryfindMostRecentWorkflowRevisions(BucketMetadata bucket,
-            Optional<BooleanExpression> booleanExpression) {
+    private Page<CatalogObjectRevision> doQueryfindMostRecentWorkflowRevisions(BucketMetadata bucket,
+                                                                               Optional<BooleanExpression> booleanExpression) {
 
         return queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(bucket.id,
                                                                                   createAnyQueryExpression(booleanExpression),

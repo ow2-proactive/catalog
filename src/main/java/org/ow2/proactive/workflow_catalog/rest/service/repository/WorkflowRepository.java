@@ -25,8 +25,8 @@
  */
 package org.ow2.proactive.workflow_catalog.rest.service.repository;
 
-import org.ow2.proactive.workflow_catalog.rest.entity.Workflow;
-import org.ow2.proactive.workflow_catalog.rest.entity.WorkflowRevision;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObject;
+import org.ow2.proactive.workflow_catalog.rest.entity.CatalogObjectRevision;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -38,12 +38,12 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  * @author ActiveEon Team
  */
 public interface WorkflowRepository
-        extends PagingAndSortingRepository<Workflow, Long>, QueryDslPredicateExecutor<Workflow> {
+        extends PagingAndSortingRepository<CatalogObject, Long>, QueryDslPredicateExecutor<CatalogObject> {
 
     @Query("SELECT wr FROM WorkflowRevision wr JOIN wr.workflow w WHERE wr.bucketId = ?1 AND w.lastRevisionId = wr.revisionId")
-    Page<WorkflowRevision> getMostRecentRevisions(Long bucketId, Pageable pageable);
+    Page<CatalogObjectRevision> getMostRecentRevisions(Long bucketId, Pageable pageable);
 
     @Query("SELECT wr FROM WorkflowRevision wr JOIN wr.workflow w WHERE wr.bucketId = ?1 AND wr.workflow.id = ?2 AND w.lastRevisionId = wr.revisionId")
-    WorkflowRevision getMostRecentWorkflowRevision(Long bucketId, Long workflowId);
+    CatalogObjectRevision getMostRecentWorkflowRevision(Long bucketId, Long workflowId);
 
 }
