@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.rest.entity;
 
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,27 +54,34 @@ import org.springframework.data.annotation.CreatedDate;
  * @author ActiveEon Team
  */
 @Entity
-@Table(name = "CATALOG_OBJECT_REVISION", indexes = { @Index(columnList = "NAME"), @Index(columnList = "PROJECT_NAME") })
+@Table(name = "CATALOG_OBJECT_REVISION", indexes = { @Index(columnList = "NAME"),
+        @Index(columnList = "PROJECT_NAME") })
 public class CatalogObjectRevision implements Comparable {
-
-    @Column(name = "KIND", nullable = false)
-    protected String kind;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID")
-    protected Long id;
+    private Long id;
+
+    @Column(name = "KIND", nullable = false)
+    private String kind;
 
     @CreatedDate
     @Convert(converter = LocalDateTimeAttributeConverter.class)
     @Column(name = "CREATED_AT", nullable = false)
-    protected LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "NAME", nullable = false)
-    protected String name;
+    private String name;
 
-    @Column(name = "REVISION_ID", nullable = false)
-    private Long revisionId;
+    @Column(name = "COMMIT_ID", nullable = false)
+    private Long commitId;
+
+    @Column(name = "COMMIT_MESSAGE", nullable = false)
+    private String commitMessage;
+
+    @Column(name = "COMMIT_DATE", nullable = false)
+    private Date commitDate;
 
     @Column(name = "BUCKET_ID", nullable = false)
     private Long bucketId;
@@ -82,40 +90,43 @@ public class CatalogObjectRevision implements Comparable {
     @JoinColumn(name = "CATALOG_OBJECT_ID")
     private CatalogObject catalogObject;
 
-    @Column(name = "PROJECT_NAME", nullable = false)
-    private String projectName;
-
-    @Column(name = "LAYOUT")
-    private String layout;
+    @Column(name = "CONTENT_TYPE")
+    private String contentType;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(nullable = true)
     private List<KeyValueMetadata> keyValueMetadataList;
 
     @Lob
-    @Column(name = "XML_PAYLOAD", columnDefinition = "blob", nullable = false)
-    private byte[] xmlPayload;
+    @Column(name = "RAW_OBJECT", columnDefinition = "blob", nullable = false)
+    private byte[] objectPayload;
 
     public CatalogObjectRevision() {
         this.keyValueMetadataList = new ArrayList<>();
     }
 
-    public CatalogObjectRevision(String kind, Long bucketId, Long revisionId, String name, String projectName,
-            LocalDateTime createdAt, String layout, byte[] xmlPayload) {
-        this();
+    public CatalogObjectRevision(Long id, String kind, LocalDateTime createdAt, String name, Long commitId,
+            String commitMessage, Date commitDate, Long bucketId, CatalogObject catalogObject,
+            String contentType, byte[] objectPayload) {
+        super();
+        this.id = id;
         this.kind = kind;
-        this.bucketId = bucketId;
-        this.revisionId = revisionId;
-        this.name = name;
-        this.projectName = projectName;
         this.createdAt = createdAt;
-        this.layout = layout;
-        this.xmlPayload = xmlPayload;
+        this.name = name;
+        this.commitId = commitId;
+        this.commitMessage = commitMessage;
+        this.commitDate = commitDate;
+        this.bucketId = bucketId;
+        this.catalogObject = catalogObject;
+        this.contentType = contentType;
+        this.objectPayload = objectPayload;
     }
 
-    public CatalogObjectRevision(String kind, Long bucketId, Long revisionId, String name, String projectName,
-            LocalDateTime createdAt, String layout, List<KeyValueMetadata> keyValueMetadataList, byte[] xmlPayload) {
-        this(kind, bucketId, revisionId, name, projectName, createdAt, layout, xmlPayload);
+    public CatalogObjectRevision(Long id, String kind, LocalDateTime createdAt, String name, Long commitId,
+            String commitMessage, Date commitDate, Long bucketId, CatalogObject catalogObject,
+            String contentType, List<KeyValueMetadata> keyValueMetadataList, byte[] objectPayload) {
+        this(id, kind, createdAt, name, commitId, commitMessage, commitDate, bucketId, catalogObject,
+                contentType, objectPayload);
         this.keyValueMetadataList = keyValueMetadataList;
     }
 
@@ -152,12 +163,24 @@ public class CatalogObjectRevision implements Comparable {
         return name;
     }
 
-    public String getProjectName() {
-        return projectName;
+    public Long getCommitId() {
+        return commitId;
     }
 
-    public Long getRevisionId() {
-        return revisionId;
+    public String getCommitMessage() {
+        return commitMessage;
+    }
+
+    public Date getCommitDate() {
+        return commitDate;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public byte[] getObjectPayload() {
+        return objectPayload;
     }
 
     public CatalogObject getCatalogObject() {
@@ -165,7 +188,7 @@ public class CatalogObjectRevision implements Comparable {
     }
 
     public byte[] getXmlPayload() {
-        return xmlPayload;
+        return objectPayload;
     }
 
     public void setBucketId(Long bucketId) {
@@ -180,7 +203,7 @@ public class CatalogObjectRevision implements Comparable {
         this.keyValueMetadataList = keyValueMetadatas;
     }
 
-    public void setKind(String name) {
+    public void setKind(String kind) {
         this.kind = kind;
     }
 
@@ -188,31 +211,48 @@ public class CatalogObjectRevision implements Comparable {
         this.name = name;
     }
 
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
-
-    public void setRevisionId(Long revisionId) {
-        this.revisionId = revisionId;
-    }
-
     public void setCatalogObject(CatalogObject catalogObject) {
         this.catalogObject = catalogObject;
     }
 
     public void setXmlPayload(byte[] xmlPayload) {
-        this.xmlPayload = xmlPayload;
+        this.objectPayload = xmlPayload;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setCommitId(Long commitId) {
+        this.commitId = commitId;
+    }
+
+    public void setCommitMessage(String commitMessage) {
+        this.commitMessage = commitMessage;
+    }
+
+    public void setCommitDate(Date commitDate) {
+        this.commitDate = commitDate;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public void setKeyValueMetadataList(List<KeyValueMetadata> keyValueMetadataList) {
+        this.keyValueMetadataList = keyValueMetadataList;
+    }
+
+    public void setObjectPayload(byte[] objectPayload) {
+        this.objectPayload = objectPayload;
     }
 
     @Override
     public String toString() {
-        return "CatalogObjectRevision{" + "id=" + id + ", createdAt=" + createdAt + ", name='" + name + '\'' +
-               ", revisionId=" + revisionId + ", bucketId=" + bucketId + ", catalogObject=" + catalogObject +
-               ", projectName='" + projectName + '\'' + ", keyValues=" + keyValueMetadataList + '}';
-    }
-
-    public String getLayout() {
-        return layout;
+        return "CatalogObjectRevision [id=" + id + ", kind=" + kind + ", createdAt=" + createdAt + ", name=" +
+            name + ", commitId=" + commitId + ", commitMessage=" + commitMessage + ", commitDate=" +
+            commitDate + ", bucketId=" + bucketId + ", catalogObject=" + catalogObject + ", contentType=" +
+            contentType + ", keyValueMetadataList=" + keyValueMetadataList + "]";
     }
 
     @Override
