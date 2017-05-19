@@ -25,11 +25,9 @@
  */
 package org.ow2.proactive.catalog.rest.entity;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -37,9 +35,6 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-
-import org.ow2.proactive.catalog.rest.util.LocalDateTimeAttributeConverter;
-import org.springframework.data.annotation.CreatedDate;
 
 import com.google.common.collect.Lists;
 
@@ -56,11 +51,6 @@ public class Bucket {
     @Column(name = "ID")
     protected Long id;
 
-    @CreatedDate
-    @Convert(converter = LocalDateTimeAttributeConverter.class)
-    @Column(name = "CREATED_AT", nullable = false)
-    protected LocalDateTime createdAt;
-
     @Column(name = "NAME", nullable = false)
     protected String name;
 
@@ -74,20 +64,11 @@ public class Bucket {
     }
 
     public Bucket(String name, String owner) {
-        this(name, LocalDateTime.now(), owner);
-    }
-
-    public Bucket(String name, LocalDateTime createdAt, String owner) {
-        this(name, createdAt, owner, new CatalogObject[0]);
+        this(name, owner, new CatalogObject[0]);
     }
 
     public Bucket(String name, String owner, CatalogObject... catalogObjects) {
-        this(name, LocalDateTime.now(), owner, catalogObjects);
-    }
-
-    public Bucket(String name, LocalDateTime createdAt, String owner, CatalogObject... catalogObjects) {
         this.name = name;
-        this.createdAt = createdAt;
         this.owner = owner;
         this.catalogObjects = Lists.newArrayList(catalogObjects);
     }
@@ -99,10 +80,6 @@ public class Bucket {
 
     public Long getId() {
         return id;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
     }
 
     public String getName() {
