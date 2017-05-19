@@ -57,8 +57,8 @@ public class KeyValueMetadata {
     @Column(name = "VALUE", nullable = false)
     protected String value;
 
-    @Column(name = "LABEL", nullable = true)
-    protected String label;
+    @Column(name = "TYPE", nullable = true)
+    protected String type;
 
     @ManyToOne(cascade = CascadeType.ALL)
     protected CatalogObjectRevision catalogObjectRevision;
@@ -69,7 +69,7 @@ public class KeyValueMetadata {
     public KeyValueMetadata(String key, String value, String label) {
         this.key = key;
         this.value = value;
-        this.label = label;
+        this.type = label;
     }
 
     public Long getId() {
@@ -85,7 +85,7 @@ public class KeyValueMetadata {
     }
 
     public String getLabel() {
-        return label;
+        return type;
     }
 
     public CatalogObjectRevision getCatalogObjectRevision() {
@@ -101,7 +101,7 @@ public class KeyValueMetadata {
     }
 
     public void setLabel(String label) {
-        this.label = label;
+        this.type = label;
     }
 
     public void setCatalogObjectRevision(CatalogObjectRevision catalogObjectRevision) {
@@ -110,7 +110,7 @@ public class KeyValueMetadata {
 
     @Override
     public String toString() {
-        return "KeyValueMetadata{" + "id=" + id + ", key='" + key + '\'' + ", value='" + value + '\'' + '}';
+        return "KeyValueMetadata [id=" + id + ", key=" + key + ", value=" + value + ", type=" + type + "]";
     }
 
 }
