@@ -30,10 +30,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
 import org.ow2.proactive.catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.catalog.rest.service.exception.UnprocessableEntityException;
 import org.ow2.proactive.catalog.rest.util.ArchiveManagerHelper;
-import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -54,32 +54,44 @@ public class CatalogObjectService {
     @Autowired
     private ArchiveManagerHelper archiveManagerHelper;
 
-    public CatalogObjectMetadata createWorkflow(Long bucketId, CatalogObjectParserResult catalogObjectParserResult,
-            byte[] proActiveWorkflowXmlContent) {
-        return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
+    public CatalogObjectMetadata createCatalogObject(String kind, String name, String commitMessage, Long bucketId,
+            List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
+        return catalogObjectRevisionService.createCatalogObjectRevision(kind,
+                                                                        name,
+                                                                        commitMessage,
+                                                                        bucketId,
                                                                         Optional.empty(),
-                                                                        catalogObjectParserResult,
                                                                         Optional.empty(),
-                                                                        proActiveWorkflowXmlContent);
+                                                                        keyValueMetadataList,
+                                                                        rawObject);
     }
 
-    public CatalogObjectMetadata createWorkflow(Long bucketId, Optional<String> layout,
-            byte[] proActiveWorkflowXmlContent) {
-        return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
+    public CatalogObjectMetadata createCatalogObject(String kind, String name, String commitMessage, Long bucketId,
+            Optional<String> layout, byte[] rawObject) {
+        return catalogObjectRevisionService.createCatalogObjectRevision(kind,
+                                                                        name,
+                                                                        commitMessage,
+                                                                        bucketId,
                                                                         Optional.empty(),
-                                                                        proActiveWorkflowXmlContent,
-                                                                        layout);
+                                                                        layout,
+                                                                        rawObject);
     }
 
-    public List<CatalogObjectMetadata> createWorkflows(Long bucketId, Optional<String> layout,
-            byte[] proActiveWorkflowsArchive) {
+    public List<CatalogObjectMetadata> createCatalogObjects(String kind, String name, String commitMessage,
+            Long bucketId, Optional<String> layout, byte[] proActiveWorkflowsArchive) {
 
+        //TODO implement for workflows extract Zip
         List<byte[]> extractedWorkflows = archiveManagerHelper.extractZIP(proActiveWorkflowsArchive);
         if (extractedWorkflows.isEmpty()) {
             throw new UnprocessableEntityException("Malformed archive");
         } else {
             return extractedWorkflows.stream()
-                                     .map(workflowFile -> createWorkflow(bucketId, layout, workflowFile))
+                                     .map(workflowFile -> createCatalogObject(kind,
+                                                                              name,
+                                                                              commitMessage,
+                                                                              bucketId,
+                                                                              layout,
+                                             proActiveWorkflowsArchive))
                                      .collect(Collectors.toList());
         }
     }
