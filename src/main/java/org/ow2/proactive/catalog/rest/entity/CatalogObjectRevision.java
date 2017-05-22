@@ -25,7 +25,6 @@
  */
 package org.ow2.proactive.catalog.rest.entity;
 
-import java.sql.Date;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,28 +59,22 @@ public class CatalogObjectRevision implements Comparable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "ID")
-    private Long id;
+    @Column(name = "COMMIT_ID")
+    private Long commitId;
 
     @Column(name = "KIND", nullable = false)
     private String kind;
 
-    @CreatedDate
-    @Convert(converter = LocalDateTimeAttributeConverter.class)
-    @Column(name = "CREATED_AT", nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "NAME", nullable = false)
-    private String name;
-
-    @Column(name = "COMMIT_ID", nullable = false)
-    private Long commitId;
-
     @Column(name = "COMMIT_MESSAGE", nullable = false)
     private String commitMessage;
 
+    @CreatedDate
+    @Convert(converter = LocalDateTimeAttributeConverter.class)
     @Column(name = "COMMIT_DATE", nullable = false)
-    private Date commitDate;
+    private LocalDateTime commitDate;
+
+    @Column(name = "NAME", nullable = false)
+    private String name;
 
     @Column(name = "BUCKET_ID", nullable = false)
     private Long bucketId;
@@ -99,34 +92,30 @@ public class CatalogObjectRevision implements Comparable {
 
     @Lob
     @Column(name = "RAW_OBJECT", columnDefinition = "blob", nullable = false)
-    private byte[] objectPayload;
+    private byte[] rawObject;
 
     public CatalogObjectRevision() {
         this.keyValueMetadataList = new ArrayList<>();
     }
 
-    public CatalogObjectRevision(Long id, String kind, LocalDateTime createdAt, String name, Long commitId,
-            String commitMessage, Date commitDate, Long bucketId, CatalogObject catalogObject,
-            String contentType, byte[] objectPayload) {
+    public CatalogObjectRevision(String kind, LocalDateTime commitDate, String name,
+            String commitMessage, Long bucketId,
+            String contentType, byte[] rawObject) {
         super();
-        this.id = id;
         this.kind = kind;
-        this.createdAt = createdAt;
         this.name = name;
-        this.commitId = commitId;
         this.commitMessage = commitMessage;
         this.commitDate = commitDate;
         this.bucketId = bucketId;
-        this.catalogObject = catalogObject;
         this.contentType = contentType;
-        this.objectPayload = objectPayload;
+        this.rawObject = rawObject;
     }
 
-    public CatalogObjectRevision(Long id, String kind, LocalDateTime createdAt, String name, Long commitId,
-            String commitMessage, Date commitDate, Long bucketId, CatalogObject catalogObject,
-            String contentType, List<KeyValueMetadata> keyValueMetadataList, byte[] objectPayload) {
-        this(id, kind, createdAt, name, commitId, commitMessage, commitDate, bucketId, catalogObject,
-                contentType, objectPayload);
+    public CatalogObjectRevision(String kind, LocalDateTime commitDate, String name,
+            String commitMessage, Long bucketId,
+            String contentType, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
+        this(kind, commitDate, name, commitMessage, bucketId,
+                contentType, rawObject);
         this.keyValueMetadataList = keyValueMetadataList;
     }
 
@@ -134,12 +123,8 @@ public class CatalogObjectRevision implements Comparable {
         return bucketId;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public LocalDateTime getCommitDate() {
+        return commitDate;
     }
 
     public void addKeyValue(KeyValueMetadata keyValueMetadata) {
@@ -171,16 +156,12 @@ public class CatalogObjectRevision implements Comparable {
         return commitMessage;
     }
 
-    public Date getCommitDate() {
-        return commitDate;
-    }
-
     public String getContentType() {
         return contentType;
     }
 
-    public byte[] getObjectPayload() {
-        return objectPayload;
+    public byte[] getRawObject() {
+        return rawObject;
     }
 
     public CatalogObject getCatalogObject() {
@@ -188,15 +169,15 @@ public class CatalogObjectRevision implements Comparable {
     }
 
     public byte[] getXmlPayload() {
-        return objectPayload;
+        return rawObject;
     }
 
     public void setBucketId(Long bucketId) {
         this.bucketId = bucketId;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setCommitDate(LocalDateTime commitDate) {
+        this.commitDate = commitDate;
     }
 
     public void setKeyValues(List<KeyValueMetadata> keyValueMetadatas) {
@@ -216,23 +197,11 @@ public class CatalogObjectRevision implements Comparable {
     }
 
     public void setXmlPayload(byte[] xmlPayload) {
-        this.objectPayload = xmlPayload;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setCommitId(Long commitId) {
-        this.commitId = commitId;
+        this.rawObject = xmlPayload;
     }
 
     public void setCommitMessage(String commitMessage) {
         this.commitMessage = commitMessage;
-    }
-
-    public void setCommitDate(Date commitDate) {
-        this.commitDate = commitDate;
     }
 
     public void setContentType(String contentType) {
@@ -243,20 +212,27 @@ public class CatalogObjectRevision implements Comparable {
         this.keyValueMetadataList = keyValueMetadataList;
     }
 
-    public void setObjectPayload(byte[] objectPayload) {
-        this.objectPayload = objectPayload;
+    public void setRawObject(byte[] rawObject) {
+        this.rawObject = rawObject;
     }
 
     @Override
     public String toString() {
-        return "CatalogObjectRevision [id=" + id + ", kind=" + kind + ", createdAt=" + createdAt + ", name=" +
-            name + ", commitId=" + commitId + ", commitMessage=" + commitMessage + ", commitDate=" +
-            commitDate + ", bucketId=" + bucketId + ", catalogObject=" + catalogObject + ", contentType=" +
-            contentType + ", keyValueMetadataList=" + keyValueMetadataList + "]";
+        return "CatalogObjectRevision{" +
+                "commitId=" + commitId +
+                ", kind='" + kind + '\'' +
+                ", commitMessage='" + commitMessage + '\'' +
+                ", commitDate=" + commitDate +
+                ", name='" + name + '\'' +
+                ", bucketId=" + bucketId +
+                ", catalogObject=" + catalogObject +
+                ", contentType='" + contentType + '\'' +
+                ", keyValueMetadataList=" + keyValueMetadataList +
+                '}';
     }
 
     @Override
     public int compareTo(Object o) {
-        return ((CatalogObjectRevision) o).createdAt.compareTo(createdAt);
+        return ((CatalogObjectRevision) o).commitDate.compareTo(commitDate);
     }
 }
