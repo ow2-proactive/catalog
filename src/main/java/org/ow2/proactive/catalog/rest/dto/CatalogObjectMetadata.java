@@ -31,6 +31,7 @@ import java.util.List;
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
 import org.ow2.proactive.catalog.rest.util.KeyValueEntityToDtoTransformer;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 
@@ -42,17 +43,21 @@ public final class CatalogObjectMetadata extends NamedMetadata {
     @JsonProperty("kind")
     public final String kind;
 
-    @JsonProperty("revision_id")
-    public final Long revisionId;
-
     @JsonProperty("bucket_id")
     public final Long bucketId;
 
-    @JsonProperty("project_name")
-    public final String projectName;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JsonProperty("commit_date")
+    public final LocalDateTime commitDate;
 
-    @JsonProperty("layout")
-    public final String layout;
+    @JsonProperty("content_type")
+    public final String contentType;
+
+    @JsonProperty("commit_id")
+    private final long commitId;
+
+    @JsonProperty("commit_message")
+    private final String commitMessage;
 
     @JsonProperty("object_key_values")
     public final List<KeyValueMetadata> keyValueMetadataList;
@@ -61,23 +66,24 @@ public final class CatalogObjectMetadata extends NamedMetadata {
         this(catalogObjectRevision.getKind(),
              catalogObjectRevision.getBucketId(),
              catalogObjectRevision.getCatalogObject().getId(),
-             catalogObjectRevision.getCreatedAt(),
+             catalogObjectRevision.getCommitDate(),
              catalogObjectRevision.getName(),
-             catalogObjectRevision.getProjectName(),
-             catalogObjectRevision.getLayout(),
-             catalogObjectRevision.getRevisionId(),
+             catalogObjectRevision.getContentType(),
+             catalogObjectRevision.getCommitId(),
+             catalogObjectRevision.getCommitMessage(),
              KeyValueEntityToDtoTransformer.to(catalogObjectRevision.getKeyValueMetadataList()));
     }
 
     public CatalogObjectMetadata(String kind, Long bucketId, Long id, LocalDateTime createdAt, String name,
-            String projectName, String layout, Long revisionId, List<KeyValueMetadata> keyValueMetadataList) {
+                                 String contentType, Long commitId, String commitMessage, List<KeyValueMetadata> keyValueMetadataList) {
 
-        super(id, name, createdAt);
+        super(id, name);
         this.kind = kind;
-        this.layout = layout;
-        this.revisionId = revisionId;
+        this.contentType = contentType;
+        this.commitId = commitId;
+        this.commitDate = createdAt;
         this.bucketId = bucketId;
-        this.projectName = projectName;
+        this.commitMessage = commitMessage;
         this.keyValueMetadataList = keyValueMetadataList;
     }
 
