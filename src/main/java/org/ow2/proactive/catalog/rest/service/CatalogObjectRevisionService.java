@@ -43,6 +43,7 @@ import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.rest.entity.Bucket;
 import org.ow2.proactive.catalog.rest.entity.CatalogObject;
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
+import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
 import org.ow2.proactive.catalog.rest.query.CatalogQueryExpressionBuilder;
 import org.ow2.proactive.catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.catalog.rest.query.QueryExpressionContext;
@@ -57,7 +58,6 @@ import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRevisionRe
 import org.ow2.proactive.catalog.rest.service.repository.QueryDslWorkflowRevisionRepository;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParser;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserFactory;
-import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
@@ -101,65 +101,63 @@ public class CatalogObjectRevisionService {
     private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
 
     @Transactional
-    public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, Optional<Long> catalogObjectId,
-            byte[] catalogObjectJsonContent, Optional<String> layout) {
+    public CatalogObjectMetadata createCatalogObjectRevision(String kind, String name, String commitMessage,
+            Long bucketId, Optional<Long> catalogObjectId, Optional<String> contentType, byte[] rawObject) {
         try {
             //TODO
-            CatalogObjectParser catalogObjectParser = CatalogObjectParserFactory.get().getParser(null);
+            CatalogObjectParser catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
+            List<KeyValueMetadata> keyValueMetadataListParsed = catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
 
-            return createCatalogObjectRevision(bucketId,
+            return createCatalogObjectRevision(kind,
+                                               name,
+                                               commitMessage,
+                                               bucketId,
                                                catalogObjectId,
-                                               catalogObjectParser.parse(new ByteArrayInputStream(catalogObjectJsonContent)),
-                                               layout,
-                                               catalogObjectJsonContent);
+                                               contentType,
+                                               keyValueMetadataListParsed,
+                                               rawObject);
         } catch (XMLStreamException e) {
             throw new UnprocessableEntityException(e);
         }
     }
 
     @Transactional
-    public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, Optional<Long> objectId,
-            CatalogObjectParserResult catalogObjectParserResult, Optional<String> layout,
-            byte[] catalogObjectXmlContent) {
+    public CatalogObjectMetadata createCatalogObjectRevision(String kind, String name, String commitMessage,
+            Long bucketId, Optional<Long> objectId, Optional<String> contentType,
+            List<KeyValueMetadata> keyValueMetadataListParsed, byte[] rawObject) {
         Bucket bucket = findBucket(bucketId);
 
-        CatalogObject catalogObject = null;
         CatalogObjectRevision catalogObjectRevision;
-        String layoutValue = layout.orElse("");
+        String layoutValue = contentType.orElse("");
 
-        long revisionNumber = 1;
-
+        CatalogObject catalogObject = null;
         if (objectId.isPresent()) {
-            catalogObject = findWorkflow(objectId.get());
-            revisionNumber = catalogObject.getLastRevisionId() + 1;
+            catalogObject = findObjectById(objectId.get());
+        } else {
+            catalogObject = new CatalogObject(bucket);
         }
 
-        catalogObjectRevision = new CatalogObjectRevision(catalogObjectParserResult.getKind(),
-                                                          bucketId,
-                                                          revisionNumber,
-                                                          catalogObjectParserResult.getJobName(),
-                                                          catalogObjectParserResult.getProjectName(),
+        catalogObjectRevision = new CatalogObjectRevision(kind,
                                                           LocalDateTime.now(),
+                                                          name,
+                                                          commitMessage,
+                                                          bucketId,
                                                           layoutValue,
-                                                          catalogObjectXmlContent);
+                                                          rawObject);
 
-        catalogObjectRevision.addKeyValueList(catalogObjectParserResult.getKeyValueList());
+        catalogObjectRevision.addKeyValueList(keyValueMetadataListParsed);
 
         catalogObjectRevision = catalogObjectRevisionRepository.save(catalogObjectRevision);
 
-        if (!objectId.isPresent()) {
-            catalogObject = new CatalogObject(bucket, catalogObjectRevision);
-        } else {
-            catalogObject.addRevision(catalogObjectRevision);
-        }
+        catalogObject.addRevision(catalogObjectRevision);
 
         catalogObjectRepository.save(catalogObject);
 
         return new CatalogObjectMetadata(catalogObjectRevision);
     }
 
-    protected CatalogObject findWorkflow(long workflowId) {
-        CatalogObject catalogObject = catalogObjectRepository.findOne(workflowId);
+    protected CatalogObject findObjectById(long objectId) {
+        CatalogObject catalogObject = catalogObjectRepository.findOne(objectId);
 
         if (catalogObject == null) {
             throw new CatalogObjectNotFoundException();
@@ -185,7 +183,7 @@ public class CatalogObjectRevisionService {
         Page<CatalogObjectRevision> page;
 
         if (workflowId.isPresent()) {
-            findWorkflow(workflowId.get());
+            findObjectById(workflowId.get());
 
             if (query.isPresent() && "".compareTo(query.get().trim()) != 0) {
                 QueryExpressionContext queryExpressionContext = createJpaQueryExpression(query.get());
@@ -196,7 +194,7 @@ public class CatalogObjectRevisionService {
                                                                                    pageable);
             } else {
                 // it is not required to pass bucket ID since
-                // workflow ID is unique for all buckets
+                // object ID is unique for all buckets
                 page = catalogObjectRevisionRepository.getRevisions(workflowId.get(), pageable);
             }
         } else {
@@ -224,7 +222,7 @@ public class CatalogObjectRevisionService {
     public ResponseEntity<?> getCatalogObject(Long bucketId, Long workflowId, Optional<Long> revisionId,
             Optional<String> alt) {
         findBucket(bucketId);
-        findWorkflow(workflowId);
+        findObjectById(workflowId);
 
         CatalogObjectRevision catalogObjectRevision = getWorkflowRevision(bucketId, workflowId, revisionId);
 
@@ -294,17 +292,17 @@ public class CatalogObjectRevisionService {
      * @return The deleted CatalogObjectRevision metadata
      */
     public ResponseEntity<?> delete(Long bucketId, Long workflowId, Optional<Long> revisionId) {
-        CatalogObject catalogObject = findWorkflow(workflowId);
+        CatalogObject catalogObject = findObjectById(workflowId);
         CatalogObjectRevision catalogObjectRevision = null;
         if (revisionId.isPresent() && catalogObject.getRevisions().size() > 1) {
-            if (revisionId.get() == catalogObject.getLastRevisionId()) {
+            if (revisionId.get() == catalogObject.getLastCommitId()) {
                 Iterator iter = catalogObject.getRevisions().iterator();
                 catalogObjectRevision = (CatalogObjectRevision) iter.next();
                 CatalogObjectRevision newCatalogObjectRevisionReference = (CatalogObjectRevision) iter.next();
-                catalogObject.setLastRevisionId(newCatalogObjectRevisionReference.getRevisionId());
+                catalogObject.setLastCommitId(newCatalogObjectRevisionReference.getCommitId());
                 catalogObjectRevision = catalogObjectRevisionRepository.getWorkflowRevision(bucketId,
                                                                                             workflowId,
-                                                                                            catalogObjectRevision.getRevisionId());
+                                                                                            catalogObjectRevision.getCommitId());
                 catalogObjectRevisionRepository.delete(catalogObjectRevision);
             } else {
                 catalogObjectRevision = catalogObjectRevisionRepository.getWorkflowRevision(bucketId,
@@ -324,7 +322,7 @@ public class CatalogObjectRevisionService {
     public Link createLink(Long bucketId, Long workflowId, CatalogObjectRevision catalogObjectRevision) {
         ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectRevisionController.class).get(bucketId,
                                                                                                                  workflowId,
-                                                                                                                 catalogObjectRevision.getRevisionId(),
+                                                                                                                 catalogObjectRevision.getCommitId(),
                                                                                                                  null));
 
         // alt request parameter name and value is added manually

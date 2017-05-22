@@ -1,7 +1,7 @@
 /*
  * ProActive Parallel Suite(TM):
  * The Open Source library for parallel and distributed
- * Workflows & Scheduling, Orchestration, Cloud Automation
+ * objects & Scheduling, Orchestration, Cloud Automation
  * and Big Data Analysis on Enterprise Grids & Clouds.
  *
  * Copyright (c) 2007 - 2017 ActiveEon
@@ -29,7 +29,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -68,7 +67,7 @@ public class BucketService {
     private BucketResourceAssembler bucketAssembler;
 
     @Autowired
-    private CatalogObjectService workflowService;
+    private CatalogObjectService catalogObjectService;
 
     @Value("${pa.catalog.default.buckets}")
     private String[] defaultBucketNames;
@@ -76,33 +75,33 @@ public class BucketService {
     @Autowired
     private Environment environment;
 
-    private static final String DEFAULT_BUCKET_OWNER = "catalog";
+    private static final String DEFAULT_BUCKET_OWNER = "object-catalog";
 
-    private static final String DEFAULT_WFS_FOLDER = "/default-workflows";
+    private static final String DEFAULT_OBJECTS_FOLDER = "/default-objects";
 
     @PostConstruct
     public void init() throws Exception {
         boolean isTestProfileEnabled = Arrays.stream(environment.getActiveProfiles()).anyMatch("test"::equals);
 
         // We define the initial start by no existing buckets in the Catalog
-        // On initial start, we load the Catalog with predefined Workflows
+        // On initial start, we load the Catalog with predefined objects
         if (!isTestProfileEnabled && bucketRepository.count() == 0) {
-            populateCatalog(defaultBucketNames, DEFAULT_WFS_FOLDER);
+            populateCatalog(defaultBucketNames, DEFAULT_OBJECTS_FOLDER);
         }
     }
 
     /**
-     * The Catalog can be populated with buckets and workflows all at once.
+     * The Catalog can be populated with buckets and objects all at once.
      *
      * @param bucketNames The array of bucket names to create
-     * @param workflowsFolder The folder that contains sub-folders of all workflows to inject
+     * @param objectsFolder The folder that contains sub-folders of all objects to inject
      * @throws SecurityException if the Catalog is not allowed to read or access the file
      * @throws IOException if the file or folder could not be found or read properly
      */
-    protected void populateCatalog(String[] bucketNames, String workflowsFolder) throws SecurityException, IOException {
+    protected void populateCatalog(String[] bucketNames, String objectsFolder) throws SecurityException, IOException {
         for (String bucketName : bucketNames) {
             final Long bucketId = bucketRepository.save(new Bucket(bucketName, DEFAULT_BUCKET_OWNER)).getId();
-            final URL folderResource = getClass().getResource(workflowsFolder);
+            final URL folderResource = getClass().getResource(objectsFolder);
             if (folderResource == null) {
                 throw new DefaultWorkflowsFolderNotFoundException();
             }
@@ -110,11 +109,13 @@ public class BucketService {
             if (bucketFolder.isDirectory()) {
                 String[] wfs = bucketFolder.list();
                 Arrays.sort(wfs);
-                for (String workflow : wfs) {
-                    File fWorkflow = new File(bucketFolder.getPath() + File.separator + workflow);
-                    FileInputStream fisWorkflow = new FileInputStream(fWorkflow);
-                    byte[] bWorkflow = ByteStreams.toByteArray(fisWorkflow);
-                    workflowService.createWorkflow(bucketId, Optional.empty(), bWorkflow);
+                for (String object : wfs) {
+                    File fobject = new File(bucketFolder.getPath() + File.separator + object);
+                    FileInputStream fisobject = new FileInputStream(fobject);
+                    byte[] bObject = ByteStreams.toByteArray(fisobject);
+                    //TODO parse kind, name, commitMessage from binaries
+                    catalogObjectService.createCatalogObject("", "", "", bucketId,
+                            Optional.empty(), bObject);
                 }
             }
         }
@@ -125,7 +126,7 @@ public class BucketService {
     }
 
     public BucketMetadata createBucket(String name, String owner) {
-        Bucket bucket = new Bucket(name, LocalDateTime.now(), owner);
+        Bucket bucket = new Bucket(name, owner);
         try {
             bucket = bucketRepository.save(bucket);
         } catch (DataIntegrityViolationException exception) {
