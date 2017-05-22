@@ -225,7 +225,6 @@ public class CatalogObjectRevision implements Comparable {
                 ", commitDate=" + commitDate +
                 ", name='" + name + '\'' +
                 ", bucketId=" + bucketId +
-                ", catalogObject=" + catalogObject +
                 ", contentType='" + contentType + '\'' +
                 ", keyValueMetadataList=" + keyValueMetadataList +
                 '}';
