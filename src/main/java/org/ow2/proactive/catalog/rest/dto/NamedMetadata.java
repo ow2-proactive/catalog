@@ -25,13 +25,9 @@
  */
 package org.ow2.proactive.catalog.rest.dto;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 import org.springframework.hateoas.ResourceSupport;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 /**
@@ -39,18 +35,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public abstract class NamedMetadata extends ResourceSupport {
 
-    @JsonProperty
     public final Long id;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @JsonProperty("created_at")
-    public final LocalDateTime createdAt;
 
     public final String name;
 
-    public NamedMetadata(Long id, String name, LocalDateTime createdAt) {
+    public NamedMetadata(Long id, String name) {
         this.id = id;
-        this.createdAt = createdAt;
         this.name = name;
     }
 
