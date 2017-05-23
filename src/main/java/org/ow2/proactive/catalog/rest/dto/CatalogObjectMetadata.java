@@ -75,7 +75,7 @@ public final class CatalogObjectMetadata extends NamedMetadata {
     }
 
     public CatalogObjectMetadata(String kind, Long bucketId, Long id, LocalDateTime createdAt, String name,
-                                 String contentType, Long commitId, String commitMessage, List<KeyValueMetadata> keyValueMetadataList) {
+            String contentType, Long commitId, String commitMessage, List<KeyValueMetadata> keyValueMetadataList) {
 
         super(id, name);
         this.kind = kind;

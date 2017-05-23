@@ -36,6 +36,7 @@ import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
@@ -73,21 +74,41 @@ public class CatalogObjectRevisionController {
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public CatalogObjectMetadata create(@PathVariable Long bucketId, @PathVariable Long objectId,
-            @ApiParam(value = "Layout describing the tasks position in the CatalogObject Revision") @RequestParam(required = false) Optional<String> layout,
+            @ApiParam(value = "Layout describing the tasks position in the CatalogObject Revision") @RequestParam String kind,
+            @ApiParam(value = "Layout describing the tasks position in the CatalogObject Revision") @RequestParam String name,
+            @ApiParam(value = "Layout describing the tasks position in the CatalogObject Revision") @RequestParam String commitMessage,
+            @ApiParam(value = "Layout describing the tasks position in the CatalogObject Revision") @RequestParam(required = false) Optional<String> contentType,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
+        return catalogObjectRevisionService.createCatalogObjectRevision(kind,
+                                                                        name,
+                                                                        commitMessage,
+                                                                        bucketId,
                                                                         Optional.of(objectId),
-                                                                        file.getBytes(),
-                                                                        layout);
+                                                                        contentType,
+                                                                        file.getBytes());
     }
 
     @ApiOperation(value = "Gets a specific revision")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions/{revisionId}", method = GET)
-    public ResponseEntity<?> get(@PathVariable Long bucketId, @PathVariable Long objectId,
-            @PathVariable Long revisionId,
-            @ApiParam(value = "Force response to return catalog object XML content when set to 'xml'.") @RequestParam(required = false) Optional<String> alt) {
-        return catalogObjectRevisionService.getCatalogObject(bucketId, objectId, Optional.ofNullable(revisionId), alt);
+    public ResponseEntity<CatalogObjectMetadata> get(@PathVariable Long bucketId, @PathVariable Long objectId,
+            @PathVariable Long revisionId) {
+        return catalogObjectRevisionService.getCatalogObject(bucketId, objectId, Optional.ofNullable(revisionId));
+    }
+
+    @ApiOperation(value = "Gets the raw content of a specific revision")
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
+    @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/raw", method = GET)
+    public ResponseEntity<InputStreamResource> getRaw(@PathVariable Long bucketId, @PathVariable Long objectId) {
+        return catalogObjectRevisionService.getCatalogObjectRaw(bucketId, objectId, Optional.empty());
+    }
+
+    @ApiOperation(value = "Gets a specific revision")
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
+    @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions/{revisionId}/raw", method = GET)
+    public ResponseEntity<InputStreamResource> getRaw(@PathVariable Long bucketId, @PathVariable Long objectId,
+            @PathVariable Long revisionId) {
+        return catalogObjectRevisionService.getCatalogObjectRaw(bucketId, objectId, Optional.ofNullable(revisionId));
     }
 
     @ApiOperation(value = "Lists a catalog object revisions")

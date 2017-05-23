@@ -1,7 +1,7 @@
 /*
  * ProActive Parallel Suite(TM):
  * The Open Source library for parallel and distributed
- * objects & Scheduling, Orchestration, Cloud Automation
+ * Workflows & Scheduling, Orchestration, Cloud Automation
  * and Big Data Analysis on Enterprise Grids & Clouds.
  *
  * Copyright (c) 2007 - 2017 ActiveEon
@@ -114,8 +114,7 @@ public class BucketService {
                     FileInputStream fisobject = new FileInputStream(fobject);
                     byte[] bObject = ByteStreams.toByteArray(fisobject);
                     //TODO parse kind, name, commitMessage from binaries
-                    catalogObjectService.createCatalogObject("", "", "", bucketId,
-                            Optional.empty(), bObject);
+                    catalogObjectService.createCatalogObject("", "", "", bucketId, Optional.empty(), bObject);
                 }
             }
         }

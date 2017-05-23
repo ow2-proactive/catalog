@@ -31,7 +31,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.List;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
@@ -43,7 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -70,53 +68,33 @@ import io.swagger.annotations.ApiResponses;
 public class CatalogObjectController {
 
     @Autowired
-    private CatalogObjectService workflowService;
+    private CatalogObjectService catalogService;
 
-    private static String ZIP_EXTENSION = "zip";
-
-    @ApiOperation(value = "Creates a new workflow")
+    @ApiOperation(value = "Creates a new catalog object")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
                             @ApiResponse(code = 422, message = "Invalid XML workflow content supplied") })
-    @RequestMapping(value = "/buckets/{bucketId}/workflows", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
+    @RequestMapping(value = "/buckets/{bucketId}/resources", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public CatalogObjectMetadataList create(@PathVariable Long bucketId,
+            @ApiParam(value = "Kind of the new object") @RequestParam String kind,
+            @ApiParam(value = "Name of the object") @RequestParam String name,
+            @ApiParam(value = "Commit message") @RequestParam String commitMessage,
             @ApiParam(value = "Layout describing the tasks position in the CatalogObject") @RequestParam(required = false) Optional<String> layout,
-            @ApiParam(value = "Import workflows from ZIP when set to 'zip'.") @RequestParam(required = false) Optional<String> alt,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        if (alt.isPresent() && ZIP_EXTENSION.equals(alt.get())) {
-            return new CatalogObjectMetadataList(workflowService.createWorkflows(bucketId, layout, file.getBytes()));
-        } else {
-            return new CatalogObjectMetadataList(workflowService.createWorkflow(bucketId, layout, file.getBytes()));
-        }
+        return new CatalogObjectMetadataList(catalogService.createCatalogObject(kind,
+                                                                                name,
+                                                                                commitMessage,
+                                                                                bucketId,
+                                                                                layout,
+                                                                                file.getBytes()));
     }
 
     @ApiOperation(value = "Gets a workflow's metadata by IDs", notes = "Returns metadata associated to the latest revision of the workflow.")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
-    @RequestMapping(value = "/buckets/{bucketId}/workflows/{idList}", method = GET)
-    public ResponseEntity<?> get(@PathVariable Long bucketId, @PathVariable List<Long> idList,
-            @ApiParam(value = "Force response to return workflow XML content when set to 'xml'. Or extract workflows as ZIP when set to 'zip'.") @RequestParam(required = false) Optional<String> alt,
-            HttpServletResponse response) throws MalformedURLException {
-        if (alt.isPresent() && ZIP_EXTENSION.equals(alt.get())) {
-            byte[] zip = workflowService.getWorkflowsAsArchive(bucketId, idList);
-
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.setContentType("application/zip");
-            response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
-            response.addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
-            try {
-                response.getOutputStream().write(zip);
-                response.getOutputStream().flush();
-            } catch (IOException ioe) {
-                throw new RuntimeException(ioe);
-            }
-            return ResponseEntity.ok().build();
-        } else {
-            if (idList.size() == 1) {
-                return workflowService.getWorkflowMetadata(bucketId, idList.get(0), alt);
-            } else {
-                return ResponseEntity.badRequest().build();
-            }
-        }
+    @RequestMapping(value = "/buckets/{bucketId}/resources/{id}", method = GET)
+    public ResponseEntity<?> get(@PathVariable Long bucketId, @PathVariable Long id, HttpServletResponse response)
+            throws MalformedURLException {
+        return catalogService.getCatalogObjectMetadata(bucketId, id);
     }
 
     @ApiOperation(value = "Lists workflows metadata", notes = "Returns workflows metadata associated to the latest revision.")
@@ -125,19 +103,19 @@ public class CatalogObjectController {
                          @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
                                                                                                                                   "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
-    @RequestMapping(value = "/buckets/{bucketId}/workflows", method = GET)
+    @RequestMapping(value = "/buckets/{bucketId}/resources", method = GET)
     public PagedResources list(@PathVariable Long bucketId,
-            @ApiParam("Query string for searching workflows. See <a href=\"http://doc.activeeon.com/latest/user/ProActiveUserGuide.html#_searching_for_workflows\">Searching for workflows</a> for more information about supported attributes and operations.") @RequestParam(required = false) Optional<String> query,
+            @ApiParam("Query string for searching catalog objects. See <a href=\"http://doc.activeeon.com/latest/user/ProActiveUserGuide.html#_searching_for_workflows\">Searching for workflows</a> for more information about supported attributes and operations.") @RequestParam(required = false) Optional<String> query,
             @ApiParam(hidden = true) Pageable pageable, @ApiParam(hidden = true) PagedResourcesAssembler assembler)
             throws QueryExpressionBuilderException {
-        return workflowService.listWorkflows(bucketId, query, pageable, assembler);
+        return catalogService.listCatalogObjects(bucketId, query, pageable, assembler);
     }
 
-    @ApiOperation(value = "Delete a workflow", notes = "Delete the entire workflow as well as its revisions. Returns the deleted CatalogObject's metadata")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
-    @RequestMapping(value = "/buckets/{bucketId}/workflows/{workflowId}", method = DELETE)
+    @ApiOperation(value = "Delete a workflow", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogObject's metadata")
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or object not found"))
+    @RequestMapping(value = "/buckets/{bucketId}/resources/{workflowId}", method = DELETE)
     public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable Long workflowId) {
-        return workflowService.delete(bucketId, workflowId);
+        return catalogService.delete(bucketId, workflowId);
     }
 
 }

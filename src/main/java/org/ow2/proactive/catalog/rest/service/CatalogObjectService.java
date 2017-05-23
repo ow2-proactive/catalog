@@ -27,13 +27,10 @@ package org.ow2.proactive.catalog.rest.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
 import org.ow2.proactive.catalog.rest.query.QueryExpressionBuilderException;
-import org.ow2.proactive.catalog.rest.service.exception.UnprocessableEntityException;
-import org.ow2.proactive.catalog.rest.util.ArchiveManagerHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -50,9 +47,6 @@ public class CatalogObjectService {
 
     @Autowired
     private CatalogObjectRevisionService catalogObjectRevisionService;
-
-    @Autowired
-    private ArchiveManagerHelper archiveManagerHelper;
 
     public CatalogObjectMetadata createCatalogObject(String kind, String name, String commitMessage, Long bucketId,
             List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
@@ -77,40 +71,17 @@ public class CatalogObjectService {
                                                                         rawObject);
     }
 
-    public List<CatalogObjectMetadata> createCatalogObjects(String kind, String name, String commitMessage,
-            Long bucketId, Optional<String> layout, byte[] proActiveWorkflowsArchive) {
-
-        //TODO implement for workflows extract Zip
-        List<byte[]> extractedWorkflows = archiveManagerHelper.extractZIP(proActiveWorkflowsArchive);
-        if (extractedWorkflows.isEmpty()) {
-            throw new UnprocessableEntityException("Malformed archive");
-        } else {
-            return extractedWorkflows.stream()
-                                     .map(workflowFile -> createCatalogObject(kind,
-                                                                              name,
-                                                                              commitMessage,
-                                                                              bucketId,
-                                                                              layout,
-                                             proActiveWorkflowsArchive))
-                                     .collect(Collectors.toList());
-        }
+    public ResponseEntity<?> getCatalogObjectMetadata(long bucketId, long workflowId) {
+        return catalogObjectRevisionService.getCatalogObject(bucketId, workflowId, Optional.empty());
     }
 
-    public ResponseEntity<?> getWorkflowMetadata(long bucketId, long workflowId, Optional<String> alt) {
-        return catalogObjectRevisionService.getCatalogObject(bucketId, workflowId, Optional.empty(), alt);
-    }
-
-    public PagedResources listWorkflows(Long bucketId, Optional<String> query, Pageable pageable,
+    public PagedResources listCatalogObjects(Long bucketId, Optional<String> query, Pageable pageable,
             PagedResourcesAssembler assembler) throws QueryExpressionBuilderException {
         return catalogObjectRevisionService.listCatalogObjects(bucketId, Optional.empty(), query, pageable, assembler);
     }
 
-    public ResponseEntity<?> delete(Long bucketId, Long workflowId) {
+    public ResponseEntity<CatalogObjectMetadata> delete(Long bucketId, Long workflowId) {
         return catalogObjectRevisionService.delete(bucketId, workflowId, Optional.empty());
-    }
-
-    public byte[] getWorkflowsAsArchive(Long bucketId, List<Long> idList) {
-        return archiveManagerHelper.compressZIP(catalogObjectRevisionService.getWorkflowsRevisions(bucketId, idList));
     }
 
 }

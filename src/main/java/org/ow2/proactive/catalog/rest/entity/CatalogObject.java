@@ -121,8 +121,7 @@ public class CatalogObject {
 
     @Override
     public String toString() {
-        return "CatalogObject{" + "id=" + id + ", bucket=" + bucket + ", lastCommitId=" + lastCommitId +
-            '}';
+        return "CatalogObject{" + "id=" + id + ", bucket=" + bucket + ", lastCommitId=" + lastCommitId + '}';
     }
 
 }

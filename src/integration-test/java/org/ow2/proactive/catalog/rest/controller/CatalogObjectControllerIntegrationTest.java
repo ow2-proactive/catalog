@@ -187,7 +187,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                                    .get(WORKFLOW_RESOURCE + "?alt=xml");
 
         Arrays.equals(ByteStreams.toByteArray(response.asInputStream()),
-                      workflowRepository.getMostRecentWorkflowRevision(1L, 1L).getXmlPayload());
+                      workflowRepository.getMostRecentCatalogObjectRevision(1L, 1L).getXmlPayload());
 
         response.then().assertThat().statusCode(HttpStatus.SC_OK).contentType("application/xml");
     }

@@ -66,14 +66,14 @@ import com.mysema.query.types.query.ListSubQuery;
 
 
 /**
- * Integration tests associated to {@link QueryDslWorkflowRevisionRepository}.
+ * Integration tests associated to {@link QueryDslCatalogObjectRevisionRepository}.
  * <p>
  * The idea is to start a Web application with a in-memory database that is
  * pre-allocated with several workflow revisions. Then, tests run a query
  * against the database.
  *
  * @author ActiveEon Team
- * @see QueryDslWorkflowRevisionRepository
+ * @see QueryDslCatalogObjectRevisionRepository
  */
 @ActiveProfiles("test")
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
@@ -89,7 +89,7 @@ public class QueryDslCatalogObjectRevisionRepositoryIntegrationTest extends Abst
     private static final int NUMBER_OF_WORKFLOWS = 10; // must be >= 2
 
     @Autowired
-    private QueryDslWorkflowRevisionRepository queryDslWorkflowRevisionRepository;
+    private QueryDslCatalogObjectRevisionRepository queryDslWorkflowRevisionRepository;
 
     private List<BucketMetadata> buckets;
 
@@ -249,20 +249,20 @@ public class QueryDslCatalogObjectRevisionRepositoryIntegrationTest extends Abst
     private Page<CatalogObjectRevision> doQueryfindAllWorkflowRevisions(BucketMetadata bucket, long workflowId,
             Optional<BooleanExpression> booleanExpression) {
 
-        return queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(bucket.id,
-                                                                           workflowId,
-                                                                           createAnyQueryExpression(booleanExpression),
-                                                                           new PageRequest(0,
-                                                                                           getTotalNumberOfWorkflowRevisions()));
+        return queryDslWorkflowRevisionRepository.findAllCatalogObjectRevisions(bucket.id,
+                                                                                workflowId,
+                                                                                createAnyQueryExpression(booleanExpression),
+                                                                                new PageRequest(0,
+                                                                                                getTotalNumberOfWorkflowRevisions()));
     }
 
     private Page<CatalogObjectRevision> doQueryfindMostRecentWorkflowRevisions(BucketMetadata bucket,
             Optional<BooleanExpression> booleanExpression) {
 
-        return queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(bucket.id,
-                                                                                  createAnyQueryExpression(booleanExpression),
-                                                                                  new PageRequest(0,
-                                                                                                  getTotalNumberOfWorkflowRevisions()));
+        return queryDslWorkflowRevisionRepository.findMostRecentCatalogObjectRevisions(bucket.id,
+                                                                                       createAnyQueryExpression(booleanExpression),
+                                                                                       new PageRequest(0,
+                                                                                                       getTotalNumberOfWorkflowRevisions()));
     }
 
     private QueryExpressionContext createAnyQueryExpression(Optional<BooleanExpression> booleanExpression) {

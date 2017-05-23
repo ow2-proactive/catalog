@@ -49,4 +49,4 @@ public final class DefaultObjectParser implements CatalogObjectParser {
     public List<KeyValueMetadata> parse(InputStream inputStream) throws XMLStreamException {
         return new ArrayList<>();
     }
-  }
+}

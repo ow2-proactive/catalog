@@ -218,9 +218,9 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractWork
                                    .get(WORKFLOW_REVISION_RESOURCE + "?alt=xml");
 
         Arrays.equals(ByteStreams.toByteArray(response.asInputStream()),
-                      workflowRevisionRepository.getWorkflowRevision(secondWorkflowRevision.bucketId,
-                                                                     secondWorkflowRevision.id,
-                                                                     secondWorkflowRevision.revisionId)
+                      workflowRevisionRepository.getCatalogObjectRevision(secondWorkflowRevision.bucketId,
+                                                                          secondWorkflowRevision.id,
+                                                                          secondWorkflowRevision.revisionId)
                                                 .getXmlPayload());
 
         response.then().assertThat().statusCode(HttpStatus.SC_OK).contentType("application/xml");
