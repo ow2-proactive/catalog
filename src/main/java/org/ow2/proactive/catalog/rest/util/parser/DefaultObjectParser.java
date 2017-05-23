@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.rest.util.parser;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
@@ -43,8 +44,9 @@ import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
  *
  * @author ActiveEon Team
  */
-public interface CatalogObjectParser {
+public final class DefaultObjectParser implements CatalogObjectParser {
 
-    public List<KeyValueMetadata> parse(InputStream inputStream) throws XMLStreamException;
-
-}
+    public List<KeyValueMetadata> parse(InputStream inputStream) throws XMLStreamException {
+        return new ArrayList<>();
+    }
+  }
