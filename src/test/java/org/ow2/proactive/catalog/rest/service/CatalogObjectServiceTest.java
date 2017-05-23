@@ -80,7 +80,7 @@ public class CatalogObjectServiceTest {
 
     @Test
     public void testGetWorkflowMetadata() {
-        workflowService.getWorkflowMetadata(DUMMY_ID, DUMMY_ID, Optional.empty());
+        workflowService.getCatalogObjectMetadata(DUMMY_ID, DUMMY_ID, Optional.empty());
         verify(workflowRevisionService, times(1)).getCatalogObject(DUMMY_ID,
                                                                    DUMMY_ID,
                                                                    Optional.empty(),
@@ -89,7 +89,7 @@ public class CatalogObjectServiceTest {
 
     @Test
     public void testListWorkflows() throws QueryExpressionBuilderException {
-        workflowService.listWorkflows(DUMMY_ID, Optional.empty(), null, null);
+        workflowService.listCatalogObjects(DUMMY_ID, Optional.empty(), null, null);
         verify(workflowRevisionService, times(1)).listCatalogObjects(DUMMY_ID,
                                                                      Optional.empty(),
                                                                      Optional.empty(),
@@ -107,7 +107,7 @@ public class CatalogObjectServiceTest {
     public void testGetWorkflowsAsArchive() throws Exception {
         List<Long> idList = new ArrayList<>();
         workflowService.getWorkflowsAsArchive(1L, idList);
-        verify(workflowRevisionService, times(1)).getWorkflowsRevisions(1L, idList);
+        verify(workflowRevisionService, times(1)).getCatalogObjectsRevisions(1L, idList);
         verify(archiveManagerHelper, times(1)).compressZIP(Mockito.anyListOf(CatalogObjectRevision.class));
     }
 

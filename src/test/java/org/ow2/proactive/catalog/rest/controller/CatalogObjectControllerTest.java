@@ -129,17 +129,17 @@ public class CatalogObjectControllerTest {
         when(pagedResourcesAssembler.toResource(any(Page.class),
                                                 any(CatalogObjectRevisionResourceAssembler.class))).thenReturn(mock(PagedResources.class));
         workflowController.list(1L, Optional.empty(), null, pagedResourcesAssembler);
-        verify(workflowService, times(1)).listWorkflows(anyLong(),
-                                                        any(Optional.class),
-                                                        any(Pageable.class),
-                                                        any(PagedResourcesAssembler.class));
+        verify(workflowService, times(1)).listCatalogObjects(anyLong(),
+                                                             any(Optional.class),
+                                                             any(Pageable.class),
+                                                             any(PagedResourcesAssembler.class));
     }
 
     @Test
     public void testGet() throws Exception {
         HttpServletResponse response = mock(HttpServletResponse.class);
         workflowController.get(1L, Collections.singletonList(2L), Optional.empty(), response);
-        verify(workflowService, times(1)).getWorkflowMetadata(1L, 2L, Optional.empty());
+        verify(workflowService, times(1)).getCatalogObjectMetadata(1L, 2L, Optional.empty());
     }
 
     @Test

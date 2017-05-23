@@ -47,59 +47,61 @@ import com.mysema.query.types.query.ListSubQuery;
  * @author ActiveEon Team
  */
 @Repository
-public class QueryDslWorkflowRevisionRepository extends QueryDslRepositorySupport {
+public class QueryDslCatalogObjectRevisionRepository extends QueryDslRepositorySupport {
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    private QCatalogObjectRevision qWorkflowRevision = QCatalogObjectRevision.catalogObjectRevision;
+    private QCatalogObjectRevision qCatalogObjectRevision = QCatalogObjectRevision.catalogObjectRevision;
 
-    public QueryDslWorkflowRevisionRepository() {
+    public QueryDslCatalogObjectRevisionRepository() {
         super(CatalogObjectRevision.class);
     }
 
-    public Page<CatalogObjectRevision> findAllWorkflowRevisions(long bucketId, Long workflowId,
+    public Page<CatalogObjectRevision> findAllCatalogObjectRevisions(long bucketId, Long catalogObjectId,
             QueryExpressionContext context, Pageable pageable) {
-        ListSubQuery<Long> allWorkflowRevisions = createFindAllWorkflowRevisionsSubQuery(bucketId, workflowId);
+        ListSubQuery<Long> allCatalogObjectRevisions = createFindAllCatalogObjectRevisionsSubQuery(bucketId,
+                                                                                                   catalogObjectId);
 
-        return findWorkflowRevisions(allWorkflowRevisions, context, pageable);
+        return findCatalogObjectRevisions(allCatalogObjectRevisions, context, pageable);
     }
 
-    private ListSubQuery<Long> createFindAllWorkflowRevisionsSubQuery(long bucketId, Long workflowId) {
+    private ListSubQuery<Long> createFindAllCatalogObjectRevisionsSubQuery(long bucketId, Long catalogObjectId) {
         return new JPASubQuery().from(QCatalogObjectRevision.catalogObjectRevision)
-                                .join(qWorkflowRevision.catalogObject)
-                                .where(qWorkflowRevision.catalogObject.id.eq(workflowId)
-                                                                         .and(qWorkflowRevision.bucketId.eq(bucketId)))
-                                .list(qWorkflowRevision.id);
+                                .join(qCatalogObjectRevision.catalogObject)
+                                .where(qCatalogObjectRevision.catalogObject.id.eq(catalogObjectId)
+                                                                              .and(qCatalogObjectRevision.bucketId.eq(bucketId)))
+                                .list(qCatalogObjectRevision.commitId);
     }
 
-    public Page<CatalogObjectRevision> findMostRecentWorkflowRevisions(long bucketId, QueryExpressionContext context,
-            Pageable pageable) {
+    public Page<CatalogObjectRevision> findMostRecentCatalogObjectRevisions(long bucketId,
+            QueryExpressionContext context, Pageable pageable) {
 
         ListSubQuery<Long> allMostRecentRevisions = createFindMostRecentRevisionsSubQuery(bucketId);
 
-        return findWorkflowRevisions(allMostRecentRevisions, context, pageable);
+        return findCatalogObjectRevisions(allMostRecentRevisions, context, pageable);
     }
 
     private ListSubQuery<Long> createFindMostRecentRevisionsSubQuery(long bucketId) {
         return new JPASubQuery().from(QCatalogObjectRevision.catalogObjectRevision)
-                                .join(qWorkflowRevision.catalogObject)
-                                .where(qWorkflowRevision.catalogObject.lastRevisionId.eq(qWorkflowRevision.revisionId)
-                                                                                     .and(qWorkflowRevision.bucketId.eq(bucketId)))
-                                .list(qWorkflowRevision.id);
+                                .join(qCatalogObjectRevision.catalogObject)
+                                .where(qCatalogObjectRevision.catalogObject.lastCommitId.eq(qCatalogObjectRevision.commitId)
+                                                                                        .and(qCatalogObjectRevision.bucketId.eq(bucketId)))
+                                .list(qCatalogObjectRevision.commitId);
     }
 
-    private Page<CatalogObjectRevision> findWorkflowRevisions(ListSubQuery<Long> workflowRevisionIds,
+    private Page<CatalogObjectRevision> findCatalogObjectRevisions(ListSubQuery<Long> catalogObjectRevisionIds,
             QueryExpressionContext context, Pageable pageable) {
         JPAQuery query = new JPAQuery(entityManager).from(QCatalogObjectRevision.catalogObjectRevision);
 
-        query = query.where(qWorkflowRevision.id.in(workflowRevisionIds).and(context.getExpression())).distinct();
+        query = query.where(qCatalogObjectRevision.commitId.in(catalogObjectRevisionIds).and(context.getExpression()))
+                     .distinct();
 
         long count = query.count();
 
         JPQLQuery paginatedQuery = super.getQuerydsl().applyPagination(pageable, query);
 
-        return new PageImpl<>(paginatedQuery.list(qWorkflowRevision), pageable, count);
+        return new PageImpl<>(paginatedQuery.list(qCatalogObjectRevision), pageable, count);
     }
 
 }
