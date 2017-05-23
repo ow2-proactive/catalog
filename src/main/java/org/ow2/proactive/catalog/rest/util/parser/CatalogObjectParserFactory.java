@@ -53,7 +53,7 @@ public final class CatalogObjectParserFactory {
     public CatalogObjectParser getParser(String type) {
         if ("workflow".equals(type))
             return new WorkflowParser();
-        return null;
+        return new DefaultObjectParser();
     }
 
 }
