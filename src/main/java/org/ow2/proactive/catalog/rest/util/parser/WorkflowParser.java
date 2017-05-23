@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.rest.util.parser;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
@@ -35,6 +36,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
 
+import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
 import org.ow2.proactive.catalog.rest.service.exception.UnprocessableEntityException;
 
 import com.google.common.collect.ImmutableMap;
@@ -106,7 +108,7 @@ public final class WorkflowParser implements CatalogObjectParser {
     public WorkflowParser() {
     }
 
-    public CatalogObjectParserResult parse(InputStream inputStream) throws XMLStreamException {
+    public List<KeyValueMetadata> parse(InputStream inputStream) throws XMLStreamException {
 
         XMLStreamReader xmlStreamReader = XmlInputFactoryLazyHolder.INSTANCE.createXMLStreamReader(inputStream);
         int eventType;
@@ -175,7 +177,7 @@ public final class WorkflowParser implements CatalogObjectParser {
         }
     }
 
-    private CatalogObjectParserResult createResult() {
+    private List<KeyValueMetadata> createResult() {
         // based on XSD definition, project name is optional
         String projectName = getProjectName().orElse("");
 
