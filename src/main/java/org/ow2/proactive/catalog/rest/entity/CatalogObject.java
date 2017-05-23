@@ -61,14 +61,18 @@ public class CatalogObject {
     private Bucket bucket;
 
     @OneToMany(mappedBy = "catalogObject", orphanRemoval = true)
-    @OrderBy("createdAt DESC")
+    @OrderBy("commitDate DESC")
     private SortedSet<CatalogObjectRevision> revisions;
 
-    @Column(name = "LAST_REVISION_ID")
-    private Long lastRevisionId = 0L;
+    @Column(name = "LAST_COMMIT_ID")
+    private Long lastCommitId = 0L;
 
     public CatalogObject() {
         this.revisions = new TreeSet<CatalogObjectRevision>();
+    }
+
+    public CatalogObject(Bucket bucket) {
+        this(bucket, Lists.newArrayList());
     }
 
     public CatalogObject(Bucket bucket, CatalogObjectRevision... revisions) {
@@ -83,7 +87,7 @@ public class CatalogObject {
 
     public void addRevision(CatalogObjectRevision catalogObjectRevision) {
         this.revisions.add(catalogObjectRevision);
-        this.lastRevisionId++;
+        this.lastCommitId = catalogObjectRevision.getCommitId();
         catalogObjectRevision.setCatalogObject(this);
     }
 
@@ -95,8 +99,8 @@ public class CatalogObject {
         return bucket;
     }
 
-    public Long getLastRevisionId() {
-        return lastRevisionId;
+    public Long getLastCommitId() {
+        return lastCommitId;
     }
 
     public SortedSet<CatalogObjectRevision> getRevisions() {
@@ -107,8 +111,8 @@ public class CatalogObject {
         this.bucket = bucket;
     }
 
-    public void setLastRevisionId(Long lastRevisionId) {
-        this.lastRevisionId = lastRevisionId;
+    public void setLastCommitId(Long lastCommitId) {
+        this.lastCommitId = lastCommitId;
     }
 
     public void setRevisions(SortedSet<CatalogObjectRevision> revisions) {
@@ -117,7 +121,7 @@ public class CatalogObject {
 
     @Override
     public String toString() {
-        return "CatalogObject{" + "id=" + id + ", bucket=" + bucket + ", lastRevisionId=" + lastRevisionId +
+        return "CatalogObject{" + "id=" + id + ", bucket=" + bucket + ", lastCommitId=" + lastCommitId +
             '}';
     }
 
