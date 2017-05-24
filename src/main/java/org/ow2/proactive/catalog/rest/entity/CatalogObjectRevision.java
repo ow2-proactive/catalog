@@ -109,10 +109,23 @@ public class CatalogObjectRevision implements Comparable {
         this.rawObject = rawObject;
     }
 
+    public CatalogObjectRevision(Long commitId, String kind, LocalDateTime commitDate, String name,
+            String commitMessage, Long bucketId, String contentType, List<KeyValueMetadata> keyValueMetadataList,
+            byte[] rawObject) {
+        this(kind, commitDate, name, commitMessage, bucketId, contentType, keyValueMetadataList, rawObject);
+        this.commitId = commitId;
+    }
+
     public CatalogObjectRevision(String kind, LocalDateTime commitDate, String name, String commitMessage,
             Long bucketId, String contentType, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
         this(kind, commitDate, name, commitMessage, bucketId, contentType, rawObject);
         this.keyValueMetadataList = keyValueMetadataList;
+    }
+
+    public CatalogObjectRevision(Long commitId, String kind, LocalDateTime commitDate, String name,
+            String commitMessage, Long bucketId, String contentType, byte[] rawObject) {
+        this(kind, commitDate, name, commitMessage, bucketId, contentType, rawObject);
+        this.commitId = commitId;
     }
 
     public Long getBucketId() {

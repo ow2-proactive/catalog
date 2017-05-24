@@ -54,10 +54,10 @@ public final class CatalogObjectMetadata extends NamedMetadata {
     public final String contentType;
 
     @JsonProperty("commit_id")
-    private final long commitId;
+    public final long commitId;
 
     @JsonProperty("commit_message")
-    private final String commitMessage;
+    public final String commitMessage;
 
     @JsonProperty("object_key_values")
     public final List<KeyValueMetadata> keyValueMetadataList;

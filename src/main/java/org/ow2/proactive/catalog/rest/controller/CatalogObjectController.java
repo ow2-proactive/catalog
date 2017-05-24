@@ -81,10 +81,10 @@ public class CatalogObjectController {
             @ApiParam(value = "Commit message") @RequestParam String commitMessage,
             @ApiParam(value = "Layout describing the tasks position in the CatalogObject") @RequestParam(required = false) Optional<String> layout,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        return new CatalogObjectMetadataList(catalogService.createCatalogObject(kind,
+        return new CatalogObjectMetadataList(catalogService.createCatalogObject(bucketId,
+                                                                                kind,
                                                                                 name,
                                                                                 commitMessage,
-                                                                                bucketId,
                                                                                 layout,
                                                                                 file.getBytes()));
     }

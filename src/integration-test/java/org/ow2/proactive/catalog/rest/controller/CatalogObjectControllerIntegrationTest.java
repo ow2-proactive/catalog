@@ -67,9 +67,9 @@ import com.jayway.restassured.response.Response;
 @WebIntegrationTest(randomPort = true)
 public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredTest {
 
-    private static final String WORKFLOWS_RESOURCE = "/buckets/{bucketId}/workflows";
+    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketId}/workflows";
 
-    private static final String WORKFLOW_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}";
+    private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}";
 
     private static final String layoutMetadata = "{\"offsets\":{\"Linux_Bash_Task\":{\"top\":222" +
                                                  ",\"left\":681.5}},\"project\":\"Deployment\",\"detailedView\":true}";
@@ -78,13 +78,13 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     private BucketRepository bucketRepository;
 
     @Autowired
-    private CatalogObjectRepository workflowRepository;
+    private CatalogObjectRepository catalogObjectRepository;
 
     @Autowired
-    private CatalogObjectRevisionService workflowRevisionService;
+    private CatalogObjectRevisionService catalogObjectRevisionService;
 
     @Autowired
-    private CatalogObjectService workflowService;
+    private CatalogObjectService catalogObjectService;
 
     private Bucket bucket;
 
@@ -93,9 +93,12 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Before
     public void setup() throws IOException {
         bucket = bucketRepository.save(new Bucket("myBucket", "BucketControllerIntegrationTestUser"));
-        workflow = workflowService.createWorkflow(bucket.getId(),
-                                                  Optional.of(layoutMetadata),
-                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+        workflow = catalogObjectService.createCatalogObject(bucket.getId(),
+                                                            "workflow",
+                                                            "name",
+                                                            "commit message",
+                                                            Optional.of(layoutMetadata),
+                                                            IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
     }
 
     @Test
@@ -104,7 +107,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .queryParam("layout", layoutMetadata)
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
-               .post(WORKFLOWS_RESOURCE)
+               .post(CATALOG_OBJECTS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED)
@@ -130,7 +133,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     public void testCreateWorkflowShouldReturnUnsupportedMediaTypeWithoutBody() {
         given().pathParam("bucketId", bucket.getId())
                .when()
-               .post(WORKFLOWS_RESOURCE)
+               .post(CATALOG_OBJECTS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE);
@@ -141,7 +144,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().pathParam("bucketId", 42)
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
-               .post(WORKFLOWS_RESOURCE)
+               .post(CATALOG_OBJECTS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -149,23 +152,25 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testGetWorkflowShouldReturnLatestSavedWorkflowRevision() throws IOException {
-        CatalogObjectMetadata secondWorkflowRevision = workflowRevisionService.createCatalogObjectRevision(workflow.bucketId,
-                                                                                                           Optional.of(workflow.id),
-                                                                                                           IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"),
-                                                                                                           Optional.empty());
+        CatalogObjectMetadata secondWorkflowRevision = catalogObjectRevisionService.createCatalogObjectRevision(workflow.bucketId,
+                                                                                                                "workflow",
+                                                                                                                "name",
+                                                                                                                "commit message",
+                                                                                                                Optional.of(workflow.id),
+                                                                                                                Optional.of("aaplication/xml"),
+                                                                                                                IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
 
         given().pathParam("bucketId", workflow.bucketId)
                .pathParam("workflowId", workflow.id)
                .when()
-               .get(WORKFLOW_RESOURCE)
+               .get(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("bucket_id", is(secondWorkflowRevision.bucketId.intValue()))
                .body("id", is(secondWorkflowRevision.id.intValue()))
                .body("name", is(secondWorkflowRevision.name))
-               .body("project_name", is(secondWorkflowRevision.projectName))
-               .body("revision_id", is(secondWorkflowRevision.revisionId.intValue()));
+               .body("revision_id", is(secondWorkflowRevision.id.intValue()));
         //TODO
         //               .body("generic_information", hasSize(secondWorkflowRevision.genericInformation.size()))
         //               .body("generic_information[0].key", is("genericInfo1"))
@@ -184,10 +189,10 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         Response response = given().pathParam("bucketId", 1)
                                    .pathParam("workflowId", 1)
                                    .when()
-                                   .get(WORKFLOW_RESOURCE + "?alt=xml");
+                                   .get(CATALOG_OBJECT_RESOURCE + "?alt=xml");
 
         Arrays.equals(ByteStreams.toByteArray(response.asInputStream()),
-                      workflowRepository.getMostRecentCatalogObjectRevision(1L, 1L).getXmlPayload());
+                      catalogObjectRepository.getMostRecentCatalogObjectRevision(1L, 1L).getXmlPayload());
 
         response.then().assertThat().statusCode(HttpStatus.SC_OK).contentType("application/xml");
     }
@@ -197,7 +202,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().pathParam("bucketId", 1)
                .pathParam("workflowId", 1)
                .when()
-               .get(WORKFLOW_RESOURCE + "?alt=wrong")
+               .get(CATALOG_OBJECT_RESOURCE + "?alt=wrong")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE);
@@ -208,7 +213,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().pathParam("bucketId", 42)
                .pathParam("workflowId", 1)
                .when()
-               .get(WORKFLOW_RESOURCE)
+               .get(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -219,7 +224,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().pathParam("bucketId", 42)
                .pathParam("workflowId", 1)
                .when()
-               .get(WORKFLOW_RESOURCE + "?alt=xml")
+               .get(CATALOG_OBJECT_RESOURCE + "?alt=xml")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -230,7 +235,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().pathParam("bucketId", 1)
                .pathParam("workflowId", 42)
                .when()
-               .get(WORKFLOW_RESOURCE)
+               .get(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -241,7 +246,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().pathParam("bucketId", 1)
                .pathParam("workflowId", 42)
                .when()
-               .get(WORKFLOW_RESOURCE + "?alt=xml")
+               .get(CATALOG_OBJECT_RESOURCE + "?alt=xml")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -251,7 +256,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     public void testListWorkflowsShouldReturnSavedWorkflows() {
         given().pathParam("bucketId", bucket.getId())
                .when()
-               .get(WORKFLOWS_RESOURCE)
+               .get(CATALOG_OBJECTS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK);
@@ -261,7 +266,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     public void testListWorkflowsShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42)
                .when()
-               .get(WORKFLOWS_RESOURCE)
+               .get(CATALOG_OBJECTS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -272,7 +277,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().pathParam("bucketId", bucket.getId())
                .pathParam("workflowId", workflow.id)
                .when()
-               .delete(WORKFLOW_RESOURCE)
+               .delete(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
@@ -282,7 +287,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().pathParam("bucketId", bucket.getId())
                .pathParam("workflowId", workflow.id)
                .when()
-               .get(WORKFLOW_RESOURCE)
+               .get(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -293,7 +298,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().pathParam("bucketId", bucket.getId())
                .pathParam("workflowId", 42)
                .when()
-               .delete(WORKFLOW_RESOURCE)
+               .delete(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -306,7 +311,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .queryParam("alt", "zip")
                .multiPart(IntegrationTestUtil.getArchiveFile("archive.zip"))
                .when()
-               .post(WORKFLOWS_RESOURCE)
+               .post(CATALOG_OBJECTS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED);
@@ -319,7 +324,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .queryParam("alt", "zip")
                .multiPart(IntegrationTestUtil.getArchiveFile("workflow_0.xml"))
                .when()
-               .post(WORKFLOWS_RESOURCE)
+               .post(CATALOG_OBJECTS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
@@ -331,7 +336,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .pathParam("workflowId", workflow.id)
                .queryParam("layout", layoutMetadata)
                .when()
-               .get(WORKFLOW_RESOURCE + "?alt=zip")
+               .get(CATALOG_OBJECT_RESOURCE + "?alt=zip")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
@@ -344,7 +349,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .pathParam("workflowId", "1,2")
                .queryParam("layout", layoutMetadata)
                .when()
-               .get(WORKFLOW_RESOURCE + "?alt=zip")
+               .get(CATALOG_OBJECT_RESOURCE + "?alt=zip")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);

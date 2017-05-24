@@ -50,29 +50,29 @@ public class CatalogObjectService {
 
     public CatalogObjectMetadata createCatalogObject(String kind, String name, String commitMessage, Long bucketId,
             List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
-        return catalogObjectRevisionService.createCatalogObjectRevision(kind,
+        return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
+                                                                        kind,
                                                                         name,
                                                                         commitMessage,
-                                                                        bucketId,
                                                                         Optional.empty(),
                                                                         Optional.empty(),
                                                                         keyValueMetadataList,
                                                                         rawObject);
     }
 
-    public CatalogObjectMetadata createCatalogObject(String kind, String name, String commitMessage, Long bucketId,
+    public CatalogObjectMetadata createCatalogObject(Long bucketId, String kind, String name, String commitMessage,
             Optional<String> layout, byte[] rawObject) {
-        return catalogObjectRevisionService.createCatalogObjectRevision(kind,
+        return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
+                                                                        kind,
                                                                         name,
                                                                         commitMessage,
-                                                                        bucketId,
                                                                         Optional.empty(),
                                                                         layout,
                                                                         rawObject);
     }
 
-    public ResponseEntity<?> getCatalogObjectMetadata(long bucketId, long workflowId) {
-        return catalogObjectRevisionService.getCatalogObject(bucketId, workflowId, Optional.empty());
+    public ResponseEntity<?> getCatalogObjectMetadata(long bucketId, long catalogObjectId) {
+        return catalogObjectRevisionService.getCatalogObject(bucketId, catalogObjectId, Optional.empty());
     }
 
     public PagedResources listCatalogObjects(Long bucketId, Optional<String> query, Pageable pageable,

@@ -41,15 +41,15 @@ import com.google.gson.JsonParser;
 /**
  * @author ActiveEon Team
  */
-public class AbstractWorkflowRevisionControllerTest extends AbstractRestAssuredTest {
+public class AbstractCatalogObjectRevisionControllerTest extends AbstractRestAssuredTest {
 
-    protected static final String WORKFLOW_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}";
+    protected static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}";
 
-    protected static final String WORKFLOWS_RESOURCE = "/buckets/{bucketId}/workflows/";
+    protected static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketId}/workflows/";
 
-    protected static final String WORKFLOW_REVISIONS_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}/revisions";
+    protected static final String CATALOG_OBJECT_REVISIONS_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}/revisions";
 
-    protected static final String WORKFLOW_REVISION_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}/revisions/{revisionId}";
+    protected static final String CATALOG_OBJECT_REVISION_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}/revisions/{revisionId}";
 
     @Autowired
     protected BucketRepository bucketRepository;
@@ -61,7 +61,7 @@ public class AbstractWorkflowRevisionControllerTest extends AbstractRestAssuredT
     protected BucketService bucketService;
 
     @Autowired
-    protected CatalogObjectService workflowService;
+    protected CatalogObjectService catalogObjectService;
 
     @Autowired
     protected CatalogObjectRevisionService catalogObjectRevisionService;

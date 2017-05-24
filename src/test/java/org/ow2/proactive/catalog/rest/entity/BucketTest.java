@@ -28,13 +28,10 @@ package org.ow2.proactive.catalog.rest.entity;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.ow2.proactive.catalog.rest.entity.Bucket;
-import org.ow2.proactive.catalog.rest.entity.CatalogObject;
 
 import com.google.common.collect.ImmutableList;
 
@@ -84,13 +81,6 @@ public class BucketTest {
         Long expectedId = 42L;
         bucket.id = expectedId;
         assertEquals(expectedId, bucket.getId());
-    }
-
-    @Test
-    public void testGetCreatedAt() throws Exception {
-        LocalDateTime expectedDate = LocalDateTime.now();
-        bucket.createdAt = expectedDate;
-        assertEquals(expectedDate, bucket.getCreatedAt());
     }
 
     @Test
