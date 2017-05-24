@@ -66,7 +66,7 @@ public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
 
     private static final String BUCKETS_RESOURCE = "/buckets";
 
-    private static final String WORKFLOWS_RESOURCE = "/buckets/{bucketId}/workflows";
+    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketId}/resources";
 
     @Autowired
     private BucketService bucketService;
@@ -115,7 +115,7 @@ public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
                                                    "'}.id");
             given().pathParam("bucketId", bucketId)
                    .when()
-                   .get(WORKFLOWS_RESOURCE)
+                   .get(CATALOG_OBJECTS_RESOURCE)
                    .then()
                    .assertThat()
                    .statusCode(HttpStatus.SC_OK)

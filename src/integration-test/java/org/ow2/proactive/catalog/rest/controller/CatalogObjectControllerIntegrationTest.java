@@ -67,9 +67,9 @@ import com.jayway.restassured.response.Response;
 @WebIntegrationTest(randomPort = true)
 public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredTest {
 
-    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketId}/workflows";
+    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketId}/resources";
 
-    private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketId}/workflows/{workflowId}";
+    private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketId}/resources/{objectId}";
 
     private static final String layoutMetadata = "{\"offsets\":{\"Linux_Bash_Task\":{\"top\":222" +
                                                  ",\"left\":681.5}},\"project\":\"Deployment\",\"detailedView\":true}";
@@ -88,12 +88,12 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     private Bucket bucket;
 
-    private CatalogObjectMetadata workflow;
+    private CatalogObjectMetadata catalogObject;
 
     @Before
     public void setup() throws IOException {
         bucket = bucketRepository.save(new Bucket("myBucket", "BucketControllerIntegrationTestUser"));
-        workflow = catalogObjectService.createCatalogObject(bucket.getId(),
+        catalogObject = catalogObjectService.createCatalogObject(bucket.getId(),
                                                             "workflow",
                                                             "name",
                                                             "commit message",
@@ -152,16 +152,16 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testGetWorkflowShouldReturnLatestSavedWorkflowRevision() throws IOException {
-        CatalogObjectMetadata secondWorkflowRevision = catalogObjectRevisionService.createCatalogObjectRevision(workflow.bucketId,
+        CatalogObjectMetadata secondWorkflowRevision = catalogObjectRevisionService.createCatalogObjectRevision(catalogObject.bucketId,
                                                                                                                 "workflow",
                                                                                                                 "name",
                                                                                                                 "commit message",
-                                                                                                                Optional.of(workflow.id),
+                                                                                                                Optional.of(catalogObject.id),
                                                                                                                 Optional.of("aaplication/xml"),
                                                                                                                 IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
 
-        given().pathParam("bucketId", workflow.bucketId)
-               .pathParam("workflowId", workflow.id)
+        given().pathParam("bucketId", catalogObject.bucketId)
+               .pathParam("workflowId", catalogObject.id)
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -275,17 +275,17 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testDeleteExistingWorkflow() {
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("workflowId", workflow.id)
+               .pathParam("workflowId", catalogObject.id)
                .when()
                .delete(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("name", is(workflow.name));
+               .body("name", is(catalogObject.name));
 
         // check that the workflow is really gone
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("workflowId", workflow.id)
+               .pathParam("workflowId", catalogObject.id)
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -333,7 +333,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testGetWorkflowsAsArchive() {
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("workflowId", workflow.id)
+               .pathParam("workflowId", catalogObject.id)
                .queryParam("layout", layoutMetadata)
                .when()
                .get(CATALOG_OBJECT_RESOURCE + "?alt=zip")
