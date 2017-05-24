@@ -94,11 +94,11 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     public void setup() throws IOException {
         bucket = bucketRepository.save(new Bucket("myBucket", "BucketControllerIntegrationTestUser"));
         catalogObject = catalogObjectService.createCatalogObject(bucket.getId(),
-                                                            "workflow",
-                                                            "name",
-                                                            "commit message",
-                                                            Optional.of(layoutMetadata),
-                                                            IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+                                                                 "workflow",
+                                                                 "name",
+                                                                 "commit message",
+                                                                 Optional.of(layoutMetadata),
+                                                                 IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
     }
 
     @Test
