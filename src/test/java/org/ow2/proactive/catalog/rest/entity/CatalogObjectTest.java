@@ -35,12 +35,8 @@ import java.util.TreeSet;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.ow2.proactive.catalog.rest.entity.Bucket;
-import org.ow2.proactive.catalog.rest.entity.CatalogObject;
-import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
 
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
 
 
 /**
@@ -57,19 +53,19 @@ public class CatalogObjectTest {
     @Before
     public void setUp() {
         bucket = new Bucket("test", "WorkflowTestUser");
-        catalogObjectRevision = newWorkflowRevision(1L, LocalDateTime.now());
+        catalogObjectRevision = newCatalogObjectRevision(1L, LocalDateTime.now());
         catalogObject = new CatalogObject(bucket);
     }
 
     @Test
     public void testAddRevision() throws Exception {
 
-        assertThat(catalogObject.getLastRevisionId()).isEqualTo(0L);
+        assertThat(catalogObject.getLastCommitId()).isEqualTo(0L);
         assertThat(catalogObject.getRevisions()).hasSize(0);
 
         catalogObject.addRevision(catalogObjectRevision);
 
-        assertThat(catalogObject.getLastRevisionId()).isEqualTo(1L);
+        assertThat(catalogObject.getLastCommitId()).isEqualTo(1L);
         assertThat(catalogObject.getRevisions()).hasSize(1);
     }
 
@@ -84,25 +80,24 @@ public class CatalogObjectTest {
     public void testGetRevisions() throws Exception {
         SortedSet<CatalogObjectRevision> revisions = new TreeSet<>();
         revisions.add(catalogObjectRevision);
-        revisions.add(newWorkflowRevision(10L, LocalDateTime.now().plusHours(1)));
-        revisions.add(newWorkflowRevision(2L, LocalDateTime.now().plusHours(2)));
+        revisions.add(newCatalogObjectRevision(10L, LocalDateTime.now().plusHours(1)));
+        revisions.add(newCatalogObjectRevision(2L, LocalDateTime.now().plusHours(2)));
         catalogObject.setRevisions(revisions);
         assertEquals(revisions, catalogObject.getRevisions());
         Iterator iterator = catalogObject.getRevisions().iterator();
-        assertEquals(2L, ((CatalogObjectRevision) iterator.next()).getRevisionId().longValue());
-        assertEquals(10L, ((CatalogObjectRevision) iterator.next()).getRevisionId().longValue());
-        assertEquals(1L, ((CatalogObjectRevision) iterator.next()).getRevisionId().longValue());
+        assertEquals(2L, ((CatalogObjectRevision) iterator.next()).getCommitId().longValue());
+        assertEquals(10L, ((CatalogObjectRevision) iterator.next()).getCommitId().longValue());
+        assertEquals(1L, ((CatalogObjectRevision) iterator.next()).getCommitId().longValue());
     }
 
-    private CatalogObjectRevision newWorkflowRevision(Long revisionId, LocalDateTime date) {
-        return new CatalogObjectRevision("workflow",
-                                         1L,
-                                         revisionId,
-                                         "Test",
-                                         "Test Project",
+    private CatalogObjectRevision newCatalogObjectRevision(Long revisionId, LocalDateTime date) {
+        return new CatalogObjectRevision(revisionId,
+                                         "workflow",
                                          date,
-                                         null,
-                                         Lists.newArrayList(),
+                                         "name",
+                                         "commit message",
+                                         1L,
+                                         "application/xml",
                                          new byte[0]);
     }
 }

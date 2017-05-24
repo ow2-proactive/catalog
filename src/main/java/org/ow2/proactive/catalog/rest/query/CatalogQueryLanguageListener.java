@@ -201,9 +201,9 @@ public class CatalogQueryLanguageListener
         if (context.clauses.size() > 0) {
             for (Clause clause : context.clauses) {
                 if (booleanExpression == null) {
-                    booleanExpression = QCatalogObjectRevision.catalogObjectRevision.id.in(clause.listSubQuery);
+                    booleanExpression = QCatalogObjectRevision.catalogObjectRevision.commitId.in(clause.listSubQuery);
                 } else {
-                    booleanExpression = booleanExpression.and(QCatalogObjectRevision.catalogObjectRevision.id.in(clause.listSubQuery));
+                    booleanExpression = booleanExpression.and(QCatalogObjectRevision.catalogObjectRevision.commitId.in(clause.listSubQuery));
                 }
             }
 
@@ -450,12 +450,6 @@ public class CatalogQueryLanguageListener
         builder.put(new AtomicLexicalClause(FieldType.NAME, Operator.NOT_EQUAL, false),
                     value -> createSubQueryForAtomicClause(QCatalogObjectRevision.catalogObjectRevision.name.ne(value)));
 
-        builder.put(new AtomicLexicalClause(FieldType.PROJECT_NAME, Operator.EQUAL, false),
-                    value -> createSubQueryForAtomicClause(QCatalogObjectRevision.catalogObjectRevision.projectName.eq(value)));
-
-        builder.put(new AtomicLexicalClause(FieldType.PROJECT_NAME, Operator.NOT_EQUAL, false),
-                    value -> createSubQueryForAtomicClause(QCatalogObjectRevision.catalogObjectRevision.projectName.ne(value)));
-
         builder.put(new AtomicLexicalClause(FieldType.NAME, Operator.EQUAL, true),
                     value -> createSubQueryForAtomicClause(QCatalogObjectRevision.catalogObjectRevision.name.like(value,
                                                                                                                   '\\')));
@@ -464,21 +458,13 @@ public class CatalogQueryLanguageListener
                     value -> createSubQueryForAtomicClause(QCatalogObjectRevision.catalogObjectRevision.name.notLike(value,
                                                                                                                      '\\')));
 
-        builder.put(new AtomicLexicalClause(FieldType.PROJECT_NAME, Operator.EQUAL, true),
-                    value -> createSubQueryForAtomicClause(QCatalogObjectRevision.catalogObjectRevision.projectName.like(value,
-                                                                                                                         '\\')));
-
-        builder.put(new AtomicLexicalClause(FieldType.PROJECT_NAME, Operator.NOT_EQUAL, true),
-                    value -> createSubQueryForAtomicClause(QCatalogObjectRevision.catalogObjectRevision.projectName.notLike(value,
-                                                                                                                            '\\')));
-
         return builder.build();
     }
 
     private ListSubQuery<Long> createSubQueryForAtomicClause(BooleanExpression booleanExpression) {
         return new JPASubQuery().from(QCatalogObjectRevision.catalogObjectRevision)
                                 .where(booleanExpression)
-                                .list(QCatalogObjectRevision.catalogObjectRevision.id);
+                                .list(QCatalogObjectRevision.catalogObjectRevision.commitId);
     }
 
     protected Map<KeyValueLexicalClause, BiFunction<String, String, ListSubQuery<Long>>>

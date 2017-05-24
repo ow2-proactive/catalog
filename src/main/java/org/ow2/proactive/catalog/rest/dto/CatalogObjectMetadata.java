@@ -54,10 +54,10 @@ public final class CatalogObjectMetadata extends NamedMetadata {
     public final String contentType;
 
     @JsonProperty("commit_id")
-    private final long commitId;
+    public final long commitId;
 
     @JsonProperty("commit_message")
-    private final String commitMessage;
+    public final String commitMessage;
 
     @JsonProperty("object_key_values")
     public final List<KeyValueMetadata> keyValueMetadataList;
@@ -75,7 +75,7 @@ public final class CatalogObjectMetadata extends NamedMetadata {
     }
 
     public CatalogObjectMetadata(String kind, Long bucketId, Long id, LocalDateTime createdAt, String name,
-                                 String contentType, Long commitId, String commitMessage, List<KeyValueMetadata> keyValueMetadataList) {
+            String contentType, Long commitId, String commitMessage, List<KeyValueMetadata> keyValueMetadataList) {
 
         super(id, name);
         this.kind = kind;

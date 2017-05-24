@@ -79,9 +79,6 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
         Response response = given().parameters("name", bucketName, "owner", bucketOwner).when().post(BUCKETS_RESOURCE);
 
-        Object createdAt = response.getBody().jsonPath().get("created_at");
-        assertThat(createdAt).isNotNull();
-
         response.then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_CREATED)
@@ -135,12 +132,10 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         Bucket bucket = bucketRepository.save(new Bucket("myBucket", "BucketControllerIntegrationTestUser"));
         final long bucketId = bucket.getId();
         final String bucketName = bucket.getName();
-        final LocalDateTime bucketCreatedAt = bucket.getCreatedAt();
         JsonPath jsonPath = given().pathParam("bucketId", 1L).when().get(BUCKET_RESOURCE).thenReturn().jsonPath();
         LocalDateTime actualDate = LocalDateTime.parse(jsonPath.getString("created_at"));
         assertEquals(jsonPath.getLong("id"), bucketId);
         assertEquals(jsonPath.getString("name"), bucketName);
-        assertEquals(actualDate, bucketCreatedAt);
     }
 
     @Test

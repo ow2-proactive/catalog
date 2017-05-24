@@ -53,8 +53,7 @@ import org.springframework.data.annotation.CreatedDate;
  * @author ActiveEon Team
  */
 @Entity
-@Table(name = "CATALOG_OBJECT_REVISION", indexes = { @Index(columnList = "NAME"),
-        @Index(columnList = "PROJECT_NAME") })
+@Table(name = "CATALOG_OBJECT_REVISION", indexes = { @Index(columnList = "NAME"), @Index(columnList = "PROJECT_NAME") })
 public class CatalogObjectRevision implements Comparable {
 
     @Id
@@ -98,9 +97,8 @@ public class CatalogObjectRevision implements Comparable {
         this.keyValueMetadataList = new ArrayList<>();
     }
 
-    public CatalogObjectRevision(String kind, LocalDateTime commitDate, String name,
-            String commitMessage, Long bucketId,
-            String contentType, byte[] rawObject) {
+    public CatalogObjectRevision(String kind, LocalDateTime commitDate, String name, String commitMessage,
+            Long bucketId, String contentType, byte[] rawObject) {
         super();
         this.kind = kind;
         this.name = name;
@@ -111,12 +109,23 @@ public class CatalogObjectRevision implements Comparable {
         this.rawObject = rawObject;
     }
 
-    public CatalogObjectRevision(String kind, LocalDateTime commitDate, String name,
-            String commitMessage, Long bucketId,
-            String contentType, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
-        this(kind, commitDate, name, commitMessage, bucketId,
-                contentType, rawObject);
+    public CatalogObjectRevision(Long commitId, String kind, LocalDateTime commitDate, String name,
+            String commitMessage, Long bucketId, String contentType, List<KeyValueMetadata> keyValueMetadataList,
+            byte[] rawObject) {
+        this(kind, commitDate, name, commitMessage, bucketId, contentType, keyValueMetadataList, rawObject);
+        this.commitId = commitId;
+    }
+
+    public CatalogObjectRevision(String kind, LocalDateTime commitDate, String name, String commitMessage,
+            Long bucketId, String contentType, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
+        this(kind, commitDate, name, commitMessage, bucketId, contentType, rawObject);
         this.keyValueMetadataList = keyValueMetadataList;
+    }
+
+    public CatalogObjectRevision(Long commitId, String kind, LocalDateTime commitDate, String name,
+            String commitMessage, Long bucketId, String contentType, byte[] rawObject) {
+        this(kind, commitDate, name, commitMessage, bucketId, contentType, rawObject);
+        this.commitId = commitId;
     }
 
     public Long getBucketId() {
@@ -218,16 +227,10 @@ public class CatalogObjectRevision implements Comparable {
 
     @Override
     public String toString() {
-        return "CatalogObjectRevision{" +
-                "commitId=" + commitId +
-                ", kind='" + kind + '\'' +
-                ", commitMessage='" + commitMessage + '\'' +
-                ", commitDate=" + commitDate +
-                ", name='" + name + '\'' +
-                ", bucketId=" + bucketId +
-                ", contentType='" + contentType + '\'' +
-                ", keyValueMetadataList=" + keyValueMetadataList +
-                '}';
+        return "CatalogObjectRevision{" + "commitId=" + commitId + ", kind='" + kind + '\'' + ", commitMessage='" +
+               commitMessage + '\'' + ", commitDate=" + commitDate + ", name='" + name + '\'' + ", bucketId=" +
+               bucketId + ", contentType='" + contentType + '\'' + ", keyValueMetadataList=" + keyValueMetadataList +
+               '}';
     }
 
     @Override

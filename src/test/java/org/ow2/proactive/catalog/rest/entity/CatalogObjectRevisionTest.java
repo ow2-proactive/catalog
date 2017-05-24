@@ -25,13 +25,10 @@
  */
 package org.ow2.proactive.catalog.rest.entity;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import java.time.LocalDateTime;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
 
 import com.google.common.collect.Lists;
 
@@ -43,8 +40,8 @@ public class CatalogObjectRevisionTest {
 
     @Test
     public void testAddKeyValue() throws Exception {
-        CatalogObjectRevision catalogObjectRevision = createWorkflowRevision();
         //TODO
+        //        CatalogObjectRevision catalogObjectRevision = createWorkflowRevision();
         //        assertThat(catalogObjectRevision.getGenericInformation()).hasSize(1);
         //
         //        catalogObjectRevision.addGenericInformation(Mockito.mock(GenericInformation.class));
@@ -64,12 +61,11 @@ public class CatalogObjectRevisionTest {
         KeyValueMetadata variableMock = Mockito.mock(KeyValueMetadata.class);
 
         CatalogObjectRevision catalogObjectRevision = new CatalogObjectRevision("workflow",
-                                                                                1L,
-                                                                                1L,
-                                                                                "test",
-                                                                                "test",
                                                                                 LocalDateTime.now(),
-                                                                                null,
+                                                                                "test",
+                                                                                "commit message",
+                                                                                1L,
+                                                                                "application/xml",
                                                                                 Lists.newArrayList(variableMock),
                                                                                 new byte[0]);
 

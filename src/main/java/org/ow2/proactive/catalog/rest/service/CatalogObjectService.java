@@ -27,13 +27,10 @@ package org.ow2.proactive.catalog.rest.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
 import org.ow2.proactive.catalog.rest.query.QueryExpressionBuilderException;
-import org.ow2.proactive.catalog.rest.service.exception.UnprocessableEntityException;
-import org.ow2.proactive.catalog.rest.util.ArchiveManagerHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -51,66 +48,40 @@ public class CatalogObjectService {
     @Autowired
     private CatalogObjectRevisionService catalogObjectRevisionService;
 
-    @Autowired
-    private ArchiveManagerHelper archiveManagerHelper;
-
     public CatalogObjectMetadata createCatalogObject(String kind, String name, String commitMessage, Long bucketId,
             List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
-        return catalogObjectRevisionService.createCatalogObjectRevision(kind,
+        return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
+                                                                        kind,
                                                                         name,
                                                                         commitMessage,
-                                                                        bucketId,
                                                                         Optional.empty(),
                                                                         Optional.empty(),
                                                                         keyValueMetadataList,
                                                                         rawObject);
     }
 
-    public CatalogObjectMetadata createCatalogObject(String kind, String name, String commitMessage, Long bucketId,
+    public CatalogObjectMetadata createCatalogObject(Long bucketId, String kind, String name, String commitMessage,
             Optional<String> layout, byte[] rawObject) {
-        return catalogObjectRevisionService.createCatalogObjectRevision(kind,
+        return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
+                                                                        kind,
                                                                         name,
                                                                         commitMessage,
-                                                                        bucketId,
                                                                         Optional.empty(),
                                                                         layout,
                                                                         rawObject);
     }
 
-    public List<CatalogObjectMetadata> createCatalogObjects(String kind, String name, String commitMessage,
-            Long bucketId, Optional<String> layout, byte[] proActiveWorkflowsArchive) {
-
-        //TODO implement for workflows extract Zip
-        List<byte[]> extractedWorkflows = archiveManagerHelper.extractZIP(proActiveWorkflowsArchive);
-        if (extractedWorkflows.isEmpty()) {
-            throw new UnprocessableEntityException("Malformed archive");
-        } else {
-            return extractedWorkflows.stream()
-                                     .map(workflowFile -> createCatalogObject(kind,
-                                                                              name,
-                                                                              commitMessage,
-                                                                              bucketId,
-                                                                              layout,
-                                             proActiveWorkflowsArchive))
-                                     .collect(Collectors.toList());
-        }
+    public ResponseEntity<?> getCatalogObjectMetadata(long bucketId, long catalogObjectId) {
+        return catalogObjectRevisionService.getCatalogObject(bucketId, catalogObjectId, Optional.empty());
     }
 
-    public ResponseEntity<?> getWorkflowMetadata(long bucketId, long workflowId, Optional<String> alt) {
-        return catalogObjectRevisionService.getCatalogObject(bucketId, workflowId, Optional.empty(), alt);
-    }
-
-    public PagedResources listWorkflows(Long bucketId, Optional<String> query, Pageable pageable,
+    public PagedResources listCatalogObjects(Long bucketId, Optional<String> query, Pageable pageable,
             PagedResourcesAssembler assembler) throws QueryExpressionBuilderException {
         return catalogObjectRevisionService.listCatalogObjects(bucketId, Optional.empty(), query, pageable, assembler);
     }
 
-    public ResponseEntity<?> delete(Long bucketId, Long workflowId) {
-        return catalogObjectRevisionService.delete(bucketId, workflowId, Optional.empty());
-    }
-
-    public byte[] getWorkflowsAsArchive(Long bucketId, List<Long> idList) {
-        return archiveManagerHelper.compressZIP(catalogObjectRevisionService.getWorkflowsRevisions(bucketId, idList));
+    public ResponseEntity<CatalogObjectMetadata> delete(Long bucketId, Long catalogObjectId) {
+        return catalogObjectRevisionService.delete(bucketId, catalogObjectId, Optional.empty());
     }
 
 }

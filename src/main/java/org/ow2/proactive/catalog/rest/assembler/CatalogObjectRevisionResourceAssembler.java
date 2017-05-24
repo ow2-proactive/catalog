@@ -44,8 +44,8 @@ public class CatalogObjectRevisionResourceAssembler
     }
 
     @Override
-    public CatalogObjectMetadata toResource(CatalogObjectRevision workflow) {
-        return new CatalogObjectMetadata(workflow);
+    public CatalogObjectMetadata toResource(CatalogObjectRevision catalogObject) {
+        return new CatalogObjectMetadata(catalogObject);
     }
 
 }

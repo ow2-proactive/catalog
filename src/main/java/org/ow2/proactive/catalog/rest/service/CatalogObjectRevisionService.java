@@ -51,11 +51,10 @@ import org.ow2.proactive.catalog.rest.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.UnprocessableEntityException;
-import org.ow2.proactive.catalog.rest.service.exception.UnsupportedMediaTypeException;
 import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRevisionRepository;
-import org.ow2.proactive.catalog.rest.service.repository.QueryDslWorkflowRevisionRepository;
+import org.ow2.proactive.catalog.rest.service.repository.QueryDslCatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParser;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,21 +77,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CatalogObjectRevisionService {
 
-    /**
-     * This value is used to detect whether the full workflow XML payload
-     * must be returned to clients or if workflow's metadata only are enough.
-     * The value has to be used with query parameter {@code alt}.
-     */
-    private static final String SUPPORTED_ALT_VALUE = "xml";
-
     @Autowired
     private BucketRepository bucketRepository;
 
     @Autowired
-    private CatalogObjectRevisionResourceAssembler workflowRevisionResourceAssembler;
+    private CatalogObjectRevisionResourceAssembler catalogObjectRevisionResourceAssembler;
 
     @Autowired
-    private QueryDslWorkflowRevisionRepository queryDslWorkflowRevisionRepository;
+    private QueryDslCatalogObjectRevisionRepository queryDslCatalogObjectRepository;
 
     @Autowired
     private CatalogObjectRepository catalogObjectRepository;
@@ -101,17 +93,16 @@ public class CatalogObjectRevisionService {
     private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
 
     @Transactional
-    public CatalogObjectMetadata createCatalogObjectRevision(String kind, String name, String commitMessage,
-            Long bucketId, Optional<Long> catalogObjectId, Optional<String> contentType, byte[] rawObject) {
+    public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String kind, String name,
+            String commitMessage, Optional<Long> catalogObjectId, Optional<String> contentType, byte[] rawObject) {
         try {
-            //TODO
             CatalogObjectParser catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
             List<KeyValueMetadata> keyValueMetadataListParsed = catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
 
-            return createCatalogObjectRevision(kind,
+            return createCatalogObjectRevision(bucketId,
+                                               kind,
                                                name,
                                                commitMessage,
-                                               bucketId,
                                                catalogObjectId,
                                                contentType,
                                                keyValueMetadataListParsed,
@@ -122,8 +113,8 @@ public class CatalogObjectRevisionService {
     }
 
     @Transactional
-    public CatalogObjectMetadata createCatalogObjectRevision(String kind, String name, String commitMessage,
-            Long bucketId, Optional<Long> objectId, Optional<String> contentType,
+    public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String kind, String name,
+            String commitMessage, Optional<Long> objectId, Optional<String> contentType,
             List<KeyValueMetadata> keyValueMetadataListParsed, byte[] rawObject) {
         Bucket bucket = findBucket(bucketId);
 
@@ -176,40 +167,40 @@ public class CatalogObjectRevisionService {
         return bucket;
     }
 
-    public PagedResources listCatalogObjects(Long bucketId, Optional<Long> workflowId, Optional<String> query,
+    public PagedResources listCatalogObjects(Long bucketId, Optional<Long> catalogObjectId, Optional<String> query,
             Pageable pageable, PagedResourcesAssembler assembler) throws QueryExpressionBuilderException {
 
         findBucket(bucketId);
         Page<CatalogObjectRevision> page;
 
-        if (workflowId.isPresent()) {
-            findObjectById(workflowId.get());
+        if (catalogObjectId.isPresent()) {
+            findObjectById(catalogObjectId.get());
 
             if (query.isPresent() && "".compareTo(query.get().trim()) != 0) {
                 QueryExpressionContext queryExpressionContext = createJpaQueryExpression(query.get());
 
-                page = queryDslWorkflowRevisionRepository.findAllWorkflowRevisions(bucketId,
-                                                                                   workflowId.get(),
-                                                                                   queryExpressionContext,
-                                                                                   pageable);
+                page = queryDslCatalogObjectRepository.findAllCatalogObjectRevisions(bucketId,
+                                                                                     catalogObjectId.get(),
+                                                                                     queryExpressionContext,
+                                                                                     pageable);
             } else {
                 // it is not required to pass bucket ID since
                 // object ID is unique for all buckets
-                page = catalogObjectRevisionRepository.getRevisions(workflowId.get(), pageable);
+                page = catalogObjectRevisionRepository.getRevisions(catalogObjectId.get(), pageable);
             }
         } else {
             if (query.isPresent()) {
                 QueryExpressionContext queryExpressionContext = createJpaQueryExpression(query.get());
 
-                page = queryDslWorkflowRevisionRepository.findMostRecentWorkflowRevisions(bucketId,
-                                                                                          queryExpressionContext,
-                                                                                          pageable);
+                page = queryDslCatalogObjectRepository.findMostRecentCatalogObjectRevisions(bucketId,
+                                                                                            queryExpressionContext,
+                                                                                            pageable);
             } else {
                 page = catalogObjectRepository.getMostRecentRevisions(bucketId, pageable);
             }
         }
 
-        return assembler.toResource(page, workflowRevisionResourceAssembler);
+        return assembler.toResource(page, catalogObjectRevisionResourceAssembler);
     }
 
     private QueryExpressionContext createJpaQueryExpression(String catalogQuery)
@@ -219,55 +210,55 @@ public class CatalogObjectRevisionService {
         return builder.build();
     }
 
-    public ResponseEntity<?> getCatalogObject(Long bucketId, Long workflowId, Optional<Long> revisionId,
-            Optional<String> alt) {
+    public ResponseEntity<CatalogObjectMetadata> getCatalogObject(Long bucketId, Long objectId,
+            Optional<Long> revisionId) {
         findBucket(bucketId);
-        findObjectById(workflowId);
+        findObjectById(objectId);
 
-        CatalogObjectRevision catalogObjectRevision = getWorkflowRevision(bucketId, workflowId, revisionId);
-
-        if (alt.isPresent()) {
-            String altValue = alt.get();
-
-            if (!altValue.equalsIgnoreCase(SUPPORTED_ALT_VALUE)) {
-                throw new UnsupportedMediaTypeException("Unsupported media type '" + altValue + "' (only '" +
-                                                        SUPPORTED_ALT_VALUE + "' is allowed)");
-            }
-
-            byte[] bytes = catalogObjectRevision.getXmlPayload();
-
-            return ResponseEntity.ok()
-                                 .contentLength(bytes.length)
-                                 .contentType(MediaType.APPLICATION_XML)
-                                 .body(new InputStreamResource(new ByteArrayInputStream(bytes)));
-        }
+        CatalogObjectRevision catalogObjectRevision = getCatalogObjectRevision(bucketId, objectId, revisionId);
 
         CatalogObjectMetadata objectMetadata = new CatalogObjectMetadata(catalogObjectRevision);
 
-        objectMetadata.add(createLink(bucketId, workflowId, catalogObjectRevision));
+        objectMetadata.add(createLink(bucketId, objectId, catalogObjectRevision));
 
         return ResponseEntity.ok(objectMetadata);
     }
 
-    public List<CatalogObjectRevision> getWorkflowsRevisions(Long bucketId, List<Long> idList) {
+    public ResponseEntity<InputStreamResource> getCatalogObjectRaw(Long bucketId, Long objectId,
+            Optional<Long> revisionId) {
+
         findBucket(bucketId);
-        List<CatalogObjectRevision> workflows = idList.stream()
-                                                      .map(workflowId -> getWorkflowRevision(bucketId,
-                                                                                             workflowId,
-                                                                                             Optional.empty()))
-                                                      .collect(Collectors.toList());
-        return workflows;
+        findObjectById(objectId);
+
+        CatalogObjectRevision catalogObjectRevision = getCatalogObjectRevision(bucketId, objectId, revisionId);
+
+        byte[] bytes = catalogObjectRevision.getXmlPayload();
+
+        return ResponseEntity.ok()
+                             .contentLength(bytes.length)
+                             .contentType(MediaType.valueOf(catalogObjectRevision.getContentType()))
+                             .body(new InputStreamResource(new ByteArrayInputStream(bytes)));
     }
 
-    private CatalogObjectRevision getWorkflowRevision(Long bucketId, Long workflowId, Optional<Long> revisionId) {
+    public List<CatalogObjectRevision> getCatalogObjectsRevisions(Long bucketId, List<Long> idList) {
+        findBucket(bucketId);
+        List<CatalogObjectRevision> revisions = idList.stream()
+                                                      .map(objectId -> getCatalogObjectRevision(bucketId,
+                                                                                                objectId,
+                                                                                                Optional.empty()))
+                                                      .collect(Collectors.toList());
+        return revisions;
+    }
+
+    private CatalogObjectRevision getCatalogObjectRevision(Long bucketId, Long objectId, Optional<Long> revisionId) {
         CatalogObjectRevision catalogObjectRevision;
 
         if (revisionId.isPresent()) {
-            catalogObjectRevision = catalogObjectRevisionRepository.getWorkflowRevision(bucketId,
-                                                                                        workflowId,
-                                                                                        revisionId.get());
+            catalogObjectRevision = catalogObjectRevisionRepository.getCatalogObjectRevision(bucketId,
+                                                                                             objectId,
+                                                                                             revisionId.get());
         } else {
-            catalogObjectRevision = catalogObjectRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
+            catalogObjectRevision = catalogObjectRepository.getMostRecentCatalogObjectRevision(bucketId, objectId);
         }
 
         if (catalogObjectRevision == null) {
@@ -287,12 +278,12 @@ public class CatalogObjectRevisionService {
      *     <li>impact the CatalogObject by referencing the previous CatalogObjectRevision if it had more than one CatalogObjectRevision.</li>
      * </ul>
      * @param bucketId The id of the Bucket containing the CatalogObject
-     * @param workflowId The id of the CatalogObject containing the CatalogObjectRevision
+     * @param objectId The id of the CatalogObject containing the CatalogObjectRevision
      * @param revisionId The revision number of the CatalogObject
      * @return The deleted CatalogObjectRevision metadata
      */
-    public ResponseEntity<?> delete(Long bucketId, Long workflowId, Optional<Long> revisionId) {
-        CatalogObject catalogObject = findObjectById(workflowId);
+    public ResponseEntity<CatalogObjectMetadata> delete(Long bucketId, Long objectId, Optional<Long> revisionId) {
+        CatalogObject catalogObject = findObjectById(objectId);
         CatalogObjectRevision catalogObjectRevision = null;
         if (revisionId.isPresent() && catalogObject.getRevisions().size() > 1) {
             if (revisionId.get() == catalogObject.getLastCommitId()) {
@@ -300,35 +291,31 @@ public class CatalogObjectRevisionService {
                 catalogObjectRevision = (CatalogObjectRevision) iter.next();
                 CatalogObjectRevision newCatalogObjectRevisionReference = (CatalogObjectRevision) iter.next();
                 catalogObject.setLastCommitId(newCatalogObjectRevisionReference.getCommitId());
-                catalogObjectRevision = catalogObjectRevisionRepository.getWorkflowRevision(bucketId,
-                                                                                            workflowId,
-                                                                                            catalogObjectRevision.getCommitId());
+                catalogObjectRevision = catalogObjectRevisionRepository.getCatalogObjectRevision(bucketId,
+                                                                                                 objectId,
+                                                                                                 catalogObjectRevision.getCommitId());
                 catalogObjectRevisionRepository.delete(catalogObjectRevision);
             } else {
-                catalogObjectRevision = catalogObjectRevisionRepository.getWorkflowRevision(bucketId,
-                                                                                            workflowId,
-                                                                                            revisionId.get());
+                catalogObjectRevision = catalogObjectRevisionRepository.getCatalogObjectRevision(bucketId,
+                                                                                                 objectId,
+                                                                                                 revisionId.get());
                 catalogObjectRevisionRepository.delete(catalogObjectRevision);
             }
         } else {
-            catalogObjectRevision = catalogObjectRepository.getMostRecentWorkflowRevision(bucketId, workflowId);
+            catalogObjectRevision = catalogObjectRepository.getMostRecentCatalogObjectRevision(bucketId, objectId);
             catalogObjectRepository.delete(catalogObject);
         }
         CatalogObjectMetadata objectMetadata = new CatalogObjectMetadata(catalogObjectRevision);
-        objectMetadata.add(createLink(bucketId, workflowId, catalogObjectRevision));
+        objectMetadata.add(createLink(bucketId, objectId, catalogObjectRevision));
         return ResponseEntity.ok(objectMetadata);
     }
 
-    public Link createLink(Long bucketId, Long workflowId, CatalogObjectRevision catalogObjectRevision) {
+    public Link createLink(Long bucketId, Long objectId, CatalogObjectRevision catalogObjectRevision) {
         ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectRevisionController.class).get(bucketId,
-                                                                                                                 workflowId,
-                                                                                                                 catalogObjectRevision.getCommitId(),
-                                                                                                                 null));
+                                                                                                                 objectId,
+                                                                                                                 catalogObjectRevision.getCommitId()));
 
-        // alt request parameter name and value is added manually
-        // otherwise a converter needs to be configured
-        // for Optional class
-        return new Link(controllerLinkBuilder.toString() + "?alt=" + SUPPORTED_ALT_VALUE).withRel("content");
+        return new Link(controllerLinkBuilder.toString()).withRel("content");
     }
 
 }

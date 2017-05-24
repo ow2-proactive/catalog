@@ -83,522 +83,518 @@ import com.jayway.restassured.response.ValidatableResponse;
 @RunWith(Parameterized.class)
 @SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest(randomPort = true)
-public class CatalogObjectRevisionControllerQueryIntegrationTest extends AbstractWorkflowRevisionControllerTest {
-
-    @ClassRule
-    public static final SpringClassRule SPRING_CLASS_RULE = new SpringClassRule();
-
-    @Rule
-    public final SpringMethodRule springMethodRule = new SpringMethodRule();
-
-    private static final ImmutableList<KeyValueMetadata> KEY_VALUE_LIST_DEFAULT = ImmutableList.of(new KeyValueMetadata("Infrastructure",
-                                                                                                                        "Amazon EC2",
-                                                                                                                        "generic_information"),
-                                                                                                   new KeyValueMetadata("Type",
-                                                                                                                        "Public",
-                                                                                                                        "generic_information"),
-                                                                                                   new KeyValueMetadata("Size",
-                                                                                                                        "medium",
-                                                                                                                        "generic_information"),
-                                                                                                   new KeyValueMetadata("CPU",
-                                                                                                                        "4",
-                                                                                                                        "variable"));
-
-    private Logger log = LoggerFactory.getLogger(CatalogObjectRevisionControllerQueryIntegrationTest.class);
-
-    private BucketMetadata firstBucket;
-
-    private CatalogObjectMetadata workflowA;
-
-    private BucketMetadata secondBucket;
-
-    private enum TypeTest {
-        WORKFLOWS,
-        WORKFLOW_REVISIONS,
-        SECOND_BUCKET
-    }
-
-    @Parameterized.Parameters
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-
-                                              /*
-                                               * Querying all workflows (on their latest version)
-                                               */
-
-                                              { Assertion.create("",
-                                                                 ImmutableSet.of("A",
-                                                                                 "B",
-                                                                                 "C",
-                                                                                 "D",
-                                                                                 "E",
-                                                                                 "F",
-                                                                                 "G*",
-                                                                                 "Amazon"),
-                                                                 ImmutableSet.of("A-small",
-                                                                                 "A-regular",
-                                                                                 "A-medium",
-                                                                                 "A"),
-                                                                 ImmutableSet.of("A", "Dummy")) },
-                                              { Assertion.create("name=\"A\"",
-                                                                 ImmutableSet.of("A"),
-                                                                 ImmutableSet.of("A"),
-                                                                 ImmutableSet.of("A")) },
-                                              { Assertion.create("name=\"\"",
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("name!=\"A\"",
-                                                                 ImmutableSet.of("B",
-                                                                                 "C",
-                                                                                 "D",
-                                                                                 "E",
-                                                                                 "F",
-                                                                                 "G*",
-                                                                                 "Amazon"),
-                                                                 ImmutableSet.of("A-small", "A-regular", "A-medium"),
-                                                                 ImmutableSet.of("Dummy")) },
-                                              { Assertion.create("project_name=\"\"",
-                                                                 ImmutableSet.of("A", "B", "C", "D", "Amazon"),
-                                                                 ImmutableSet.of("A-small",
-                                                                                 "A-regular",
-                                                                                 "A-medium",
-                                                                                 "A"),
-                                                                 ImmutableSet.of("A", "Dummy")) },
-                                              { Assertion.create("project_name!=\"\"",
-                                                                 ImmutableSet.of("E", "F", "G*"),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("project_name=\"Fab*\"",
-                                                                 ImmutableSet.of("E", "F"),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("project_name=\"*bi*\"",
-                                                                 ImmutableSet.of("E", "F"),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("project_name=\"*ple\"",
-                                                                 ImmutableSet.of("E", "F"),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("project_name=\"*donotexists*\"",
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("name=\"G\\\\*\"",
-                                                                 ImmutableSet.of("G*"),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("variable(\"CPU\", \"5*\")",
-                                                                 ImmutableSet.of("D"),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("variable(\"*\", \"*\")",
-                                                                 ImmutableSet.of("A", "B", "D", "E", "F"),
-                                                                 ImmutableSet.of("A-small",
-                                                                                 "A-regular",
-                                                                                 "A-medium",
-                                                                                 "A"),
-                                                                 ImmutableSet.of("A")) },
-                                              { Assertion.create("variable(\"Provider\", \"*\")",
-                                                                 ImmutableSet.of("E", "F"),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("variable(\"Provider\", \"Amazon\")",
-                                                                 ImmutableSet.of("F"),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("generic_information(\"Infrastructure\",\"Amazon EC2\")",
-                                                                 ImmutableSet.of("A"),
-                                                                 ImmutableSet.of("A-small",
-                                                                                 "A-regular",
-                                                                                 "A-medium",
-                                                                                 "A"),
-                                                                 ImmutableSet.of("A")) },
-                                              { Assertion.create("generic_information(\"linebreak\", \"\\r\\n\")",
-                                                                 ImmutableSet.of("G*"),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("generic_information(\"Infrastructure\", \"Amazon EC2\") " +
-                                                                 "OR generic_information(\"Cloud\", \"Amazon EC2\")",
-                                                                 ImmutableSet.of("A", "B"),
-                                                                 ImmutableSet.of("A-small",
-                                                                                 "A-regular",
-                                                                                 "A-medium",
-                                                                                 "A"),
-                                                                 ImmutableSet.of("A")) },
-                                              { Assertion.create("generic_information(\"Infrastructure\", \"Amazon EC2\") " +
-                                                                 "OR generic_information(\"Cloud\", \"Amazon EC2\") " +
-                                                                 "AND variable(\"CPU\", \"*\")",
-                                                                 ImmutableSet.of("A", "B"),
-                                                                 ImmutableSet.of("A-small",
-                                                                                 "A-regular",
-                                                                                 "A-medium",
-                                                                                 "A"),
-                                                                 ImmutableSet.of("A")) },
-                                              { Assertion.create("generic_information(\"Infrastructure\", \"Amazon EC2\") " +
-                                                                 "AND generic_information(\"Cloud\", \"Amazon EC2\") " +
-                                                                 "OR variable(\"CPU\", \"*\")",
-                                                                 ImmutableSet.of("A", "B", "D"),
-                                                                 ImmutableSet.of("A-small",
-                                                                                 "A-regular",
-                                                                                 "A-medium",
-                                                                                 "A"),
-                                                                 ImmutableSet.of("A")) },
-                                              { Assertion.create("variable(\"CPU\", \"*\") AND name=\"B\" " +
-                                                                 "AND generic_information(\"Cloud\", \"Amazon EC2\")",
-                                                                 ImmutableSet.of("B"),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("generic_information(\"Infrastructure\", \"Amazon EC2\") " +
-                                                                 "AND generic_information(\"Type\", \"Public\") " +
-                                                                 "AND variable(\"CPU\", \"*\") OR generic_information(\"Cloud\", \"Amazon EC2\") " +
-                                                                 "AND variable(\"CPU\", \"*\") OR name=\"Amazon\"",
-                                                                 ImmutableSet.of("A", "B", "Amazon"),
-                                                                 ImmutableSet.of("A-small",
-                                                                                 "A-regular",
-                                                                                 "A-medium",
-                                                                                 "A"),
-                                                                 ImmutableSet.of("A")) },
-
-                                              /*
-                                               * Querying all revisions of a particular workflow
-                                               */
-
-                                              { Assertion.create("generic_information(\"Size\",\"medium\")",
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of("A-medium"),
-                                                                 ImmutableSet.of()) },
-                                              { Assertion.create("generic_information(\"Size\",\"*\")",
-                                                                 ImmutableSet.of("A"),
-                                                                 ImmutableSet.of("A-small",
-                                                                                 "A-regular",
-                                                                                 "A-medium",
-                                                                                 "A"),
-                                                                 ImmutableSet.of()) },
-
-                                              /*
-                                               * Querying all revisions of a particular workflow
-                                               */
-                                              { Assertion.create("name=\"Dummy\"",
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of("Dummy")) },
-                                              { Assertion.create("variable(\"CPU\",\"4096\")",
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of(),
-                                                                 ImmutableSet.of("A")) },
-
-                                              /*
-                                               * Below are queries with invalid syntax
-                                               */
-
-                                              { Assertion.createSyntacticallyIncorrect("generic_information=(\"Infrastructure\", \"Amazon EC2\")") },
-                                              { Assertion.createSyntacticallyIncorrect("generic_information(\"Infrastructure\"=\"Amazon EC2\")") },
-                                              { Assertion.createSyntacticallyIncorrect("project_name(\"Infrastructure\", \"Amazon EC2\")") },
-                                              { Assertion.createSyntacticallyIncorrect("variable(*, *") },
-                                              { Assertion.createSyntacticallyIncorrect("variable.name=\"CPU\" AND variable.value=\"4\"") },
-                                              { Assertion.createSyntacticallyIncorrect("variable(variable(\"CPU\",\"4\"), variable(\"CPU\",\"4\"))") },
-                                              { Assertion.createSyntacticallyIncorrect("()") },
-                                              { Assertion.createSyntacticallyIncorrect("*(\"CPU\", \"4\")") },
-                                              { Assertion.createSyntacticallyIncorrect("*=\"A\"") }
-
-        });
-    }
-
-    private final Assertion assertion;
-
-    public CatalogObjectRevisionControllerQueryIntegrationTest(Assertion assertion) {
-        this.assertion = assertion;
-    }
-
-    @Before
-    public void setup() throws Exception {
-        firstBucket = bucketService.createBucket("first");
-
-        // CatalogObject A
-        ImmutablePair<CatalogObjectMetadata, CatalogObjectParserResult> workflow = createCatalogObjectFirstBucket("workflow",
-                                                                                                                  "",
-                                                                                                                  "A-small",
-                                                                                                                  KEY_VALUE_LIST_DEFAULT);
-
-        CatalogObjectParserResult parserResult = new CatalogObjectParserResult("workflow",
-                                                                               "",
-                                                                               "A-regular",
-                                                                               KEY_VALUE_LIST_DEFAULT);
-
-        catalogObjectRevisionService.createCatalogObjectRevision(firstBucket.id,
-                                                                 Optional.of(workflow.getLeft().id),
-                                                                 parserResult,
-                                                                 Optional.empty(),
-                                                                 new byte[0]);
-
-        parserResult = new CatalogObjectParserResult("workflow", "", "A-medium", KEY_VALUE_LIST_DEFAULT);
-
-        catalogObjectRevisionService.createCatalogObjectRevision(firstBucket.id,
-                                                                 Optional.of(workflow.getLeft().id),
-                                                                 parserResult,
-                                                                 Optional.empty(),
-                                                                 new byte[0]);
-
-        parserResult = new CatalogObjectParserResult("workflow", "", "A", KEY_VALUE_LIST_DEFAULT);
-
-        catalogObjectRevisionService.createCatalogObjectRevision(firstBucket.id,
-                                                                 Optional.of(workflow.getLeft().id),
-                                                                 parserResult,
-                                                                 Optional.empty(),
-                                                                 new byte[0]);
-
-        workflowA = workflow.getLeft();
-
-        // CatalogObject B
-        workflow = createCatalogObjectFirstBucket("workflow",
-                                                  "",
-                                                  "B",
-                                                  ImmutableList.of(new KeyValueMetadata("Cloud",
-                                                                                        "Amazon EC2",
-                                                                                        "generic_information"),
-                                                                   new KeyValueMetadata("Type",
-                                                                                        "private",
-                                                                                        "generic_information"),
-                                                                   new KeyValueMetadata("CPU", "2", "variable")));
-
-        catalogObjectRevisionService.createCatalogObjectRevision(firstBucket.id,
-                                                                 Optional.of(workflow.getLeft().id),
-                                                                 workflow.getRight(),
-                                                                 Optional.empty(),
-                                                                 new byte[0]);
-
-        // CatalogObject C
-        createCatalogObjectFirstBucket("workflow",
-                                       "",
-                                       "C",
-                                       ImmutableList.of(new KeyValueMetadata("Infrastructure",
-                                                                             "OpenStack",
-                                                                             "generic_information")));
-
-        // CatalogObject D
-        createCatalogObjectFirstBucket("workflow",
-                                       "",
-                                       "D",
-                                       ImmutableList.of(new KeyValueMetadata("CPU", "5", "variable")));
-
-        // CatalogObject E
-        createCatalogObjectFirstBucket("workflow",
-                                       "FabienExample",
-                                       "E",
-                                       ImmutableList.of(new KeyValueMetadata("Provider",
-                                                                             "Google",
-                                                                             "generic_information"),
-                                                        new KeyValueMetadata("Provider", "Google", "variable"),
-                                                        new KeyValueMetadata("Fournisseur",
-                                                                             "Amazon",
-                                                                             "generic_information"),
-                                                        new KeyValueMetadata("Fournisseur", "Amazon", "variable")));
-
-        // CatalogObject F
-        createCatalogObjectFirstBucket("workflow",
-                                       "FabienExample",
-                                       "F",
-                                       ImmutableList.of(new KeyValueMetadata("Provider",
-                                                                             "Amazon",
-                                                                             "generic_information"),
-                                                        new KeyValueMetadata("Provider", "Amazon", "variable")));
-
-        // CatalogObject G
-        createCatalogObjectFirstBucket("workflow",
-                                       "CharacterEscaping",
-                                       "G*",
-                                       ImmutableList.of(new KeyValueMetadata("linebreak",
-                                                                             "\\r\\n",
-                                                                             "generic_information")));
-
-        // CatalogObject Amazon
-        createCatalogObjectFirstBucket("workflow", "", "Amazon", ImmutableList.of());
-
-        // Workflows that belong to second bucket
-
-        secondBucket = bucketService.createBucket("second");
-
-        // CatalogObject Dummy
-        createCatalogObject("workflow", secondBucket, "", "Dummy", ImmutableList.of());
-
-        // CatalogObject A
-        createCatalogObject("workflow",
-                            secondBucket,
-                            "",
-                            "A",
-                            ImmutableList.of(new KeyValueMetadata("Infrastructure",
-                                                                  "Amazon EC2",
-                                                                  "generic_information"),
-                                             new KeyValueMetadata("Type", "Public", "generic_information"),
-                                             new KeyValueMetadata("CPU", "4096", "variable")));
-    }
-
-    private ImmutablePair<CatalogObjectMetadata, CatalogObjectParserResult> createCatalogObjectFirstBucket(String kind,
-            String projectName, String name, ImmutableList<KeyValueMetadata> keyValueList) {
-        return createCatalogObject(kind, firstBucket, projectName, name, keyValueList);
-    }
-
-    private ImmutablePair<CatalogObjectMetadata, CatalogObjectParserResult> createCatalogObject(String kind,
-            BucketMetadata bucket, String projectName, String name, ImmutableList<KeyValueMetadata> keyValueList) {
-
-        CatalogObjectParserResult proActiveWorkflowParserResult = new CatalogObjectParserResult(kind,
-                                                                                                projectName,
-                                                                                                name,
-                                                                                                keyValueList);
-
-        CatalogObjectMetadata workflow = workflowService.createWorkflow(bucket.id,
-                                                                        proActiveWorkflowParserResult,
-                                                                        new byte[0]);
-
-        return ImmutablePair.of(workflow, proActiveWorkflowParserResult);
-    }
-
-    /**
-     * Find all workflows revisions by query (revisions of a particular workflow)
-     */
-    @Test
-    public void testFindAllWorkflowRevisions() {
-        executeTest(TypeTest.WORKFLOWS);
-    }
-
-    /**
-     * Find all workflows by query (latest revision of every workflows)
-     */
-    @Test
-    public void testFindMostRecentWorkflowRevisions() {
-        executeTest(TypeTest.WORKFLOW_REVISIONS);
-    }
-
-    @Test
-    public void testFindMostRecentWorkflowRevisionsFromSecondBucket() {
-        executeTest(TypeTest.SECOND_BUCKET);
-    }
-
-    private void executeTest(TypeTest typeTest) {
-        ValidatableResponse response = null;
-        Set<String> expected = null;
-
-        switch (typeTest) {
-            case WORKFLOWS:
-                response = findMostRecentWorkflowRevisions(assertion.query);
-                expected = assertion.expectedMostRecentWorkflowRevisionNames;
-                break;
-            case WORKFLOW_REVISIONS:
-                response = findAllWorkflowRevisions(assertion.query, workflowA.id);
-                expected = assertion.expectedWorkflowRevisionsNames;
-                break;
-            case SECOND_BUCKET:
-                response = findMostRecentWorkflowRevisionsFromBucket(assertion.query, secondBucket.id);
-                expected = assertion.expectedWorkflowRevisionsNamesFromSecondBucket;
-                break;
-            default:
-                fail();
-        }
-
-        if (expected == null) {
-            response.assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
-            return;
-        }
-
-        response.assertThat().statusCode(HttpStatus.SC_OK);
-
-        if (expected.isEmpty()) {
-            response.assertThat().body("page.totalElements", is(0));
-            return;
-        }
-
-        ArrayList<HashMap<Object, Object>> workflowRevisionsFound = response.extract()
-                                                                            .body()
-                                                                            .jsonPath()
-                                                                            .get("_embedded.objectMetadataList");
-
-        Set<String> names = workflowRevisionsFound.stream()
-                                                  .map(workflowRevision -> (String) workflowRevision.get("name"))
-                                                  .collect(Collectors.toSet());
-
-        Sets.SetView<String> difference = Sets.symmetricDifference(names, expected);
-
-        if (!difference.isEmpty()) {
-            fail("Expected " + expected + " but received " + names);
-        }
-    }
-
-    private static class Assertion {
-
-        public final String query;
-
-        public final Set<String> expectedMostRecentWorkflowRevisionNames;
-
-        public final Set<String> expectedWorkflowRevisionsNames;
-
-        public final Set<String> expectedWorkflowRevisionsNamesFromSecondBucket;
-
-        /**
-         * Create a new assertion.
-         *
-         * @param query                                          The query to test.
-         * @param expectedMostRecentWorkflowRevisionNames        The name of the workflows which are expected to be returned.
-         * @param expectedWorkflowRevisionsNames                 The name of the expected revisions from the first bucket.
-         * @param expectedWorkflowRevisionsNamesFromSecondBucket The name of the expected revisions from the second bucket.
-         */
-        private Assertion(String query, Set<String> expectedMostRecentWorkflowRevisionNames,
-                Set<String> expectedWorkflowRevisionsNames,
-                Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
-            this.query = query;
-            this.expectedMostRecentWorkflowRevisionNames = expectedMostRecentWorkflowRevisionNames;
-            this.expectedWorkflowRevisionsNames = expectedWorkflowRevisionsNames;
-            this.expectedWorkflowRevisionsNamesFromSecondBucket = expectedWorkflowRevisionsNamesFromSecondBucket;
-        }
-
-        public static Assertion create(String query, Set<String> expectedMostRecentWorkflowRevisionNames,
-                Set<String> expectedWorkflowRevisionsNames,
-                Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
-            return new Assertion(query,
-                                 expectedMostRecentWorkflowRevisionNames,
-                                 expectedWorkflowRevisionsNames,
-                                 expectedWorkflowRevisionsNamesFromSecondBucket);
-        }
-
-        public static Assertion createSyntacticallyIncorrect(String query) {
-            return new Assertion(query, null, null, null);
-        }
-
-    }
-
-    public ValidatableResponse findMostRecentWorkflowRevisions(String wcqlQuery) {
-        return findMostRecentWorkflowRevisionsFromBucket(wcqlQuery, firstBucket.id);
-    }
-
-    private ValidatableResponse findMostRecentWorkflowRevisionsFromBucket(String wcqlQuery, Long bucketId) {
-        Response response = given().pathParam("bucketId", bucketId)
-                                   .queryParam("size", 999)
-                                   .queryParam("query", wcqlQuery)
-                                   .when()
-                                   .get(WORKFLOWS_RESOURCE);
-
-        logQueryAndResponse(wcqlQuery, response);
-
-        return response.then().assertThat();
-    }
-
-    public ValidatableResponse findAllWorkflowRevisions(String wcqlQuery, long workflowId) {
-        Response response = given().pathParam("bucketId", firstBucket.id)
-                                   .pathParam("workflowId", workflowId)
-                                   .queryParam("size", 999)
-                                   .queryParam("query", wcqlQuery)
-                                   .when()
-                                   .get(WORKFLOW_REVISIONS_RESOURCE);
-
-        logQueryAndResponse(wcqlQuery, response);
-
-        return response.then().assertThat();
-    }
-
-    private void logQueryAndResponse(String wcqlQuery, Response response) {
-        log.info("WCQL query used is '{}'", wcqlQuery);
-        log.info("Response is:\n{}", prettify(response.asString()));
-    }
+public class CatalogObjectRevisionControllerQueryIntegrationTest extends AbstractCatalogObjectRevisionControllerTest {
+
+    //TODO WCQL integration
+    //    @ClassRule
+    //    public static final SpringClassRule SPRING_CLASS_RULE = new SpringClassRule();
+    //
+    //    @Rule
+    //    public final SpringMethodRule springMethodRule = new SpringMethodRule();
+    //
+    //    private static final ImmutableList<KeyValueMetadata> KEY_VALUE_LIST_DEFAULT = ImmutableList.of(new KeyValueMetadata("Infrastructure",
+    //                                                                                                                        "Amazon EC2",
+    //                                                                                                                        "generic_information"),
+    //                                                                                                   new KeyValueMetadata("Type",
+    //                                                                                                                        "Public",
+    //                                                                                                                        "generic_information"),
+    //                                                                                                   new KeyValueMetadata("Size",
+    //                                                                                                                        "medium",
+    //                                                                                                                        "generic_information"),
+    //                                                                                                   new KeyValueMetadata("CPU",
+    //                                                                                                                        "4",
+    //                                                                                                                        "variable"));
+    //
+    //    private Logger log = LoggerFactory.getLogger(CatalogObjectRevisionControllerQueryIntegrationTest.class);
+    //
+    //    private BucketMetadata firstBucket;
+    //
+    //    private CatalogObjectMetadata workflowA;
+    //
+    //    private BucketMetadata secondBucket;
+    //
+    //    private enum TypeTest {
+    //        WORKFLOWS,
+    //        WORKFLOW_REVISIONS,
+    //        SECOND_BUCKET
+    //    }
+    //
+    //    @Parameterized.Parameters
+    //    public static Collection<Object[]> data() {
+    //        return Arrays.asList(new Object[][] {
+    //
+    //                                              /*
+    //                                               * Querying all workflows (on their latest version)
+    //                                               */
+    //
+    //                                              { Assertion.create("",
+    //                                                                 ImmutableSet.of("A",
+    //                                                                                 "B",
+    //                                                                                 "C",
+    //                                                                                 "D",
+    //                                                                                 "E",
+    //                                                                                 "F",
+    //                                                                                 "G*",
+    //                                                                                 "Amazon"),
+    //                                                                 ImmutableSet.of("A-small",
+    //                                                                                 "A-regular",
+    //                                                                                 "A-medium",
+    //                                                                                 "A"),
+    //                                                                 ImmutableSet.of("A", "Dummy")) },
+    //                                              { Assertion.create("name=\"A\"",
+    //                                                                 ImmutableSet.of("A"),
+    //                                                                 ImmutableSet.of("A"),
+    //                                                                 ImmutableSet.of("A")) },
+    //                                              { Assertion.create("name=\"\"",
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("name!=\"A\"",
+    //                                                                 ImmutableSet.of("B",
+    //                                                                                 "C",
+    //                                                                                 "D",
+    //                                                                                 "E",
+    //                                                                                 "F",
+    //                                                                                 "G*",
+    //                                                                                 "Amazon"),
+    //                                                                 ImmutableSet.of("A-small", "A-regular", "A-medium"),
+    //                                                                 ImmutableSet.of("Dummy")) },
+    //                                              { Assertion.create("project_name=\"\"",
+    //                                                                 ImmutableSet.of("A", "B", "C", "D", "Amazon"),
+    //                                                                 ImmutableSet.of("A-small",
+    //                                                                                 "A-regular",
+    //                                                                                 "A-medium",
+    //                                                                                 "A"),
+    //                                                                 ImmutableSet.of("A", "Dummy")) },
+    //                                              { Assertion.create("project_name!=\"\"",
+    //                                                                 ImmutableSet.of("E", "F", "G*"),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("project_name=\"Fab*\"",
+    //                                                                 ImmutableSet.of("E", "F"),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("project_name=\"*bi*\"",
+    //                                                                 ImmutableSet.of("E", "F"),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("project_name=\"*ple\"",
+    //                                                                 ImmutableSet.of("E", "F"),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("project_name=\"*donotexists*\"",
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("name=\"G\\\\*\"",
+    //                                                                 ImmutableSet.of("G*"),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("variable(\"CPU\", \"5*\")",
+    //                                                                 ImmutableSet.of("D"),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("variable(\"*\", \"*\")",
+    //                                                                 ImmutableSet.of("A", "B", "D", "E", "F"),
+    //                                                                 ImmutableSet.of("A-small",
+    //                                                                                 "A-regular",
+    //                                                                                 "A-medium",
+    //                                                                                 "A"),
+    //                                                                 ImmutableSet.of("A")) },
+    //                                              { Assertion.create("variable(\"Provider\", \"*\")",
+    //                                                                 ImmutableSet.of("E", "F"),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("variable(\"Provider\", \"Amazon\")",
+    //                                                                 ImmutableSet.of("F"),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("generic_information(\"Infrastructure\",\"Amazon EC2\")",
+    //                                                                 ImmutableSet.of("A"),
+    //                                                                 ImmutableSet.of("A-small",
+    //                                                                                 "A-regular",
+    //                                                                                 "A-medium",
+    //                                                                                 "A"),
+    //                                                                 ImmutableSet.of("A")) },
+    //                                              { Assertion.create("generic_information(\"linebreak\", \"\\r\\n\")",
+    //                                                                 ImmutableSet.of("G*"),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("generic_information(\"Infrastructure\", \"Amazon EC2\") " +
+    //                                                                 "OR generic_information(\"Cloud\", \"Amazon EC2\")",
+    //                                                                 ImmutableSet.of("A", "B"),
+    //                                                                 ImmutableSet.of("A-small",
+    //                                                                                 "A-regular",
+    //                                                                                 "A-medium",
+    //                                                                                 "A"),
+    //                                                                 ImmutableSet.of("A")) },
+    //                                              { Assertion.create("generic_information(\"Infrastructure\", \"Amazon EC2\") " +
+    //                                                                 "OR generic_information(\"Cloud\", \"Amazon EC2\") " +
+    //                                                                 "AND variable(\"CPU\", \"*\")",
+    //                                                                 ImmutableSet.of("A", "B"),
+    //                                                                 ImmutableSet.of("A-small",
+    //                                                                                 "A-regular",
+    //                                                                                 "A-medium",
+    //                                                                                 "A"),
+    //                                                                 ImmutableSet.of("A")) },
+    //                                              { Assertion.create("generic_information(\"Infrastructure\", \"Amazon EC2\") " +
+    //                                                                 "AND generic_information(\"Cloud\", \"Amazon EC2\") " +
+    //                                                                 "OR variable(\"CPU\", \"*\")",
+    //                                                                 ImmutableSet.of("A", "B", "D"),
+    //                                                                 ImmutableSet.of("A-small",
+    //                                                                                 "A-regular",
+    //                                                                                 "A-medium",
+    //                                                                                 "A"),
+    //                                                                 ImmutableSet.of("A")) },
+    //                                              { Assertion.create("variable(\"CPU\", \"*\") AND name=\"B\" " +
+    //                                                                 "AND generic_information(\"Cloud\", \"Amazon EC2\")",
+    //                                                                 ImmutableSet.of("B"),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("generic_information(\"Infrastructure\", \"Amazon EC2\") " +
+    //                                                                 "AND generic_information(\"Type\", \"Public\") " +
+    //                                                                 "AND variable(\"CPU\", \"*\") OR generic_information(\"Cloud\", \"Amazon EC2\") " +
+    //                                                                 "AND variable(\"CPU\", \"*\") OR name=\"Amazon\"",
+    //                                                                 ImmutableSet.of("A", "B", "Amazon"),
+    //                                                                 ImmutableSet.of("A-small",
+    //                                                                                 "A-regular",
+    //                                                                                 "A-medium",
+    //                                                                                 "A"),
+    //                                                                 ImmutableSet.of("A")) },
+    //
+    //                                              /*
+    //                                               * Querying all revisions of a particular workflow
+    //                                               */
+    //
+    //                                              { Assertion.create("generic_information(\"Size\",\"medium\")",
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of("A-medium"),
+    //                                                                 ImmutableSet.of()) },
+    //                                              { Assertion.create("generic_information(\"Size\",\"*\")",
+    //                                                                 ImmutableSet.of("A"),
+    //                                                                 ImmutableSet.of("A-small",
+    //                                                                                 "A-regular",
+    //                                                                                 "A-medium",
+    //                                                                                 "A"),
+    //                                                                 ImmutableSet.of()) },
+    //
+    //                                              /*
+    //                                               * Querying all revisions of a particular workflow
+    //                                               */
+    //                                              { Assertion.create("name=\"Dummy\"",
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of("Dummy")) },
+    //                                              { Assertion.create("variable(\"CPU\",\"4096\")",
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of(),
+    //                                                                 ImmutableSet.of("A")) },
+    //
+    //                                              /*
+    //                                               * Below are queries with invalid syntax
+    //                                               */
+    //
+    //                                              { Assertion.createSyntacticallyIncorrect("generic_information=(\"Infrastructure\", \"Amazon EC2\")") },
+    //                                              { Assertion.createSyntacticallyIncorrect("generic_information(\"Infrastructure\"=\"Amazon EC2\")") },
+    //                                              { Assertion.createSyntacticallyIncorrect("project_name(\"Infrastructure\", \"Amazon EC2\")") },
+    //                                              { Assertion.createSyntacticallyIncorrect("variable(*, *") },
+    //                                              { Assertion.createSyntacticallyIncorrect("variable.name=\"CPU\" AND variable.value=\"4\"") },
+    //                                              { Assertion.createSyntacticallyIncorrect("variable(variable(\"CPU\",\"4\"), variable(\"CPU\",\"4\"))") },
+    //                                              { Assertion.createSyntacticallyIncorrect("()") },
+    //                                              { Assertion.createSyntacticallyIncorrect("*(\"CPU\", \"4\")") },
+    //                                              { Assertion.createSyntacticallyIncorrect("*=\"A\"") }
+    //
+    //        });
+    //    }
+    //
+    //    private final Assertion assertion;
+    //
+    //    public CatalogObjectRevisionControllerQueryIntegrationTest(Assertion assertion) {
+    //        this.assertion = assertion;
+    //    }
+    //
+    //    @Before
+    //    public void setup() throws Exception {
+    //        firstBucket = bucketService.createBucket("first");
+    //
+    //        // CatalogObject A
+    //        ImmutablePair<CatalogObjectMetadata, CatalogObjectParserResult> workflow = createCatalogObjectFirstBucket("workflow",
+    //                                                                                                                  "",
+    //                                                                                                                  "A-small",
+    //                                                                                                                  KEY_VALUE_LIST_DEFAULT);
+    //
+    //        CatalogObjectParserResult parserResult = new CatalogObjectParserResult("workflow",
+    //                                                                               "",
+    //                                                                               "A-regular",
+    //                                                                               KEY_VALUE_LIST_DEFAULT);
+    //
+    //        catalogObjectRevisionService.createCatalogObjectRevision(firstBucket.id,
+    //                                                                 Optional.of(workflow.getLeft().id),
+    //                                                                 parserResult,
+    //                                                                 Optional.empty(),
+    //                                                                 new byte[0]);
+    //
+    //        parserResult = new CatalogObjectParserResult("workflow", "", "A-medium", KEY_VALUE_LIST_DEFAULT);
+    //
+    //        catalogObjectRevisionService.createCatalogObjectRevision(firstBucket.id,
+    //                                                                 Optional.of(workflow.getLeft().id),
+    //                                                                 parserResult,
+    //                                                                 Optional.empty(),
+    //                                                                 new byte[0]);
+    //
+    //        parserResult = new CatalogObjectParserResult("workflow", "", "A", KEY_VALUE_LIST_DEFAULT);
+    //
+    //        catalogObjectRevisionService.createCatalogObjectRevision(firstBucket.id,
+    //                                                                 Optional.of(workflow.getLeft().id),
+    //                                                                 parserResult,
+    //                                                                 Optional.empty(),
+    //                                                                 new byte[0]);
+    //
+    //        workflowA = workflow.getLeft();
+    //
+    //        // CatalogObject B
+    //        workflow = createCatalogObjectFirstBucket("workflow",
+    //                                                  "",
+    //                                                  "B",
+    //                                                  ImmutableList.of(new KeyValueMetadata("Cloud",
+    //                                                                                        "Amazon EC2",
+    //                                                                                        "generic_information"),
+    //                                                                   new KeyValueMetadata("Type",
+    //                                                                                        "private",
+    //                                                                                        "generic_information"),
+    //                                                                   new KeyValueMetadata("CPU", "2", "variable")));
+    //
+    //        catalogObjectRevisionService.createCatalogObjectRevision(firstBucket.id,
+    //                                                                 Optional.of(workflow.getLeft().id),
+    //                                                                 workflow.getRight(),
+    //                                                                 Optional.empty(),
+    //                                                                 new byte[0]);
+    //
+    //        // CatalogObject C
+    //        createCatalogObjectFirstBucket("workflow",
+    //                                       "",
+    //                                       "C",
+    //                                       ImmutableList.of(new KeyValueMetadata("Infrastructure",
+    //                                                                             "OpenStack",
+    //                                                                             "generic_information")));
+    //
+    //        // CatalogObject D
+    //        createCatalogObjectFirstBucket("workflow",
+    //                                       "",
+    //                                       "D",
+    //                                       ImmutableList.of(new KeyValueMetadata("CPU", "5", "variable")));
+    //
+    //        // CatalogObject E
+    //        createCatalogObjectFirstBucket("workflow",
+    //                                       "FabienExample",
+    //                                       "E",
+    //                                       ImmutableList.of(new KeyValueMetadata("Provider",
+    //                                                                             "Google",
+    //                                                                             "generic_information"),
+    //                                                        new KeyValueMetadata("Provider", "Google", "variable"),
+    //                                                        new KeyValueMetadata("Fournisseur",
+    //                                                                             "Amazon",
+    //                                                                             "generic_information"),
+    //                                                        new KeyValueMetadata("Fournisseur", "Amazon", "variable")));
+    //
+    //        // CatalogObject F
+    //        createCatalogObjectFirstBucket("workflow",
+    //                                       "FabienExample",
+    //                                       "F",
+    //                                       ImmutableList.of(new KeyValueMetadata("Provider",
+    //                                                                             "Amazon",
+    //                                                                             "generic_information"),
+    //                                                        new KeyValueMetadata("Provider", "Amazon", "variable")));
+    //
+    //        // CatalogObject G
+    //        createCatalogObjectFirstBucket("workflow",
+    //                                       "CharacterEscaping",
+    //                                       "G*",
+    //                                       ImmutableList.of(new KeyValueMetadata("linebreak",
+    //                                                                             "\\r\\n",
+    //                                                                             "generic_information")));
+    //
+    //        // CatalogObject Amazon
+    //        createCatalogObjectFirstBucket("workflow", "", "Amazon", ImmutableList.of());
+    //
+    //        // Workflows that belong to second bucket
+    //
+    //        secondBucket = bucketService.createBucket("second");
+    //
+    //        // CatalogObject Dummy
+    //        createCatalogObject("workflow", secondBucket, "", "Dummy", ImmutableList.of());
+    //
+    //        // CatalogObject A
+    //        createCatalogObject("workflow",
+    //                            secondBucket,
+    //                            "",
+    //                            "A",
+    //                            ImmutableList.of(new KeyValueMetadata("Infrastructure",
+    //                                                                  "Amazon EC2",
+    //                                                                  "generic_information"),
+    //                                             new KeyValueMetadata("Type", "Public", "generic_information"),
+    //                                             new KeyValueMetadata("CPU", "4096", "variable")));
+    //    }
+    //
+    //    private ImmutablePair<CatalogObjectMetadata, CatalogObjectParserResult> createCatalogObjectFirstBucket(String kind,
+    //            String name, ImmutableList<KeyValueMetadata> keyValueList) {
+    //        return createCatalogObject(kind, firstBucket, name, keyValueList);
+    //    }
+    //
+    //    private CatalogObjectMetadata createCatalogObject(String kind,
+    //            BucketMetadata bucket, String name, ImmutableList<KeyValueMetadata> keyValueList) {
+    //
+    //        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucket.id,
+    //                keyValueList,
+    //                                                                             new byte[0]);
+    //
+    //        return catalogObject;
+    //    }
+    //
+    //    /**
+    //     * Find all workflows revisions by query (revisions of a particular workflow)
+    //     */
+    //    @Test
+    //    public void testFindAllWorkflowRevisions() {
+    //        executeTest(TypeTest.WORKFLOWS);
+    //    }
+    //
+    //    /**
+    //     * Find all workflows by query (latest revision of every workflows)
+    //     */
+    //    @Test
+    //    public void testFindMostRecentWorkflowRevisions() {
+    //        executeTest(TypeTest.WORKFLOW_REVISIONS);
+    //    }
+    //
+    //    @Test
+    //    public void testFindMostRecentWorkflowRevisionsFromSecondBucket() {
+    //        executeTest(TypeTest.SECOND_BUCKET);
+    //    }
+    //
+    //    private void executeTest(TypeTest typeTest) {
+    //        ValidatableResponse response = null;
+    //        Set<String> expected = null;
+    //
+    //        switch (typeTest) {
+    //            case WORKFLOWS:
+    //                response = findMostRecentWorkflowRevisions(assertion.query);
+    //                expected = assertion.expectedMostRecentWorkflowRevisionNames;
+    //                break;
+    //            case WORKFLOW_REVISIONS:
+    //                response = findAllWorkflowRevisions(assertion.query, workflowA.id);
+    //                expected = assertion.expectedWorkflowRevisionsNames;
+    //                break;
+    //            case SECOND_BUCKET:
+    //                response = findMostRecentCatalogObjectRevisionsFromBucket(assertion.query, secondBucket.id);
+    //                expected = assertion.expectedWorkflowRevisionsNamesFromSecondBucket;
+    //                break;
+    //            default:
+    //                fail();
+    //        }
+    //
+    //        if (expected == null) {
+    //            response.assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+    //            return;
+    //        }
+    //
+    //        response.assertThat().statusCode(HttpStatus.SC_OK);
+    //
+    //        if (expected.isEmpty()) {
+    //            response.assertThat().body("page.totalElements", is(0));
+    //            return;
+    //        }
+    //
+    //        ArrayList<HashMap<Object, Object>> workflowRevisionsFound = response.extract()
+    //                                                                            .body()
+    //                                                                            .jsonPath()
+    //                                                                            .get("_embedded.objectMetadataList");
+    //
+    //        Set<String> names = workflowRevisionsFound.stream()
+    //                                                  .map(workflowRevision -> (String) workflowRevision.get("name"))
+    //                                                  .collect(Collectors.toSet());
+    //
+    //        Sets.SetView<String> difference = Sets.symmetricDifference(names, expected);
+    //
+    //        if (!difference.isEmpty()) {
+    //            fail("Expected " + expected + " but received " + names);
+    //        }
+    //    }
+    //
+    //    private static class Assertion {
+    //
+    //        public final String query;
+    //
+    //        public final Set<String> expectedMostRecentWorkflowRevisionNames;
+    //
+    //        public final Set<String> expectedWorkflowRevisionsNames;
+    //
+    //        public final Set<String> expectedWorkflowRevisionsNamesFromSecondBucket;
+    //
+    //        /**
+    //         * Create a new assertion.
+    //         *
+    //         * @param query                                          The query to test.
+    //         * @param expectedMostRecentWorkflowRevisionNames        The name of the workflows which are expected to be returned.
+    //         * @param expectedWorkflowRevisionsNames                 The name of the expected revisions from the first bucket.
+    //         * @param expectedWorkflowRevisionsNamesFromSecondBucket The name of the expected revisions from the second bucket.
+    //         */
+    //        private Assertion(String query, Set<String> expectedMostRecentWorkflowRevisionNames,
+    //                Set<String> expectedWorkflowRevisionsNames,
+    //                Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
+    //            this.query = query;
+    //            this.expectedMostRecentWorkflowRevisionNames = expectedMostRecentWorkflowRevisionNames;
+    //            this.expectedWorkflowRevisionsNames = expectedWorkflowRevisionsNames;
+    //            this.expectedWorkflowRevisionsNamesFromSecondBucket = expectedWorkflowRevisionsNamesFromSecondBucket;
+    //        }
+    //
+    //        public static Assertion create(String query, Set<String> expectedMostRecentWorkflowRevisionNames,
+    //                Set<String> expectedWorkflowRevisionsNames,
+    //                Set<String> expectedWorkflowRevisionsNamesFromSecondBucket) {
+    //            return new Assertion(query,
+    //                                 expectedMostRecentWorkflowRevisionNames,
+    //                                 expectedWorkflowRevisionsNames,
+    //                                 expectedWorkflowRevisionsNamesFromSecondBucket);
+    //        }
+    //
+    //        public static Assertion createSyntacticallyIncorrect(String query) {
+    //            return new Assertion(query, null, null, null);
+    //        }
+    //
+    //    }
+    //
+    //    public ValidatableResponse findMostRecentWorkflowRevisions(String wcqlQuery) {
+    //        return findMostRecentCatalogObjectRevisionsFromBucket(wcqlQuery, firstBucket.id);
+    //    }
+    //
+    //    private ValidatableResponse findMostRecentCatalogObjectRevisionsFromBucket(String wcqlQuery, Long bucketId) {
+    //        Response response = given().pathParam("bucketId", bucketId)
+    //                                   .queryParam("size", 999)
+    //                                   .queryParam("query", wcqlQuery)
+    //                                   .when()
+    //                                   .get(CATALOG_OBJECTS_RESOURCE);
+    //
+    //        logQueryAndResponse(wcqlQuery, response);
+    //
+    //        return response.then().assertThat();
+    //    }
+    //
+    //    public ValidatableResponse findAllWorkflowRevisions(String wcqlQuery, long workflowId) {
+    //        Response response = given().pathParam("bucketId", firstBucket.id)
+    //                                   .pathParam("workflowId", workflowId)
+    //                                   .queryParam("size", 999)
+    //                                   .queryParam("query", wcqlQuery)
+    //                                   .when()
+    //                                   .get(CATALOG_OBJECT_REVISIONS_RESOURCE);
+    //
+    //        logQueryAndResponse(wcqlQuery, response);
+    //
+    //        return response.then().assertThat();
+    //    }
+    //
+    //    private void logQueryAndResponse(String wcqlQuery, Response response) {
+    //        log.info("WCQL query used is '{}'", wcqlQuery);
+    //        log.info("Response is:\n{}", prettify(response.asString()));
+    //    }
 
 }
