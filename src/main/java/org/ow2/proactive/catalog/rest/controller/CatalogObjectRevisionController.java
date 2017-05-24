@@ -111,26 +111,8 @@ public class CatalogObjectRevisionController {
         return catalogObjectRevisionService.getCatalogObjectRaw(bucketId, objectId, Optional.ofNullable(revisionId));
     }
 
-    @ApiOperation(value = "Lists a catalog object revisions")
-    @ApiImplicitParams({ @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "Results page you want to retrieve (0..N)"),
-                         @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
-                         @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
-                                                                                                                                  "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
+    @ApiOperation(value = "Delete a catalog object's revision", notes = "If the revisionId references the latest revision, it is deleted and the catalog object then points to the previous revision. If the revisionId doesn't references the latest revision, it is simply deleted without any impact on the current catalog object. Returns the deleted CatalogObjectRevision metadata.")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
-    @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions", method = GET)
-    public PagedResources list(@PathVariable Long bucketId, @PathVariable Long objectId,
-            @ApiParam("Query string for searching catalog objects. See <a href=\"http://doc.activeeon.com/latest/user/ProActiveUserGuide.html#_searching_for_workflows\">Searching for workflows</a> for more information about supported fields and operations.") @RequestParam(required = false) Optional<String> query,
-            @ApiParam(hidden = true) Pageable pageable, @ApiParam(hidden = true) PagedResourcesAssembler assembler)
-            throws QueryExpressionBuilderException {
-        return catalogObjectRevisionService.listCatalogObjects(bucketId,
-                                                               Optional.ofNullable(objectId),
-                                                               query,
-                                                               pageable,
-                                                               assembler);
-    }
-
-    @ApiOperation(value = "Delete a catalog object's revision", notes = "If the revisionId references the latest revision, it is deleted and the catalog object then points to the previous revision. If the revisionId doesn't references the latest revision, it is simply deleted without any impact on the current workflow. Returns the deleted CatalogObjectRevision metadata.")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions/{revisionId}", method = DELETE)
     public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable Long objectId,
             @PathVariable Long revisionId) {

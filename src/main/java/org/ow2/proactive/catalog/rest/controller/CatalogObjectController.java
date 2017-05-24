@@ -72,7 +72,7 @@ public class CatalogObjectController {
 
     @ApiOperation(value = "Creates a new catalog object")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
-                            @ApiResponse(code = 422, message = "Invalid XML workflow content supplied") })
+                            @ApiResponse(code = 422, message = "Invalid file content supplied") })
     @RequestMapping(value = "/buckets/{bucketId}/resources", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public CatalogObjectMetadataList create(@PathVariable Long bucketId,
@@ -89,33 +89,19 @@ public class CatalogObjectController {
                                                                                 file.getBytes()));
     }
 
-    @ApiOperation(value = "Gets a workflow's metadata by IDs", notes = "Returns metadata associated to the latest revision of the workflow.")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or workflow not found"))
+    @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{id}", method = GET)
     public ResponseEntity<?> get(@PathVariable Long bucketId, @PathVariable Long id, HttpServletResponse response)
             throws MalformedURLException {
         return catalogService.getCatalogObjectMetadata(bucketId, id);
     }
 
-    @ApiOperation(value = "Lists workflows metadata", notes = "Returns workflows metadata associated to the latest revision.")
-    @ApiImplicitParams({ @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "Results page you want to retrieve (0..N)"),
-                         @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
-                         @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
-                                                                                                                                  "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
-    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
-    @RequestMapping(value = "/buckets/{bucketId}/resources", method = GET)
-    public PagedResources list(@PathVariable Long bucketId,
-            @ApiParam("Query string for searching catalog objects. See <a href=\"http://doc.activeeon.com/latest/user/ProActiveUserGuide.html#_searching_for_workflows\">Searching for workflows</a> for more information about supported attributes and operations.") @RequestParam(required = false) Optional<String> query,
-            @ApiParam(hidden = true) Pageable pageable, @ApiParam(hidden = true) PagedResourcesAssembler assembler)
-            throws QueryExpressionBuilderException {
-        return catalogService.listCatalogObjects(bucketId, query, pageable, assembler);
-    }
-
-    @ApiOperation(value = "Delete a workflow", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogObject's metadata")
+    @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogObject's metadata")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or object not found"))
-    @RequestMapping(value = "/buckets/{bucketId}/resources/{workflowId}", method = DELETE)
-    public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable Long workflowId) {
-        return catalogService.delete(bucketId, workflowId);
+    @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}", method = DELETE)
+    public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable Long objectId) {
+        return catalogService.delete(bucketId, objectId);
     }
 
 }
