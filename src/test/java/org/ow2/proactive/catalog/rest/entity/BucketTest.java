@@ -56,7 +56,7 @@ public class BucketTest {
     public void testAddWorkflow() throws Exception {
         CatalogObject catalogObject = new CatalogObject(bucket);
 
-        bucket.addWorkflow(catalogObject);
+        bucket.addCatalogObject(catalogObject);
 
         assertThat(bucket.getCatalogObjects()).hasSize(1);
         assertThat(catalogObject.getBucket()).isEqualTo(bucket);

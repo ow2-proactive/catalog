@@ -31,7 +31,7 @@ package org.ow2.proactive.catalog.rest.service.exception;
 public class CatalogObjectNotFoundException extends ResourceNotFoundException {
 
     public CatalogObjectNotFoundException() {
-        super("No such workflow");
+        super("No such catalog object");
     }
 
 }

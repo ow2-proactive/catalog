@@ -73,7 +73,7 @@ public class Bucket {
         this.catalogObjects = Lists.newArrayList(catalogObjects);
     }
 
-    public void addWorkflow(CatalogObject catalogObject) {
+    public void addCatalogObject(CatalogObject catalogObject) {
         this.catalogObjects.add(catalogObject);
         catalogObject.setBucket(this);
     }

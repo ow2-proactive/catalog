@@ -210,27 +210,27 @@ public class CatalogObjectRevisionService {
         return builder.build();
     }
 
-    public ResponseEntity<CatalogObjectMetadata> getCatalogObject(Long bucketId, Long workflowId,
+    public ResponseEntity<CatalogObjectMetadata> getCatalogObject(Long bucketId, Long objectId,
             Optional<Long> revisionId) {
         findBucket(bucketId);
-        findObjectById(workflowId);
+        findObjectById(objectId);
 
-        CatalogObjectRevision catalogObjectRevision = getCatalogObjectRevision(bucketId, workflowId, revisionId);
+        CatalogObjectRevision catalogObjectRevision = getCatalogObjectRevision(bucketId, objectId, revisionId);
 
         CatalogObjectMetadata objectMetadata = new CatalogObjectMetadata(catalogObjectRevision);
 
-        objectMetadata.add(createLink(bucketId, workflowId, catalogObjectRevision));
+        objectMetadata.add(createLink(bucketId, objectId, catalogObjectRevision));
 
         return ResponseEntity.ok(objectMetadata);
     }
 
-    public ResponseEntity<InputStreamResource> getCatalogObjectRaw(Long bucketId, Long workflowId,
+    public ResponseEntity<InputStreamResource> getCatalogObjectRaw(Long bucketId, Long objectId,
             Optional<Long> revisionId) {
 
         findBucket(bucketId);
-        findObjectById(workflowId);
+        findObjectById(objectId);
 
-        CatalogObjectRevision catalogObjectRevision = getCatalogObjectRevision(bucketId, workflowId, revisionId);
+        CatalogObjectRevision catalogObjectRevision = getCatalogObjectRevision(bucketId, objectId, revisionId);
 
         byte[] bytes = catalogObjectRevision.getXmlPayload();
 
@@ -243,22 +243,22 @@ public class CatalogObjectRevisionService {
     public List<CatalogObjectRevision> getCatalogObjectsRevisions(Long bucketId, List<Long> idList) {
         findBucket(bucketId);
         List<CatalogObjectRevision> revisions = idList.stream()
-                                                      .map(workflowId -> getCatalogObjectRevision(bucketId,
-                                                                                                  workflowId,
-                                                                                                  Optional.empty()))
+                                                      .map(objectId -> getCatalogObjectRevision(bucketId,
+                                                                                                objectId,
+                                                                                                Optional.empty()))
                                                       .collect(Collectors.toList());
         return revisions;
     }
 
-    private CatalogObjectRevision getCatalogObjectRevision(Long bucketId, Long workflowId, Optional<Long> revisionId) {
+    private CatalogObjectRevision getCatalogObjectRevision(Long bucketId, Long objectId, Optional<Long> revisionId) {
         CatalogObjectRevision catalogObjectRevision;
 
         if (revisionId.isPresent()) {
             catalogObjectRevision = catalogObjectRevisionRepository.getCatalogObjectRevision(bucketId,
-                                                                                             workflowId,
+                                                                                             objectId,
                                                                                              revisionId.get());
         } else {
-            catalogObjectRevision = catalogObjectRepository.getMostRecentCatalogObjectRevision(bucketId, workflowId);
+            catalogObjectRevision = catalogObjectRepository.getMostRecentCatalogObjectRevision(bucketId, objectId);
         }
 
         if (catalogObjectRevision == null) {
@@ -278,12 +278,12 @@ public class CatalogObjectRevisionService {
      *     <li>impact the CatalogObject by referencing the previous CatalogObjectRevision if it had more than one CatalogObjectRevision.</li>
      * </ul>
      * @param bucketId The id of the Bucket containing the CatalogObject
-     * @param workflowId The id of the CatalogObject containing the CatalogObjectRevision
+     * @param objectId The id of the CatalogObject containing the CatalogObjectRevision
      * @param revisionId The revision number of the CatalogObject
      * @return The deleted CatalogObjectRevision metadata
      */
-    public ResponseEntity<CatalogObjectMetadata> delete(Long bucketId, Long workflowId, Optional<Long> revisionId) {
-        CatalogObject catalogObject = findObjectById(workflowId);
+    public ResponseEntity<CatalogObjectMetadata> delete(Long bucketId, Long objectId, Optional<Long> revisionId) {
+        CatalogObject catalogObject = findObjectById(objectId);
         CatalogObjectRevision catalogObjectRevision = null;
         if (revisionId.isPresent() && catalogObject.getRevisions().size() > 1) {
             if (revisionId.get() == catalogObject.getLastCommitId()) {
@@ -292,27 +292,27 @@ public class CatalogObjectRevisionService {
                 CatalogObjectRevision newCatalogObjectRevisionReference = (CatalogObjectRevision) iter.next();
                 catalogObject.setLastCommitId(newCatalogObjectRevisionReference.getCommitId());
                 catalogObjectRevision = catalogObjectRevisionRepository.getCatalogObjectRevision(bucketId,
-                                                                                                 workflowId,
+                                                                                                 objectId,
                                                                                                  catalogObjectRevision.getCommitId());
                 catalogObjectRevisionRepository.delete(catalogObjectRevision);
             } else {
                 catalogObjectRevision = catalogObjectRevisionRepository.getCatalogObjectRevision(bucketId,
-                                                                                                 workflowId,
+                                                                                                 objectId,
                                                                                                  revisionId.get());
                 catalogObjectRevisionRepository.delete(catalogObjectRevision);
             }
         } else {
-            catalogObjectRevision = catalogObjectRepository.getMostRecentCatalogObjectRevision(bucketId, workflowId);
+            catalogObjectRevision = catalogObjectRepository.getMostRecentCatalogObjectRevision(bucketId, objectId);
             catalogObjectRepository.delete(catalogObject);
         }
         CatalogObjectMetadata objectMetadata = new CatalogObjectMetadata(catalogObjectRevision);
-        objectMetadata.add(createLink(bucketId, workflowId, catalogObjectRevision));
+        objectMetadata.add(createLink(bucketId, objectId, catalogObjectRevision));
         return ResponseEntity.ok(objectMetadata);
     }
 
-    public Link createLink(Long bucketId, Long workflowId, CatalogObjectRevision catalogObjectRevision) {
+    public Link createLink(Long bucketId, Long objectId, CatalogObjectRevision catalogObjectRevision) {
         ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectRevisionController.class).get(bucketId,
-                                                                                                                 workflowId,
+                                                                                                                 objectId,
                                                                                                                  catalogObjectRevision.getCommitId()));
 
         return new Link(controllerLinkBuilder.toString()).withRel("content");

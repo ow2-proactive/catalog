@@ -40,10 +40,10 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 public interface CatalogObjectRepository
         extends PagingAndSortingRepository<CatalogObject, Long>, QueryDslPredicateExecutor<CatalogObject> {
 
-    @Query("SELECT cor FROM CatalogObjectRevision cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastRevisionId = cor.commitId")
+    @Query("SELECT cor FROM CatalogObjectRevision cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId")
     Page<CatalogObjectRevision> getMostRecentRevisions(Long bucketId, Pageable pageable);
 
-    @Query("SELECT cor FROM CatalogObjectRevision cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND cor.catalogObject.commitId = ?2 AND co.lastRevisionId = cor.commitId")
-    CatalogObjectRevision getMostRecentCatalogObjectRevision(Long bucketId, Long workflowId);
+    @Query("SELECT cor FROM CatalogObjectRevision cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND cor.catalogObject.commitId = ?2 AND co.lastCommitId = cor.commitId")
+    CatalogObjectRevision getMostRecentCatalogObjectRevision(Long bucketId, Long objectId);
 
 }
