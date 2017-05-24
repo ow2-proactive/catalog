@@ -34,12 +34,7 @@ import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
 
 
 /**
- * ProActiveWorkflowParser aims to parse a ProActive XML workflow (whatever the schema version is)
- * in order to extract some specific values (job name, project name, generic
- * information and variables).
- * <p>
- * No validation is applied for now. Besides parsing stop once required information have
- * been extracted, mainly for performance reasons.
+ * CatalogObjectParser is a generic class for objects parsing
  *
  * @author ActiveEon Team
  */

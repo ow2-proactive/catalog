@@ -80,8 +80,8 @@ public class CatalogObjectService {
         return catalogObjectRevisionService.listCatalogObjects(bucketId, Optional.empty(), query, pageable, assembler);
     }
 
-    public ResponseEntity<CatalogObjectMetadata> delete(Long bucketId, Long workflowId) {
-        return catalogObjectRevisionService.delete(bucketId, workflowId, Optional.empty());
+    public ResponseEntity<CatalogObjectMetadata> delete(Long bucketId, Long catalogObjectId) {
+        return catalogObjectRevisionService.delete(bucketId, catalogObjectId, Optional.empty());
     }
 
 }
