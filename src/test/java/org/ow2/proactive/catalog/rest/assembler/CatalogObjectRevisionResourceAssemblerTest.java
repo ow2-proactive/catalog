@@ -38,12 +38,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.rest.assembler.CatalogObjectRevisionResourceAssembler;
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.rest.entity.CatalogObject;
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
 
-import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 
 
@@ -63,20 +61,17 @@ public class CatalogObjectRevisionResourceAssemblerTest {
     @Test
     public void testToResource() throws Exception {
         CatalogObjectRevision catalogObjectRevision = new CatalogObjectRevision("workflow",
-                                                                                1L,
-                                                                                1L,
-                                                                                "WR-TEST",
-                                                                                "WR-PROJ-TEST",
                                                                                 LocalDateTime.now(),
-                                                                                null,
-                                                                                Lists.newArrayList(),
+                                                                                "WR-TEST",
+                                                                                "Commit message",
+                                                                                1L,
+                                                                                "application/xml",
                                                                                 getWorkflowAsByteArray("workflow.xml"));
         CatalogObject mockedCatalogObject = mock(CatalogObject.class);
         when(mockedCatalogObject.getId()).thenReturn(1L);
         catalogObjectRevision.setCatalogObject(mockedCatalogObject);
         CatalogObjectMetadata objectMetadata = workflowRevisionResourceAssembler.toResource(catalogObjectRevision);
         assertEquals(catalogObjectRevision.getName(), objectMetadata.name);
-        assertEquals(catalogObjectRevision.getProjectName(), objectMetadata.projectName);
     }
 
     private static byte[] getWorkflowAsByteArray(String filename) throws IOException {

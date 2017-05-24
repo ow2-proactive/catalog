@@ -40,9 +40,9 @@ public interface CatalogObjectRevisionRepository extends PagingAndSortingReposit
         QueryDslPredicateExecutor<CatalogObjectRevision> {
 
     @Query("SELECT cor FROM CatalogObjectRevision cor JOIN cor.catalogObject co WHERE co.id = ?1")
-    Page<CatalogObjectRevision> getRevisions(Long workflowId, Pageable pageable);
+    Page<CatalogObjectRevision> getRevisions(Long catalogObjectId, Pageable pageable);
 
     @Query("SELECT cor FROM CatalogObjectRevision cor WHERE cor.bucketId = ?1 AND cor.catalogObject.id = ?2 AND cor.commitId = ?3")
-    CatalogObjectRevision getCatalogObjectRevision(Long bucketId, Long workflowId, Long revisionId);
+    CatalogObjectRevision getCatalogObjectRevision(Long bucketId, Long catalogObjectId, Long revisionId);
 
 }

@@ -93,16 +93,16 @@ public class CatalogObjectRevisionService {
     private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
 
     @Transactional
-    public CatalogObjectMetadata createCatalogObjectRevision(String kind, String name, String commitMessage,
-            Long bucketId, Optional<Long> catalogObjectId, Optional<String> contentType, byte[] rawObject) {
+    public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String kind, String name,
+            String commitMessage, Optional<Long> catalogObjectId, Optional<String> contentType, byte[] rawObject) {
         try {
             CatalogObjectParser catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
             List<KeyValueMetadata> keyValueMetadataListParsed = catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
 
-            return createCatalogObjectRevision(kind,
+            return createCatalogObjectRevision(bucketId,
+                                               kind,
                                                name,
                                                commitMessage,
-                                               bucketId,
                                                catalogObjectId,
                                                contentType,
                                                keyValueMetadataListParsed,
@@ -113,8 +113,8 @@ public class CatalogObjectRevisionService {
     }
 
     @Transactional
-    public CatalogObjectMetadata createCatalogObjectRevision(String kind, String name, String commitMessage,
-            Long bucketId, Optional<Long> objectId, Optional<String> contentType,
+    public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String kind, String name,
+            String commitMessage, Optional<Long> objectId, Optional<String> contentType,
             List<KeyValueMetadata> keyValueMetadataListParsed, byte[] rawObject) {
         Bucket bucket = findBucket(bucketId);
 

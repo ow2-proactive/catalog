@@ -79,10 +79,10 @@ public class CatalogObjectRevisionController {
             @ApiParam(value = "Layout describing the tasks position in the CatalogObject Revision") @RequestParam String commitMessage,
             @ApiParam(value = "Layout describing the tasks position in the CatalogObject Revision") @RequestParam(required = false) Optional<String> contentType,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        return catalogObjectRevisionService.createCatalogObjectRevision(kind,
+        return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
+                                                                        kind,
                                                                         name,
                                                                         commitMessage,
-                                                                        bucketId,
                                                                         Optional.of(objectId),
                                                                         contentType,
                                                                         file.getBytes());

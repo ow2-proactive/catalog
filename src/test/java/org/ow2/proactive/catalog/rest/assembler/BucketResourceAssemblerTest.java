@@ -27,13 +27,10 @@ package org.ow2.proactive.catalog.rest.assembler;
 
 import static org.junit.Assert.assertEquals;
 
-import java.time.LocalDateTime;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.catalog.rest.entity.Bucket;
 
@@ -53,9 +50,8 @@ public class BucketResourceAssemblerTest {
 
     @Test
     public void testToResource() throws Exception {
-        Bucket bucket = new Bucket("BUCKET-TEST", LocalDateTime.now(), "BucketResourceAssemblerTestUser");
+        Bucket bucket = new Bucket("BUCKET-TEST", "BucketResourceAssemblerTestUser");
         BucketMetadata bucketMetadata = bucketResourceAssembler.toResource(bucket);
         assertEquals(bucket.getName(), bucketMetadata.name);
-        assertEquals(bucket.getCreatedAt(), bucketMetadata.createdAt);
     }
 }

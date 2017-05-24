@@ -114,7 +114,7 @@ public class BucketService {
                     FileInputStream fisobject = new FileInputStream(fobject);
                     byte[] bObject = ByteStreams.toByteArray(fisobject);
                     //TODO parse kind, name, commitMessage from binaries
-                    catalogObjectService.createCatalogObject("", "", "", bucketId, Optional.empty(), bObject);
+                    catalogObjectService.createCatalogObject(bucketId, "", "", "", Optional.empty(), bObject);
                 }
             }
         }
