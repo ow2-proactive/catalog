@@ -97,6 +97,19 @@ public class CatalogObjectController {
         return catalogService.getCatalogObjectMetadata(bucketId, id);
     }
 
+    @ApiOperation(value = "Lists catalog objects metadata", notes = "Returns catalog objects metadata associated to the latest revision.")
+    @ApiImplicitParams({ @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "Results page you want to retrieve (0..N)"),
+                         @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
+                         @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
+                                                                                                                                  "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
+    @RequestMapping(value = "/buckets/{bucketId}/resources", method = GET)
+    public PagedResources list(@PathVariable Long bucketId,
+            @ApiParam(hidden = true) Pageable pageable, @ApiParam(hidden = true) PagedResourcesAssembler assembler)
+            throws QueryExpressionBuilderException {
+        return catalogService.listCatalogObjects(bucketId, Optional.empty(), pageable, assembler);
+    }
+
     @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogObject's metadata")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or object not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}", method = DELETE)
