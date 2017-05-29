@@ -99,7 +99,7 @@ public class CatalogObjectRevision implements Comparable {
 
     public CatalogObjectRevision(String kind, LocalDateTime commitDate, String name, String commitMessage,
             Long bucketId, String contentType, byte[] rawObject) {
-        super();
+        this();
         this.kind = kind;
         this.name = name;
         this.commitMessage = commitMessage;

@@ -447,7 +447,7 @@ public class CatalogObjectRevisionServiceTest {
 
         assertEquals(name, actualWFMetadata.name);
         assertEquals(EXISTING_ID, actualWFMetadata.bucketId);
-        assertEquals(EXISTING_ID, actualWFMetadata.id);
+        assertEquals(EXISTING_ID, actualWFMetadata.commitId);
         assertEquals(kind, actualWFMetadata.kind);
         if (layout.isPresent()) {
             assertEquals(layout.get(), actualWFMetadata.contentType);

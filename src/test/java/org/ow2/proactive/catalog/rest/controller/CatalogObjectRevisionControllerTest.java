@@ -53,7 +53,7 @@ public class CatalogObjectRevisionControllerTest {
     private CatalogObjectRevisionController catalogObjectRevisionController;
 
     @Mock
-    private CatalogObjectRevisionService workflowRevisionService;
+    private CatalogObjectRevisionService catalogObjectRevisionService;
 
     private static final Long BUCKET_ID = 1L;
 
@@ -77,36 +77,36 @@ public class CatalogObjectRevisionControllerTest {
                                                "Commit message",
                                                Optional.empty(),
                                                mockedFile);
-        verify(workflowRevisionService, times(1)).createCatalogObjectRevision(BUCKET_ID,
-                                                                              "workflow",
-                                                                              "name",
-                                                                              "Commit message",
-                                                                              Optional.of(CO_ID),
-                                                                              Optional.empty(),
-                                                                              null);
+        verify(catalogObjectRevisionService, times(1)).createCatalogObjectRevision(BUCKET_ID,
+                                                                                   "workflow",
+                                                                                   "name",
+                                                                                   "Commit message",
+                                                                                   Optional.of(CO_ID),
+                                                                                   Optional.empty(),
+                                                                                   null);
     }
 
     @Test
     public void testList() throws Exception {
         Pageable mockedPageable = mock(Pageable.class);
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
-        catalogObjectRevisionController.list(BUCKET_ID, CO_ID, Optional.empty(), mockedPageable, mockedAssembler);
-        verify(workflowRevisionService, times(1)).listCatalogObjects(BUCKET_ID,
-                                                                     Optional.of(CO_ID),
-                                                                     Optional.empty(),
-                                                                     mockedPageable,
-                                                                     mockedAssembler);
+        catalogObjectRevisionController.list(BUCKET_ID, CO_ID, mockedPageable, mockedAssembler);
+        verify(catalogObjectRevisionService, times(1)).listCatalogObjects(BUCKET_ID,
+                                                                          Optional.of(CO_ID),
+                                                                          Optional.empty(),
+                                                                          mockedPageable,
+                                                                          mockedAssembler);
     }
 
     @Test
     public void testGet() throws Exception {
         catalogObjectRevisionController.get(BUCKET_ID, CO_ID, REV_ID);
-        verify(workflowRevisionService, times(1)).getCatalogObject(BUCKET_ID, CO_ID, Optional.of(REV_ID));
+        verify(catalogObjectRevisionService, times(1)).getCatalogObject(BUCKET_ID, CO_ID, Optional.of(REV_ID));
     }
 
     @Test
     public void testDelete() throws Exception {
         catalogObjectRevisionController.delete(BUCKET_ID, CO_ID, REV_ID);
-        verify(workflowRevisionService, times(1)).delete(BUCKET_ID, CO_ID, Optional.of(REV_ID));
+        verify(catalogObjectRevisionService, times(1)).delete(BUCKET_ID, CO_ID, Optional.of(REV_ID));
     }
 }

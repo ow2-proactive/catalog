@@ -60,22 +60,22 @@ import org.springframework.web.multipart.MultipartFile;
 public class CatalogObjectControllerTest {
 
     @InjectMocks
-    private CatalogObjectController workflowController;
+    private CatalogObjectController catalogObjectController;
 
     @Mock
-    private CatalogObjectService workflowService;
+    private CatalogObjectService catalogObjectService;
 
     @Mock
     private BucketRepository bucketRepository;
 
     @Mock
-    private CatalogObjectRepository workflowRepository;
+    private CatalogObjectRepository catalogObjectRepository;
 
     @Mock
     private PagedResourcesAssembler pagedResourcesAssembler;
 
     @Mock
-    CatalogObjectRevisionResourceAssembler workflowResourceAssembler;
+    CatalogObjectRevisionResourceAssembler catalocObjectResourceAssembler;
 
     @Before
     public void setUp() throws Exception {
@@ -86,13 +86,13 @@ public class CatalogObjectControllerTest {
     public void testCreate() throws IOException {
         MultipartFile file = mock(MultipartFile.class);
         when(file.getBytes()).thenReturn(null);
-        workflowController.create(1L, "workflow", "name", "Commit message", Optional.empty(), file);
-        verify(workflowService, times(1)).createCatalogObject(1L,
-                                                              "workflow",
-                                                              "name",
-                                                              "Commit message",
-                                                              Optional.empty(),
-                                                              null);
+        catalogObjectController.create(1L, "workflow", "name", "Commit message", Optional.empty(), file);
+        verify(catalogObjectService, times(1)).createCatalogObject(1L,
+                                                                   "workflow",
+                                                                   "name",
+                                                                   "Commit message",
+                                                                   Optional.empty(),
+                                                                   null);
     }
 
     @Test
@@ -101,23 +101,23 @@ public class CatalogObjectControllerTest {
         when(bucketRepository.findOne(1L)).thenReturn(bucket);
         when(pagedResourcesAssembler.toResource(any(Page.class),
                                                 any(CatalogObjectRevisionResourceAssembler.class))).thenReturn(mock(PagedResources.class));
-        workflowController.list(1L, Optional.empty(), null, pagedResourcesAssembler);
-        verify(workflowService, times(1)).listCatalogObjects(anyLong(),
-                                                             any(Optional.class),
-                                                             any(Pageable.class),
-                                                             any(PagedResourcesAssembler.class));
+        catalogObjectController.list(1L, null, pagedResourcesAssembler);
+        verify(catalogObjectService, times(1)).listCatalogObjects(anyLong(),
+                                                                  any(Optional.class),
+                                                                  any(Pageable.class),
+                                                                  any(PagedResourcesAssembler.class));
     }
 
     @Test
     public void testGet() throws Exception {
         HttpServletResponse response = mock(HttpServletResponse.class);
-        workflowController.get(1L, 2L, response);
-        verify(workflowService, times(1)).getCatalogObjectMetadata(1L, 2L);
+        catalogObjectController.get(1L, 2L, response);
+        verify(catalogObjectService, times(1)).getCatalogObjectMetadata(1L, 2L);
     }
 
     @Test
     public void testDelete() throws Exception {
-        workflowController.delete(1L, 2L);
-        verify(workflowService, times(1)).delete(1L, 2L);
+        catalogObjectController.delete(1L, 2L);
+        verify(catalogObjectService, times(1)).delete(1L, 2L);
     }
 }
