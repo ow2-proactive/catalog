@@ -53,7 +53,7 @@ import org.springframework.data.annotation.CreatedDate;
  * @author ActiveEon Team
  */
 @Entity
-@Table(name = "CATALOG_OBJECT_REVISION", indexes = { @Index(columnList = "NAME"), @Index(columnList = "PROJECT_NAME") })
+@Table(name = "CATALOG_OBJECT_REVISION", indexes = { @Index(columnList = "NAME"), @Index(columnList = "KIND") })
 public class CatalogObjectRevision implements Comparable {
 
     @Id
