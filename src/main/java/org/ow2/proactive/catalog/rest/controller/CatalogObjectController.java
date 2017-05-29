@@ -104,9 +104,8 @@ public class CatalogObjectController {
                                                                                                                                   "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources", method = GET)
-    public PagedResources list(@PathVariable Long bucketId,
-            @ApiParam(hidden = true) Pageable pageable, @ApiParam(hidden = true) PagedResourcesAssembler assembler)
-            throws QueryExpressionBuilderException {
+    public PagedResources list(@PathVariable Long bucketId, @ApiParam(hidden = true) Pageable pageable,
+            @ApiParam(hidden = true) PagedResourcesAssembler assembler) throws QueryExpressionBuilderException {
         return catalogService.listCatalogObjects(bucketId, Optional.empty(), pageable, assembler);
     }
 

@@ -27,9 +27,7 @@ package org.ow2.proactive.catalog.rest.util.parser;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -37,9 +35,8 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
 
 import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
-import org.ow2.proactive.catalog.rest.service.exception.UnprocessableEntityException;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 
 
 /**
@@ -54,13 +51,13 @@ import com.google.common.collect.ImmutableMap;
  */
 public final class WorkflowParser implements CatalogObjectParser {
 
-    private static final String ATTRIBUTE_JOB_NAME = "name";
-
-    private static final String ATTRIBUTE_JOB_PROJECT_NAME = "projectName";
+    private static final String ATTRIBUTE_GENERIC_INFORMATION_LABEL = "generic_information";
 
     private static final String ATTRIBUTE_GENERIC_INFORMATION_NAME = "name";
 
     private static final String ATTRIBUTE_GENERIC_INFORMATION_VALUE = "value";
+
+    private static final String ATTRIBUTE_VARIABLE_LABEL = "variable";
 
     private static final String ATTRIBUTE_VARIABLE_NAME = "name";
 
@@ -91,13 +88,7 @@ public final class WorkflowParser implements CatalogObjectParser {
 
     /* Below are instance variables containing values which are extracted */
 
-    private String jobName;
-
-    private String projectName;
-
-    private ImmutableMap<String, String> genericInformation;
-
-    private ImmutableMap<String, String> variables;
+    private ImmutableList<KeyValueMetadata> keyValueMap;
 
     private static final class XmlInputFactoryLazyHolder {
 
@@ -113,8 +104,7 @@ public final class WorkflowParser implements CatalogObjectParser {
         XMLStreamReader xmlStreamReader = XmlInputFactoryLazyHolder.INSTANCE.createXMLStreamReader(inputStream);
         int eventType;
 
-        ImmutableMap.Builder<String, String> genericInformation = ImmutableMap.builder();
-        ImmutableMap.Builder<String, String> variables = ImmutableMap.builder();
+        ImmutableList.Builder<KeyValueMetadata> keyValueMapBuilder = ImmutableList.builder();
         boolean isTaskFlow = false;
         try {
             while (xmlStreamReader.hasNext() && !allElementHandled()) {
@@ -133,12 +123,12 @@ public final class WorkflowParser implements CatalogObjectParser {
                                 break;
                             case ELEMENT_GENERIC_INFORMATION_INFO:
                                 if (!isTaskFlow) {
-                                    handleGenericInformationElement(genericInformation, xmlStreamReader);
+                                    handleGenericInformationElement(keyValueMapBuilder, xmlStreamReader);
                                 }
                                 break;
                             case ELEMENT_VARIABLE:
                                 if (!isTaskFlow) {
-                                    handleVariableElement(variables, xmlStreamReader);
+                                    handleVariableElement(keyValueMapBuilder, xmlStreamReader);
                                 }
                                 break;
                         }
@@ -168,57 +158,39 @@ public final class WorkflowParser implements CatalogObjectParser {
                 }
             }
 
-            this.genericInformation = genericInformation.build();
-            this.variables = variables.build();
+            this.keyValueMap = keyValueMapBuilder.build();
 
-            return createResult();
+            return getKeyValueMap();
         } finally {
             xmlStreamReader.close();
         }
     }
 
-    private List<KeyValueMetadata> createResult() {
-        // based on XSD definition, project name is optional
-        String projectName = getProjectName().orElse("");
-
-        String name = getJobName().orElseThrow(getMissingElementException("No job name defined."));
-
-        //        return new CatalogObjectParserResult(projectName, name, getGenericInformation(), getVariables());
-        //TODO
-        return null;
-    }
-
-    private Supplier<UnprocessableEntityException> getMissingElementException(String message) {
-        return () -> new UnprocessableEntityException("XML does not validate against Schema. " + message);
-    }
-
-    private void handleGenericInformationElement(ImmutableMap.Builder<String, String> genericInformation,
+    private void handleGenericInformationElement(ImmutableList.Builder<KeyValueMetadata> keyValueMapBuilder,
             XMLStreamReader xmlStreamReader) {
-        handleElementWithMultipleValues(genericInformation,
+        handleElementWithMultipleValues(keyValueMapBuilder,
+                                        ATTRIBUTE_GENERIC_INFORMATION_LABEL,
                                         ATTRIBUTE_GENERIC_INFORMATION_NAME,
                                         ATTRIBUTE_GENERIC_INFORMATION_VALUE,
                                         xmlStreamReader);
     }
 
     private void handleJobElement(XMLStreamReader xmlStreamReader) {
-        iterateOverAttributes((attributeName, attributeValue) -> {
-            if (attributeName.equals(ATTRIBUTE_JOB_NAME)) {
-                this.jobName = attributeValue;
-            } else if (attributeName.equals(ATTRIBUTE_JOB_PROJECT_NAME)) {
-                this.projectName = attributeValue;
-            }
-        }, xmlStreamReader);
-
         jobHandled = true;
     }
 
-    private void handleVariableElement(ImmutableMap.Builder<String, String> variables,
+    private void handleVariableElement(ImmutableList.Builder<KeyValueMetadata> keyValueMapBuilder,
             XMLStreamReader xmlStreamReader) {
-        handleElementWithMultipleValues(variables, ATTRIBUTE_VARIABLE_NAME, ATTRIBUTE_VARIABLE_VALUE, xmlStreamReader);
+        handleElementWithMultipleValues(keyValueMapBuilder,
+                                        ATTRIBUTE_VARIABLE_LABEL,
+                                        ATTRIBUTE_VARIABLE_NAME,
+                                        ATTRIBUTE_VARIABLE_VALUE,
+                                        xmlStreamReader);
     }
 
-    private void handleElementWithMultipleValues(ImmutableMap.Builder<String, String> store, String attributeNameForKey,
-            String attributeNameForValue, XMLStreamReader xmlStreamReader) {
+    private void handleElementWithMultipleValues(ImmutableList.Builder<KeyValueMetadata> keyValueMapBuilder,
+            String attributeLabel, String attributeNameForKey, String attributeNameForValue,
+            XMLStreamReader xmlStreamReader) {
         String[] key = new String[1];
         String[] value = new String[1];
 
@@ -230,7 +202,7 @@ public final class WorkflowParser implements CatalogObjectParser {
             }
         }, xmlStreamReader);
 
-        store.put(key[0], value[0]);
+        keyValueMapBuilder.add(new KeyValueMetadata(key[0], value[0], attributeLabel));
     }
 
     private void iterateOverAttributes(BiConsumer<String, String> attribute, XMLStreamReader xmlStreamReader) {
@@ -246,20 +218,8 @@ public final class WorkflowParser implements CatalogObjectParser {
         return this.jobHandled && this.genericInformationHandled && this.variablesHandled;
     }
 
-    private Optional<String> getJobName() {
-        return Optional.ofNullable(jobName);
-    }
-
-    private Optional<String> getProjectName() {
-        return Optional.ofNullable(projectName);
-    }
-
-    private ImmutableMap<String, String> getGenericInformation() {
-        return genericInformation;
-    }
-
-    private ImmutableMap<String, String> getVariables() {
-        return variables;
+    private ImmutableList<KeyValueMetadata> getKeyValueMap() {
+        return keyValueMap;
     }
 
 }
