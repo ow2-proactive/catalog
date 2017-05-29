@@ -25,6 +25,8 @@
  */
 package org.ow2.proactive.catalog.rest.entity;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import java.time.LocalDateTime;
 
 import org.junit.Test;
@@ -40,21 +42,12 @@ public class CatalogObjectRevisionTest {
 
     @Test
     public void testAddKeyValue() throws Exception {
-        //TODO
-        //        CatalogObjectRevision catalogObjectRevision = createWorkflowRevision();
-        //        assertThat(catalogObjectRevision.getGenericInformation()).hasSize(1);
-        //
-        //        catalogObjectRevision.addGenericInformation(Mockito.mock(GenericInformation.class));
-        //
-        //        assertThat(catalogObjectRevision.getGenericInformation()).hasSize(2);
+        CatalogObjectRevision catalogObjectRevision = createWorkflowRevision();
+        assertThat(catalogObjectRevision.getKeyValueMetadataList()).hasSize(1);
 
-        //        CatalogObjectRevision catalogObjectRevision = createWorkflowRevision();
-        //
-        //        assertThat(catalogObjectRevision.getVariables()).hasSize(1);
-        //
-        //        catalogObjectRevision.addVariable(Mockito.mock(Variable.class));
-        //
-        //        assertThat(catalogObjectRevision.getVariables()).hasSize(2);
+        catalogObjectRevision.addKeyValue(Mockito.mock(KeyValueMetadata.class));
+
+        assertThat(catalogObjectRevision.getKeyValueMetadataList()).hasSize(2);
     }
 
     private CatalogObjectRevision createWorkflowRevision() {

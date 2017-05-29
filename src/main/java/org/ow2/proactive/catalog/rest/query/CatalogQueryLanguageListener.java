@@ -59,7 +59,7 @@ import com.mysema.query.types.query.ListSubQuery;
  * <p>
  * The purpose of the listener is to create a boolean expression that will be
  * used to query and filter results from the SQL database that indexes
- * workflows' data.
+ * catalog objects' data.
  *
  * @author ActiveEon Team
  */

@@ -51,7 +51,7 @@ import com.google.common.io.ByteStreams;
 public class CatalogObjectRevisionResourceAssemblerTest {
 
     @InjectMocks
-    private CatalogObjectRevisionResourceAssembler workflowRevisionResourceAssembler;
+    private CatalogObjectRevisionResourceAssembler catalogObjectRevisionResourceAssembler;
 
     @Before
     public void setUp() throws Exception {
@@ -70,7 +70,7 @@ public class CatalogObjectRevisionResourceAssemblerTest {
         CatalogObject mockedCatalogObject = mock(CatalogObject.class);
         when(mockedCatalogObject.getId()).thenReturn(1L);
         catalogObjectRevision.setCatalogObject(mockedCatalogObject);
-        CatalogObjectMetadata objectMetadata = workflowRevisionResourceAssembler.toResource(catalogObjectRevision);
+        CatalogObjectMetadata objectMetadata = catalogObjectRevisionResourceAssembler.toResource(catalogObjectRevision);
         assertEquals(catalogObjectRevision.getName(), objectMetadata.name);
     }
 

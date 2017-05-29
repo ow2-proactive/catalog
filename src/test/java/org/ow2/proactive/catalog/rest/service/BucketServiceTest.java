@@ -28,11 +28,14 @@ package org.ow2.proactive.catalog.rest.service;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -41,6 +44,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.ow2.proactive.catalog.rest.Application;
 import org.ow2.proactive.catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.catalog.rest.entity.Bucket;
@@ -110,36 +114,45 @@ public class BucketServiceTest {
         listBucket(Optional.of("toto"));
     }
 
-    //TODO
-    //    @Test
-    //    public void testPopulateCatalogAndFillBuckets() throws Exception {
-    //        final String[] buckets = { "Examples", "Cloud-automation" };
-    //        final String workflowsFolder = "/default-workflows";
-    //        Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
-    //        int totalNbWorkflows = 0;
-    //
-    //        for (String bucketName : buckets) {
-    //            File bucketFolder = new File(Application.class.getResource(workflowsFolder).getPath() + File.separator +
-    //                                         bucketName);
-    //            if (bucketFolder.exists()) {
-    //                totalNbWorkflows += bucketFolder.list().length;
-    //            }
-    //        }
-    //        when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
-    //        bucketService.populateCatalog(buckets, workflowsFolder);
-    //        verify(bucketRepository, times(buckets.length)).save(any(Bucket.class));
-    //        verify(catalogObjectService, times(totalNbWorkflows)).createWorkflow(anyLong(), any(Optional.class), anyObject());
-    //    }
-    //
-    //    @Test
-    //    public void testPopulateCatalogWithEmptyBuckets() throws Exception {
-    //        final String[] buckets = { "Titi", "Tata", "Toto" };
-    //        Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
-    //        when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
-    //        bucketService.populateCatalog(buckets, "/default-workflows");
-    //        verify(bucketRepository, times(buckets.length)).save(any(Bucket.class));
-    //        verify(catalogObjectService, times(0)).createWorkflow(anyLong(), any(Optional.class), anyObject());
-    //    }
+    @Test
+    public void testPopulateCatalogAndFillBuckets() throws Exception {
+        final String[] buckets = { "Examples", "Cloud-automation" };
+        final String workflowsFolder = "/default-workflows";
+        Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
+        int totalNbWorkflows = 0;
+
+        for (String bucketName : buckets) {
+            File bucketFolder = new File(Application.class.getResource(workflowsFolder).getPath() + File.separator +
+                                         bucketName);
+            if (bucketFolder.exists()) {
+                totalNbWorkflows += bucketFolder.list().length;
+            }
+        }
+        when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
+        bucketService.populateCatalog(buckets, workflowsFolder);
+        verify(bucketRepository, times(buckets.length)).save(any(Bucket.class));
+        verify(catalogObjectService, times(totalNbWorkflows)).createCatalogObject(anyLong(),
+                                                                                  anyString(),
+                                                                                  anyString(),
+                                                                                  anyString(),
+                                                                                  any(Optional.class),
+                                                                                  anyObject());
+    }
+
+    @Test
+    public void testPopulateCatalogWithEmptyBuckets() throws Exception {
+        final String[] buckets = { "Titi", "Tata", "Toto" };
+        Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
+        when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
+        bucketService.populateCatalog(buckets, "/default-workflows");
+        verify(bucketRepository, times(buckets.length)).save(any(Bucket.class));
+        verify(catalogObjectService, times(0)).createCatalogObject(anyLong(),
+                                                                   anyString(),
+                                                                   anyString(),
+                                                                   anyString(),
+                                                                   any(Optional.class),
+                                                                   anyObject());
+    }
 
     @Test(expected = DefaultWorkflowsFolderNotFoundException.class)
     public void testPopulateCatalogFromInvalidFolder() throws Exception {
