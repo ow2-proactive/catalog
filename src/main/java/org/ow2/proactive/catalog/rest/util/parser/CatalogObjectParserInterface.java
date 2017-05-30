@@ -23,17 +23,23 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.service.exception;
+package org.ow2.proactive.catalog.rest.util.parser;
 
-import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
+
+import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
 
 
 /**
+ * CatalogObjectParser is a generic class for objects parsing
+ *
  * @author ActiveEon Team
  */
-public class DefaultWorkflowsFolderNotFoundException extends IOException {
+public interface CatalogObjectParserInterface {
 
-    public DefaultWorkflowsFolderNotFoundException() {
-        super("The default-workflows folder has not been found");
-    }
+    public List<KeyValueMetadata> parse(InputStream inputStream) throws XMLStreamException;
+
 }

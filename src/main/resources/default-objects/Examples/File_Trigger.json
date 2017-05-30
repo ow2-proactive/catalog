@@ -1,0 +1,7 @@
+{
+	"kind": "workflow",
+	"name": "File Trigger",
+	"commitMessage": "First commit",
+	"objectFileName": "File_Trigger.xml",
+	"contentType": "application/xml"
+}

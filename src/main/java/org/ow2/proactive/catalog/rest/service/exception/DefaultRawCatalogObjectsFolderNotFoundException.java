@@ -23,23 +23,17 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.util.parser;
+package org.ow2.proactive.catalog.rest.service.exception;
 
-import java.io.InputStream;
-import java.util.List;
-
-import javax.xml.stream.XMLStreamException;
-
-import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
+import java.io.IOException;
 
 
 /**
- * CatalogObjectParser is a generic class for objects parsing
- *
  * @author ActiveEon Team
  */
-public interface CatalogObjectParser {
+public class DefaultRawCatalogObjectsFolderNotFoundException extends IOException {
 
-    public List<KeyValueMetadata> parse(InputStream inputStream) throws XMLStreamException;
-
+    public DefaultRawCatalogObjectsFolderNotFoundException() {
+        super("The raw-objects folder has not been found");
+    }
 }
