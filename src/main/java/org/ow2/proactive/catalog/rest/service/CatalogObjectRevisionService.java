@@ -55,8 +55,8 @@ import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.rest.service.repository.QueryDslCatalogObjectRevisionRepository;
-import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParser;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserFactory;
+import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
@@ -96,7 +96,7 @@ public class CatalogObjectRevisionService {
     public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String kind, String name,
             String commitMessage, Optional<Long> catalogObjectId, Optional<String> contentType, byte[] rawObject) {
         try {
-            CatalogObjectParser catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
+            CatalogObjectParserInterface catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
             List<KeyValueMetadata> keyValueMetadataListParsed = catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
 
             return createCatalogObjectRevision(bucketId,

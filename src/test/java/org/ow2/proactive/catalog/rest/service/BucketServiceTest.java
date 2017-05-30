@@ -49,7 +49,8 @@ import org.ow2.proactive.catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.catalog.rest.entity.Bucket;
 import org.ow2.proactive.catalog.rest.service.exception.BucketNotFoundException;
-import org.ow2.proactive.catalog.rest.service.exception.DefaultWorkflowsFolderNotFoundException;
+import org.ow2.proactive.catalog.rest.service.exception.DefaultCatalogObjectsFolderNotFoundException;
+import org.ow2.proactive.catalog.rest.service.exception.DefaultRawCatalogObjectsFolderNotFoundException;
 import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -117,19 +118,20 @@ public class BucketServiceTest {
     @Test
     public void testPopulateCatalogAndFillBuckets() throws Exception {
         final String[] buckets = { "Examples", "Cloud-automation" };
-        final String workflowsFolder = "/default-workflows";
+        final String catalogObjectsFolder = "/default-objects";
+        final String rawCatalogObjectsFolder = "/raw-objects";
         Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         int totalNbWorkflows = 0;
 
         for (String bucketName : buckets) {
-            File bucketFolder = new File(Application.class.getResource(workflowsFolder).getPath() + File.separator +
-                                         bucketName);
+            File bucketFolder = new File(Application.class.getResource(catalogObjectsFolder).getPath() +
+                                         File.separator + bucketName);
             if (bucketFolder.exists()) {
                 totalNbWorkflows += bucketFolder.list().length;
             }
         }
         when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
-        bucketService.populateCatalog(buckets, workflowsFolder);
+        bucketService.populateCatalog(buckets, catalogObjectsFolder, rawCatalogObjectsFolder);
         verify(bucketRepository, times(buckets.length)).save(any(Bucket.class));
         verify(catalogObjectService, times(totalNbWorkflows)).createCatalogObject(anyLong(),
                                                                                   anyString(),
@@ -144,7 +146,7 @@ public class BucketServiceTest {
         final String[] buckets = { "Titi", "Tata", "Toto" };
         Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
-        bucketService.populateCatalog(buckets, "/default-workflows");
+        bucketService.populateCatalog(buckets, "/default-objects", "/raw-objects");
         verify(bucketRepository, times(buckets.length)).save(any(Bucket.class));
         verify(catalogObjectService, times(0)).createCatalogObject(anyLong(),
                                                                    anyString(),
@@ -154,12 +156,20 @@ public class BucketServiceTest {
                                                                    anyObject());
     }
 
-    @Test(expected = DefaultWorkflowsFolderNotFoundException.class)
+    @Test(expected = DefaultCatalogObjectsFolderNotFoundException.class)
     public void testPopulateCatalogFromInvalidFolder() throws Exception {
         final String[] buckets = { "NonExistentBucket" };
         Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
-        bucketService.populateCatalog(buckets, "/this-folder-doesnt-exist");
+        bucketService.populateCatalog(buckets, "/this-folder-doesnt-exist", "/raw-objects");
+    }
+
+    @Test(expected = DefaultRawCatalogObjectsFolderNotFoundException.class)
+    public void testPopulateCatalogFromInvalidRawFolder() throws Exception {
+        final String[] buckets = { "NonExistentBucket" };
+        Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
+        when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
+        bucketService.populateCatalog(buckets, "/default-objects", "/this-folder-doesnt-exist");
     }
 
     private void listBucket(Optional<String> owner) {

@@ -1,0 +1,6 @@
+{
+	"kind": "workflow",
+	"name": "workflow name",
+	"commitMessage": "First commit",
+	"objectFileName": "myFileName.xml"
+}

@@ -1,0 +1,6 @@
+{
+	"kind": "workflow",
+	"name": "print_file_name",
+	"commitMessage": "First commit",
+	"objectFileName": "print_file_name.xml"
+}

@@ -1,0 +1,6 @@
+{
+	"kind": "workflow",
+	"name": "2 Minutes Cron",
+	"commitMessage": "First commit",
+	"objectFileName": "2_minutes_cron.xml"
+}

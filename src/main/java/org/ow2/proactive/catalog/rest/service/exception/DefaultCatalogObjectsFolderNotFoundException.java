@@ -23,55 +23,17 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.util.parser;
+package org.ow2.proactive.catalog.rest.service.exception;
 
-import java.util.Objects;
-
-import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
-
-import com.google.common.collect.ImmutableList;
+import java.io.IOException;
 
 
 /**
- *
- * @see CatalogObjectParserInterface
- *
  * @author ActiveEon Team
  */
-public final class CatalogObjectParserResult {
+public class DefaultCatalogObjectsFolderNotFoundException extends IOException {
 
-    private final String kind;
-
-    private final String projectName;
-
-    private final String name;
-
-    private final ImmutableList<KeyValueMetadata> keyValueList;
-
-    public CatalogObjectParserResult(String kind, String projectName, String name,
-            ImmutableList<KeyValueMetadata> keyValueMap) {
-        Objects.requireNonNull(keyValueMap);
-
-        this.kind = kind;
-        this.projectName = projectName;
-        this.name = name;
-        this.keyValueList = keyValueMap;
+    public DefaultCatalogObjectsFolderNotFoundException() {
+        super("The default-objects folder has not been found");
     }
-
-    public String getKind() {
-        return kind;
-    }
-
-    public String getProjectName() {
-        return projectName;
-    }
-
-    public String getJobName() {
-        return name;
-    }
-
-    public ImmutableList<KeyValueMetadata> getKeyValueList() {
-        return keyValueList;
-    }
-
 }

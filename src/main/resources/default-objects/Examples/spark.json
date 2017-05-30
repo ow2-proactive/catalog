@@ -1,0 +1,6 @@
+{
+	"kind": "workflow",
+	"name": "Spark",
+	"commitMessage": "First commit",
+	"objectFileName": "spark.xml"
+}

@@ -1,0 +1,6 @@
+{
+	"kind": "workflow",
+	"name": "Pre-Post-Clean Scripts",
+	"commitMessage": "First commit",
+	"objectFileName": "pre_post_clean_scripts.xml"
+}

@@ -34,12 +34,12 @@ import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
 import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
-import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParser;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserFactory;
+import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserInterface;
 
 
 /**
- * Unit tests associated to {@link CatalogObjectParser}.
+ * Unit tests associated to {@link CatalogObjectParserInterface}.
  *
  * @author ActiveEon Team
  */
@@ -69,7 +69,7 @@ public class ProActiveCatalogObjectParserTest {
     }
 
     private List<KeyValueMetadata> parseWorkflow(String xmlFilename) throws XMLStreamException {
-        CatalogObjectParser parser = CatalogObjectParserFactory.get().getParser("workflow");
+        CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("workflow");
 
         return parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/workflows/" + xmlFilename));
     }

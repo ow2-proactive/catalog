@@ -45,7 +45,7 @@ public final class CatalogObjectParserFactory {
         return factory;
     }
 
-    public CatalogObjectParser getParser(String type) {
+    public CatalogObjectParserInterface getParser(String type) {
         if ("workflow".equals(type))
             return new WorkflowParser();
         return new DefaultObjectParser();

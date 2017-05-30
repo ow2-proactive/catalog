@@ -23,17 +23,35 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.service.exception;
+package org.ow2.proactive.catalog.rest.util;
 
-import java.io.IOException;
+import static com.google.common.truth.Truth.assertThat;
+
+import java.io.File;
+
+import org.junit.Test;
+import org.ow2.proactive.catalog.rest.util.CatalogObjectJSONParser.CatalogObjectData;
+import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserInterface;
 
 
 /**
+ * Unit tests associated to {@link CatalogObjectParserInterface}.
+ *
  * @author ActiveEon Team
  */
-public class DefaultWorkflowsFolderNotFoundException extends IOException {
+public class CatalogObjectJSONParserTest {
 
-    public DefaultWorkflowsFolderNotFoundException() {
-        super("The default-workflows folder has not been found");
+    @Test
+    public void testParseJSON() throws Exception {
+
+        File file = new File(ProActiveCatalogObjectParserTest.class.getResource("/objects/workflow.json").getPath());
+
+        CatalogObjectData data = CatalogObjectJSONParser.parseJSONFile(file);
+
+        assertThat(data.getKind()).isEqualTo("workflow");
+        assertThat(data.getName()).isEqualTo("workflow name");
+        assertThat(data.getCommitMessage()).isEqualTo("First commit");
+        assertThat(data.getObjectFileName()).isEqualTo("myFileName.xml");
     }
+
 }

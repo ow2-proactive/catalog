@@ -1,0 +1,6 @@
+{
+	"kind": "workflow",
+	"name": "Variables Propagation",
+	"commitMessage": "First commit",
+	"objectFileName": "variables_propagation.xml"
+}
