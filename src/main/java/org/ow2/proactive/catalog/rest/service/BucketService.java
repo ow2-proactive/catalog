@@ -109,11 +109,18 @@ public class BucketService {
             if (bucketFolder.isDirectory()) {
                 String[] wfs = bucketFolder.list();
                 Arrays.sort(wfs);
-                for (String object : wfs) {
-                    File fobject = new File(bucketFolder.getPath() + File.separator + object);
-                    FileInputStream fisobject = new FileInputStream(fobject);
-                    byte[] bObject = ByteStreams.toByteArray(fisobject);
-                    catalogObjectService.createCatalogObject(bucketId, "", "", "", Optional.empty(), bObject);
+                FileInputStream fisobject = null;
+                try {
+                    for (String object : wfs) {
+                        File fobject = new File(bucketFolder.getPath() + File.separator + object);
+                        fisobject = new FileInputStream(fobject);
+                        byte[] bObject = ByteStreams.toByteArray(fisobject);
+                        catalogObjectService.createCatalogObject(bucketId, "", "", "", Optional.empty(), bObject);
+                    }
+                }catch (Exception ex){
+                    if(fisobject != null){
+                        fisobject.close();
+                    }
                 }
             }
         }
