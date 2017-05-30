@@ -40,7 +40,7 @@ import com.google.common.io.ByteStreams;
  */
 public final class CatalogObjectJSONParser {
 
-    private static ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static CatalogObjectData parseJSONFile(File fobject) throws IOException {
         FileInputStream fisobject = new FileInputStream(fobject);
@@ -58,6 +58,8 @@ public final class CatalogObjectJSONParser {
         private String commitMessage;
 
         private String objectFileName;
+
+        private String contentType;
 
         public String getName() {
             return name;
@@ -89,6 +91,14 @@ public final class CatalogObjectJSONParser {
 
         public void setObjectFileName(String objectFileName) {
             this.objectFileName = objectFileName;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public void setContentType(String contentType) {
+            this.contentType = contentType;
         }
 
     }

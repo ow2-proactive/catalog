@@ -2,5 +2,6 @@
 	"kind": "workflow",
 	"name": "MPI Job",
 	"commitMessage": "First commit",
-	"objectFileName": "mpi_job.xml"
+	"objectFileName": "mpi_job.xml",
+	"contentType": "application/xml"
 }

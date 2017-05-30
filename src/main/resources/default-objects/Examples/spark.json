@@ -2,5 +2,6 @@
 	"kind": "workflow",
 	"name": "Spark",
 	"commitMessage": "First commit",
-	"objectFileName": "spark.xml"
+	"objectFileName": "spark.xml",
+	"contentType": "application/xml"
 }

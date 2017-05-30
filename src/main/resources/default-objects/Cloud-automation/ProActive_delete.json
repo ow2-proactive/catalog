@@ -2,5 +2,6 @@
 	"kind": "workflow",
 	"name": "ProActive delete",
 	"commitMessage": "First commit",
-	"objectFileName": "ProActive_delete.xml"
+	"objectFileName": "ProActive_delete.xml",
+	"contentType": "application/xml"
 }

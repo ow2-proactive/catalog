@@ -52,6 +52,7 @@ public class CatalogObjectJSONParserTest {
         assertThat(data.getName()).isEqualTo("workflow name");
         assertThat(data.getCommitMessage()).isEqualTo("First commit");
         assertThat(data.getObjectFileName()).isEqualTo("myFileName.xml");
+        assertThat(data.getContentType()).isEqualTo("application/xml");
     }
 
 }

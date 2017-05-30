@@ -133,7 +133,7 @@ public class BucketService {
                                                              objectData.getKind(),
                                                              objectData.getName(),
                                                              objectData.getCommitMessage(),
-                                                             Optional.empty(),
+                                                             Optional.of(objectData.getContentType()),
                                                              bObject);
                 }
             }

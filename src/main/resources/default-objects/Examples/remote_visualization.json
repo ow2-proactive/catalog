@@ -2,5 +2,6 @@
 	"kind": "workflow",
 	"name": "Remote_Visualization",
 	"commitMessage": "First commit",
-	"objectFileName": "remote_visualization.xml"
+	"objectFileName": "remote_visualization.xml",
+	"contentType": "application/xml"
 }
