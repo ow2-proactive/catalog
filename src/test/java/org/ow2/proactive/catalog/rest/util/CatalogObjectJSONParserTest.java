@@ -23,55 +23,36 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.util.parser;
+package org.ow2.proactive.catalog.rest.util;
 
-import java.util.Objects;
+import static com.google.common.truth.Truth.assertThat;
 
-import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
+import java.io.File;
 
-import com.google.common.collect.ImmutableList;
+import org.junit.Test;
+import org.ow2.proactive.catalog.rest.util.CatalogObjectJSONParser.CatalogObjectData;
+import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserInterface;
 
 
 /**
- *
- * @see CatalogObjectParserInterface
+ * Unit tests associated to {@link CatalogObjectParserInterface}.
  *
  * @author ActiveEon Team
  */
-public final class CatalogObjectParserResult {
+public class CatalogObjectJSONParserTest {
 
-    private final String kind;
+    @Test
+    public void testParseJSON() throws Exception {
 
-    private final String projectName;
+        File file = new File(ProActiveCatalogObjectParserTest.class.getResource("/objects/workflow.json").getPath());
 
-    private final String name;
+        CatalogObjectData data = CatalogObjectJSONParser.parseJSONFile(file);
 
-    private final ImmutableList<KeyValueMetadata> keyValueList;
-
-    public CatalogObjectParserResult(String kind, String projectName, String name,
-            ImmutableList<KeyValueMetadata> keyValueMap) {
-        Objects.requireNonNull(keyValueMap);
-
-        this.kind = kind;
-        this.projectName = projectName;
-        this.name = name;
-        this.keyValueList = keyValueMap;
-    }
-
-    public String getKind() {
-        return kind;
-    }
-
-    public String getProjectName() {
-        return projectName;
-    }
-
-    public String getJobName() {
-        return name;
-    }
-
-    public ImmutableList<KeyValueMetadata> getKeyValueList() {
-        return keyValueList;
+        assertThat(data.getKind()).isEqualTo("workflow");
+        assertThat(data.getName()).isEqualTo("workflow name");
+        assertThat(data.getCommitMessage()).isEqualTo("First commit");
+        assertThat(data.getObjectFileName()).isEqualTo("myFileName.xml");
+        assertThat(data.getContentType()).isEqualTo("application/xml");
     }
 
 }

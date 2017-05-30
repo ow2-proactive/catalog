@@ -49,7 +49,7 @@ import com.google.common.collect.ImmutableList;
  *
  * @author ActiveEon Team
  */
-public final class WorkflowParser implements CatalogObjectParser {
+public final class WorkflowParser implements CatalogObjectParserInterface {
 
     private static final String ATTRIBUTE_GENERIC_INFORMATION_LABEL = "generic_information";
 

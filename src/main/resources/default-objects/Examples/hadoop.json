@@ -1,0 +1,7 @@
+{
+	"kind": "workflow",
+	"name": "Hadoop",
+	"commitMessage": "First commit",
+	"objectFileName": "hadoop.xml",
+	"contentType": "application/xml"
+}

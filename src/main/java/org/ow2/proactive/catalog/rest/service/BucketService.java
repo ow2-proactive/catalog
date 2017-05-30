@@ -39,8 +39,11 @@ import org.ow2.proactive.catalog.rest.dto.BucketMetadata;
 import org.ow2.proactive.catalog.rest.entity.Bucket;
 import org.ow2.proactive.catalog.rest.service.exception.BucketAlreadyExistingException;
 import org.ow2.proactive.catalog.rest.service.exception.BucketNotFoundException;
-import org.ow2.proactive.catalog.rest.service.exception.DefaultWorkflowsFolderNotFoundException;
+import org.ow2.proactive.catalog.rest.service.exception.DefaultCatalogObjectsFolderNotFoundException;
+import org.ow2.proactive.catalog.rest.service.exception.DefaultRawCatalogObjectsFolderNotFoundException;
 import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
+import org.ow2.proactive.catalog.rest.util.CatalogObjectJSONParser;
+import org.ow2.proactive.catalog.rest.util.CatalogObjectJSONParser.CatalogObjectData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -79,6 +82,8 @@ public class BucketService {
 
     private static final String DEFAULT_OBJECTS_FOLDER = "/default-objects";
 
+    private static final String RAW_OBJECTS_FOLDER = "/raw-objects";
+
     @PostConstruct
     public void init() throws Exception {
         boolean isTestProfileEnabled = Arrays.stream(environment.getActiveProfiles()).anyMatch("test"::equals);
@@ -86,7 +91,7 @@ public class BucketService {
         // We define the initial start by no existing buckets in the Catalog
         // On initial start, we load the Catalog with predefined objects
         if (!isTestProfileEnabled && bucketRepository.count() == 0) {
-            populateCatalog(defaultBucketNames, DEFAULT_OBJECTS_FOLDER);
+            populateCatalog(defaultBucketNames, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
         }
     }
 
@@ -98,22 +103,38 @@ public class BucketService {
      * @throws SecurityException if the Catalog is not allowed to read or access the file
      * @throws IOException if the file or folder could not be found or read properly
      */
-    protected void populateCatalog(String[] bucketNames, String objectsFolder) throws SecurityException, IOException {
+    protected void populateCatalog(String[] bucketNames, String objectsFolder, String rawObjectsFolder)
+            throws SecurityException, IOException {
         for (String bucketName : bucketNames) {
             final Long bucketId = bucketRepository.save(new Bucket(bucketName, DEFAULT_BUCKET_OWNER)).getId();
             final URL folderResource = getClass().getResource(objectsFolder);
             if (folderResource == null) {
-                throw new DefaultWorkflowsFolderNotFoundException();
+                throw new DefaultCatalogObjectsFolderNotFoundException();
             }
+
+            final URL rawFolderResource = getClass().getResource(rawObjectsFolder);
+            if (rawFolderResource == null) {
+                throw new DefaultRawCatalogObjectsFolderNotFoundException();
+            }
+
             final File bucketFolder = new File(folderResource.getPath() + File.separator + bucketName);
             if (bucketFolder.isDirectory()) {
                 String[] wfs = bucketFolder.list();
                 Arrays.sort(wfs);
                 for (String object : wfs) {
-                    File fobject = new File(bucketFolder.getPath() + File.separator + object);
+                    File catalogObjectFile = new File(bucketFolder.getPath() + File.separator + object);
+                    CatalogObjectData objectData = CatalogObjectJSONParser.parseJSONFile(catalogObjectFile);
+
+                    File fobject = new File(rawFolderResource.getPath() + File.separator +
+                                            objectData.getObjectFileName());
                     FileInputStream fisobject = new FileInputStream(fobject);
                     byte[] bObject = ByteStreams.toByteArray(fisobject);
-                    catalogObjectService.createCatalogObject(bucketId, "", "", "", Optional.empty(), bObject);
+                    catalogObjectService.createCatalogObject(bucketId,
+                                                             objectData.getKind(),
+                                                             objectData.getName(),
+                                                             objectData.getCommitMessage(),
+                                                             Optional.of(objectData.getContentType()),
+                                                             bObject);
                 }
             }
         }
