@@ -39,7 +39,7 @@ import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
  *
  * @author ActiveEon Team
  */
-public final class DefaultObjectParser implements CatalogObjectParserInterface {
+public final class DefaultCatalogObjectParser implements CatalogObjectParserInterface {
 
     public List<KeyValueMetadata> parse(InputStream inputStream) throws XMLStreamException {
         return new ArrayList<>();

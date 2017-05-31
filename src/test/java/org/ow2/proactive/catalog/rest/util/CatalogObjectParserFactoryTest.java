@@ -23,32 +23,32 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.util.parser;
+package org.ow2.proactive.catalog.rest.util;
+
+import static com.google.common.truth.Truth.assertThat;
+
+import org.junit.Test;
+import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserFactory;
+import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserInterface;
+import org.ow2.proactive.catalog.rest.util.parser.DefaultCatalogObjectParser;
+import org.ow2.proactive.catalog.rest.util.parser.WorkflowParser;
+
 
 /**
- * CatalogObjectParserFactory return the right Parser for the given type of object
+ * Unit tests associated to {@link CatalogObjectParserFactory}.
  *
  * @author ActiveEon Team
  */
-public final class CatalogObjectParserFactory {
+public class CatalogObjectParserFactoryTest {
 
-    private static CatalogObjectParserFactory factory;
+    @Test
+    public void testFactory() throws Exception {
 
-    private CatalogObjectParserFactory() {
+        CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("workflow");
+        assertThat(parser).isInstanceOf(WorkflowParser.class);
 
-    }
-
-    public static CatalogObjectParserFactory get() {
-        if (factory == null) {
-            factory = new CatalogObjectParserFactory();
-        }
-        return factory;
-    }
-
-    public CatalogObjectParserInterface getParser(String type) {
-        if ("workflow".equals(type))
-            return new WorkflowParser();
-        return new DefaultCatalogObjectParser();
+        parser = CatalogObjectParserFactory.get().getParser("default parser");
+        assertThat(parser).isInstanceOf(DefaultCatalogObjectParser.class);
     }
 
 }
