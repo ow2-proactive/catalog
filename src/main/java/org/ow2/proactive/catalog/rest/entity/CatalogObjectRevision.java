@@ -169,15 +169,11 @@ public class CatalogObjectRevision implements Comparable {
         return contentType;
     }
 
-    public byte[] getRawObject() {
-        return rawObject;
-    }
-
     public CatalogObject getCatalogObject() {
         return catalogObject;
     }
 
-    public byte[] getXmlPayload() {
+    public byte[] getRawObject() {
         return rawObject;
     }
 
@@ -187,10 +183,6 @@ public class CatalogObjectRevision implements Comparable {
 
     public void setCommitDate(LocalDateTime commitDate) {
         this.commitDate = commitDate;
-    }
-
-    public void setKeyValues(List<KeyValueMetadata> keyValueMetadatas) {
-        this.keyValueMetadataList = keyValueMetadatas;
     }
 
     public void setKind(String kind) {
@@ -203,10 +195,6 @@ public class CatalogObjectRevision implements Comparable {
 
     public void setCatalogObject(CatalogObject catalogObject) {
         this.catalogObject = catalogObject;
-    }
-
-    public void setXmlPayload(byte[] xmlPayload) {
-        this.rawObject = xmlPayload;
     }
 
     public void setCommitMessage(String commitMessage) {

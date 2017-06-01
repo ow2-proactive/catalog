@@ -71,8 +71,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketId}/resources/{objectId}";
 
-    private static final String layoutMetadata = "{\"offsets\":{\"Linux_Bash_Task\":{\"top\":222" +
-                                                 ",\"left\":681.5}},\"project\":\"Deployment\",\"detailedView\":true}";
+    private static final String contentType = "application/xml";
 
     @Autowired
     private BucketRepository bucketRepository;
@@ -97,36 +96,44 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                                                                  "workflow",
                                                                  "name",
                                                                  "commit message",
-                                                                 Optional.of(layoutMetadata),
+                                                                 contentType,
                                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
     }
 
     @Test
     public void testCreateWorkflowShouldReturnSavedWorkflow() {
         given().pathParam("bucketId", bucket.getId())
-               .queryParam("layout", layoutMetadata)
+               .queryParam("kind", "workflow")
+               .queryParam("name", "workflow_test")
+               .queryParam("commitMessage", "first commit")
+               .queryParam("contentType", contentType)
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED)
-               .body("workflow[0].bucket_id", is(bucket.getId().intValue()))
-               .body("workflow[0].id", is(2))
-               .body("workflow[0].name", is("Valid CatalogObject"))
-               .body("workflow[0].project_name", is("Project Name"))
-               .body("workflow[0].revision_id", is(1))
-               .body("workflow[0].generic_information", hasSize(2))
-               .body("workflow[0].generic_information[0].key", is("genericInfo1"))
-               .body("workflow[0].generic_information[0].value", is("genericInfo1Value"))
-               .body("workflow[0].generic_information[1].key", is("genericInfo2"))
-               .body("workflow[0].generic_information[1].value", is("genericInfo2Value"))
-               .body("workflow[0].variables", hasSize(2))
-               .body("workflow[0].variables[0].key", is("var1"))
-               .body("workflow[0].variables[0].value", is("var1Value"))
-               .body("workflow[0].variables[1].key", is("var2"))
-               .body("workflow[0].variables[1].value", is("var2Value"))
-               .body("workflow[0].layout", is(layoutMetadata));
+               .body("object[0].bucket_id", is(bucket.getId().intValue()))
+               .body("object[0].commit_id", is(2))
+               .body("object[0].kind", is("workflow"))
+               .body("object[0].name", is("workflow_test"))
+
+               .body("object[0].object_key_values", hasSize(4))
+               //check variables label
+               .body("object[0].object_key_values[0].label", is("variable"))
+               .body("object[0].object_key_values[0].key", is("var1"))
+               .body("object[0].object_key_values[0].value", is("var1Value"))
+               .body("object[0].object_key_values[1].label", is("variable"))
+               .body("object[0].object_key_values[1].key", is("var2"))
+               .body("object[0].object_key_values[1].value", is("var2Value"))
+               //check generic_information label
+               .body("object[0].object_key_values[2].label", is("generic_information"))
+               .body("object[0].object_key_values[2].key", is("genericInfo1"))
+               .body("object[0].object_key_values[2].value", is("genericInfo1Value"))
+               .body("object[0].object_key_values[3].label", is("generic_information"))
+               .body("object[0].object_key_values[3].key", is("genericInfo2"))
+               .body("object[0].object_key_values[3].value", is("genericInfo2Value"))
+               .body("object[0].content_type", is(contentType));
     }
 
     @Test
@@ -142,6 +149,10 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testCreateWorkflowShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42)
+               .queryParam("kind", "workflow")
+               .queryParam("name", "workflow_test")
+               .queryParam("commitMessage", "first commit")
+               .queryParam("contentType", contentType)
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
@@ -157,61 +168,63 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                                                                                                                 "name",
                                                                                                                 "commit message",
                                                                                                                 Optional.of(catalogObject.id),
-                                                                                                                Optional.of("aaplication/xml"),
+                                                                                                                contentType,
                                                                                                                 IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
 
+        CatalogObjectMetadata thirdWFRevision = catalogObjectRevisionService.createCatalogObjectRevision(catalogObject.bucketId,
+                                                                                                         "workflow",
+                                                                                                         "name",
+                                                                                                         "commit message",
+                                                                                                         Optional.of(catalogObject.id),
+                                                                                                         contentType,
+                                                                                                         IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+
         given().pathParam("bucketId", catalogObject.bucketId)
-               .pathParam("workflowId", catalogObject.id)
+               .pathParam("objectId", catalogObject.id)
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("bucket_id", is(secondWorkflowRevision.bucketId.intValue()))
-               .body("id", is(secondWorkflowRevision.id.intValue()))
-               .body("name", is(secondWorkflowRevision.name))
-               .body("revision_id", is(secondWorkflowRevision.id.intValue()));
-        //TODO
-        //               .body("generic_information", hasSize(secondWorkflowRevision.genericInformation.size()))
-        //               .body("generic_information[0].key", is("genericInfo1"))
-        //               .body("generic_information[0].value", is("genericInfo1Value"))
-        //               .body("generic_information[1].key", is("genericInfo2"))
-        //               .body("generic_information[1].value", is("genericInfo2Value"))
-        //               .body("variables", hasSize(secondWorkflowRevision.variables.size()))
-        //               .body("variables[0].key", is("var1"))
-        //               .body("variables[0].value", is("var1Value"))
-        //               .body("variables[1].key", is("var2"))
-        //               .body("variables[1].value", is("var2Value"));
+               .body("bucket_id", is(thirdWFRevision.bucketId.intValue()))
+               .body("id", is(thirdWFRevision.id.intValue()))
+               .body("name", is(thirdWFRevision.name))
+               .body("commit_id", is(thirdWFRevision.commitId.intValue()))
+               .body("object_key_values", hasSize(4))
+               //check variables label
+               .body("object_key_values[0].label", is("variable"))
+               .body("object_key_values[0].key", is("var1"))
+               .body("object_key_values[0].value", is("var1Value"))
+               .body("object_key_values[1].label", is("variable"))
+               .body("object_key_values[1].key", is("var2"))
+               .body("object_key_values[1].value", is("var2Value"))
+               //check generic_information label
+               .body("object_key_values[2].label", is("generic_information"))
+               .body("object_key_values[2].key", is("genericInfo1"))
+               .body("object_key_values[2].value", is("genericInfo1Value"))
+               .body("object_key_values[3].label", is("generic_information"))
+               .body("object_key_values[3].key", is("genericInfo2"))
+               .body("object_key_values[3].value", is("genericInfo2Value"))
+               .body("content_type", is(contentType));
     }
 
     @Test
-    public void testGetWorkflowPayloadShouldReturnSavedXmlPayload() throws IOException {
+    public void testGetRawWorkflowShouldReturnSavedRawObject() throws IOException {
         Response response = given().pathParam("bucketId", 1)
-                                   .pathParam("workflowId", 1)
+                                   .pathParam("objectId", 1)
                                    .when()
-                                   .get(CATALOG_OBJECT_RESOURCE + "?alt=xml");
+                                   .get(CATALOG_OBJECT_RESOURCE + "/raw");
 
         Arrays.equals(ByteStreams.toByteArray(response.asInputStream()),
-                      catalogObjectRepository.getMostRecentCatalogObjectRevision(1L, 1L).getXmlPayload());
+                      catalogObjectRepository.getMostRecentCatalogObjectRevision(1L, 1L).getRawObject());
 
-        response.then().assertThat().statusCode(HttpStatus.SC_OK).contentType("application/xml");
-    }
-
-    @Test
-    public void testGetWorkflowPayloadShouldReturnUnsupportedMediaTypeIfInvalidAltValue() throws IOException {
-        given().pathParam("bucketId", 1)
-               .pathParam("workflowId", 1)
-               .when()
-               .get(CATALOG_OBJECT_RESOURCE + "?alt=wrong")
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE);
+        response.then().assertThat().statusCode(HttpStatus.SC_OK).contentType(contentType);
     }
 
     @Test
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42)
-               .pathParam("workflowId", 1)
+               .pathParam("objectId", 1)
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -222,7 +235,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42)
-               .pathParam("workflowId", 1)
+               .pathParam("objectId", 1)
                .when()
                .get(CATALOG_OBJECT_RESOURCE + "?alt=xml")
                .then()
@@ -231,9 +244,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
-    public void testGetWorkflowShouldReturnNotFoundIfNonExistingWorkflowId() {
+    public void testGetWorkflowShouldReturnNotFoundIfNonExistingobjectId() {
         given().pathParam("bucketId", 1)
-               .pathParam("workflowId", 42)
+               .pathParam("objectId", 42)
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -242,9 +255,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
-    public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingWorkflowId() {
+    public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingobjectId() {
         given().pathParam("bucketId", 1)
-               .pathParam("workflowId", 42)
+               .pathParam("objectId", 42)
                .when()
                .get(CATALOG_OBJECT_RESOURCE + "?alt=xml")
                .then()
@@ -273,9 +286,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
-    public void testDeleteExistingWorkflow() {
+    public void testDeleteExistingObject() {
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("workflowId", catalogObject.id)
+               .pathParam("objectId", catalogObject.id)
                .when()
                .delete(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -283,9 +296,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_OK)
                .body("name", is(catalogObject.name));
 
-        // check that the workflow is really gone
+        // check that the object is really gone
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("workflowId", catalogObject.id)
+               .pathParam("objectId", catalogObject.id)
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -296,7 +309,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testDeleteNonExistingWorkflow() {
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("workflowId", 42)
+               .pathParam("objectId", 42)
                .when()
                .delete(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -304,54 +317,4 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
-    @Test
-    public void testCreateWorkflowsFromArchive() {
-        given().pathParam("bucketId", bucket.getId())
-               .queryParam("layout", layoutMetadata)
-               .queryParam("alt", "zip")
-               .multiPart(IntegrationTestUtil.getArchiveFile("archive.zip"))
-               .when()
-               .post(CATALOG_OBJECTS_RESOURCE)
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_CREATED);
-    }
-
-    @Test
-    public void testCreateWorkflowsFromArchiveWithBadArchive() {
-        given().pathParam("bucketId", bucket.getId())
-               .queryParam("layout", layoutMetadata)
-               .queryParam("alt", "zip")
-               .multiPart(IntegrationTestUtil.getArchiveFile("workflow_0.xml"))
-               .when()
-               .post(CATALOG_OBJECTS_RESOURCE)
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
-    }
-
-    @Test
-    public void testGetWorkflowsAsArchive() {
-        given().pathParam("bucketId", bucket.getId())
-               .pathParam("workflowId", catalogObject.id)
-               .queryParam("layout", layoutMetadata)
-               .when()
-               .get(CATALOG_OBJECT_RESOURCE + "?alt=zip")
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_OK)
-               .contentType("application/zip");
-    }
-
-    @Test
-    public void testGetWorkflowsAsArchiveWithNotExistingWorkflow() {
-        given().pathParam("bucketId", bucket.getId())
-               .pathParam("workflowId", "1,2")
-               .queryParam("layout", layoutMetadata)
-               .when()
-               .get(CATALOG_OBJECT_RESOURCE + "?alt=zip")
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
-    }
 }

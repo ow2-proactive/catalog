@@ -135,7 +135,7 @@ public class BucketService {
                                                                  objectData.getKind(),
                                                                  objectData.getName(),
                                                                  objectData.getCommitMessage(),
-                                                                 Optional.of(objectData.getContentType()),
+                                                                 objectData.getContentType(),
                                                                  bObject);
                     } finally {
                         if (fisobject != null) {

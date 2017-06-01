@@ -39,7 +39,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.rest.Application;
 import org.ow2.proactive.catalog.rest.controller.AbstractRestAssuredTest;
-import org.ow2.proactive.catalog.rest.service.BucketService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +61,9 @@ public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
 
     private static final Logger log = LoggerFactory.getLogger(BucketServiceIntegrationTest.class);
 
-    private static final String DEFAULT_WORKFLOWS_FOLDER = "/default-workflows";
+    private static final String DEFAULT_OBJECTS_FOLDER = "/default-objects";
+
+    private static final String RAW_OBJECTS_FOLDER = "/raw-objects";
 
     private static final String BUCKETS_RESOURCE = "/buckets";
 
@@ -73,7 +74,7 @@ public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testPopulateCatalogEmpty() throws Exception {
-        bucketService.populateCatalog(new String[] {}, DEFAULT_WORKFLOWS_FOLDER);
+        bucketService.populateCatalog(new String[] {}, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
         when().get(BUCKETS_RESOURCE)
               .then()
               .assertThat()
@@ -89,7 +90,7 @@ public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
     @Test
     public void testPopulateCatalogCheckBucketsCreation() throws Exception {
         final String[] buckets = { "Examples", "Cloud-automation", "Toto" };
-        bucketService.populateCatalog(buckets, DEFAULT_WORKFLOWS_FOLDER);
+        bucketService.populateCatalog(buckets, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
 
         // verify that all buckets have been created in the Catalog
         String response = when().get(BUCKETS_RESOURCE)
@@ -106,7 +107,7 @@ public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
         // verify that buckets contains the same number of workflows as in the disk
         for (String bucket : buckets) {
             int nbWorkflows = 0;
-            String[] workflows = new File(Application.class.getResource(DEFAULT_WORKFLOWS_FOLDER).getPath() +
+            String[] workflows = new File(Application.class.getResource(DEFAULT_OBJECTS_FOLDER).getPath() +
                                           File.separator + bucket).list();
             if (workflows != null) {
                 nbWorkflows = workflows.length;

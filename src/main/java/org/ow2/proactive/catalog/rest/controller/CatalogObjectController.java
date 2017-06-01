@@ -79,13 +79,13 @@ public class CatalogObjectController {
             @ApiParam(value = "Kind of the new object") @RequestParam String kind,
             @ApiParam(value = "Name of the object") @RequestParam String name,
             @ApiParam(value = "Commit message") @RequestParam String commitMessage,
-            @ApiParam(value = "Layout describing the tasks position in the CatalogObject") @RequestParam(required = false) Optional<String> layout,
+            @ApiParam(value = "The content type of CatalogObject") @RequestParam String contentType,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
         return new CatalogObjectMetadataList(catalogService.createCatalogObject(bucketId,
                                                                                 kind,
                                                                                 name,
                                                                                 commitMessage,
-                                                                                layout,
+                                                                                contentType,
                                                                                 file.getBytes()));
     }
 

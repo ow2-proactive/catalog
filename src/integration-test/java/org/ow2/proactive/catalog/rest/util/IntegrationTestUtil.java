@@ -28,6 +28,8 @@ package org.ow2.proactive.catalog.rest.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import com.google.common.io.ByteStreams;
 
@@ -38,6 +40,12 @@ import com.google.common.io.ByteStreams;
 public class IntegrationTestUtil {
 
     public static byte[] getWorkflowAsByteArray(String filename) throws IOException {
+
+        String content = new String(Files.readAllBytes(Paths.get(getWorkflowFile(filename).getPath())));
+
+        System.out.println("The file path: " + getWorkflowFile(filename).getPath());
+//        System.out.println("The content of file: " + content);
+
         return ByteStreams.toByteArray(new FileInputStream(getWorkflowFile(filename)));
     }
 

@@ -49,19 +49,19 @@ public class CatalogObjectService {
     private CatalogObjectRevisionService catalogObjectRevisionService;
 
     public CatalogObjectMetadata createCatalogObject(String kind, String name, String commitMessage, Long bucketId,
-            List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
+                                                     String layout, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
         return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
                                                                         kind,
                                                                         name,
                                                                         commitMessage,
                                                                         Optional.empty(),
-                                                                        Optional.empty(),
+                                                                        layout,
                                                                         keyValueMetadataList,
                                                                         rawObject);
     }
 
     public CatalogObjectMetadata createCatalogObject(Long bucketId, String kind, String name, String commitMessage,
-            Optional<String> layout, byte[] rawObject) {
+           String layout, byte[] rawObject) {
         return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
                                                                         kind,
                                                                         name,
