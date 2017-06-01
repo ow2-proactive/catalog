@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -66,6 +68,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
+import org.springframework.http.ResponseEntity;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -204,7 +207,7 @@ public class CatalogObjectRevisionServiceTest {
     }
 
     @Test
-    public void testFindWorkflow() throws Exception {
+    public void testFindCatalogObject() throws Exception {
         when(catalogObjectRepository.findOne(EXISTING_ID)).thenReturn(mock(CatalogObject.class));
         catalogObjectRevisionService.findObjectById(EXISTING_ID);
         verify(catalogObjectRepository, times(1)).findOne(EXISTING_ID);
@@ -244,11 +247,26 @@ public class CatalogObjectRevisionServiceTest {
 
     @Test
     public void testGetWorkflowWithValidRevisionIdNoPayload() throws Exception {
-        getWorkflow(Optional.of(DUMMY_ID));
+        getCatalogObject(Optional.of(DUMMY_ID));
         verify(catalogObjectRevisionRepository, times(1)).getCatalogObjectRevision(DUMMY_ID, DUMMY_ID, DUMMY_ID);
     }
 
-    private void getWorkflow(Optional<Long> revisionId) throws IOException {
+    private void getCatalogObject(Optional<Long> revisionId) throws IOException {
+        getWorkflowFromFunction(revisionId,
+                                revision -> catalogObjectRevisionService.getCatalogObject(DUMMY_ID,
+                                                                                          DUMMY_ID,
+                                                                                          revision));
+    }
+
+    private void getCatalogObjectRaw(Optional<Long> revisionId) throws IOException {
+        getWorkflowFromFunction(revisionId,
+                                revision -> catalogObjectRevisionService.getCatalogObjectRaw(DUMMY_ID,
+                                                                                             DUMMY_ID,
+                                                                                             revision));
+    }
+
+    private void getWorkflowFromFunction(Optional<Long> revisionId,
+            Function<Optional<Long>, ResponseEntity<?>> getFunction) throws IOException {
 
         CatalogObject mockedWf = mock(CatalogObject.class);
         when(mockedWf.getId()).thenReturn(DUMMY_ID);
@@ -274,7 +292,7 @@ public class CatalogObjectRevisionServiceTest {
             when(catalogObjectRepository.getMostRecentCatalogObjectRevision(anyLong(), anyLong())).thenReturn(wfRev);
         }
 
-        catalogObjectRevisionService.getCatalogObject(DUMMY_ID, DUMMY_ID, revisionId);
+        getFunction.apply(revisionId);
 
         verify(bucketRepository, times(1)).findOne(DUMMY_ID);
         verify(catalogObjectRepository, times(1)).findOne(DUMMY_ID);
@@ -282,20 +300,32 @@ public class CatalogObjectRevisionServiceTest {
 
     @Test
     public void testGetWorkflowWithoutRevisionINoPayload() throws Exception {
-        getWorkflow(Optional.empty());
+        getCatalogObject(Optional.empty());
         verify(catalogObjectRepository, times(1)).getMostRecentCatalogObjectRevision(DUMMY_ID, DUMMY_ID);
     }
 
     @Test
     public void testGetWorkflowWithValidRevisionIdWithPayload() throws Exception {
-        getWorkflow(Optional.of(DUMMY_ID));
+        getCatalogObject(Optional.of(DUMMY_ID));
         verify(catalogObjectRevisionRepository, times(1)).getCatalogObjectRevision(DUMMY_ID, DUMMY_ID, DUMMY_ID);
     }
 
     @Test
     public void testGetWorkflowWithoutValidRevisionIdWithPayload() throws Exception {
-        getWorkflow(Optional.empty());
+        getCatalogObject(Optional.empty());
         verify(catalogObjectRepository, times(1)).getMostRecentCatalogObjectRevision(DUMMY_ID, DUMMY_ID);
+    }
+
+    @Test
+    public void testGetWorkflowRaw() throws Exception {
+        getCatalogObjectRaw(Optional.empty());
+        verify(catalogObjectRepository, times(1)).getMostRecentCatalogObjectRevision(DUMMY_ID, DUMMY_ID);
+    }
+
+    @Test
+    public void testGetWorkflowRawRevision() throws Exception {
+        getCatalogObjectRaw(Optional.of(DUMMY_ID));
+        verify(catalogObjectRevisionRepository, times(1)).getCatalogObjectRevision(DUMMY_ID, DUMMY_ID, DUMMY_ID);
     }
 
     @Test

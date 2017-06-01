@@ -120,6 +120,18 @@ public class CatalogObjectRevisionControllerTest {
     }
 
     @Test
+    public void testGetRaw() throws Exception {
+        catalogObjectRevisionController.getRaw(BUCKET_ID, CO_ID);
+        verify(catalogObjectRevisionService, times(1)).getCatalogObjectRaw(BUCKET_ID, CO_ID, Optional.empty());
+    }
+
+    @Test
+    public void testGetRevisionRaw() throws Exception {
+        catalogObjectRevisionController.getRaw(BUCKET_ID, CO_ID, REV_ID);
+        verify(catalogObjectRevisionService, times(1)).getCatalogObjectRaw(BUCKET_ID, CO_ID, Optional.of(REV_ID));
+    }
+
+    @Test
     public void testDelete() throws Exception {
         catalogObjectRevisionController.delete(BUCKET_ID, CO_ID, REV_ID);
         verify(catalogObjectRevisionService, times(1)).delete(BUCKET_ID, CO_ID, Optional.of(REV_ID));
