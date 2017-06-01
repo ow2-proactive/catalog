@@ -133,50 +133,67 @@ public class CatalogObjectRevisionServiceTest {
                                                                  new byte[0]);
     }
 
+    @Test(expected = BucketNotFoundException.class)
+    public void testCreateCatalogObjectRevisionWithInvalidBucket() throws Exception {
+        when(bucketRepository.findOne(Matchers.anyLong())).thenReturn(null);
+        catalogObjectRevisionService.createCatalogObjectRevision(DUMMY_ID,
+                                                                 "oject",
+                                                                 "name",
+                                                                 "commit message",
+                                                                 Optional.empty(),
+                                                                 Optional.empty(),
+                                                                 ImmutableList.of(),
+                                                                 new byte[0]);
+    }
+
     @Test
     public void testCreateWorkflowWithGenericInfosAndVariables1() throws IOException {
-        createWorkflow("WR-NAME-GI-VARS", "WR-PROJ-NAME-GI-VARS", "workflow.xml", Optional.empty(), Optional.empty());
+        createCatalogObject("WR-NAME-GI-VARS",
+                            "WR-PROJ-NAME-GI-VARS",
+                            "workflow.xml",
+                            Optional.empty(),
+                            Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithGenericInfosAndVariables2() throws IOException {
-        createWorkflow("WR-NAME-GI-VARS",
-                       "WR-PROJ-NAME-GI-VARS",
-                       "workflow.xml",
-                       Optional.of(EXISTING_ID),
-                       Optional.empty());
+        createCatalogObject("WR-NAME-GI-VARS",
+                            "WR-PROJ-NAME-GI-VARS",
+                            "workflow.xml",
+                            Optional.of(EXISTING_ID),
+                            Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithoutGenericInfosOrVariables1() throws IOException {
-        createWorkflow("WR-NAME",
-                       "WR-PROJ-NAME",
-                       "workflow-no-generic-information-no-variable.xml",
-                       Optional.empty(),
-                       Optional.empty());
+        createCatalogObject("WR-NAME",
+                            "WR-PROJ-NAME",
+                            "workflow-no-generic-information-no-variable.xml",
+                            Optional.empty(),
+                            Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithoutGenericInfosOrVariables2() throws IOException {
-        createWorkflow("WR-NAME",
-                       "WR-PROJ-NAME",
-                       "workflow-no-generic-information-no-variable.xml",
-                       Optional.of(EXISTING_ID),
-                       Optional.empty());
+        createCatalogObject("WR-NAME",
+                            "WR-PROJ-NAME",
+                            "workflow-no-generic-information-no-variable.xml",
+                            Optional.of(EXISTING_ID),
+                            Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithLayout() throws IOException {
-        createWorkflow("WR-NAME-GI-VARS",
-                       "WR-PROJ-NAME-GI-VARS",
-                       "workflow.xml",
-                       Optional.empty(),
-                       Optional.of("{\"offsets\":{\"Linux_Bash_Task\":{\"top\":" +
-                                   "222,\"left\":681.5}},\"project\":\"Deployment\",\"detailedView\":true}"));
+        createCatalogObject("WR-NAME-GI-VARS",
+                            "WR-PROJ-NAME-GI-VARS",
+                            "workflow.xml",
+                            Optional.empty(),
+                            Optional.of("{\"offsets\":{\"Linux_Bash_Task\":{\"top\":" +
+                                        "222,\"left\":681.5}},\"project\":\"Deployment\",\"detailedView\":true}"));
         // assertions are done in the called method
     }
 
@@ -414,8 +431,8 @@ public class CatalogObjectRevisionServiceTest {
         catalogObjectRevisionService.listCatalogObjects(DUMMY_ID, wId, Optional.empty(), null, mockedAssembler);
     }
 
-    private void createWorkflow(String name, String kind, String fileName, Optional<Long> wId, Optional<String> layout)
-            throws IOException {
+    private void createCatalogObject(String name, String kind, String fileName, Optional<Long> wId,
+            Optional<String> layout) throws IOException {
         String layoutStr = layout.orElse("");
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevision.class))).thenReturn(new CatalogObjectRevision(EXISTING_ID,
@@ -434,7 +451,7 @@ public class CatalogObjectRevisionServiceTest {
         }
 
         CatalogObjectMetadata actualWFMetadata = catalogObjectRevisionService.createCatalogObjectRevision(DUMMY_ID,
-                                                                                                          "workflow",
+                                                                                                          kind,
                                                                                                           "name",
                                                                                                           "commit message",
                                                                                                           wId,

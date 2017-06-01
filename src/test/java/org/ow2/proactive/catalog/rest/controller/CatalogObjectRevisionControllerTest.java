@@ -84,6 +84,21 @@ public class CatalogObjectRevisionControllerTest {
                                                                                    Optional.of(CO_ID),
                                                                                    Optional.empty(),
                                                                                    null);
+
+        catalogObjectRevisionController.create(BUCKET_ID,
+                                               CO_ID,
+                                               "image",
+                                               "name",
+                                               "Commit message",
+                                               Optional.empty(),
+                                               mockedFile);
+        verify(catalogObjectRevisionService, times(1)).createCatalogObjectRevision(BUCKET_ID,
+                                                                                   "image",
+                                                                                   "name",
+                                                                                   "Commit message",
+                                                                                   Optional.of(CO_ID),
+                                                                                   Optional.empty(),
+                                                                                   null);
     }
 
     @Test
