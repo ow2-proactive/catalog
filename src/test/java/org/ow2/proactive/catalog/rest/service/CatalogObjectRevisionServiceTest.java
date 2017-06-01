@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -66,6 +68,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
+import org.springframework.http.ResponseEntity;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -133,50 +136,67 @@ public class CatalogObjectRevisionServiceTest {
                                                                  new byte[0]);
     }
 
+    @Test(expected = BucketNotFoundException.class)
+    public void testCreateCatalogObjectRevisionWithInvalidBucket() throws Exception {
+        when(bucketRepository.findOne(Matchers.anyLong())).thenReturn(null);
+        catalogObjectRevisionService.createCatalogObjectRevision(DUMMY_ID,
+                                                                 "oject",
+                                                                 "name",
+                                                                 "commit message",
+                                                                 Optional.empty(),
+                                                                 Optional.empty(),
+                                                                 ImmutableList.of(),
+                                                                 new byte[0]);
+    }
+
     @Test
     public void testCreateWorkflowWithGenericInfosAndVariables1() throws IOException {
-        createWorkflow("WR-NAME-GI-VARS", "WR-PROJ-NAME-GI-VARS", "workflow.xml", Optional.empty(), Optional.empty());
+        createCatalogObject("WR-NAME-GI-VARS",
+                            "WR-PROJ-NAME-GI-VARS",
+                            "workflow.xml",
+                            Optional.empty(),
+                            Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithGenericInfosAndVariables2() throws IOException {
-        createWorkflow("WR-NAME-GI-VARS",
-                       "WR-PROJ-NAME-GI-VARS",
-                       "workflow.xml",
-                       Optional.of(EXISTING_ID),
-                       Optional.empty());
+        createCatalogObject("WR-NAME-GI-VARS",
+                            "WR-PROJ-NAME-GI-VARS",
+                            "workflow.xml",
+                            Optional.of(EXISTING_ID),
+                            Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithoutGenericInfosOrVariables1() throws IOException {
-        createWorkflow("WR-NAME",
-                       "WR-PROJ-NAME",
-                       "workflow-no-generic-information-no-variable.xml",
-                       Optional.empty(),
-                       Optional.empty());
+        createCatalogObject("WR-NAME",
+                            "WR-PROJ-NAME",
+                            "workflow-no-generic-information-no-variable.xml",
+                            Optional.empty(),
+                            Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithoutGenericInfosOrVariables2() throws IOException {
-        createWorkflow("WR-NAME",
-                       "WR-PROJ-NAME",
-                       "workflow-no-generic-information-no-variable.xml",
-                       Optional.of(EXISTING_ID),
-                       Optional.empty());
+        createCatalogObject("WR-NAME",
+                            "WR-PROJ-NAME",
+                            "workflow-no-generic-information-no-variable.xml",
+                            Optional.of(EXISTING_ID),
+                            Optional.empty());
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithLayout() throws IOException {
-        createWorkflow("WR-NAME-GI-VARS",
-                       "WR-PROJ-NAME-GI-VARS",
-                       "workflow.xml",
-                       Optional.empty(),
-                       Optional.of("{\"offsets\":{\"Linux_Bash_Task\":{\"top\":" +
-                                   "222,\"left\":681.5}},\"project\":\"Deployment\",\"detailedView\":true}"));
+        createCatalogObject("WR-NAME-GI-VARS",
+                            "WR-PROJ-NAME-GI-VARS",
+                            "workflow.xml",
+                            Optional.empty(),
+                            Optional.of("{\"offsets\":{\"Linux_Bash_Task\":{\"top\":" +
+                                        "222,\"left\":681.5}},\"project\":\"Deployment\",\"detailedView\":true}"));
         // assertions are done in the called method
     }
 
@@ -187,7 +207,7 @@ public class CatalogObjectRevisionServiceTest {
     }
 
     @Test
-    public void testFindWorkflow() throws Exception {
+    public void testFindCatalogObject() throws Exception {
         when(catalogObjectRepository.findOne(EXISTING_ID)).thenReturn(mock(CatalogObject.class));
         catalogObjectRevisionService.findObjectById(EXISTING_ID);
         verify(catalogObjectRepository, times(1)).findOne(EXISTING_ID);
@@ -227,11 +247,26 @@ public class CatalogObjectRevisionServiceTest {
 
     @Test
     public void testGetWorkflowWithValidRevisionIdNoPayload() throws Exception {
-        getWorkflow(Optional.of(DUMMY_ID));
+        getCatalogObject(Optional.of(DUMMY_ID));
         verify(catalogObjectRevisionRepository, times(1)).getCatalogObjectRevision(DUMMY_ID, DUMMY_ID, DUMMY_ID);
     }
 
-    private void getWorkflow(Optional<Long> revisionId) throws IOException {
+    private void getCatalogObject(Optional<Long> revisionId) throws IOException {
+        getWorkflowFromFunction(revisionId,
+                                revision -> catalogObjectRevisionService.getCatalogObject(DUMMY_ID,
+                                                                                          DUMMY_ID,
+                                                                                          revision));
+    }
+
+    private void getCatalogObjectRaw(Optional<Long> revisionId) throws IOException {
+        getWorkflowFromFunction(revisionId,
+                                revision -> catalogObjectRevisionService.getCatalogObjectRaw(DUMMY_ID,
+                                                                                             DUMMY_ID,
+                                                                                             revision));
+    }
+
+    private void getWorkflowFromFunction(Optional<Long> revisionId,
+            Function<Optional<Long>, ResponseEntity<?>> getFunction) throws IOException {
 
         CatalogObject mockedWf = mock(CatalogObject.class);
         when(mockedWf.getId()).thenReturn(DUMMY_ID);
@@ -257,7 +292,7 @@ public class CatalogObjectRevisionServiceTest {
             when(catalogObjectRepository.getMostRecentCatalogObjectRevision(anyLong(), anyLong())).thenReturn(wfRev);
         }
 
-        catalogObjectRevisionService.getCatalogObject(DUMMY_ID, DUMMY_ID, revisionId);
+        getFunction.apply(revisionId);
 
         verify(bucketRepository, times(1)).findOne(DUMMY_ID);
         verify(catalogObjectRepository, times(1)).findOne(DUMMY_ID);
@@ -265,20 +300,32 @@ public class CatalogObjectRevisionServiceTest {
 
     @Test
     public void testGetWorkflowWithoutRevisionINoPayload() throws Exception {
-        getWorkflow(Optional.empty());
+        getCatalogObject(Optional.empty());
         verify(catalogObjectRepository, times(1)).getMostRecentCatalogObjectRevision(DUMMY_ID, DUMMY_ID);
     }
 
     @Test
     public void testGetWorkflowWithValidRevisionIdWithPayload() throws Exception {
-        getWorkflow(Optional.of(DUMMY_ID));
+        getCatalogObject(Optional.of(DUMMY_ID));
         verify(catalogObjectRevisionRepository, times(1)).getCatalogObjectRevision(DUMMY_ID, DUMMY_ID, DUMMY_ID);
     }
 
     @Test
     public void testGetWorkflowWithoutValidRevisionIdWithPayload() throws Exception {
-        getWorkflow(Optional.empty());
+        getCatalogObject(Optional.empty());
         verify(catalogObjectRepository, times(1)).getMostRecentCatalogObjectRevision(DUMMY_ID, DUMMY_ID);
+    }
+
+    @Test
+    public void testGetWorkflowRaw() throws Exception {
+        getCatalogObjectRaw(Optional.empty());
+        verify(catalogObjectRepository, times(1)).getMostRecentCatalogObjectRevision(DUMMY_ID, DUMMY_ID);
+    }
+
+    @Test
+    public void testGetWorkflowRawRevision() throws Exception {
+        getCatalogObjectRaw(Optional.of(DUMMY_ID));
+        verify(catalogObjectRevisionRepository, times(1)).getCatalogObjectRevision(DUMMY_ID, DUMMY_ID, DUMMY_ID);
     }
 
     @Test
@@ -414,8 +461,8 @@ public class CatalogObjectRevisionServiceTest {
         catalogObjectRevisionService.listCatalogObjects(DUMMY_ID, wId, Optional.empty(), null, mockedAssembler);
     }
 
-    private void createWorkflow(String name, String kind, String fileName, Optional<Long> wId, Optional<String> layout)
-            throws IOException {
+    private void createCatalogObject(String name, String kind, String fileName, Optional<Long> wId,
+            Optional<String> layout) throws IOException {
         String layoutStr = layout.orElse("");
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevision.class))).thenReturn(new CatalogObjectRevision(EXISTING_ID,
@@ -434,7 +481,7 @@ public class CatalogObjectRevisionServiceTest {
         }
 
         CatalogObjectMetadata actualWFMetadata = catalogObjectRevisionService.createCatalogObjectRevision(DUMMY_ID,
-                                                                                                          "workflow",
+                                                                                                          kind,
                                                                                                           "name",
                                                                                                           "commit message",
                                                                                                           wId,

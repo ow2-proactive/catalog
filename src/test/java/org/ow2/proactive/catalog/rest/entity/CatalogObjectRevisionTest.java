@@ -42,7 +42,7 @@ public class CatalogObjectRevisionTest {
 
     @Test
     public void testAddKeyValue() throws Exception {
-        CatalogObjectRevision catalogObjectRevision = createWorkflowRevision();
+        CatalogObjectRevision catalogObjectRevision = createCatalogObjectRevision();
         assertThat(catalogObjectRevision.getKeyValueMetadataList()).hasSize(1);
 
         catalogObjectRevision.addKeyValue(Mockito.mock(KeyValueMetadata.class));
@@ -50,10 +50,10 @@ public class CatalogObjectRevisionTest {
         assertThat(catalogObjectRevision.getKeyValueMetadataList()).hasSize(2);
     }
 
-    private CatalogObjectRevision createWorkflowRevision() {
+    private CatalogObjectRevision createCatalogObjectRevision() {
         KeyValueMetadata variableMock = Mockito.mock(KeyValueMetadata.class);
 
-        CatalogObjectRevision catalogObjectRevision = new CatalogObjectRevision("workflow",
+        CatalogObjectRevision catalogObjectRevision = new CatalogObjectRevision("object",
                                                                                 LocalDateTime.now(),
                                                                                 "test",
                                                                                 "commit message",

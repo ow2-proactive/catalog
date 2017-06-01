@@ -36,10 +36,11 @@ import org.junit.Test;
 import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserFactory;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserInterface;
+import org.ow2.proactive.catalog.rest.util.parser.WorkflowParser;
 
 
 /**
- * Unit tests associated to {@link CatalogObjectParserInterface}.
+ * Unit tests associated to {@link WorkflowParser}.
  *
  * @author ActiveEon Team
  */

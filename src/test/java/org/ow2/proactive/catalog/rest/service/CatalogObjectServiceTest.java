@@ -57,15 +57,10 @@ public class CatalogObjectServiceTest {
     }
 
     @Test
-    public void testCreateWorkflow() {
-        catalogObjectService.createCatalogObject(DUMMY_ID,
-                                                 "workflow",
-                                                 "name",
-                                                 "commit message",
-                                                 Optional.empty(),
-                                                 null);
+    public void testCreateCatalogObject() {
+        catalogObjectService.createCatalogObject(DUMMY_ID, "object", "name", "commit message", Optional.empty(), null);
         verify(catalogObjectRevisionService, times(1)).createCatalogObjectRevision(DUMMY_ID,
-                                                                                   "workflow",
+                                                                                   "object",
                                                                                    "name",
                                                                                    "commit message",
                                                                                    Optional.empty(),
@@ -74,13 +69,13 @@ public class CatalogObjectServiceTest {
     }
 
     @Test
-    public void testGetWorkflowMetadata() {
+    public void testGetCatalogObjectMetadata() {
         catalogObjectService.getCatalogObjectMetadata(DUMMY_ID, DUMMY_ID);
         verify(catalogObjectRevisionService, times(1)).getCatalogObject(DUMMY_ID, DUMMY_ID, Optional.empty());
     }
 
     @Test
-    public void testListWorkflows() throws QueryExpressionBuilderException {
+    public void testListCatalogObjects() throws QueryExpressionBuilderException {
         catalogObjectService.listCatalogObjects(DUMMY_ID, Optional.empty(), null, null);
         verify(catalogObjectRevisionService, times(1)).listCatalogObjects(DUMMY_ID,
                                                                           Optional.empty(),
