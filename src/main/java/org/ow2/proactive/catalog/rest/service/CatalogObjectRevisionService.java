@@ -57,6 +57,8 @@ import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRevisionRe
 import org.ow2.proactive.catalog.rest.service.repository.QueryDslCatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserFactory;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserInterface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
@@ -92,9 +94,11 @@ public class CatalogObjectRevisionService {
     @Autowired
     private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(CatalogObjectRevisionService.class);
+
     @Transactional
     public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String kind, String name,
-            String commitMessage, Optional<Long> catalogObjectId, Optional<String> contentType, byte[] rawObject) {
+            String commitMessage, Optional<Long> catalogObjectId, String contentType, byte[] rawObject) {
         try {
             CatalogObjectParserInterface catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
             List<KeyValueMetadata> keyValueMetadataListParsed = catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
@@ -114,12 +118,11 @@ public class CatalogObjectRevisionService {
 
     @Transactional
     public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String kind, String name,
-            String commitMessage, Optional<Long> objectId, Optional<String> contentType,
+            String commitMessage, Optional<Long> objectId, String contentType,
             List<KeyValueMetadata> keyValueMetadataListParsed, byte[] rawObject) {
         Bucket bucket = findBucket(bucketId);
 
         CatalogObjectRevision catalogObjectRevision;
-        String layoutValue = contentType.orElse("");
 
         CatalogObject catalogObject = null;
         if (objectId.isPresent()) {
@@ -133,7 +136,7 @@ public class CatalogObjectRevisionService {
                                                           name,
                                                           commitMessage,
                                                           bucketId,
-                                                          layoutValue,
+                                                          contentType,
                                                           rawObject);
 
         catalogObjectRevision.addKeyValueList(keyValueMetadataListParsed);
@@ -171,6 +174,7 @@ public class CatalogObjectRevisionService {
             Pageable pageable, PagedResourcesAssembler assembler) throws QueryExpressionBuilderException {
 
         findBucket(bucketId);
+
         Page<CatalogObjectRevision> page;
 
         if (catalogObjectId.isPresent()) {
@@ -186,6 +190,7 @@ public class CatalogObjectRevisionService {
             } else {
                 // it is not required to pass bucket ID since
                 // object ID is unique for all buckets
+                CatalogObject catalogObject = findObjectById(catalogObjectId.get());
                 page = catalogObjectRevisionRepository.getRevisions(catalogObjectId.get(), pageable);
             }
         } else {
@@ -212,8 +217,9 @@ public class CatalogObjectRevisionService {
 
     public ResponseEntity<CatalogObjectMetadata> getCatalogObject(Long bucketId, Long objectId,
             Optional<Long> revisionId) {
+
         findBucket(bucketId);
-        findObjectById(objectId);
+        CatalogObject catalogObject = findObjectById(objectId);
 
         CatalogObjectRevision catalogObjectRevision = getCatalogObjectRevision(bucketId, objectId, revisionId);
 
@@ -232,12 +238,18 @@ public class CatalogObjectRevisionService {
 
         CatalogObjectRevision catalogObjectRevision = getCatalogObjectRevision(bucketId, objectId, revisionId);
 
-        byte[] bytes = catalogObjectRevision.getXmlPayload();
+        byte[] bytes = catalogObjectRevision.getRawObject();
 
-        return ResponseEntity.ok()
-                             .contentLength(bytes.length)
-                             .contentType(MediaType.valueOf(catalogObjectRevision.getContentType()))
-                             .body(new InputStreamResource(new ByteArrayInputStream(bytes)));
+        ResponseEntity.BodyBuilder responseBodyBuilder = ResponseEntity.ok().contentLength(bytes.length);
+
+        try {
+            MediaType mediaType = MediaType.valueOf(catalogObjectRevision.getContentType());
+            responseBodyBuilder = responseBodyBuilder.contentType(mediaType);
+        } catch (org.springframework.http.InvalidMediaTypeException mimeEx) {
+            logger.warn("The wrong content type for object: "+ objectId + ", commitId:" + revisionId + ", the contentType: "+ catalogObjectRevision.getContentType(), mimeEx);
+            mimeEx.printStackTrace();
+        }
+        return responseBodyBuilder.body(new InputStreamResource(new ByteArrayInputStream(bytes)));
     }
 
     public List<CatalogObjectRevision> getCatalogObjectsRevisions(Long bucketId, List<Long> idList) {

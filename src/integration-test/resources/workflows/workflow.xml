@@ -3,26 +3,30 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns="urn:proactive:jobdescriptor:3.5"
         xsi:schemaLocation="urn:proactive:jobdescriptor:3.5 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.5/schedulerjob.xsd"
-        name="Valid Workflow"
         projectName="Project Name"
+        name="Valid Workflow"
         priority="normal"
         cancelJobOnError="false">
     <variables>
-        <variable name==="var1" value="var1Value"/>
-        variable value="var2Value" name="var2"/>
+        <variable name="var1" value="var1Value"/>
+        <variable value="var2Value" name="var2"/>
     </variables>
     <description>
-        <![CDATA[ A catalogObject that executes cmd in JVM. ]]>
+        <![CDATA[ A workflow that executes cmd in JVM. ]]>
     </description>
     <genericInformation>
-        <info value="genericInfo1Value" name="genericInfo1">
-        nfo name="genericInfo2" value="genericInfo2Value"/>
+        <info value="genericInfo1Value" name="genericInfo1"/>
+        <info name="genericInfo2" value="genericInfo2Value"/>
     </genericInformation>
     <taskFlow>
         <task name="Windows_Cmd_Task">
             <description>
                 <![CDATA[ The simplest task, ran by a cmd engine. ]]>
             </description>
+            <variables>
+		        <variable name="var1" value="task_var1Value"/>
+		        <variable value="var2Value" name="task_var2"/>
+		    </variables>
             <scriptExecutable>
                 <script>
                     <code language="cmd">

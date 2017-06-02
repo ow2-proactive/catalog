@@ -29,12 +29,15 @@ import java.util.Objects;
 
 import org.springframework.hateoas.ResourceSupport;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 
 /**
  * @author ActiveEon Team
  */
 public abstract class NamedMetadata extends ResourceSupport {
 
+    @JsonProperty
     public final Long id;
 
     public final String name;

@@ -25,7 +25,6 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
-import static com.google.common.truth.Truth.assertThat;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.hasSize;
@@ -33,7 +32,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -133,7 +131,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final long bucketId = bucket.getId();
         final String bucketName = bucket.getName();
         JsonPath jsonPath = given().pathParam("bucketId", 1L).when().get(BUCKET_RESOURCE).thenReturn().jsonPath();
-        LocalDateTime actualDate = LocalDateTime.parse(jsonPath.getString("created_at"));
+        System.out.println("jsonPath: " + jsonPath.getString("id"));
         assertEquals(jsonPath.getLong("id"), bucketId);
         assertEquals(jsonPath.getString("name"), bucketName);
     }

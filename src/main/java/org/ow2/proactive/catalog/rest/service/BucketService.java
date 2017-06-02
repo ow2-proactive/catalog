@@ -122,19 +122,26 @@ public class BucketService {
                 String[] wfs = bucketFolder.list();
                 Arrays.sort(wfs);
                 for (String object : wfs) {
-                    File catalogObjectFile = new File(bucketFolder.getPath() + File.separator + object);
-                    CatalogObjectData objectData = CatalogObjectJSONParser.parseJSONFile(catalogObjectFile);
+                    FileInputStream fisobject = null;
+                    try {
+                        File catalogObjectFile = new File(bucketFolder.getPath() + File.separator + object);
+                        CatalogObjectData objectData = CatalogObjectJSONParser.parseJSONFile(catalogObjectFile);
 
-                    File fobject = new File(rawFolderResource.getPath() + File.separator +
-                                            objectData.getObjectFileName());
-                    FileInputStream fisobject = new FileInputStream(fobject);
-                    byte[] bObject = ByteStreams.toByteArray(fisobject);
-                    catalogObjectService.createCatalogObject(bucketId,
-                                                             objectData.getKind(),
-                                                             objectData.getName(),
-                                                             objectData.getCommitMessage(),
-                                                             Optional.of(objectData.getContentType()),
-                                                             bObject);
+                        File fobject = new File(rawFolderResource.getPath() + File.separator +
+                                                objectData.getObjectFileName());
+                        fisobject = new FileInputStream(fobject);
+                        byte[] bObject = ByteStreams.toByteArray(fisobject);
+                        catalogObjectService.createCatalogObject(bucketId,
+                                                                 objectData.getKind(),
+                                                                 objectData.getName(),
+                                                                 objectData.getCommitMessage(),
+                                                                 objectData.getContentType(),
+                                                                 bObject);
+                    } finally {
+                        if (fisobject != null) {
+                            fisobject.close();
+                        }
+                    }
                 }
             }
         }

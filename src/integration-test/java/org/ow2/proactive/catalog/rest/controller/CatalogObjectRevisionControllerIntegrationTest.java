@@ -26,7 +26,6 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -74,39 +73,48 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     protected CatalogObjectMetadata catalogObjectRevisionAlone;
 
+    private static final String contentType = "application/xml";
+
     @Before
     public void setup() throws IOException {
         bucket = bucketRepository.save(new Bucket("bucket", "WorkflowRevisionControllerIntegrationTestUser"));
 
+        catalogObjectRevisionAlone = catalogObjectRevisionService.createCatalogObjectRevision(bucket.getId(),
+                                                                                              "workflow",
+                                                                                              "WF_2_Rev_1",
+                                                                                              "alone commit",
+                                                                                              Optional.empty(),
+                                                                                              contentType,
+                                                                                              IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+
         firstCatalogObjectRevision = catalogObjectRevisionService.createCatalogObjectRevision(bucket.getId(),
                                                                                               "workflow",
-                                                                                              "name",
-                                                                                              "commit message",
+                                                                                              "WF_1_Rev_1",
+                                                                                              "first commit",
                                                                                               Optional.empty(),
-                                                                                              Optional.empty(),
+                                                                                              contentType,
                                                                                               IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
 
         secondCatalogObjectRevision = catalogObjectRevisionService.createCatalogObjectRevision(bucket.getId(),
                                                                                                "workflow",
-                                                                                               "name",
-                                                                                               "commit message",
+                                                                                               "WF_1_Rev_2",
+                                                                                               "second commit",
                                                                                                Optional.of(firstCatalogObjectRevision.id),
-                                                                                               Optional.empty(),
+                                                                                               contentType,
                                                                                                IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml"));
 
-        catalogObjectRevisionAlone = catalogObjectRevisionService.createCatalogObjectRevision(bucket.getId(),
-                                                                                              "workflow",
-                                                                                              "name",
-                                                                                              "commit message",
-                                                                                              Optional.empty(),
-                                                                                              Optional.empty(),
-                                                                                              IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
     }
 
     @Test
     public void testCreateWorkflowRevisionShouldReturnSavedWorkflow() {
+        int lastUuidForNewRevision = secondCatalogObjectRevision.commitId.intValue() + 1;
+
         given().pathParam("bucketId", bucket.getId())
                .pathParam("objectId", firstCatalogObjectRevision.id)
+               .queryParam("kind", "workflow")
+               .queryParam("name", "workflow_test")
+               .queryParam("commitMessage", "first commit")
+                .queryParam("contentType", contentType)
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
@@ -116,37 +124,18 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .body("bucket_id", is(bucket.getId().intValue()))
                .body("id", is(firstCatalogObjectRevision.id.intValue()))
                .body("id", is(secondCatalogObjectRevision.id.intValue()))
-               .body("name", is("Valid CatalogObject"))
-               .body("project_name", is("Project Name"))
-               .body("revision_id", is(secondCatalogObjectRevision.id.intValue() + 1))
-               .body("generic_information", hasSize(2))
-               .body("generic_information[0].key", is("genericInfo1"))
-               .body("generic_information[0].value", is("genericInfo1Value"))
-               .body("generic_information[1].key", is("genericInfo2"))
-               .body("generic_information[1].value", is("genericInfo2Value"))
-               .body("variables", hasSize(2))
-               .body("variables[0].key", is("var1"))
-               .body("variables[0].value", is("var1Value"))
-               .body("variables[1].key", is("var2"))
-               .body("variables[1].value", is("var2Value"));
-    }
-
-    @Test
-    public void testCreateWorkflowRevisionShouldReturnUnprocessableEntityIfNoNameInXmlPayload() {
-        given().pathParam("bucketId", bucket.getId())
-               .pathParam("objectId", firstCatalogObjectRevision.id)
-               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-no-name.xml"))
-               .when()
-               .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+               .body("name", is("workflow_test"))
+               .body("commit_id", is(lastUuidForNewRevision));
     }
 
     @Test
     public void testCreateWorkflowRevisionShouldReturnUnprocessableEntityIfInvalidSyntax() {
         given().pathParam("bucketId", bucket.getId())
                .pathParam("objectId", firstCatalogObjectRevision.id)
+                .queryParam("kind", "workflow")
+                .queryParam("name", "workflow_test")
+                .queryParam("commitMessage", "first commit")
+                .queryParam("contentType", contentType)
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-invalid-syntax.xml"))
                .when()
                .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
@@ -159,6 +148,10 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testCreateWorkflowRevisionShouldWorkIfNoProjectNameInXmlPayload() {
         given().pathParam("bucketId", bucket.getId())
                .pathParam("objectId", firstCatalogObjectRevision.id)
+                .queryParam("kind", "workflow")
+                .queryParam("name", "workflow_test")
+                .queryParam("commitMessage", "first commit")
+                .queryParam("contentType", contentType)
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-no-project-name.xml"))
                .when()
                .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
@@ -182,6 +175,10 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testCreateWorkflowRevisionShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42)
                .pathParam("objectId", firstCatalogObjectRevision.id)
+                .queryParam("kind", "workflow")
+                .queryParam("name", "workflow_test")
+                .queryParam("commitMessage", "first commit")
+                .queryParam("contentType", contentType)
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
@@ -193,7 +190,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     @Test
     public void testGetWorkflowRevisionShouldReturnSavedWorkflowRevision() {
         given().pathParam("bucketId", secondCatalogObjectRevision.bucketId)
-               .pathParam("commitId", secondCatalogObjectRevision.id)
+               .pathParam("objectId", secondCatalogObjectRevision.id)
+               .pathParam("commitId", secondCatalogObjectRevision.commitId)
                .when()
                .get(CATALOG_OBJECT_REVISION_RESOURCE)
                .then()
@@ -202,42 +200,47 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .body("bucket_id", is(bucket.getId().intValue()))
                .body("id", is(secondCatalogObjectRevision.id.intValue()))
                .body("name", is(secondCatalogObjectRevision.name))
-               .body("commit_id", is(secondCatalogObjectRevision.id.intValue()))
-        //TODO
-        //               .body("generic_information", hasSize(secondWorkflowRevision.keyValueMetadataList.size()))
-        //               .body("generic_information[0].key", is("genericInfo1"))
-        //               .body("generic_information[0].value", is("genericInfo1ValueUpdated"))
-        //               .body("generic_information[1].key", is("genericInfo2"))
-        //               .body("generic_information[1].value", is("genericInfo2ValueUpdated"))
-        //               .body("variables[0].key", is("var1"))
-        //               .body("variables[0].value", is("var1ValueUpdated"))
-        //               .body("variables[1].key", is("var2"))
-        //               .body("variables[1].value", is("var2ValueUpdated"))
-        ;
+               .body("commit_id", is(secondCatalogObjectRevision.commitId.intValue()))
+               .body("object_key_values", hasSize(4))
+               //check variables label
+               .body("object_key_values[0].label", is("variable"))
+               .body("object_key_values[0].key", is("var1"))
+               .body("object_key_values[0].value", is("var1ValueUpdated"))
+               .body("object_key_values[1].label", is("variable"))
+               .body("object_key_values[1].key", is("var2"))
+               .body("object_key_values[1].value", is("var2ValueUpdated"))
+               //check generic_information label
+               .body("object_key_values[2].label", is("generic_information"))
+               .body("object_key_values[2].key", is("genericInfo1"))
+               .body("object_key_values[2].value", is("genericInfo1ValueUpdated"))
+               .body("object_key_values[3].label", is("generic_information"))
+               .body("object_key_values[3].key", is("genericInfo2"))
+               .body("object_key_values[3].value", is("genericInfo2ValueUpdated"));
     }
 
-    //TODO 
-    //    @Test
-    //    public void testGetWorkflowRevisionPayloadShouldReturnSavedXmlPayload() throws IOException {
-    //        Response response = given().pathParam("bucketId", secondCatalogObjectRevision.bucketId)
-    //                                   .pathParam("commitId", secondCatalogObjectRevision.id)
-    //                                   .when()
-    //                                   .get(CATALOG_OBJECT_REVISION_RESOURCE + "?alt=xml");
-    //
-    //        Arrays.equals(ByteStreams.toByteArray(response.asInputStream()),
-    //                      workflowRevisionRepository.getCatalogObjectRevision(secondCatalogObjectRevision.bucketId,
-    //                                                                          secondCatalogObjectRevision.id,
-    //                                                                          secondCatalogObjectRevision.id)
-    //                                                .getXmlPayload());
-    //
-    //        response.then().assertThat().statusCode(HttpStatus.SC_OK).contentType("application/xml");
-    //    }
+    @Test
+    public void testGetWorkflowRevisionPayloadShouldReturnSavedRawObject() throws IOException {
+        Response response = given().pathParam("bucketId", secondCatalogObjectRevision.bucketId)
+                                   .pathParam("objectId", secondCatalogObjectRevision.id)
+                                   .pathParam("commitId", secondCatalogObjectRevision.commitId)
+                                   //                                      .queryParam("contentType", "application/xml")
+                                   .when()
+                                   .get(CATALOG_OBJECT_REVISION_RESOURCE + "/raw");
+
+        Arrays.equals(ByteStreams.toByteArray(response.asInputStream()),
+                      catalogObjectRevisionRepository.getCatalogObjectRevision(secondCatalogObjectRevision.bucketId,
+                                                                               secondCatalogObjectRevision.id,
+                                                                               secondCatalogObjectRevision.commitId)
+                                                     .getRawObject());
+
+        response.then().assertThat().statusCode(HttpStatus.SC_OK);
+    }
 
     @Test
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42)
                .pathParam("objectId", 1)
-               .pathParam("revisionId", 1)
+               .pathParam("commitId", 1)
                .when()
                .get(CATALOG_OBJECT_REVISION_RESOURCE)
                .then()
@@ -249,9 +252,13 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingBucketId() {
         given().pathParam("bucketId", 42)
                .pathParam("objectId", 1)
-               .pathParam("revisionId", 1)
+               .pathParam("commitId", 1)
+                .queryParam("kind", "workflow")
+                .queryParam("name", "workflow_test")
+                .queryParam("commitMessage", "first commit")
+                .queryParam("contentType", contentType)
                .when()
-               .get(CATALOG_OBJECT_REVISION_RESOURCE + "?alt=xml")
+               .get(CATALOG_OBJECT_REVISION_RESOURCE + "/raw")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -261,7 +268,11 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingObjectId() {
         given().pathParam("bucketId", 1)
                .pathParam("objectId", 42)
-               .pathParam("revisionId", 1)
+               .pathParam("commitId", 1)
+                .queryParam("kind", "workflow")
+                .queryParam("name", "workflow_test")
+                .queryParam("commitMessage", "first commit")
+                .queryParam("contentType", contentType)
                .when()
                .get(CATALOG_OBJECT_REVISION_RESOURCE)
                .then()
@@ -273,19 +284,27 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingObjectId() {
         given().pathParam("bucketId", 1)
                .pathParam("objectId", 42)
-               .pathParam("revisionId", 1)
+                .pathParam("commitId", 1)
+                .queryParam("kind", "workflow")
+                .queryParam("name", "workflow_test")
+                .queryParam("commitMessage", "first commit")
+                .queryParam("contentType", contentType)
                .when()
-               .get(CATALOG_OBJECT_REVISION_RESOURCE + "?alt=xml")
+               .get(CATALOG_OBJECT_REVISION_RESOURCE + "/raw")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
-    public void testGetWorkflowShouldReturnNotFoundIfNonExistingRevisionId() {
+    public void testGetWorkflowShouldReturnNotFoundIfNonExistingCommitId() {
         given().pathParam("bucketId", 1)
                .pathParam("objectId", 1)
-               .pathParam("revisionId", 42)
+                .pathParam("commitId", 42)
+                .queryParam("kind", "workflow")
+                .queryParam("name", "workflow_test")
+                .queryParam("commitMessage", "first commit")
+                .queryParam("contentType", contentType)
                .when()
                .get(CATALOG_OBJECT_REVISION_RESOURCE)
                .then()
@@ -297,9 +316,13 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingRevisionId() {
         given().pathParam("bucketId", 1)
                .pathParam("objectId", 1)
-               .pathParam("revisionId", 42)
+                .pathParam("commitId", 42)
+                .queryParam("kind", "workflow")
+                .queryParam("name", "workflow_test")
+                .queryParam("commitMessage", "first commit")
+                .queryParam("contentType", contentType)
                .when()
-               .get(CATALOG_OBJECT_REVISION_RESOURCE + "?alt=xml")
+               .get(CATALOG_OBJECT_REVISION_RESOURCE + "/raw")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
@@ -314,12 +337,24 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                                                                          "name",
                                                                          "commit message",
                                                                          Optional.of(secondCatalogObjectRevision.id),
-                                                                         Optional.empty(),
+                                                                         contentType,
                                                                          IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
             } catch (IOException e) {
                 Assert.fail(e.getMessage());
             }
         });
+
+//        List<CatalogObjectRevision> lstCatalogRev = catalogObjectRevisionService.getCatalogObjectsRevisions(secondCatalogObjectRevision.bucketId, Collections.singletonList(secondCatalogObjectRevision.id));
+//
+//        System.out.println("lstCatalogRev.size: " + lstCatalogRev.size());
+
+//        Pageable pageable = null;
+//        PagedResourcesAssembler assembler = null;
+//        try {
+//            catalogObjectRevisionService.listCatalogObjects(secondCatalogObjectRevision.bucketId,  Optional.of(secondCatalogObjectRevision.id), Optional.empty(), pageable, assembler);
+//        } catch (QueryExpressionBuilderException e) {
+//            e.printStackTrace();
+//        }
 
         Response response = given().pathParam("bucketId", 1)
                                    .pathParam("objectId", 1)
@@ -338,9 +373,10 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     @Test
     public void testDeleteTheUniqueWorkflowRevision() {
-        given().pathParam("bucketId", bucket.getId())
-               .pathParam("commitId", catalogObjectRevisionAlone.id)
-               .when()
+        given()
+               .when().pathParam("bucketId", bucket.getId())
+                .pathParam("objectId", catalogObjectRevisionAlone.id)
+                .pathParam("commitId", catalogObjectRevisionAlone.commitId)
                .delete(CATALOG_OBJECT_REVISION_RESOURCE)
                .then()
                .assertThat()
@@ -356,7 +392,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         // secondWorkflowRevision is the current revision
         // The workflow currently references secondWorkflowRevision
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("commitId", firstCatalogObjectRevision.id)
+                .pathParam("objectId", firstCatalogObjectRevision.id)
+               .pathParam("commitId", firstCatalogObjectRevision.commitId)
                .when()
                .delete(CATALOG_OBJECT_REVISION_RESOURCE)
                .then()
@@ -365,7 +402,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         // check that the workflow continues to
         // reference secondWorkflowRevision
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("commitId", secondCatalogObjectRevision.id)
+                .pathParam("objectId", secondCatalogObjectRevision.id)
+               .pathParam("commitId", secondCatalogObjectRevision.commitId)
                .when()
                .get(CATALOG_OBJECT_REVISION_RESOURCE)
                .then()
@@ -373,7 +411,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .statusCode(HttpStatus.SC_OK);
         // and that the previous revision is actually gone
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("commitId", firstCatalogObjectRevision.id)
+                .pathParam("objectId", firstCatalogObjectRevision.id)
+               .pathParam("commitId", firstCatalogObjectRevision.commitId)
                .when()
                .get(CATALOG_OBJECT_REVISION_RESOURCE)
                .then()
@@ -390,7 +429,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         // secondWorkflowRevision is the current revision
         // The workflow currently references secondWorkflowRevision
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("commitId", secondCatalogObjectRevision.id)
+                .pathParam("objectId", secondCatalogObjectRevision.id)
+               .pathParam("commitId", secondCatalogObjectRevision.commitId)
                .when()
                .delete(CATALOG_OBJECT_REVISION_RESOURCE)
                .then()
@@ -399,7 +439,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
         // check that the workflow references the previous version
         given().pathParam("bucketId", bucket.getId())
-               .pathParam("objectId", firstCatalogObjectRevision.id)
+                .pathParam("objectId", firstCatalogObjectRevision.id)
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()

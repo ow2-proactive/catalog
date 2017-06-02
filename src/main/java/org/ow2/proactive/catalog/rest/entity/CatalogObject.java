@@ -48,7 +48,7 @@ import com.google.common.collect.Lists;
  * @author ActiveEon Team
  */
 @Entity
-@Table(name = "CATALOG_OBJECT", indexes = { @Index(columnList = "LAST_REVISION_ID"), })
+@Table(name = "CATALOG_OBJECT", indexes = { @Index(columnList = "LAST_COMMIT_ID") })
 public class CatalogObject {
 
     @Id

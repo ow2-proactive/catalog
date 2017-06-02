@@ -49,7 +49,7 @@ public class AbstractCatalogObjectRevisionControllerTest extends AbstractRestAss
 
     protected static final String CATALOG_OBJECT_REVISIONS_RESOURCE = "/buckets/{bucketId}/resources/{objectId}/revisions";
 
-    protected static final String CATALOG_OBJECT_REVISION_RESOURCE = "/buckets/{bucketId}/resources/{objectId}/revisions/{revisionId}";
+    protected static final String CATALOG_OBJECT_REVISION_RESOURCE = "/buckets/{bucketId}/resources/{objectId}/revisions/{commitId}";
 
     @Autowired
     protected BucketRepository bucketRepository;
