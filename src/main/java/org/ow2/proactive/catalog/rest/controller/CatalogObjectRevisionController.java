@@ -96,13 +96,6 @@ public class CatalogObjectRevisionController {
         return catalogObjectRevisionService.getCatalogObject(bucketId, objectId, Optional.ofNullable(revisionId));
     }
 
-    @ApiOperation(value = "Gets the raw content of a last revision of a catalog object")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
-    @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/raw", method = GET)
-    public ResponseEntity<InputStreamResource> getRaw(@PathVariable Long bucketId, @PathVariable Long objectId) {
-        return catalogObjectRevisionService.getCatalogObjectRaw(bucketId, objectId, Optional.empty());
-    }
-
     @ApiOperation(value = "Gets the raw content of a specific revision")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions/{revisionId}/raw", method = GET)

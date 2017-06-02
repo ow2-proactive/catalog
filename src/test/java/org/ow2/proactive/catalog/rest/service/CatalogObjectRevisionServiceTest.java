@@ -131,7 +131,7 @@ public class CatalogObjectRevisionServiceTest {
                                                                  "name",
                                                                  "commit message",
                                                                  Optional.empty(),
-                "application/xml",
+                                                                 "application/xml",
                                                                  ImmutableList.of(),
                                                                  new byte[0]);
     }
@@ -144,54 +144,58 @@ public class CatalogObjectRevisionServiceTest {
                                                                  "name",
                                                                  "commit message",
                                                                  Optional.empty(),
-                "application/xml",
+                                                                 "application/xml",
                                                                  ImmutableList.of(),
                                                                  new byte[0]);
     }
 
     @Test
     public void testCreateWorkflowWithGenericInfosAndVariables1() throws IOException {
-        createCatalogObject("WR-NAME-GI-VARS", "WR-PROJ-NAME-GI-VARS", "workflow.xml", Optional.empty(), "application/xml");
+        createCatalogObject("WR-NAME-GI-VARS",
+                            "WR-PROJ-NAME-GI-VARS",
+                            "workflow.xml",
+                            Optional.empty(),
+                            "application/xml");
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithGenericInfosAndVariables2() throws IOException {
         createCatalogObject("WR-NAME-GI-VARS",
-                       "WR-PROJ-NAME-GI-VARS",
-                       "workflow.xml",
-                       Optional.of(EXISTING_ID),
-                       "application/xml");
+                            "WR-PROJ-NAME-GI-VARS",
+                            "workflow.xml",
+                            Optional.of(EXISTING_ID),
+                            "application/xml");
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithoutGenericInfosOrVariables1() throws IOException {
         createCatalogObject("WR-NAME",
-                       "WR-PROJ-NAME",
-                       "workflow-no-generic-information-no-variable.xml",
-                       Optional.empty(),
-                       "application/xml");
+                            "WR-PROJ-NAME",
+                            "workflow-no-generic-information-no-variable.xml",
+                            Optional.empty(),
+                            "application/xml");
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithoutGenericInfosOrVariables2() throws IOException {
         createCatalogObject("WR-NAME",
-                       "WR-PROJ-NAME",
-                       "workflow-no-generic-information-no-variable.xml",
-                       Optional.of(EXISTING_ID),
-                       "application/xml");
+                            "WR-PROJ-NAME",
+                            "workflow-no-generic-information-no-variable.xml",
+                            Optional.of(EXISTING_ID),
+                            "application/xml");
         // assertions are done in the called method
     }
 
     @Test
     public void testCreateWorkflowWithLayout() throws IOException {
         createCatalogObject("WR-NAME-GI-VARS",
-                       "WR-PROJ-NAME-GI-VARS",
-                       "workflow.xml",
-                       Optional.empty(),
-                       "application/xml");
+                            "WR-PROJ-NAME-GI-VARS",
+                            "workflow.xml",
+                            Optional.empty(),
+                            "application/xml");
         // assertions are done in the called method
     }
 

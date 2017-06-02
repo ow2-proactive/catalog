@@ -89,14 +89,14 @@ public class CatalogObjectRevisionControllerTest {
                                                "image",
                                                "name",
                                                "Commit message",
-                                               Optional.empty(),
+                                               "image/gif",
                                                mockedFile);
         verify(catalogObjectRevisionService, times(1)).createCatalogObjectRevision(BUCKET_ID,
                                                                                    "image",
                                                                                    "name",
                                                                                    "Commit message",
                                                                                    Optional.of(CO_ID),
-                                                                                   Optional.empty(),
+                                                                                   "image/gif",
                                                                                    null);
     }
 
@@ -116,12 +116,6 @@ public class CatalogObjectRevisionControllerTest {
     public void testGet() throws Exception {
         catalogObjectRevisionController.get(BUCKET_ID, CO_ID, REV_ID);
         verify(catalogObjectRevisionService, times(1)).getCatalogObject(BUCKET_ID, CO_ID, Optional.of(REV_ID));
-    }
-
-    @Test
-    public void testGetRaw() throws Exception {
-        catalogObjectRevisionController.getRaw(BUCKET_ID, CO_ID);
-        verify(catalogObjectRevisionService, times(1)).getCatalogObjectRaw(BUCKET_ID, CO_ID, Optional.empty());
     }
 
     @Test
