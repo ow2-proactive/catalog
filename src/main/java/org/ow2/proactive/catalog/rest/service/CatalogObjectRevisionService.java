@@ -246,7 +246,8 @@ public class CatalogObjectRevisionService {
             MediaType mediaType = MediaType.valueOf(catalogObjectRevision.getContentType());
             responseBodyBuilder = responseBodyBuilder.contentType(mediaType);
         } catch (org.springframework.http.InvalidMediaTypeException mimeEx) {
-            logger.warn("The wrong content type for object: "+ objectId + ", commitId:" + revisionId + ", the contentType: "+ catalogObjectRevision.getContentType(), mimeEx);
+            logger.warn("The wrong content type for object: " + objectId + ", commitId:" + revisionId +
+                        ", the contentType: " + catalogObjectRevision.getContentType(), mimeEx);
             mimeEx.printStackTrace();
         }
         return responseBodyBuilder.body(new InputStreamResource(new ByteArrayInputStream(bytes)));

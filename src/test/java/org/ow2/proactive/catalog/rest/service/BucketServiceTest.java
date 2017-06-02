@@ -137,7 +137,7 @@ public class BucketServiceTest {
                                                                                   anyString(),
                                                                                   anyString(),
                                                                                   anyString(),
-                                                                                  any(Optional.class),
+                                                                                  anyString(),
                                                                                   anyObject());
     }
 
@@ -152,7 +152,7 @@ public class BucketServiceTest {
                                                                    anyString(),
                                                                    anyString(),
                                                                    anyString(),
-                                                                   any(Optional.class),
+                                                                   anyString(),
                                                                    anyObject());
     }
 

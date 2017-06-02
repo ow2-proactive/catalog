@@ -58,13 +58,13 @@ public class CatalogObjectServiceTest {
 
     @Test
     public void testCreateCatalogObject() {
-        catalogObjectService.createCatalogObject(DUMMY_ID, "object", "name", "commit message", Optional.empty(), null);
+        catalogObjectService.createCatalogObject(DUMMY_ID, "object", "name", "commit message", "application/xml", null);
         verify(catalogObjectRevisionService, times(1)).createCatalogObjectRevision(DUMMY_ID,
                                                                                    "object",
                                                                                    "name",
                                                                                    "commit message",
                                                                                    Optional.empty(),
-                                                                                   Optional.empty(),
+                                                                                   "application/xml",
                                                                                    null);
     }
 

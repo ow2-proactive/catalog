@@ -49,7 +49,7 @@ public class CatalogObjectService {
     private CatalogObjectRevisionService catalogObjectRevisionService;
 
     public CatalogObjectMetadata createCatalogObject(String kind, String name, String commitMessage, Long bucketId,
-                                                     String layout, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
+            String layout, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
         return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
                                                                         kind,
                                                                         name,
@@ -61,7 +61,7 @@ public class CatalogObjectService {
     }
 
     public CatalogObjectMetadata createCatalogObject(Long bucketId, String kind, String name, String commitMessage,
-           String layout, byte[] rawObject) {
+            String layout, byte[] rawObject) {
         return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
                                                                         kind,
                                                                         name,

@@ -7,7 +7,7 @@ The goal of the catalog is to store ProActive objects. It is the catalog for gen
 
 The stored objects in the catalog could be:
 - rule for PCW service
-- catalogObject
+- workflows
 - selection script
 - Proactive pre/post task
 - objects for authentication service

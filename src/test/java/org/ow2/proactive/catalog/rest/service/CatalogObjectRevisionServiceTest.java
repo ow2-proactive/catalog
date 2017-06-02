@@ -131,7 +131,7 @@ public class CatalogObjectRevisionServiceTest {
                                                                  "name",
                                                                  "commit message",
                                                                  Optional.empty(),
-                                                                 Optional.empty(),
+                                                                 "application/xml",
                                                                  ImmutableList.of(),
                                                                  new byte[0]);
     }
@@ -144,7 +144,7 @@ public class CatalogObjectRevisionServiceTest {
                                                                  "name",
                                                                  "commit message",
                                                                  Optional.empty(),
-                                                                 Optional.empty(),
+                                                                 "application/xml",
                                                                  ImmutableList.of(),
                                                                  new byte[0]);
     }
@@ -155,7 +155,7 @@ public class CatalogObjectRevisionServiceTest {
                             "WR-PROJ-NAME-GI-VARS",
                             "workflow.xml",
                             Optional.empty(),
-                            Optional.empty());
+                            "application/xml");
         // assertions are done in the called method
     }
 
@@ -165,7 +165,7 @@ public class CatalogObjectRevisionServiceTest {
                             "WR-PROJ-NAME-GI-VARS",
                             "workflow.xml",
                             Optional.of(EXISTING_ID),
-                            Optional.empty());
+                            "application/xml");
         // assertions are done in the called method
     }
 
@@ -175,7 +175,7 @@ public class CatalogObjectRevisionServiceTest {
                             "WR-PROJ-NAME",
                             "workflow-no-generic-information-no-variable.xml",
                             Optional.empty(),
-                            Optional.empty());
+                            "application/xml");
         // assertions are done in the called method
     }
 
@@ -185,7 +185,7 @@ public class CatalogObjectRevisionServiceTest {
                             "WR-PROJ-NAME",
                             "workflow-no-generic-information-no-variable.xml",
                             Optional.of(EXISTING_ID),
-                            Optional.empty());
+                            "application/xml");
         // assertions are done in the called method
     }
 
@@ -195,8 +195,7 @@ public class CatalogObjectRevisionServiceTest {
                             "WR-PROJ-NAME-GI-VARS",
                             "workflow.xml",
                             Optional.empty(),
-                            Optional.of("{\"offsets\":{\"Linux_Bash_Task\":{\"top\":" +
-                                        "222,\"left\":681.5}},\"project\":\"Deployment\",\"detailedView\":true}"));
+                            "application/xml");
         // assertions are done in the called method
     }
 
@@ -461,9 +460,9 @@ public class CatalogObjectRevisionServiceTest {
         catalogObjectRevisionService.listCatalogObjects(DUMMY_ID, wId, Optional.empty(), null, mockedAssembler);
     }
 
-    private void createCatalogObject(String name, String kind, String fileName, Optional<Long> wId,
-            Optional<String> layout) throws IOException {
-        String layoutStr = layout.orElse("");
+    private void createCatalogObject(String name, String kind, String fileName, Optional<Long> wId, String layout)
+            throws IOException {
+        String layoutStr = "application/xml";
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevision.class))).thenReturn(new CatalogObjectRevision(EXISTING_ID,
                                                                                                                           kind,
@@ -485,7 +484,7 @@ public class CatalogObjectRevisionServiceTest {
                                                                                                           "name",
                                                                                                           "commit message",
                                                                                                           wId,
-                                                                                                          layout,
+                                                                                                          layoutStr,
                                                                                                           getWorkflowAsByteArray(fileName)
 
         );
@@ -496,9 +495,7 @@ public class CatalogObjectRevisionServiceTest {
         assertEquals(EXISTING_ID, actualWFMetadata.bucketId);
         assertEquals(EXISTING_ID, actualWFMetadata.commitId);
         assertEquals(kind, actualWFMetadata.kind);
-        if (layout.isPresent()) {
-            assertEquals(layout.get(), actualWFMetadata.contentType);
-        }
+        assertEquals(layout, actualWFMetadata.contentType);
     }
 
     private static byte[] getWorkflowAsByteArray(String filename) throws IOException {

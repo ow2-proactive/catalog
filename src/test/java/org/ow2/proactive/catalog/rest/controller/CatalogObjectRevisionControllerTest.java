@@ -37,7 +37,6 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.rest.controller.CatalogObjectRevisionController;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -75,14 +74,14 @@ public class CatalogObjectRevisionControllerTest {
                                                "workflow",
                                                "name",
                                                "Commit message",
-                                               Optional.empty(),
+                                               "application/xml",
                                                mockedFile);
         verify(catalogObjectRevisionService, times(1)).createCatalogObjectRevision(BUCKET_ID,
                                                                                    "workflow",
                                                                                    "name",
                                                                                    "Commit message",
                                                                                    Optional.of(CO_ID),
-                                                                                   Optional.empty(),
+                                                                                   "application/xml",
                                                                                    null);
 
         catalogObjectRevisionController.create(BUCKET_ID,
@@ -90,14 +89,14 @@ public class CatalogObjectRevisionControllerTest {
                                                "image",
                                                "name",
                                                "Commit message",
-                                               Optional.empty(),
+                                               "image/gif",
                                                mockedFile);
         verify(catalogObjectRevisionService, times(1)).createCatalogObjectRevision(BUCKET_ID,
                                                                                    "image",
                                                                                    "name",
                                                                                    "Commit message",
                                                                                    Optional.of(CO_ID),
-                                                                                   Optional.empty(),
+                                                                                   "image/gif",
                                                                                    null);
     }
 
@@ -117,12 +116,6 @@ public class CatalogObjectRevisionControllerTest {
     public void testGet() throws Exception {
         catalogObjectRevisionController.get(BUCKET_ID, CO_ID, REV_ID);
         verify(catalogObjectRevisionService, times(1)).getCatalogObject(BUCKET_ID, CO_ID, Optional.of(REV_ID));
-    }
-
-    @Test
-    public void testGetRaw() throws Exception {
-        catalogObjectRevisionController.getRaw(BUCKET_ID, CO_ID);
-        verify(catalogObjectRevisionService, times(1)).getCatalogObjectRaw(BUCKET_ID, CO_ID, Optional.empty());
     }
 
     @Test

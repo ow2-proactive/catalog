@@ -44,6 +44,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.rest.assembler.CatalogObjectRevisionResourceAssembler;
 import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectService;
 import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRepository;
@@ -66,6 +67,9 @@ public class CatalogObjectControllerTest {
     private CatalogObjectService catalogObjectService;
 
     @Mock
+    private CatalogObjectRevisionService catalogObjectRevisionService;
+
+    @Mock
     private BucketRepository bucketRepository;
 
     @Mock
@@ -86,20 +90,20 @@ public class CatalogObjectControllerTest {
     public void testCreate() throws IOException {
         MultipartFile file = mock(MultipartFile.class);
         when(file.getBytes()).thenReturn(null);
-        catalogObjectController.create(1L, "workflow", "name", "Commit message", Optional.empty(), file);
+        catalogObjectController.create(1L, "workflow", "name", "Commit message", "application/xml", file);
         verify(catalogObjectService, times(1)).createCatalogObject(1L,
                                                                    "workflow",
                                                                    "name",
                                                                    "Commit message",
-                                                                   Optional.empty(),
+                                                                   "application/xml",
                                                                    null);
 
-        catalogObjectController.create(1L, "image", "name", "Commit message", Optional.empty(), file);
+        catalogObjectController.create(1L, "image", "name", "Commit message", "image/gif", file);
         verify(catalogObjectService, times(1)).createCatalogObject(1L,
                                                                    "image",
                                                                    "name",
                                                                    "Commit message",
-                                                                   Optional.empty(),
+                                                                   "image/gif",
                                                                    null);
     }
 
@@ -114,6 +118,12 @@ public class CatalogObjectControllerTest {
                                                                   any(Optional.class),
                                                                   any(Pageable.class),
                                                                   any(PagedResourcesAssembler.class));
+    }
+
+    @Test
+    public void testGetRaw() throws Exception {
+        catalogObjectController.getRaw(1L, 1L);
+        verify(catalogObjectRevisionService, times(1)).getCatalogObjectRaw(1L, 1L, Optional.empty());
     }
 
     @Test

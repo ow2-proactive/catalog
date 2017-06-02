@@ -37,8 +37,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.rest.query.QueryExpressionBuilderException;
+import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
@@ -70,6 +72,9 @@ public class CatalogObjectController {
     @Autowired
     private CatalogObjectService catalogService;
 
+    @Autowired
+    private CatalogObjectRevisionService catalogObjectRevisionService;
+
     @ApiOperation(value = "Creates a new catalog object")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
                             @ApiResponse(code = 422, message = "Invalid file content supplied") })
@@ -95,6 +100,13 @@ public class CatalogObjectController {
     public ResponseEntity<?> get(@PathVariable Long bucketId, @PathVariable Long id, HttpServletResponse response)
             throws MalformedURLException {
         return catalogService.getCatalogObjectMetadata(bucketId, id);
+    }
+
+    @ApiOperation(value = "Gets the raw content of a last revision of a catalog object")
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
+    @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/raw", method = GET)
+    public ResponseEntity<InputStreamResource> getRaw(@PathVariable Long bucketId, @PathVariable Long objectId) {
+        return catalogObjectRevisionService.getCatalogObjectRaw(bucketId, objectId, Optional.empty());
     }
 
     @ApiOperation(value = "Lists catalog objects metadata", notes = "Returns catalog objects metadata associated to the latest revision.")
