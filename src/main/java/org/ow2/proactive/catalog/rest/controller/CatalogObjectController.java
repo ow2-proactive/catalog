@@ -96,10 +96,10 @@ public class CatalogObjectController {
 
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
-    @RequestMapping(value = "/buckets/{bucketId}/resources/{id}", method = GET)
-    public ResponseEntity<?> get(@PathVariable Long bucketId, @PathVariable Long id, HttpServletResponse response)
+    @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}", method = GET)
+    public ResponseEntity<?> get(@PathVariable Long bucketId, @PathVariable Long objectId, HttpServletResponse response)
             throws MalformedURLException {
-        return catalogService.getCatalogObjectMetadata(bucketId, id);
+        return catalogService.getCatalogObjectMetadata(bucketId, objectId);
     }
 
     @ApiOperation(value = "Gets the raw content of a last revision of a catalog object")

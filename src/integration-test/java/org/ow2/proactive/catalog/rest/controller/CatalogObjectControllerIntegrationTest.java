@@ -237,14 +237,14 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().pathParam("bucketId", 42)
                .pathParam("objectId", 1)
                .when()
-               .get(CATALOG_OBJECT_RESOURCE + "?alt=xml")
+               .get(CATALOG_OBJECT_RESOURCE + "/raw")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
-    public void testGetWorkflowShouldReturnNotFoundIfNonExistingobjectId() {
+    public void testGetWorkflowShouldReturnNotFoundIfNonExistingObjectId() {
         given().pathParam("bucketId", 1)
                .pathParam("objectId", 42)
                .when()
@@ -255,11 +255,11 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
-    public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingobjectId() {
+    public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingObjectId() {
         given().pathParam("bucketId", 1)
                .pathParam("objectId", 42)
                .when()
-               .get(CATALOG_OBJECT_RESOURCE + "?alt=xml")
+               .get(CATALOG_OBJECT_RESOURCE + "/raw")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
