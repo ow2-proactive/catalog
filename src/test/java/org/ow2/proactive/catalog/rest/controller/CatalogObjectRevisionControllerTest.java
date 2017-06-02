@@ -37,7 +37,6 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.rest.controller.CatalogObjectRevisionController;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -75,14 +74,14 @@ public class CatalogObjectRevisionControllerTest {
                                                "workflow",
                                                "name",
                                                "Commit message",
-                                               Optional.empty(),
+                                               "application/xml",
                                                mockedFile);
         verify(catalogObjectRevisionService, times(1)).createCatalogObjectRevision(BUCKET_ID,
                                                                                    "workflow",
                                                                                    "name",
                                                                                    "Commit message",
                                                                                    Optional.of(CO_ID),
-                                                                                   Optional.empty(),
+                                                                                   "application/xml",
                                                                                    null);
     }
 

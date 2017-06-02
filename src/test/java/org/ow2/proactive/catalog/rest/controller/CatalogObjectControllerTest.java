@@ -86,12 +86,12 @@ public class CatalogObjectControllerTest {
     public void testCreate() throws IOException {
         MultipartFile file = mock(MultipartFile.class);
         when(file.getBytes()).thenReturn(null);
-        catalogObjectController.create(1L, "workflow", "name", "Commit message", Optional.empty(), file);
+        catalogObjectController.create(1L, "workflow", "name", "Commit message", "application/xml", file);
         verify(catalogObjectService, times(1)).createCatalogObject(1L,
                                                                    "workflow",
                                                                    "name",
                                                                    "Commit message",
-                                                                   Optional.empty(),
+                                                                   "application/xml",
                                                                    null);
     }
 

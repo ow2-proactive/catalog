@@ -62,14 +62,14 @@ public class CatalogObjectServiceTest {
                                                  "workflow",
                                                  "name",
                                                  "commit message",
-                                                 Optional.empty(),
+                                                 "application/xml",
                                                  null);
         verify(catalogObjectRevisionService, times(1)).createCatalogObjectRevision(DUMMY_ID,
                                                                                    "workflow",
                                                                                    "name",
                                                                                    "commit message",
                                                                                    Optional.empty(),
-                                                                                   Optional.empty(),
+                                                                                   "application/xml",
                                                                                    null);
     }
 
