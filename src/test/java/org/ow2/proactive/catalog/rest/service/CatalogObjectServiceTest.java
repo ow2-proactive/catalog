@@ -57,15 +57,14 @@ public class CatalogObjectServiceTest {
     }
 
     @Test
-    public void testCreateWorkflow() {
+    public void testCreateCatalogObject() {
         catalogObjectService.createCatalogObject(DUMMY_ID,
-                                                 "workflow",
-                                                 "name",
+                                                 "object", "name",
                                                  "commit message",
                                                  "application/xml",
                                                  null);
         verify(catalogObjectRevisionService, times(1)).createCatalogObjectRevision(DUMMY_ID,
-                                                                                   "workflow",
+                                                                                   "object",
                                                                                    "name",
                                                                                    "commit message",
                                                                                    Optional.empty(),
@@ -74,13 +73,13 @@ public class CatalogObjectServiceTest {
     }
 
     @Test
-    public void testGetWorkflowMetadata() {
+    public void testGetCatalogObjectMetadata() {
         catalogObjectService.getCatalogObjectMetadata(DUMMY_ID, DUMMY_ID);
         verify(catalogObjectRevisionService, times(1)).getCatalogObject(DUMMY_ID, DUMMY_ID, Optional.empty());
     }
 
     @Test
-    public void testListWorkflows() throws QueryExpressionBuilderException {
+    public void testListCatalogObjects() throws QueryExpressionBuilderException {
         catalogObjectService.listCatalogObjects(DUMMY_ID, Optional.empty(), null, null);
         verify(catalogObjectRevisionService, times(1)).listCatalogObjects(DUMMY_ID,
                                                                           Optional.empty(),

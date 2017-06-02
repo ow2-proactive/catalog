@@ -23,32 +23,33 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.util.parser;
+package org.ow2.proactive.catalog.rest.util;
+
+import static com.google.common.truth.Truth.assertThat;
+
+import java.util.List;
+
+import org.junit.Test;
+import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
+import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserFactory;
+import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserInterface;
+import org.ow2.proactive.catalog.rest.util.parser.DefaultCatalogObjectParser;
+
 
 /**
- * CatalogObjectParserFactory return the right Parser for the given type of object
+ * Unit tests associated to {@link DefaultCatalogObjectParser}.
  *
  * @author ActiveEon Team
  */
-public final class CatalogObjectParserFactory {
+public class DefaultCatalogObjectParserTest {
 
-    private static CatalogObjectParserFactory factory;
+    @Test
+    public void testParseDefaultObject() throws Exception {
+        CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("default object");
 
-    private CatalogObjectParserFactory() {
+        List<KeyValueMetadata> result = parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/objects/workflow.json"));
 
-    }
-
-    public static CatalogObjectParserFactory get() {
-        if (factory == null) {
-            factory = new CatalogObjectParserFactory();
-        }
-        return factory;
-    }
-
-    public CatalogObjectParserInterface getParser(String type) {
-        if ("workflow".equals(type))
-            return new WorkflowParser();
-        return new DefaultCatalogObjectParser();
+        assertThat(result).hasSize(0);
     }
 
 }

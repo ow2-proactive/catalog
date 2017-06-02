@@ -92,7 +92,7 @@ public class CatalogObjectTest {
 
     private CatalogObjectRevision newCatalogObjectRevision(Long revisionId, LocalDateTime date) {
         return new CatalogObjectRevision(revisionId,
-                                         "workflow",
+                                         "object",
                                          date,
                                          "name",
                                          "commit message",

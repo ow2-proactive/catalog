@@ -93,6 +93,14 @@ public class CatalogObjectControllerTest {
                                                                    "Commit message",
                                                                    "application/xml",
                                                                    null);
+
+        catalogObjectController.create(1L, "image", "name", "Commit message", Optional.empty(), file);
+        verify(catalogObjectService, times(1)).createCatalogObject(1L,
+                                                                   "image",
+                                                                   "name",
+                                                                   "Commit message",
+                                                                   Optional.empty(),
+                                                                   null);
     }
 
     @Test

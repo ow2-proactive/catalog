@@ -31,11 +31,10 @@ import java.io.File;
 
 import org.junit.Test;
 import org.ow2.proactive.catalog.rest.util.CatalogObjectJSONParser.CatalogObjectData;
-import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserInterface;
 
 
 /**
- * Unit tests associated to {@link CatalogObjectParserInterface}.
+ * Unit tests associated to {@link CatalogObjectJSONParser}.
  *
  * @author ActiveEon Team
  */
@@ -44,7 +43,7 @@ public class CatalogObjectJSONParserTest {
     @Test
     public void testParseJSON() throws Exception {
 
-        File file = new File(ProActiveCatalogObjectParserTest.class.getResource("/objects/workflow.json").getPath());
+        File file = new File(CatalogObjectJSONParserTest.class.getResource("/objects/workflow.json").getPath());
 
         CatalogObjectData data = CatalogObjectJSONParser.parseJSONFile(file);
 
