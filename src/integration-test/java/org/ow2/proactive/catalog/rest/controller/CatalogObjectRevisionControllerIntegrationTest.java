@@ -333,7 +333,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         IntStream.rangeClosed(1, 25).forEach(i -> {
             try {
                 catalogObjectRevisionService.createCatalogObjectRevision(secondCatalogObjectRevision.bucketId,
-                                                                         "kind",
+                                                                         "workflow",
                                                                          "name",
                                                                          "commit message",
                                                                          Optional.of(secondCatalogObjectRevision.id),
@@ -344,20 +344,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
             }
         });
 
-        //        List<CatalogObjectRevision> lstCatalogRev = catalogObjectRevisionService.getCatalogObjectsRevisions(secondCatalogObjectRevision.bucketId, Collections.singletonList(secondCatalogObjectRevision.id));
-        //
-        //        System.out.println("lstCatalogRev.size: " + lstCatalogRev.size());
-
-        //        Pageable pageable = null;
-        //        PagedResourcesAssembler assembler = null;
-        //        try {
-        //            catalogObjectRevisionService.listCatalogObjects(secondCatalogObjectRevision.bucketId,  Optional.of(secondCatalogObjectRevision.id), Optional.empty(), pageable, assembler);
-        //        } catch (QueryExpressionBuilderException e) {
-        //            e.printStackTrace();
-        //        }
-
-        Response response = given().pathParam("bucketId", 1)
-                                   .pathParam("objectId", 1)
+        Response response = given().pathParam("bucketId", secondCatalogObjectRevision.bucketId)
+                                   .pathParam("objectId", secondCatalogObjectRevision.id)
                                    .when()
                                    .get(CATALOG_OBJECT_REVISIONS_RESOURCE);
 
@@ -366,7 +354,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         response.then()
                 .assertThat()
                 .statusCode(HttpStatus.SC_OK)
-                .body("_embedded.objectMetadataList", hasSize(pageSize))
+                .body("_embedded.catalogObjectMetadataList", hasSize(pageSize))
                 .body("page.number", is(0))
                 .body("page.totalElements", is(25 + 2));
     }
