@@ -1,0 +1,7 @@
+{
+	"kind": "workflow",
+	"name": "Selection Scripts",
+	"commitMessage": "First commit",
+	"objectFileName": "selection_scripts.xml",
+	"contentType": "application/xml"
+}

@@ -3,14 +3,14 @@
 [![Build Status](http://jenkins.activeeon.com/buildStatus/icon?job=catalog)](http://jenkins.activeeon.com/job/catalog/)
 [![Coverage Status](https://coveralls.io/repos/github/ow2-proactive/catalog/badge.svg?branch=origin%2Fmaster)](https://coveralls.io/github/ow2-proactive/catalog?branch=origin%2Fmaster)
 
-The goal of the catalog is to store ProActive objects. It is the catalog for general purpose. 
+The goal of the catalog is to store ProActive objects. It is the catalog for general purpose.
 
-The stored objects in the catalog could be: 
-- rule for PCW service 
-- workflow 
+The stored objects in the catalog could be:
+- rule for PCW service
+- workflows
 - selection script
 - Proactive pre/post task
-- objects for authentication service 
+- objects for authentication service
 - any kind of other objects
 
 Catalog contains a set of objects organized into buckets with versioning capabilities.

@@ -1,0 +1,7 @@
+{
+	"kind": "workflow",
+	"name": "Multi-Node Task",
+	"commitMessage": "First commit",
+	"objectFileName": "multi-node_task.xml",
+	"contentType": "application/xml"
+}

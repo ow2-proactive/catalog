@@ -67,7 +67,7 @@ ext {
 generateGrammarSource {
     arguments += ["-visitor", "-long-messages"]
     maxHeapSize = "64m"
-    outputDirectory = file("$generatedSrcDir/org/ow2/proactive/workflow_catalog/rest/query/parser")
+    outputDirectory = file("$generatedSrcDir/org/ow2/proactive/catalog/rest/query/parser")
 }
 
 repositories {
@@ -100,11 +100,11 @@ sourceSets {
 }
 
 springBoot {
-    mainClass = 'org.ow2.proactive.workflow_catalog.rest.Application'
+    mainClass = 'org.ow2.proactive.catalog.rest.Application'
 }
 
 war {
-    baseName = "workflow-catalog"
+    baseName = "catalog"
     version = version
 }
 
@@ -216,8 +216,8 @@ jacocoTestReport {
     afterEvaluate {
         classDirectories = files(classDirectories.files.collect {
             fileTree(dir: it, excludes: [
-                    'org/ow2/proactive/workflow_catalog/rest/entity/Q*',
-                    'org/ow2/proactive/workflow_catalog/rest/query/parser/*']);
+                    'org/ow2/proactive/catalog/rest/entity/Q*',
+                    'org/ow2/proactive/catalog/rest/query/parser/*']);
         })
     }
 }
