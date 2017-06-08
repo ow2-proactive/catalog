@@ -30,7 +30,6 @@ import javax.persistence.PersistenceContext;
 
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
 import org.ow2.proactive.catalog.rest.entity.QCatalogObjectRevision;
-import org.ow2.proactive.catalog.rest.query.QueryExpressionContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -59,11 +58,11 @@ public class QueryDslCatalogObjectRevisionRepository extends QueryDslRepositoryS
     }
 
     public Page<CatalogObjectRevision> findAllCatalogObjectRevisions(long bucketId, Long catalogObjectId,
-            QueryExpressionContext context, Pageable pageable) {
+            Pageable pageable) {
         ListSubQuery<Long> allCatalogObjectRevisions = createFindAllCatalogObjectRevisionsSubQuery(bucketId,
                                                                                                    catalogObjectId);
 
-        return findCatalogObjectRevisions(allCatalogObjectRevisions, context, pageable);
+        return findCatalogObjectRevisions(allCatalogObjectRevisions, pageable);
     }
 
     private ListSubQuery<Long> createFindAllCatalogObjectRevisionsSubQuery(long bucketId, Long catalogObjectId) {
@@ -74,12 +73,11 @@ public class QueryDslCatalogObjectRevisionRepository extends QueryDslRepositoryS
                                 .list(qCatalogObjectRevision.commitId);
     }
 
-    public Page<CatalogObjectRevision> findMostRecentCatalogObjectRevisions(long bucketId,
-            QueryExpressionContext context, Pageable pageable) {
+    public Page<CatalogObjectRevision> findMostRecentCatalogObjectRevisions(long bucketId, Pageable pageable) {
 
         ListSubQuery<Long> allMostRecentRevisions = createFindMostRecentRevisionsSubQuery(bucketId);
 
-        return findCatalogObjectRevisions(allMostRecentRevisions, context, pageable);
+        return findCatalogObjectRevisions(allMostRecentRevisions, pageable);
     }
 
     private ListSubQuery<Long> createFindMostRecentRevisionsSubQuery(long bucketId) {
@@ -91,11 +89,10 @@ public class QueryDslCatalogObjectRevisionRepository extends QueryDslRepositoryS
     }
 
     private Page<CatalogObjectRevision> findCatalogObjectRevisions(ListSubQuery<Long> catalogObjectRevisionIds,
-            QueryExpressionContext context, Pageable pageable) {
+            Pageable pageable) {
         JPAQuery query = new JPAQuery(entityManager).from(QCatalogObjectRevision.catalogObjectRevision);
 
-        query = query.where(qCatalogObjectRevision.commitId.in(catalogObjectRevisionIds).and(context.getExpression()))
-                     .distinct();
+        query = query.where(qCatalogObjectRevision.commitId.in(catalogObjectRevisionIds)).distinct();
 
         long count = query.count();
 

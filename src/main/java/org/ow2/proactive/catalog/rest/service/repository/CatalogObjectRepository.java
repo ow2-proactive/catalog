@@ -43,6 +43,9 @@ public interface CatalogObjectRepository
     @Query("SELECT cor FROM CatalogObjectRevision cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId")
     Page<CatalogObjectRevision> getMostRecentRevisions(Long bucketId, Pageable pageable);
 
+    @Query("SELECT cor FROM CatalogObjectRevision cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId AND cor.kind = ?3")
+    Page<CatalogObjectRevision> getMostRecentRevisions(Long bucketId, Pageable pageable, String kind);
+
     @Query("SELECT cor FROM CatalogObjectRevision cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND cor.catalogObject.id = ?2 AND co.lastCommitId = cor.commitId")
     CatalogObjectRevision getMostRecentCatalogObjectRevision(Long bucketId, Long objectId);
 

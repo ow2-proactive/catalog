@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.junit.Before;
@@ -57,7 +56,6 @@ import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.rest.entity.Bucket;
 import org.ow2.proactive.catalog.rest.entity.CatalogObject;
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
-import org.ow2.proactive.catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.catalog.rest.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.RevisionNotFoundException;
@@ -442,7 +440,7 @@ public class CatalogObjectRevisionServiceTest {
         return catalogObject;
     }
 
-    private void listWorkflows(Optional<Long> wId) throws QueryExpressionBuilderException {
+    private void listWorkflows(Optional<Long> wId) {
         when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
         when(catalogObjectRepository.findOne(anyLong())).thenReturn(mock(CatalogObject.class));
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
@@ -452,12 +450,13 @@ public class CatalogObjectRevisionServiceTest {
         if (wId.isPresent()) {
             when(catalogObjectRevisionRepository.getRevisions(anyLong(),
                                                               any(Pageable.class))).thenReturn(mock(PageImpl.class));
+            catalogObjectRevisionService.listCatalogObjectRevisions(DUMMY_ID, wId.get(), null, mockedAssembler);
         } else {
             when(catalogObjectRepository.getMostRecentRevisions(anyLong(),
                                                                 any(Pageable.class))).thenReturn(mock(PageImpl.class));
+            catalogObjectRevisionService.listCatalogObjects(DUMMY_ID, Optional.empty(), null, mockedAssembler);
         }
 
-        catalogObjectRevisionService.listCatalogObjects(DUMMY_ID, wId, Optional.empty(), null, mockedAssembler);
     }
 
     private void createCatalogObject(String name, String kind, String fileName, Optional<Long> wId, String layout)

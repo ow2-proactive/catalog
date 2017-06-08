@@ -36,7 +36,6 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadataList;
-import org.ow2.proactive.catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,8 +116,9 @@ public class CatalogObjectController {
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources", method = GET)
     public PagedResources list(@PathVariable Long bucketId, @ApiParam(hidden = true) Pageable pageable,
-            @ApiParam(hidden = true) PagedResourcesAssembler assembler) throws QueryExpressionBuilderException {
-        return catalogService.listCatalogObjects(bucketId, Optional.empty(), pageable, assembler);
+            @ApiParam(hidden = true) PagedResourcesAssembler assembler,
+            @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind) {
+        return catalogService.listCatalogObjects(bucketId, kind, pageable, assembler);
     }
 
     @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogObject's metadata")

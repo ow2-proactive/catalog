@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.util.Optional;
 
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.rest.query.QueryExpressionBuilderException;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -112,13 +111,8 @@ public class CatalogObjectRevisionController {
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions", method = GET)
     public PagedResources list(@PathVariable Long bucketId, @PathVariable Long objectId,
-            @ApiParam(hidden = true) Pageable pageable, @ApiParam(hidden = true) PagedResourcesAssembler assembler)
-            throws QueryExpressionBuilderException {
-        return catalogObjectRevisionService.listCatalogObjects(bucketId,
-                                                               Optional.ofNullable(objectId),
-                                                               Optional.empty(),
-                                                               pageable,
-                                                               assembler);
+            @ApiParam(hidden = true) Pageable pageable, @ApiParam(hidden = true) PagedResourcesAssembler assembler) {
+        return catalogObjectRevisionService.listCatalogObjectRevisions(bucketId, objectId, pageable, assembler);
     }
 
     @ApiOperation(value = "Delete a catalog object's revision", notes = "If the revisionId references the latest revision, it is deleted and the catalog object then points to the previous revision. If the revisionId doesn't references the latest revision, it is simply deleted without any impact on the current catalog object. Returns the deleted CatalogObjectRevision metadata.")

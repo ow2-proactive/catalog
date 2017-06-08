@@ -28,9 +28,9 @@ package org.ow2.proactive.catalog.rest.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.ow2.proactive.catalog.rest.assembler.CatalogObjectRevisionResourceAssembler;
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
-import org.ow2.proactive.catalog.rest.query.QueryExpressionBuilderException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -47,6 +47,9 @@ public class CatalogObjectService {
 
     @Autowired
     private CatalogObjectRevisionService catalogObjectRevisionService;
+
+    @Autowired
+    private CatalogObjectRevisionResourceAssembler catalogObjectRevisionResourceAssembler;
 
     public CatalogObjectMetadata createCatalogObject(String kind, String name, String commitMessage, Long bucketId,
             String layout, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
@@ -75,9 +78,9 @@ public class CatalogObjectService {
         return catalogObjectRevisionService.getCatalogObject(bucketId, catalogObjectId, Optional.empty());
     }
 
-    public PagedResources listCatalogObjects(Long bucketId, Optional<String> query, Pageable pageable,
-            PagedResourcesAssembler assembler) throws QueryExpressionBuilderException {
-        return catalogObjectRevisionService.listCatalogObjects(bucketId, Optional.empty(), query, pageable, assembler);
+    public PagedResources listCatalogObjects(Long bucketId, Optional<String> kind, Pageable pageable,
+            PagedResourcesAssembler assembler) {
+        return catalogObjectRevisionService.listCatalogObjects(bucketId, kind, pageable, assembler);
     }
 
     public ResponseEntity<CatalogObjectMetadata> delete(Long bucketId, Long catalogObjectId) {

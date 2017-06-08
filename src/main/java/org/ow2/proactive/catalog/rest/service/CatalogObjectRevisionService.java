@@ -44,9 +44,6 @@ import org.ow2.proactive.catalog.rest.entity.Bucket;
 import org.ow2.proactive.catalog.rest.entity.CatalogObject;
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
 import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
-import org.ow2.proactive.catalog.rest.query.CatalogQueryExpressionBuilder;
-import org.ow2.proactive.catalog.rest.query.QueryExpressionBuilderException;
-import org.ow2.proactive.catalog.rest.query.QueryExpressionContext;
 import org.ow2.proactive.catalog.rest.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.RevisionNotFoundException;
@@ -54,7 +51,6 @@ import org.ow2.proactive.catalog.rest.service.exception.UnprocessableEntityExcep
 import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRevisionRepository;
-import org.ow2.proactive.catalog.rest.service.repository.QueryDslCatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserFactory;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserInterface;
 import org.slf4j.Logger;
@@ -84,9 +80,6 @@ public class CatalogObjectRevisionService {
 
     @Autowired
     private CatalogObjectRevisionResourceAssembler catalogObjectRevisionResourceAssembler;
-
-    @Autowired
-    private QueryDslCatalogObjectRevisionRepository queryDslCatalogObjectRepository;
 
     @Autowired
     private CatalogObjectRepository catalogObjectRepository;
@@ -170,49 +163,30 @@ public class CatalogObjectRevisionService {
         return bucket;
     }
 
-    public PagedResources listCatalogObjects(Long bucketId, Optional<Long> catalogObjectId, Optional<String> query,
-            Pageable pageable, PagedResourcesAssembler assembler) throws QueryExpressionBuilderException {
+    public PagedResources listCatalogObjects(Long bucketId, Optional<String> kind, Pageable pageable,
+            PagedResourcesAssembler assembler) {
 
         findBucket(bucketId);
 
         Page<CatalogObjectRevision> page;
-
-        if (catalogObjectId.isPresent()) {
-            findObjectById(catalogObjectId.get());
-
-            if (query.isPresent() && "".compareTo(query.get().trim()) != 0) {
-                QueryExpressionContext queryExpressionContext = createJpaQueryExpression(query.get());
-
-                page = queryDslCatalogObjectRepository.findAllCatalogObjectRevisions(bucketId,
-                                                                                     catalogObjectId.get(),
-                                                                                     queryExpressionContext,
-                                                                                     pageable);
-            } else {
-                // it is not required to pass bucket ID since
-                // object ID is unique for all buckets
-                CatalogObject catalogObject = findObjectById(catalogObjectId.get());
-                page = catalogObjectRevisionRepository.getRevisions(catalogObjectId.get(), pageable);
-            }
+        if (kind.isPresent()) {
+            page = catalogObjectRepository.getMostRecentRevisions(bucketId, pageable, kind.get());
         } else {
-            if (query.isPresent()) {
-                QueryExpressionContext queryExpressionContext = createJpaQueryExpression(query.get());
-
-                page = queryDslCatalogObjectRepository.findMostRecentCatalogObjectRevisions(bucketId,
-                                                                                            queryExpressionContext,
-                                                                                            pageable);
-            } else {
-                page = catalogObjectRepository.getMostRecentRevisions(bucketId, pageable);
-            }
+            page = catalogObjectRepository.getMostRecentRevisions(bucketId, pageable);
         }
 
         return assembler.toResource(page, catalogObjectRevisionResourceAssembler);
     }
 
-    private QueryExpressionContext createJpaQueryExpression(String catalogQuery)
-            throws QueryExpressionBuilderException {
-        CatalogQueryExpressionBuilder builder = new CatalogQueryExpressionBuilder(catalogQuery);
+    public PagedResources listCatalogObjectRevisions(Long bucketId, Long catalogObjectId, Pageable pageable,
+            PagedResourcesAssembler assembler) {
 
-        return builder.build();
+        findBucket(bucketId);
+        CatalogObject catalogObject = findObjectById(catalogObjectId);
+
+        Page<CatalogObjectRevision> page = catalogObjectRevisionRepository.getRevisions(catalogObjectId, pageable);
+
+        return assembler.toResource(page, catalogObjectRevisionResourceAssembler);
     }
 
     public ResponseEntity<CatalogObjectMetadata> getCatalogObject(Long bucketId, Long objectId,
