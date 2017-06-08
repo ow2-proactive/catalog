@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -113,9 +114,9 @@ public class CatalogObjectControllerTest {
         when(bucketRepository.findOne(1L)).thenReturn(bucket);
         when(pagedResourcesAssembler.toResource(any(Page.class),
                                                 any(CatalogObjectRevisionResourceAssembler.class))).thenReturn(mock(PagedResources.class));
-        catalogObjectController.list(1L, null, pagedResourcesAssembler);
+        catalogObjectController.list(1L, null, pagedResourcesAssembler, Optional.empty());
         verify(catalogObjectService, times(1)).listCatalogObjects(anyLong(),
-                                                                  any(Optional.class),
+                                                                  Optional.of(anyString()),
                                                                   any(Pageable.class),
                                                                   any(PagedResourcesAssembler.class));
     }

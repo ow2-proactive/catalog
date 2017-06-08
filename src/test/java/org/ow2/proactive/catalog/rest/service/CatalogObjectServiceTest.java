@@ -35,7 +35,6 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.rest.query.QueryExpressionBuilderException;
 
 
 /**
@@ -75,13 +74,9 @@ public class CatalogObjectServiceTest {
     }
 
     @Test
-    public void testListCatalogObjects() throws QueryExpressionBuilderException {
+    public void testListCatalogObjects() {
         catalogObjectService.listCatalogObjects(DUMMY_ID, Optional.empty(), null, null);
-        verify(catalogObjectRevisionService, times(1)).listCatalogObjects(DUMMY_ID,
-                                                                          Optional.empty(),
-                                                                          Optional.empty(),
-                                                                          null,
-                                                                          null);
+        verify(catalogObjectRevisionService, times(1)).listCatalogObjects(DUMMY_ID, Optional.empty(), null, null);
     }
 
     @Test

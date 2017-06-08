@@ -105,11 +105,10 @@ public class CatalogObjectRevisionControllerTest {
         Pageable mockedPageable = mock(Pageable.class);
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
         catalogObjectRevisionController.list(BUCKET_ID, CO_ID, mockedPageable, mockedAssembler);
-        verify(catalogObjectRevisionService, times(1)).listCatalogObjects(BUCKET_ID,
-                                                                          Optional.of(CO_ID),
-                                                                          Optional.empty(),
-                                                                          mockedPageable,
-                                                                          mockedAssembler);
+        verify(catalogObjectRevisionService, times(1)).listCatalogObjectRevisions(BUCKET_ID,
+                                                                                  CO_ID,
+                                                                                  mockedPageable,
+                                                                                  mockedAssembler);
     }
 
     @Test
