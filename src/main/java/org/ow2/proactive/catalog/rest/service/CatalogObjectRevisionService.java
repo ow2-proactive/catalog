@@ -182,7 +182,7 @@ public class CatalogObjectRevisionService {
             PagedResourcesAssembler assembler) {
 
         findBucket(bucketId);
-        CatalogObject catalogObject = findObjectById(catalogObjectId);
+        findObjectById(catalogObjectId);
 
         Page<CatalogObjectRevision> page = catalogObjectRevisionRepository.getRevisions(catalogObjectId, pageable);
 
@@ -193,7 +193,7 @@ public class CatalogObjectRevisionService {
             Optional<Long> revisionId) {
 
         findBucket(bucketId);
-        CatalogObject catalogObject = findObjectById(objectId);
+        findObjectById(objectId);
 
         CatalogObjectRevision catalogObjectRevision = getCatalogObjectRevision(bucketId, objectId, revisionId);
 
@@ -298,9 +298,9 @@ public class CatalogObjectRevisionService {
     }
 
     public Link createLink(Long bucketId, Long objectId, CatalogObjectRevision catalogObjectRevision) {
-        ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectRevisionController.class).get(bucketId,
-                                                                                                                 objectId,
-                                                                                                                 catalogObjectRevision.getCommitId()));
+        ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectRevisionController.class).getRaw(bucketId,
+                                                                                                                    objectId,
+                                                                                                                    catalogObjectRevision.getCommitId()));
 
         return new Link(controllerLinkBuilder.toString()).withRel("content");
     }
