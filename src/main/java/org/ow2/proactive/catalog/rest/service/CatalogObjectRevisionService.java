@@ -168,7 +168,12 @@ public class CatalogObjectRevisionService {
 
         findBucket(bucketId);
 
-        Page<CatalogObjectRevision> page = catalogObjectRepository.getMostRecentRevisions(bucketId, pageable);
+        Page<CatalogObjectRevision> page;
+        if (kind.isPresent()) {
+            page = catalogObjectRepository.getMostRecentRevisions(bucketId, pageable, kind.get());
+        } else {
+            page = catalogObjectRepository.getMostRecentRevisions(bucketId, pageable);
+        }
 
         return assembler.toResource(page, catalogObjectRevisionResourceAssembler);
     }
@@ -177,13 +182,9 @@ public class CatalogObjectRevisionService {
             PagedResourcesAssembler assembler) {
 
         findBucket(bucketId);
-
-        Page<CatalogObjectRevision> page;
-
-        findObjectById(catalogObjectId);
-
         CatalogObject catalogObject = findObjectById(catalogObjectId);
-        page = catalogObjectRevisionRepository.getRevisions(catalogObjectId, pageable);
+
+        Page<CatalogObjectRevision> page = catalogObjectRevisionRepository.getRevisions(catalogObjectId, pageable);
 
         return assembler.toResource(page, catalogObjectRevisionResourceAssembler);
     }
