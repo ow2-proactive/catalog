@@ -10,7 +10,7 @@
 >
   <variables>
     <variable name="FOLDER_TO_MONITOR" value="/tmp" />
-    <variable name="WORKFLOW_URL" value="https://try.activeeon.com/catalog/buckets/1/catalogObjects/11/raw" model="PA:URL"/>
+    <variable name="WORKFLOW_URL" value="https://try.activeeon.com/catalog/buckets/1/resources/11/raw" model="PA:URL"/>
   </variables>
   <description>
     <![CDATA[ Trigger a job execution whenever a file is created in a specified folder. ]]>
