@@ -53,6 +53,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.io.ByteStreams;
 
@@ -61,6 +62,7 @@ import com.google.common.io.ByteStreams;
  * @author ActiveEon Team
  */
 @Service
+@Transactional
 public class BucketService {
 
     @Autowired

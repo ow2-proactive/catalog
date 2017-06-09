@@ -73,6 +73,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author ActiveEon Team
  */
 @Service
+@Transactional
 public class CatalogObjectRevisionService {
 
     @Autowired
@@ -89,7 +90,6 @@ public class CatalogObjectRevisionService {
 
     private static final Logger logger = LoggerFactory.getLogger(CatalogObjectRevisionService.class);
 
-    @Transactional
     public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String kind, String name,
             String commitMessage, Optional<Long> catalogObjectId, String contentType, byte[] rawObject) {
         try {
@@ -109,10 +109,9 @@ public class CatalogObjectRevisionService {
         }
     }
 
-    @Transactional
     public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String kind, String name,
-                                                             String commitMessage, Optional<Long> objectId, String contentType,
-                                                             List<KeyValueMetadataEntity> keyValueMetadataListParsed, byte[] rawObject) {
+            String commitMessage, Optional<Long> objectId, String contentType,
+            List<KeyValueMetadataEntity> keyValueMetadataListParsed, byte[] rawObject) {
         BucketEntity bucket = findBucket(bucketId);
 
         CatalogObjectRevisionEntity catalogObjectRevision;
