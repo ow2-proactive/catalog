@@ -28,7 +28,6 @@ package org.ow2.proactive.catalog.rest.service;
 import java.util.List;
 import java.util.Optional;
 
-import org.ow2.proactive.catalog.rest.assembler.CatalogObjectRevisionResourceAssembler;
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevisionEntity;
@@ -54,9 +53,6 @@ public class CatalogObjectService {
 
     @Autowired
     private CatalogObjectRevisionService catalogObjectRevisionService;
-
-    @Autowired
-    private CatalogObjectRevisionResourceAssembler catalogObjectRevisionResourceAssembler;
 
     @Autowired
     private CatalogObjectRepository catalogObjectRepository;

@@ -68,7 +68,7 @@ public class CatalogObjectRevisionController {
     private CatalogObjectRevisionService catalogObjectRevisionService;
 
     @ApiOperation(value = "Creates a new catalog object revision")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "BucketEntity not found"),
+    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
                             @ApiResponse(code = 422, message = "Invalid catalog object JSON content supplied") })
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
@@ -88,7 +88,7 @@ public class CatalogObjectRevisionController {
     }
 
     @ApiOperation(value = "Gets a specific revision")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "BucketEntity, catalog object or catalog object revision not found"))
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions/{revisionId}", method = GET)
     public ResponseEntity<CatalogObjectMetadata> get(@PathVariable Long bucketId, @PathVariable Long objectId,
             @PathVariable Long revisionId) {
@@ -96,7 +96,7 @@ public class CatalogObjectRevisionController {
     }
 
     @ApiOperation(value = "Gets the raw content of a specific revision")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "BucketEntity, catalog object or catalog object revision not found"))
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions/{revisionId}/raw", method = GET)
     public ResponseEntity<InputStreamResource> getRaw(@PathVariable Long bucketId, @PathVariable Long objectId,
             @PathVariable Long revisionId) {
@@ -108,7 +108,7 @@ public class CatalogObjectRevisionController {
                          @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
                          @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
                                                                                                                                   "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
-    @ApiResponses(value = @ApiResponse(code = 404, message = "BucketEntity or catalog object not found"))
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions", method = GET)
     public PagedResources list(@PathVariable Long bucketId, @PathVariable Long objectId,
             @ApiParam(hidden = true) Pageable pageable, @ApiParam(hidden = true) PagedResourcesAssembler assembler) {
@@ -116,7 +116,7 @@ public class CatalogObjectRevisionController {
     }
 
     @ApiOperation(value = "Delete a catalog object's revision", notes = "If the revisionId references the latest revision, it is deleted and the catalog object then points to the previous revision. If the revisionId doesn't references the latest revision, it is simply deleted without any impact on the current catalog object. Returns the deleted CatalogObjectRevisionEntity metadata.")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "BucketEntity or catalog object not found"))
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions/{revisionId}", method = DELETE)
     public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable Long objectId,
             @PathVariable Long revisionId) {

@@ -64,12 +64,12 @@ public class BucketController {
     @RequestMapping(value = "/buckets", method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public BucketMetadata create(@RequestParam(value = "name", required = true) String bucketName,
-            @ApiParam(value = "The name of the user that will own the BucketEntity") @RequestParam(value = "owner", required = true) String ownerName) {
+            @ApiParam(value = "The name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String ownerName) {
         return bucketService.createBucket(bucketName, ownerName);
     }
 
     @ApiOperation(value = "Gets a bucket's metadata by ID")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "BucketEntity not found"))
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
     @RequestMapping(value = "/buckets/{bucketId}", method = GET)
     public BucketMetadata getMetadata(@PathVariable long bucketId) {
         return bucketService.getBucketMetadata(bucketId);
@@ -82,7 +82,7 @@ public class BucketController {
                                                                                                                                   "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
     @RequestMapping(value = "/buckets", method = GET)
     public PagedResources list(
-            @ApiParam(value = "The name of the user who owns the BucketEntity") @RequestParam(value = "owner", required = false) Optional<String> ownerName,
+            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) Optional<String> ownerName,
             Pageable pageable, PagedResourcesAssembler assembler) {
         return bucketService.listBuckets(ownerName, pageable, assembler);
     }
