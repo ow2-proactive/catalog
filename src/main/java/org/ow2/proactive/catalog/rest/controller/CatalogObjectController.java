@@ -83,7 +83,7 @@ public class CatalogObjectController {
             @ApiParam(value = "Kind of the new object") @RequestParam String kind,
             @ApiParam(value = "Name of the object") @RequestParam String name,
             @ApiParam(value = "Commit message") @RequestParam String commitMessage,
-            @ApiParam(value = "The content type of CatalogObjectEntity") @RequestParam String contentType,
+            @ApiParam(value = "The content type of CatalogObject") @RequestParam String contentType,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
         return new CatalogObjectMetadataList(catalogService.createCatalogObject(bucketId,
                                                                                 kind,
@@ -121,7 +121,7 @@ public class CatalogObjectController {
         return catalogService.listCatalogObjects(bucketId, kind, pageable, assembler);
     }
 
-    @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogObjectEntity's metadata")
+    @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogObject's metadata")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or object not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}", method = DELETE)
     public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable Long objectId) {
