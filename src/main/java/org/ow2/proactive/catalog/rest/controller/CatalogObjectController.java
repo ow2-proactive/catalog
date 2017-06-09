@@ -75,7 +75,7 @@ public class CatalogObjectController {
     private CatalogObjectRevisionService catalogObjectRevisionService;
 
     @ApiOperation(value = "Creates a new catalog object")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "BucketEntity not found"),
+    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
                             @ApiResponse(code = 422, message = "Invalid file content supplied") })
     @RequestMapping(value = "/buckets/{bucketId}/resources", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
@@ -94,7 +94,7 @@ public class CatalogObjectController {
     }
 
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "BucketEntity or catalog object not found"))
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}", method = GET)
     public ResponseEntity<?> get(@PathVariable Long bucketId, @PathVariable Long objectId, HttpServletResponse response)
             throws MalformedURLException {
@@ -102,7 +102,7 @@ public class CatalogObjectController {
     }
 
     @ApiOperation(value = "Gets the raw content of a last revision of a catalog object")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "BucketEntity, catalog object or catalog object revision not found"))
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/raw", method = GET)
     public ResponseEntity<InputStreamResource> getRaw(@PathVariable Long bucketId, @PathVariable Long objectId) {
         return catalogObjectRevisionService.getCatalogObjectRaw(bucketId, objectId, Optional.empty());
@@ -113,7 +113,7 @@ public class CatalogObjectController {
                          @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
                          @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
                                                                                                                                   "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
-    @ApiResponses(value = @ApiResponse(code = 404, message = "BucketEntity not found"))
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources", method = GET)
     public PagedResources list(@PathVariable Long bucketId, @ApiParam(hidden = true) Pageable pageable,
             @ApiParam(hidden = true) PagedResourcesAssembler assembler,
@@ -122,7 +122,7 @@ public class CatalogObjectController {
     }
 
     @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogObjectEntity's metadata")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "BucketEntity or object not found"))
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or object not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}", method = DELETE)
     public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable Long objectId) {
         return catalogService.delete(bucketId, objectId);

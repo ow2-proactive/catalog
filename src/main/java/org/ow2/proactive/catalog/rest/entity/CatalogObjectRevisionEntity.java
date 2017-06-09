@@ -45,6 +45,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ow2.proactive.catalog.rest.util.LocalDateTimeAttributeConverter;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -215,10 +216,16 @@ public class CatalogObjectRevisionEntity implements Comparable {
 
     @Override
     public String toString() {
-        return "CatalogObjectRevisionEntity{" + "commitId=" + commitId + ", kind='" + kind + '\'' +
-               ", commitMessage='" + commitMessage + '\'' + ", commitDate=" + commitDate + ", name='" + name + '\'' +
-               ", bucketId=" + bucketId + ", contentType='" + contentType + '\'' + ", keyValueMetadataList=" +
-               keyValueMetadataList + '}';
+        return new ToStringBuilder(this).append("commitId", commitId)
+                                        .append("name", name)
+                                        .append("kind", kind)
+                                        .append("commitMessage", commitMessage)
+                                        .append("commitDate", commitDate)
+                                        .append("commitDate", commitDate)
+                                        .append("bucketId", bucketId)
+                                        .append("contentType", contentType)
+                                        .append("keyValueMetadataList", keyValueMetadataList)
+                                        .toString();
     }
 
     @Override
