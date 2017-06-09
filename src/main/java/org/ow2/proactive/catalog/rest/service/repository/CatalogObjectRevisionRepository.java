@@ -25,7 +25,7 @@
  */
 package org.ow2.proactive.catalog.rest.service.repository;
 
-import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevisionEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -36,13 +36,13 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 /**
  * @author ActiveEon Team
  */
-public interface CatalogObjectRevisionRepository extends PagingAndSortingRepository<CatalogObjectRevision, Long>,
-        QueryDslPredicateExecutor<CatalogObjectRevision> {
+public interface CatalogObjectRevisionRepository extends PagingAndSortingRepository<CatalogObjectRevisionEntity, Long>,
+        QueryDslPredicateExecutor<CatalogObjectRevisionEntity> {
 
-    @Query("SELECT cor FROM CatalogObjectRevision cor JOIN cor.catalogObject co WHERE co.id = ?1")
-    Page<CatalogObjectRevision> getRevisions(Long catalogObjectId, Pageable pageable);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE co.id = ?1")
+    Page<CatalogObjectRevisionEntity> getRevisions(Long catalogObjectId, Pageable pageable);
 
-    @Query("SELECT cor FROM CatalogObjectRevision cor WHERE cor.bucketId = ?1 AND cor.catalogObject.id = ?2 AND cor.commitId = ?3")
-    CatalogObjectRevision getCatalogObjectRevision(Long bucketId, Long catalogObjectId, Long revisionId);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.bucketId = ?1 AND cor.catalogObject.id = ?2 AND cor.commitId = ?3")
+    CatalogObjectRevisionEntity getCatalogObjectRevision(Long bucketId, Long catalogObjectId, Long revisionId);
 
 }

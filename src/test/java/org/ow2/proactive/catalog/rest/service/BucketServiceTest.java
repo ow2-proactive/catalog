@@ -47,7 +47,7 @@ import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.rest.Application;
 import org.ow2.proactive.catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.ow2.proactive.catalog.rest.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.DefaultCatalogObjectsFolderNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.DefaultRawCatalogObjectsFolderNotFoundException;
@@ -80,10 +80,10 @@ public class BucketServiceTest {
 
     @Test
     public void testCreateBucket() throws Exception {
-        Bucket mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
-        when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
+        BucketEntity mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
+        when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
         BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
-        verify(bucketRepository, times(1)).save(any(Bucket.class));
+        verify(bucketRepository, times(1)).save(any(BucketEntity.class));
         assertEquals(mockedBucket.getName(), bucketMetadata.name);
         assertEquals(mockedBucket.getId(), bucketMetadata.id);
         assertEquals(mockedBucket.getOwner(), bucketMetadata.owner);
@@ -91,7 +91,7 @@ public class BucketServiceTest {
 
     @Test
     public void testGetBucketMetadataValidBucket() throws Exception {
-        Bucket mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
+        BucketEntity mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
         when(bucketRepository.findOne(anyLong())).thenReturn(mockedBucket);
         BucketMetadata bucketMetadata = bucketService.getBucketMetadata(1L);
         verify(bucketRepository, times(1)).findOne(anyLong());
@@ -120,7 +120,7 @@ public class BucketServiceTest {
         final String[] buckets = { "Examples", "Cloud-automation" };
         final String catalogObjectsFolder = "/default-objects";
         final String rawCatalogObjectsFolder = "/raw-objects";
-        Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
+        BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         int totalNbWorkflows = 0;
 
         for (String bucketName : buckets) {
@@ -130,9 +130,9 @@ public class BucketServiceTest {
                 totalNbWorkflows += bucketFolder.list().length;
             }
         }
-        when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
+        when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
         bucketService.populateCatalog(buckets, catalogObjectsFolder, rawCatalogObjectsFolder);
-        verify(bucketRepository, times(buckets.length)).save(any(Bucket.class));
+        verify(bucketRepository, times(buckets.length)).save(any(BucketEntity.class));
         verify(catalogObjectService, times(totalNbWorkflows)).createCatalogObject(anyLong(),
                                                                                   anyString(),
                                                                                   anyString(),
@@ -144,10 +144,10 @@ public class BucketServiceTest {
     @Test
     public void testPopulateCatalogWithEmptyBuckets() throws Exception {
         final String[] buckets = { "Titi", "Tata", "Toto" };
-        Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
-        when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
+        BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
+        when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
         bucketService.populateCatalog(buckets, "/default-objects", "/raw-objects");
-        verify(bucketRepository, times(buckets.length)).save(any(Bucket.class));
+        verify(bucketRepository, times(buckets.length)).save(any(BucketEntity.class));
         verify(catalogObjectService, times(0)).createCatalogObject(anyLong(),
                                                                    anyString(),
                                                                    anyString(),
@@ -159,16 +159,16 @@ public class BucketServiceTest {
     @Test(expected = DefaultCatalogObjectsFolderNotFoundException.class)
     public void testPopulateCatalogFromInvalidFolder() throws Exception {
         final String[] buckets = { "NonExistentBucket" };
-        Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
-        when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
+        BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
+        when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
         bucketService.populateCatalog(buckets, "/this-folder-doesnt-exist", "/raw-objects");
     }
 
     @Test(expected = DefaultRawCatalogObjectsFolderNotFoundException.class)
     public void testPopulateCatalogFromInvalidRawFolder() throws Exception {
         final String[] buckets = { "NonExistentBucket" };
-        Bucket mockedBucket = newMockedBucket(1L, "mockedBucket", null);
-        when(bucketRepository.save(any(Bucket.class))).thenReturn(mockedBucket);
+        BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
+        when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
         bucketService.populateCatalog(buckets, "/default-objects", "/this-folder-doesnt-exist");
     }
 
@@ -184,8 +184,8 @@ public class BucketServiceTest {
         verify(mockedAssembler, times(1)).toResource(any(PageImpl.class), any(BucketResourceAssembler.class));
     }
 
-    private Bucket newMockedBucket(Long id, String name, LocalDateTime createdAt) {
-        Bucket mockedBucket = mock(Bucket.class);
+    private BucketEntity newMockedBucket(Long id, String name, LocalDateTime createdAt) {
+        BucketEntity mockedBucket = mock(BucketEntity.class);
         when(mockedBucket.getId()).thenReturn(id);
         when(mockedBucket.getName()).thenReturn(name);
         return mockedBucket;

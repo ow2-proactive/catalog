@@ -39,22 +39,22 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author ActiveEon Team
  */
-public class BucketTest {
+public class BucketEntityTest {
 
     private final String DEFAULT_BUCKET_NAME = "test";
 
     private final String DEFAULT_BUCKET_USER = "BucketTestUser";
 
-    private Bucket bucket;
+    private BucketEntity bucket;
 
     @Before
     public void setUp() {
-        bucket = new Bucket(DEFAULT_BUCKET_NAME, DEFAULT_BUCKET_USER);
+        bucket = new BucketEntity(DEFAULT_BUCKET_NAME, DEFAULT_BUCKET_USER);
     }
 
     @Test
     public void testAddWorkflow() throws Exception {
-        CatalogObject catalogObject = new CatalogObject(bucket);
+        CatalogObjectEntity catalogObject = new CatalogObjectEntity(bucket);
 
         bucket.addCatalogObject(catalogObject);
 
@@ -71,7 +71,7 @@ public class BucketTest {
 
     @Test
     public void testSetWorkflows() throws Exception {
-        List<CatalogObject> catalogObjectList = ImmutableList.of();
+        List<CatalogObjectEntity> catalogObjectList = ImmutableList.of();
         bucket.setCatalogObjects(catalogObjectList);
         assertEquals(catalogObjectList, bucket.getCatalogObjects());
     }
@@ -90,7 +90,7 @@ public class BucketTest {
 
     @Test
     public void testGetWorkflows() throws Exception {
-        List<CatalogObject> catalogObjectList = ImmutableList.of();
+        List<CatalogObjectEntity> catalogObjectList = ImmutableList.of();
         bucket.setCatalogObjects(catalogObjectList);
         assertEquals(catalogObjectList, bucket.getCatalogObjects());
     }

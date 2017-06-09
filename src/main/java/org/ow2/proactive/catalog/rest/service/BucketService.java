@@ -36,7 +36,7 @@ import javax.annotation.PostConstruct;
 
 import org.ow2.proactive.catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.ow2.proactive.catalog.rest.service.exception.BucketAlreadyExistingException;
 import org.ow2.proactive.catalog.rest.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.DefaultCatalogObjectsFolderNotFoundException;
@@ -106,7 +106,7 @@ public class BucketService {
     protected void populateCatalog(String[] bucketNames, String objectsFolder, String rawObjectsFolder)
             throws SecurityException, IOException {
         for (String bucketName : bucketNames) {
-            final Long bucketId = bucketRepository.save(new Bucket(bucketName, DEFAULT_BUCKET_OWNER)).getId();
+            final Long bucketId = bucketRepository.save(new BucketEntity(bucketName, DEFAULT_BUCKET_OWNER)).getId();
             final URL folderResource = getClass().getResource(objectsFolder);
             if (folderResource == null) {
                 throw new DefaultCatalogObjectsFolderNotFoundException();
@@ -152,7 +152,7 @@ public class BucketService {
     }
 
     public BucketMetadata createBucket(String name, String owner) {
-        Bucket bucket = new Bucket(name, owner);
+        BucketEntity bucket = new BucketEntity(name, owner);
         try {
             bucket = bucketRepository.save(bucket);
         } catch (DataIntegrityViolationException exception) {
@@ -163,7 +163,7 @@ public class BucketService {
     }
 
     public BucketMetadata getBucketMetadata(long id) {
-        Bucket bucket = bucketRepository.findOne(id);
+        BucketEntity bucket = bucketRepository.findOne(id);
 
         if (bucket == null) {
             throw new BucketNotFoundException();
@@ -174,7 +174,7 @@ public class BucketService {
 
     public PagedResources listBuckets(Optional<String> ownerName, Pageable pageable,
             PagedResourcesAssembler assembler) {
-        Page<Bucket> page;
+        Page<BucketEntity> page;
         if (ownerName.isPresent()) {
             page = bucketRepository.findByOwner(ownerName.get(), pageable);
         } else {

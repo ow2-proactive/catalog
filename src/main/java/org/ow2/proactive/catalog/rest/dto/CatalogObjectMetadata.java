@@ -28,7 +28,7 @@ package org.ow2.proactive.catalog.rest.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.rest.util.KeyValueEntityToDtoTransformer;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -62,7 +62,7 @@ public final class CatalogObjectMetadata extends NamedMetadata {
     @JsonProperty("object_key_values")
     public final List<KeyValueMetadata> keyValueMetadataList;
 
-    public CatalogObjectMetadata(CatalogObjectRevision catalogObjectRevision) {
+    public CatalogObjectMetadata(CatalogObjectRevisionEntity catalogObjectRevision) {
         this(catalogObjectRevision.getKind(),
              catalogObjectRevision.getBucketId(),
              catalogObjectRevision.getCatalogObject().getId(),
