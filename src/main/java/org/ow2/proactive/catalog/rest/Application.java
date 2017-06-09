@@ -29,7 +29,7 @@ import java.io.File;
 
 import javax.sql.DataSource;
 
-import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -67,7 +67,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @EnableAutoConfiguration(exclude = { MultipartAutoConfiguration.class })
 @EnableSwagger2
-@EntityScan(basePackageClasses = Bucket.class)
+@EntityScan(basePackageClasses = BucketEntity.class)
 @PropertySource("classpath:application.properties")
 public class Application extends WebMvcConfigurerAdapter {
 
@@ -154,7 +154,7 @@ public class Application extends WebMvcConfigurerAdapter {
     @Bean
     public Docket workflowCatalogApi() {
         return new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo())
-                                                      .groupName("CatalogObject Catalog")
+                                                      .groupName("CatalogObjectEntity Catalog")
                                                       .ignoredParameterTypes(Pageable.class,
                                                                              PagedResourcesAssembler.class)
                                                       .select()
@@ -163,7 +163,7 @@ public class Application extends WebMvcConfigurerAdapter {
     }
 
     private ApiInfo apiInfo() {
-        return new ApiInfoBuilder().title("CatalogObject Catalog API")
+        return new ApiInfoBuilder().title("CatalogObjectEntity Catalog API")
                                    .description("The purpose of the catalog is to store ProActive objects.\n" + "\n" +
                                                 "A catalog is subdivided into buckets.\n\n Each bucket manages zero, one or more\n" +
                                                 "versioned ProActive objects.")

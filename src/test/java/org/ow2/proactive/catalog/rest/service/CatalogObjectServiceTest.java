@@ -25,8 +25,11 @@
  */
 package org.ow2.proactive.catalog.rest.service;
 
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
@@ -35,6 +38,10 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.rest.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
+import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRepository;
 
 
 /**
@@ -48,7 +55,15 @@ public class CatalogObjectServiceTest {
     @Mock
     private CatalogObjectRevisionService catalogObjectRevisionService;
 
-    private final static Long DUMMY_ID = 1L;
+    @Mock
+    private CatalogObjectRepository catalogObjectRepository;
+
+    @Mock
+    private BucketRepository bucketRepository;
+
+    private static final Long DUMMY_ID = 0L;
+
+    private static final Long EXISTING_ID = 1L;
 
     @Before
     public void setUp() throws Exception {
@@ -83,5 +98,18 @@ public class CatalogObjectServiceTest {
     public void testDelete() throws Exception {
         catalogObjectService.delete(1L, 2L);
         verify(catalogObjectRevisionService, times(1)).delete(1L, 2L, Optional.empty());
+    }
+
+    @Test(expected = CatalogObjectNotFoundException.class)
+    public void testFindWorkflowInvalidId() throws Exception {
+        when(catalogObjectRepository.findOne(anyLong())).thenReturn(null);
+        catalogObjectService.findObjectById(DUMMY_ID);
+    }
+
+    @Test
+    public void testFindCatalogObject() throws Exception {
+        when(catalogObjectRepository.findOne(EXISTING_ID)).thenReturn(mock(CatalogObjectEntity.class));
+        catalogObjectService.findObjectById(EXISTING_ID);
+        verify(catalogObjectRepository, times(1)).findOne(EXISTING_ID);
     }
 }

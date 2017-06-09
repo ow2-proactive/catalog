@@ -40,7 +40,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.rest.Application;
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectService;
 import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
@@ -85,13 +85,13 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Autowired
     private CatalogObjectService catalogObjectService;
 
-    private Bucket bucket;
+    private BucketEntity bucket;
 
     private CatalogObjectMetadata catalogObject;
 
     @Before
     public void setup() throws IOException {
-        bucket = bucketRepository.save(new Bucket("myBucket", "BucketControllerIntegrationTestUser"));
+        bucket = bucketRepository.save(new BucketEntity("myBucket", "BucketControllerIntegrationTestUser"));
         catalogObject = catalogObjectService.createCatalogObject(bucket.getId(),
                                                                  "workflow",
                                                                  "name",

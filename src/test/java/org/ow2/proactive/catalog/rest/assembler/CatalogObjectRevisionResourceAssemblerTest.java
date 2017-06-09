@@ -39,8 +39,8 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.rest.entity.CatalogObject;
-import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevisionEntity;
 
 import com.google.common.io.ByteStreams;
 
@@ -60,14 +60,14 @@ public class CatalogObjectRevisionResourceAssemblerTest {
 
     @Test
     public void testToResource() throws Exception {
-        CatalogObjectRevision catalogObjectRevision = new CatalogObjectRevision("workflow",
-                                                                                LocalDateTime.now(),
-                                                                                "WR-TEST",
-                                                                                "Commit message",
-                                                                                1L,
-                                                                                "application/xml",
-                                                                                getWorkflowAsByteArray("workflow.xml"));
-        CatalogObject mockedCatalogObject = mock(CatalogObject.class);
+        CatalogObjectRevisionEntity catalogObjectRevision = new CatalogObjectRevisionEntity("workflow",
+                                                                                            LocalDateTime.now(),
+                                                                                            "WR-TEST",
+                                                                                            "Commit message",
+                                                                                            1L,
+                                                                                            "application/xml",
+                                                                                            getWorkflowAsByteArray("workflow.xml"));
+        CatalogObjectEntity mockedCatalogObject = mock(CatalogObjectEntity.class);
         when(mockedCatalogObject.getId()).thenReturn(1L);
         catalogObjectRevision.setCatalogObject(mockedCatalogObject);
         CatalogObjectMetadata objectMetadata = catalogObjectRevisionResourceAssembler.toResource(catalogObjectRevision);

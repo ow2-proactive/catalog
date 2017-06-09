@@ -49,7 +49,7 @@ import com.google.common.collect.Lists;
  */
 @Entity
 @Table(name = "CATALOG_OBJECT", indexes = { @Index(columnList = "LAST_COMMIT_ID") })
-public class CatalogObject {
+public class CatalogObjectEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -58,34 +58,34 @@ public class CatalogObject {
 
     @ManyToOne
     @JoinColumn(name = "BUCKET_ID", nullable = false)
-    private Bucket bucket;
+    private BucketEntity bucket;
 
     @OneToMany(mappedBy = "catalogObject", orphanRemoval = true)
     @OrderBy("commitDate DESC")
-    private SortedSet<CatalogObjectRevision> revisions;
+    private SortedSet<CatalogObjectRevisionEntity> revisions;
 
     @Column(name = "LAST_COMMIT_ID")
     private Long lastCommitId = 0L;
 
-    public CatalogObject() {
-        this.revisions = new TreeSet<CatalogObjectRevision>();
+    public CatalogObjectEntity() {
+        this.revisions = new TreeSet<CatalogObjectRevisionEntity>();
     }
 
-    public CatalogObject(Bucket bucket) {
+    public CatalogObjectEntity(BucketEntity bucket) {
         this(bucket, Lists.newArrayList());
     }
 
-    public CatalogObject(Bucket bucket, CatalogObjectRevision... revisions) {
+    public CatalogObjectEntity(BucketEntity bucket, CatalogObjectRevisionEntity... revisions) {
         this(bucket, Lists.newArrayList(revisions));
     }
 
-    public CatalogObject(Bucket bucket, List<CatalogObjectRevision> revisions) {
+    public CatalogObjectEntity(BucketEntity bucket, List<CatalogObjectRevisionEntity> revisions) {
         this.bucket = bucket;
-        this.revisions = new TreeSet<CatalogObjectRevision>();
+        this.revisions = new TreeSet<CatalogObjectRevisionEntity>();
         revisions.forEach(this::addRevision);
     }
 
-    public void addRevision(CatalogObjectRevision catalogObjectRevision) {
+    public void addRevision(CatalogObjectRevisionEntity catalogObjectRevision) {
         this.revisions.add(catalogObjectRevision);
         this.lastCommitId = catalogObjectRevision.getCommitId();
         catalogObjectRevision.setCatalogObject(this);
@@ -95,7 +95,7 @@ public class CatalogObject {
         return id;
     }
 
-    public Bucket getBucket() {
+    public BucketEntity getBucket() {
         return bucket;
     }
 
@@ -103,11 +103,11 @@ public class CatalogObject {
         return lastCommitId;
     }
 
-    public SortedSet<CatalogObjectRevision> getRevisions() {
+    public SortedSet<CatalogObjectRevisionEntity> getRevisions() {
         return revisions;
     }
 
-    public void setBucket(Bucket bucket) {
+    public void setBucket(BucketEntity bucket) {
         this.bucket = bucket;
     }
 
@@ -115,13 +115,13 @@ public class CatalogObject {
         this.lastCommitId = lastCommitId;
     }
 
-    public void setRevisions(SortedSet<CatalogObjectRevision> revisions) {
+    public void setRevisions(SortedSet<CatalogObjectRevisionEntity> revisions) {
         this.revisions = revisions;
     }
 
     @Override
     public String toString() {
-        return "CatalogObject{" + "id=" + id + ", bucket=" + bucket + ", lastCommitId=" + lastCommitId + '}';
+        return "CatalogObjectEntity{" + "id=" + id + ", bucket=" + bucket + ", lastCommitId=" + lastCommitId + '}';
     }
 
 }
