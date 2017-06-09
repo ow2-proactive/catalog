@@ -37,12 +37,14 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 /**
  * @author ActiveEon Team
  */
 @Service
+@Transactional
 public class CatalogObjectService {
 
     @Autowired
