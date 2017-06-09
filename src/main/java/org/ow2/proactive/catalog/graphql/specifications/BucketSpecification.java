@@ -30,7 +30,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.springframework.data.jpa.domain.Specification;
 
 
@@ -38,10 +38,10 @@ import org.springframework.data.jpa.domain.Specification;
  * @author ActiveEon Team
  * @since 09/06/2017
  */
-public class BucketSpecification implements Specification<Bucket> {
+public class BucketSpecification implements Specification<BucketEntity> {
 
     @Override
-    public Predicate toPredicate(Root<Bucket> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+    public Predicate toPredicate(Root<BucketEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
         return null;
     }
 }
