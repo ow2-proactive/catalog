@@ -117,7 +117,7 @@ public class CatalogObjectRevisionEntity implements Comparable {
     }
 
     public CatalogObjectRevisionEntity(String kind, LocalDateTime commitDate, String name, String commitMessage,
-                                       Long bucketId, String contentType, List<KeyValueMetadataEntity> keyValueMetadataList, byte[] rawObject) {
+            Long bucketId, String contentType, List<KeyValueMetadataEntity> keyValueMetadataList, byte[] rawObject) {
         this(kind, commitDate, name, commitMessage, bucketId, contentType, rawObject);
         this.keyValueMetadataList = keyValueMetadataList;
     }

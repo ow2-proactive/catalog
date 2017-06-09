@@ -30,8 +30,13 @@ import java.util.Optional;
 
 import org.ow2.proactive.catalog.rest.assembler.CatalogObjectRevisionResourceAssembler;
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.rest.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.rest.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
@@ -53,8 +58,11 @@ public class CatalogObjectService {
     @Autowired
     private CatalogObjectRevisionResourceAssembler catalogObjectRevisionResourceAssembler;
 
+    @Autowired
+    private CatalogObjectRepository catalogObjectRepository;
+
     public CatalogObjectMetadata createCatalogObject(String kind, String name, String commitMessage, Long bucketId,
-                                                     String layout, List<KeyValueMetadataEntity> keyValueMetadataList, byte[] rawObject) {
+            String layout, List<KeyValueMetadataEntity> keyValueMetadataList, byte[] rawObject) {
         return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
                                                                         kind,
                                                                         name,
@@ -89,4 +97,36 @@ public class CatalogObjectService {
         return catalogObjectRevisionService.delete(bucketId, catalogObjectId, Optional.empty());
     }
 
+    protected CatalogObjectEntity findObjectById(long objectId) {
+        CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(objectId);
+
+        if (catalogObject == null) {
+            throw new CatalogObjectNotFoundException();
+        }
+
+        return catalogObject;
+    }
+
+    public CatalogObjectRevisionEntity getMostRecentCatalogObjectRevision(Long bucketId, Long catalogObjectId) {
+        return catalogObjectRepository.getMostRecentCatalogObjectRevision(bucketId, catalogObjectId);
+    }
+
+    public Page<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId, Pageable pageable,
+            Optional<String> kind) {
+        Page<CatalogObjectRevisionEntity> page;
+        if (kind.isPresent()) {
+            page = catalogObjectRepository.getMostRecentRevisions(bucketId, pageable, kind.get());
+        } else {
+            page = catalogObjectRepository.getMostRecentRevisions(bucketId, pageable);
+        }
+        return page;
+    }
+
+    public void save(CatalogObjectEntity catalogObject) {
+        catalogObjectRepository.save(catalogObject);
+    }
+
+    public void delete(CatalogObjectEntity catalogObject) {
+        catalogObjectRepository.delete(catalogObject);
+    }
 }
