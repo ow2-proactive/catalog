@@ -191,4 +191,15 @@ public class BucketServiceTest {
         return mockedBucket;
     }
 
+    @Test
+    public void testFindBucketExisting() {
+        BucketEntity bucket = mock(BucketEntity.class);
+        when(bucketRepository.findOne(1L)).thenReturn(bucket);
+        assertEquals(bucketService.findBucket(1L), bucket);
+    }
+
+    @Test(expected = BucketNotFoundException.class)
+    public void testFindBucketNonExisting() {
+        bucketService.findBucket(1L);
+    }
 }
