@@ -25,8 +25,8 @@
  */
 package org.ow2.proactive.catalog.rest.service.repository;
 
-import org.ow2.proactive.catalog.rest.entity.CatalogObject;
-import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevisionEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -38,15 +38,15 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  * @author ActiveEon Team
  */
 public interface CatalogObjectRepository
-        extends PagingAndSortingRepository<CatalogObject, Long>, QueryDslPredicateExecutor<CatalogObject> {
+        extends PagingAndSortingRepository<CatalogObjectEntity, Long>, QueryDslPredicateExecutor<CatalogObjectEntity> {
 
-    @Query("SELECT cor FROM CatalogObjectRevision cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId")
-    Page<CatalogObjectRevision> getMostRecentRevisions(Long bucketId, Pageable pageable);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId")
+    Page<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId, Pageable pageable);
 
-    @Query("SELECT cor FROM CatalogObjectRevision cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId AND cor.kind = ?3")
-    Page<CatalogObjectRevision> getMostRecentRevisions(Long bucketId, Pageable pageable, String kind);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId AND cor.kind = ?3")
+    Page<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId, Pageable pageable, String kind);
 
-    @Query("SELECT cor FROM CatalogObjectRevision cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND cor.catalogObject.id = ?2 AND co.lastCommitId = cor.commitId")
-    CatalogObjectRevision getMostRecentCatalogObjectRevision(Long bucketId, Long objectId);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND cor.catalogObject.id = ?2 AND co.lastCommitId = cor.commitId")
+    CatalogObjectRevisionEntity getMostRecentCatalogObjectRevision(Long bucketId, Long objectId);
 
 }

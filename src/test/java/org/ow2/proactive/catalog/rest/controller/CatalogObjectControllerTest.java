@@ -44,7 +44,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.rest.assembler.CatalogObjectRevisionResourceAssembler;
-import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectService;
 import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
@@ -110,7 +110,7 @@ public class CatalogObjectControllerTest {
 
     @Test
     public void testList() throws Exception {
-        Bucket bucket = mock(Bucket.class);
+        BucketEntity bucket = mock(BucketEntity.class);
         when(bucketRepository.findOne(1L)).thenReturn(bucket);
         when(pagedResourcesAssembler.toResource(any(Page.class),
                                                 any(CatalogObjectRevisionResourceAssembler.class))).thenReturn(mock(PagedResources.class));

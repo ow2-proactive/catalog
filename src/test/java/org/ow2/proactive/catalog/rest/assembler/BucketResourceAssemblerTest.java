@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 
 
 /**
@@ -50,7 +50,7 @@ public class BucketResourceAssemblerTest {
 
     @Test
     public void testToResource() throws Exception {
-        Bucket bucket = new Bucket("BUCKET-TEST", "BucketResourceAssemblerTestUser");
+        BucketEntity bucket = new BucketEntity("BUCKET-TEST", "BucketResourceAssemblerTestUser");
         BucketMetadata bucketMetadata = bucketResourceAssembler.toResource(bucket);
         assertEquals(bucket.getName(), bucketMetadata.name);
     }

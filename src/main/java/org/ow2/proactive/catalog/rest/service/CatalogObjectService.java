@@ -30,7 +30,7 @@ import java.util.Optional;
 
 import org.ow2.proactive.catalog.rest.assembler.CatalogObjectRevisionResourceAssembler;
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
+import org.ow2.proactive.catalog.rest.entity.KeyValueMetadataEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -52,7 +52,7 @@ public class CatalogObjectService {
     private CatalogObjectRevisionResourceAssembler catalogObjectRevisionResourceAssembler;
 
     public CatalogObjectMetadata createCatalogObject(String kind, String name, String commitMessage, Long bucketId,
-            String layout, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
+                                                     String layout, List<KeyValueMetadataEntity> keyValueMetadataList, byte[] rawObject) {
         return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
                                                                         kind,
                                                                         name,

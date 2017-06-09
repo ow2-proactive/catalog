@@ -44,7 +44,7 @@ import com.google.common.collect.Lists;
  */
 @Entity
 @Table(name = "BUCKET", uniqueConstraints = @UniqueConstraint(columnNames = { "NAME", "OWNER" }))
-public class Bucket {
+public class BucketEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -58,22 +58,22 @@ public class Bucket {
     protected String owner;
 
     @OneToMany(mappedBy = "bucket")
-    private List<CatalogObject> catalogObjects;
+    private List<CatalogObjectEntity> catalogObjects;
 
-    public Bucket() {
+    public BucketEntity() {
     }
 
-    public Bucket(String name, String owner) {
-        this(name, owner, new CatalogObject[0]);
+    public BucketEntity(String name, String owner) {
+        this(name, owner, new CatalogObjectEntity[0]);
     }
 
-    public Bucket(String name, String owner, CatalogObject... catalogObjects) {
+    public BucketEntity(String name, String owner, CatalogObjectEntity... catalogObjects) {
         this.name = name;
         this.owner = owner;
         this.catalogObjects = Lists.newArrayList(catalogObjects);
     }
 
-    public void addCatalogObject(CatalogObject catalogObject) {
+    public void addCatalogObject(CatalogObjectEntity catalogObject) {
         this.catalogObjects.add(catalogObject);
         catalogObject.setBucket(this);
     }
@@ -86,7 +86,7 @@ public class Bucket {
         return name;
     }
 
-    public List<CatalogObject> getCatalogObjects() {
+    public List<CatalogObjectEntity> getCatalogObjects() {
         return catalogObjects;
     }
 
@@ -94,7 +94,7 @@ public class Bucket {
         this.name = name;
     }
 
-    public void setCatalogObjects(List<CatalogObject> catalogObjects) {
+    public void setCatalogObjects(List<CatalogObjectEntity> catalogObjects) {
         this.catalogObjects = catalogObjects;
     }
 

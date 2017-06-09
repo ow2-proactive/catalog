@@ -53,9 +53,9 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.rest.assembler.CatalogObjectRevisionResourceAssembler;
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.rest.entity.Bucket;
-import org.ow2.proactive.catalog.rest.entity.CatalogObject;
-import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevision;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.rest.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.RevisionNotFoundException;
@@ -94,11 +94,11 @@ public class CatalogObjectRevisionServiceTest {
 
     private static final Long EXISTING_ID = 1L;
 
-    private Bucket mockedBucket;
+    private BucketEntity mockedBucket;
 
-    private SortedSet<CatalogObjectRevision> revisions;
+    private SortedSet<CatalogObjectRevisionEntity> revisions;
 
-    private CatalogObject catalogObject2Rev;
+    private CatalogObjectEntity catalogObject2Rev;
 
     @Before
     public void setUp() throws Exception {
@@ -110,7 +110,7 @@ public class CatalogObjectRevisionServiceTest {
                .when(catalogObjectRevisionService)
                .createLink(Matchers.any(Long.class),
                            Matchers.any(Long.class),
-                           Matchers.any(CatalogObjectRevision.class));
+                           Matchers.any(CatalogObjectRevisionEntity.class));
 
         Long revCnt = EXISTING_ID;
         mockedBucket = newMockedBucket(EXISTING_ID);
@@ -205,14 +205,14 @@ public class CatalogObjectRevisionServiceTest {
 
     @Test
     public void testFindCatalogObject() throws Exception {
-        when(catalogObjectRepository.findOne(EXISTING_ID)).thenReturn(mock(CatalogObject.class));
+        when(catalogObjectRepository.findOne(EXISTING_ID)).thenReturn(mock(CatalogObjectEntity.class));
         catalogObjectRevisionService.findObjectById(EXISTING_ID);
         verify(catalogObjectRepository, times(1)).findOne(EXISTING_ID);
     }
 
     @Test
     public void testFindBucketExisting() {
-        Bucket bucket = mock(Bucket.class);
+        BucketEntity bucket = mock(BucketEntity.class);
         when(bucketRepository.findOne(EXISTING_ID)).thenReturn(bucket);
         assertEquals(catalogObjectRevisionService.findBucket(EXISTING_ID), bucket);
     }
@@ -236,8 +236,8 @@ public class CatalogObjectRevisionServiceTest {
 
     @Test(expected = RevisionNotFoundException.class)
     public void testGetWorkflowWithInvalidRevisionId() throws Exception {
-        when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
-        when(catalogObjectRepository.findOne(anyLong())).thenReturn(mock(CatalogObject.class));
+        when(bucketRepository.findOne(anyLong())).thenReturn(mock(BucketEntity.class));
+        when(catalogObjectRepository.findOne(anyLong())).thenReturn(mock(CatalogObjectEntity.class));
         when(catalogObjectRepository.getMostRecentCatalogObjectRevision(anyLong(), anyLong())).thenReturn(null);
         catalogObjectRevisionService.getCatalogObject(DUMMY_ID, DUMMY_ID, Optional.empty());
     }
@@ -265,21 +265,21 @@ public class CatalogObjectRevisionServiceTest {
     private void getWorkflowFromFunction(Optional<Long> revisionId,
             Function<Optional<Long>, ResponseEntity<?>> getFunction) throws IOException {
 
-        CatalogObject mockedWf = mock(CatalogObject.class);
+        CatalogObjectEntity mockedWf = mock(CatalogObjectEntity.class);
         when(mockedWf.getId()).thenReturn(DUMMY_ID);
 
-        CatalogObjectRevision wfRev = new CatalogObjectRevision(DUMMY_ID,
-                                                                "workflow",
-                                                                LocalDateTime.now(),
-                                                                "WR-TEST",
-                                                                "commit message",
-                                                                DUMMY_ID,
-                                                                "application/xml",
-                                                                getWorkflowAsByteArray("workflow.xml"));
+        CatalogObjectRevisionEntity wfRev = new CatalogObjectRevisionEntity(DUMMY_ID,
+                                                                            "workflow",
+                                                                            LocalDateTime.now(),
+                                                                            "WR-TEST",
+                                                                            "commit message",
+                                                                            DUMMY_ID,
+                                                                            "application/xml",
+                                                                            getWorkflowAsByteArray("workflow.xml"));
         wfRev.setCatalogObject(mockedWf);
 
-        when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
-        when(catalogObjectRepository.findOne(anyLong())).thenReturn(mock(CatalogObject.class));
+        when(bucketRepository.findOne(anyLong())).thenReturn(mock(BucketEntity.class));
+        when(catalogObjectRepository.findOne(anyLong())).thenReturn(mock(CatalogObjectEntity.class));
 
         if (revisionId.isPresent()) {
             when(catalogObjectRevisionRepository.getCatalogObjectRevision(anyLong(),
@@ -327,23 +327,23 @@ public class CatalogObjectRevisionServiceTest {
 
     @Test
     public void testDeleteWorkflowWith1Revision() throws Exception {
-        CatalogObjectRevision wfRev = new CatalogObjectRevision(EXISTING_ID,
-                                                                "workflow",
-                                                                LocalDateTime.now(),
-                                                                "WR-TEST",
-                                                                "commit message",
-                                                                DUMMY_ID,
-                                                                "application/xml",
-                                                                getWorkflowAsByteArray("workflow.xml"));
-        CatalogObject catalogObject1Rev = newMockedCatalogObject(EXISTING_ID,
-                                                                 mockedBucket,
-                                                                 new TreeSet<CatalogObjectRevision>() {
-                                                                     {
-                                                                         add(wfRev);
-                                                                     }
-                                                                 },
-                                                                 EXISTING_ID,
-                                                                 "workflow");
+        CatalogObjectRevisionEntity wfRev = new CatalogObjectRevisionEntity(EXISTING_ID,
+                                                                            "workflow",
+                                                                            LocalDateTime.now(),
+                                                                            "WR-TEST",
+                                                                            "commit message",
+                                                                            DUMMY_ID,
+                                                                            "application/xml",
+                                                                            getWorkflowAsByteArray("workflow.xml"));
+        CatalogObjectEntity catalogObject1Rev = newMockedCatalogObject(EXISTING_ID,
+                                                                       mockedBucket,
+                                                                       new TreeSet<CatalogObjectRevisionEntity>() {
+                                                                           {
+                                                                               add(wfRev);
+                                                                           }
+                                                                       },
+                                                                       EXISTING_ID,
+                                                                       "workflow");
         when(catalogObjectRepository.findOne(EXISTING_ID)).thenReturn(catalogObject1Rev);
         when(catalogObjectRepository.getMostRecentCatalogObjectRevision(mockedBucket.getId(),
                                                                         catalogObject1Rev.getId())).thenReturn(wfRev);
@@ -404,45 +404,45 @@ public class CatalogObjectRevisionServiceTest {
         verify(catalogObjectRepository, times(1)).getMostRecentCatalogObjectRevision(mockedBucket.getId(), 2L);
     }
 
-    private CatalogObjectRevision newWorkflowRevision(Long bucketId, Long commitId, LocalDateTime date)
+    private CatalogObjectRevisionEntity newWorkflowRevision(Long bucketId, Long commitId, LocalDateTime date)
             throws Exception {
         return newCatalogObjectRevision("workflow", bucketId, commitId, date);
     }
 
-    private CatalogObjectRevision newCatalogObjectRevision(String kind, Long bucketId, Long commitId,
+    private CatalogObjectRevisionEntity newCatalogObjectRevision(String kind, Long bucketId, Long commitId,
             LocalDateTime date) throws Exception {
-        return new CatalogObjectRevision(commitId,
-                                         kind,
-                                         date,
-                                         "WR-TEST",
-                                         "commit message",
-                                         bucketId,
-                                         "application/xml",
-                                         getWorkflowAsByteArray("workflow.xml"));
+        return new CatalogObjectRevisionEntity(commitId,
+                                               kind,
+                                               date,
+                                               "WR-TEST",
+                                               "commit message",
+                                               bucketId,
+                                               "application/xml",
+                                               getWorkflowAsByteArray("workflow.xml"));
     }
 
-    private Bucket newMockedBucket(Long bucketId) {
-        Bucket mockedBucket = mock(Bucket.class);
+    private BucketEntity newMockedBucket(Long bucketId) {
+        BucketEntity mockedBucket = mock(BucketEntity.class);
         when(mockedBucket.getId()).thenReturn(bucketId);
         return mockedBucket;
     }
 
-    private CatalogObject newMockedCatalogObject(Long id, Bucket bucket, SortedSet<CatalogObjectRevision> revisions,
-            Long lastCommitId, String kind) {
-        CatalogObject catalogObject = mock(CatalogObject.class);
+    private CatalogObjectEntity newMockedCatalogObject(Long id, BucketEntity bucket,
+            SortedSet<CatalogObjectRevisionEntity> revisions, Long lastCommitId, String kind) {
+        CatalogObjectEntity catalogObject = mock(CatalogObjectEntity.class);
         when(catalogObject.getId()).thenReturn(id);
         when(catalogObject.getBucket()).thenReturn(bucket);
         when(catalogObject.getRevisions()).thenReturn(revisions);
         when(catalogObject.getLastCommitId()).thenReturn(lastCommitId);
-        for (CatalogObjectRevision catalogObjectRevision : revisions) {
+        for (CatalogObjectRevisionEntity catalogObjectRevision : revisions) {
             catalogObjectRevision.setCatalogObject(catalogObject);
         }
         return catalogObject;
     }
 
     private void listWorkflows(Optional<Long> wId) {
-        when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
-        when(catalogObjectRepository.findOne(anyLong())).thenReturn(mock(CatalogObject.class));
+        when(bucketRepository.findOne(anyLong())).thenReturn(mock(BucketEntity.class));
+        when(catalogObjectRepository.findOne(anyLong())).thenReturn(mock(CatalogObjectEntity.class));
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
         when(mockedAssembler.toResource(any(PageImpl.class),
                                         any(CatalogObjectRevisionResourceAssembler.class))).thenReturn(null);
@@ -462,20 +462,20 @@ public class CatalogObjectRevisionServiceTest {
     private void createCatalogObject(String name, String kind, String fileName, Optional<Long> wId, String layout)
             throws IOException {
         String layoutStr = "application/xml";
-        when(bucketRepository.findOne(anyLong())).thenReturn(mock(Bucket.class));
-        when(catalogObjectRevisionRepository.save(any(CatalogObjectRevision.class))).thenReturn(new CatalogObjectRevision(EXISTING_ID,
-                                                                                                                          kind,
-                                                                                                                          LocalDateTime.now(),
-                                                                                                                          name,
-                                                                                                                          "commit message",
-                                                                                                                          EXISTING_ID,
-                                                                                                                          layoutStr,
-                                                                                                                          Lists.newArrayList(),
-                                                                                                                          getWorkflowAsByteArray(fileName)));
+        when(bucketRepository.findOne(anyLong())).thenReturn(mock(BucketEntity.class));
+        when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(new CatalogObjectRevisionEntity(EXISTING_ID,
+                                                                                                                                      kind,
+                                                                                                                                      LocalDateTime.now(),
+                                                                                                                                      name,
+                                                                                                                                      "commit message",
+                                                                                                                                      EXISTING_ID,
+                                                                                                                                      layoutStr,
+                                                                                                                                      Lists.newArrayList(),
+                                                                                                                                      getWorkflowAsByteArray(fileName)));
 
         if (wId.isPresent()) {
-            when(catalogObjectRepository.findOne(anyLong())).thenReturn(new CatalogObject(mock(Bucket.class),
-                                                                                          Lists.newArrayList()));
+            when(catalogObjectRepository.findOne(anyLong())).thenReturn(new CatalogObjectEntity(mock(BucketEntity.class),
+                                                                                                Lists.newArrayList()));
         }
 
         CatalogObjectMetadata actualWFMetadata = catalogObjectRevisionService.createCatalogObjectRevision(DUMMY_ID,
@@ -488,7 +488,7 @@ public class CatalogObjectRevisionServiceTest {
 
         );
 
-        verify(catalogObjectRevisionRepository, times(1)).save(any(CatalogObjectRevision.class));
+        verify(catalogObjectRevisionRepository, times(1)).save(any(CatalogObjectRevisionEntity.class));
 
         assertEquals(name, actualWFMetadata.name);
         assertEquals(EXISTING_ID, actualWFMetadata.bucketId);

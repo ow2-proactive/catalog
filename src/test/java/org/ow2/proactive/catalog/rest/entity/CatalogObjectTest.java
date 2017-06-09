@@ -44,17 +44,17 @@ import com.google.common.collect.ImmutableSortedSet;
  */
 public class CatalogObjectTest {
 
-    private Bucket bucket;
+    private BucketEntity bucket;
 
-    private CatalogObject catalogObject;
+    private CatalogObjectEntity catalogObject;
 
-    private CatalogObjectRevision catalogObjectRevision;
+    private CatalogObjectRevisionEntity catalogObjectRevision;
 
     @Before
     public void setUp() {
-        bucket = new Bucket("test", "WorkflowTestUser");
+        bucket = new BucketEntity("test", "WorkflowTestUser");
         catalogObjectRevision = newCatalogObjectRevision(1L, LocalDateTime.now());
-        catalogObject = new CatalogObject(bucket);
+        catalogObject = new CatalogObjectEntity(bucket);
     }
 
     @Test
@@ -71,33 +71,33 @@ public class CatalogObjectTest {
 
     @Test
     public void testSetRevisions() throws Exception {
-        SortedSet<CatalogObjectRevision> revisions = ImmutableSortedSet.of(catalogObjectRevision);
+        SortedSet<CatalogObjectRevisionEntity> revisions = ImmutableSortedSet.of(catalogObjectRevision);
         catalogObject.setRevisions(revisions);
         assertEquals(revisions, catalogObject.getRevisions());
     }
 
     @Test
     public void testGetRevisions() throws Exception {
-        SortedSet<CatalogObjectRevision> revisions = new TreeSet<>();
+        SortedSet<CatalogObjectRevisionEntity> revisions = new TreeSet<>();
         revisions.add(catalogObjectRevision);
         revisions.add(newCatalogObjectRevision(10L, LocalDateTime.now().plusHours(1)));
         revisions.add(newCatalogObjectRevision(2L, LocalDateTime.now().plusHours(2)));
         catalogObject.setRevisions(revisions);
         assertEquals(revisions, catalogObject.getRevisions());
         Iterator iterator = catalogObject.getRevisions().iterator();
-        assertEquals(2L, ((CatalogObjectRevision) iterator.next()).getCommitId().longValue());
-        assertEquals(10L, ((CatalogObjectRevision) iterator.next()).getCommitId().longValue());
-        assertEquals(1L, ((CatalogObjectRevision) iterator.next()).getCommitId().longValue());
+        assertEquals(2L, ((CatalogObjectRevisionEntity) iterator.next()).getCommitId().longValue());
+        assertEquals(10L, ((CatalogObjectRevisionEntity) iterator.next()).getCommitId().longValue());
+        assertEquals(1L, ((CatalogObjectRevisionEntity) iterator.next()).getCommitId().longValue());
     }
 
-    private CatalogObjectRevision newCatalogObjectRevision(Long revisionId, LocalDateTime date) {
-        return new CatalogObjectRevision(revisionId,
-                                         "object",
-                                         date,
-                                         "name",
-                                         "commit message",
-                                         1L,
-                                         "application/xml",
-                                         new byte[0]);
+    private CatalogObjectRevisionEntity newCatalogObjectRevision(Long revisionId, LocalDateTime date) {
+        return new CatalogObjectRevisionEntity(revisionId,
+                                               "object",
+                                               date,
+                                               "name",
+                                               "commit message",
+                                               1L,
+                                               "application/xml",
+                                               new byte[0]);
     }
 }

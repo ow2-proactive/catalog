@@ -44,7 +44,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "METADATA_KEY_VALUE", indexes = { @Index(columnList = "KEY"), @Index(columnList = "VALUE") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public class KeyValueMetadata {
+public class KeyValueMetadataEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -61,12 +61,12 @@ public class KeyValueMetadata {
     protected String type;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    protected CatalogObjectRevision catalogObjectRevision;
+    protected CatalogObjectRevisionEntity catalogObjectRevision;
 
-    public KeyValueMetadata() {
+    public KeyValueMetadataEntity() {
     }
 
-    public KeyValueMetadata(String key, String value, String label) {
+    public KeyValueMetadataEntity(String key, String value, String label) {
         this.key = key;
         this.value = value;
         this.type = label;
@@ -88,7 +88,7 @@ public class KeyValueMetadata {
         return type;
     }
 
-    public CatalogObjectRevision getCatalogObjectRevision() {
+    public CatalogObjectRevisionEntity getCatalogObjectRevision() {
         return catalogObjectRevision;
     }
 
@@ -104,13 +104,13 @@ public class KeyValueMetadata {
         this.type = label;
     }
 
-    public void setCatalogObjectRevision(CatalogObjectRevision catalogObjectRevision) {
+    public void setCatalogObjectRevision(CatalogObjectRevisionEntity catalogObjectRevision) {
         this.catalogObjectRevision = catalogObjectRevision;
     }
 
     @Override
     public String toString() {
-        return "KeyValueMetadata [id=" + id + ", key=" + key + ", value=" + value + ", type=" + type + "]";
+        return "KeyValueMetadataEntity [id=" + id + ", key=" + key + ", value=" + value + ", type=" + type + "]";
     }
 
 }

@@ -27,7 +27,7 @@ package org.ow2.proactive.catalog.rest.assembler;
 
 import org.ow2.proactive.catalog.rest.controller.BucketController;
 import org.ow2.proactive.catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Component;
 
@@ -36,14 +36,14 @@ import org.springframework.stereotype.Component;
  * @author ActiveEon Team
  */
 @Component
-public class BucketResourceAssembler extends ResourceAssemblerSupport<Bucket, BucketMetadata> {
+public class BucketResourceAssembler extends ResourceAssemblerSupport<BucketEntity, BucketMetadata> {
 
     public BucketResourceAssembler() {
         super(BucketController.class, BucketMetadata.class);
     }
 
     @Override
-    public BucketMetadata toResource(Bucket entity) {
+    public BucketMetadata toResource(BucketEntity entity) {
         return new BucketMetadata(entity);
     }
 

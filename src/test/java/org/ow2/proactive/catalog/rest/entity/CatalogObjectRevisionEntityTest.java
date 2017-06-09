@@ -38,29 +38,29 @@ import com.google.common.collect.Lists;
 /**
  * @author ActiveEon Team
  */
-public class CatalogObjectRevisionTest {
+public class CatalogObjectRevisionEntityTest {
 
     @Test
     public void testAddKeyValue() throws Exception {
-        CatalogObjectRevision catalogObjectRevision = createCatalogObjectRevision();
+        CatalogObjectRevisionEntity catalogObjectRevision = createCatalogObjectRevision();
         assertThat(catalogObjectRevision.getKeyValueMetadataList()).hasSize(1);
 
-        catalogObjectRevision.addKeyValue(Mockito.mock(KeyValueMetadata.class));
+        catalogObjectRevision.addKeyValue(Mockito.mock(KeyValueMetadataEntity.class));
 
         assertThat(catalogObjectRevision.getKeyValueMetadataList()).hasSize(2);
     }
 
-    private CatalogObjectRevision createCatalogObjectRevision() {
-        KeyValueMetadata variableMock = Mockito.mock(KeyValueMetadata.class);
+    private CatalogObjectRevisionEntity createCatalogObjectRevision() {
+        KeyValueMetadataEntity variableMock = Mockito.mock(KeyValueMetadataEntity.class);
 
-        CatalogObjectRevision catalogObjectRevision = new CatalogObjectRevision("object",
-                                                                                LocalDateTime.now(),
-                                                                                "test",
-                                                                                "commit message",
-                                                                                1L,
-                                                                                "application/xml",
-                                                                                Lists.newArrayList(variableMock),
-                                                                                new byte[0]);
+        CatalogObjectRevisionEntity catalogObjectRevision = new CatalogObjectRevisionEntity("object",
+                                                                                            LocalDateTime.now(),
+                                                                                            "test",
+                                                                                            "commit message",
+                                                                                            1L,
+                                                                                            "application/xml",
+                                                                                            Lists.newArrayList(variableMock),
+                                                                                            new byte[0]);
 
         return catalogObjectRevision;
     }

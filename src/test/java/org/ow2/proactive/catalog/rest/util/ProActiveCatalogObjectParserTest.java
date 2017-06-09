@@ -33,7 +33,7 @@ import java.util.List;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
-import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
+import org.ow2.proactive.catalog.rest.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserFactory;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserInterface;
 import org.ow2.proactive.catalog.rest.util.parser.WorkflowParser;
@@ -48,7 +48,7 @@ public class ProActiveCatalogObjectParserTest {
 
     @Test
     public void testParseWorkflow() throws Exception {
-        List<KeyValueMetadata> result = parseWorkflow("workflow.xml");
+        List<KeyValueMetadataEntity> result = parseWorkflow("workflow.xml");
 
         assertThat(result).hasSize(4);
         assertKeyValueDataAre(result.get(0), "var1", "var1Value", "variable");
@@ -58,18 +58,18 @@ public class ProActiveCatalogObjectParserTest {
 
     }
 
-    private static void assertKeyValueDataAre(KeyValueMetadata data, String key, String value, String type) {
+    private static void assertKeyValueDataAre(KeyValueMetadataEntity data, String key, String value, String type) {
         assertTrue(data.getKey().equals(key) && data.getValue().equals(value) && data.getLabel().equals(type));
     }
 
     @Test
     public void testParseWorkflowContainingNoGenericInformationAndNoVariable() throws Exception {
-        List<KeyValueMetadata> result = parseWorkflow("workflow-no-generic-information-no-variable.xml");
+        List<KeyValueMetadataEntity> result = parseWorkflow("workflow-no-generic-information-no-variable.xml");
 
         assertThat(result).isEmpty();
     }
 
-    private List<KeyValueMetadata> parseWorkflow(String xmlFilename) throws XMLStreamException {
+    private List<KeyValueMetadataEntity> parseWorkflow(String xmlFilename) throws XMLStreamException {
         CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("workflow");
 
         return parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/workflows/" + xmlFilename));

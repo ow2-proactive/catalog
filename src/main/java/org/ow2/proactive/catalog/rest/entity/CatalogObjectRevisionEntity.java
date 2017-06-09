@@ -54,7 +54,7 @@ import org.springframework.data.annotation.CreatedDate;
  */
 @Entity
 @Table(name = "CATALOG_OBJECT_REVISION", indexes = { @Index(columnList = "NAME"), @Index(columnList = "KIND") })
-public class CatalogObjectRevision implements Comparable {
+public class CatalogObjectRevisionEntity implements Comparable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -80,24 +80,24 @@ public class CatalogObjectRevision implements Comparable {
 
     @ManyToOne
     @JoinColumn(name = "CATALOG_OBJECT_ID")
-    private CatalogObject catalogObject;
+    private CatalogObjectEntity catalogObject;
 
     @Column(name = "CONTENT_TYPE")
     private String contentType;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(nullable = true)
-    private List<KeyValueMetadata> keyValueMetadataList;
+    private List<KeyValueMetadataEntity> keyValueMetadataList;
 
     @Lob
     @Column(name = "RAW_OBJECT", columnDefinition = "blob", nullable = false)
     private byte[] rawObject;
 
-    public CatalogObjectRevision() {
+    public CatalogObjectRevisionEntity() {
         this.keyValueMetadataList = new ArrayList<>();
     }
 
-    public CatalogObjectRevision(String kind, LocalDateTime commitDate, String name, String commitMessage,
+    public CatalogObjectRevisionEntity(String kind, LocalDateTime commitDate, String name, String commitMessage,
             Long bucketId, String contentType, byte[] rawObject) {
         this();
         this.kind = kind;
@@ -109,20 +109,20 @@ public class CatalogObjectRevision implements Comparable {
         this.rawObject = rawObject;
     }
 
-    public CatalogObjectRevision(Long commitId, String kind, LocalDateTime commitDate, String name,
-            String commitMessage, Long bucketId, String contentType, List<KeyValueMetadata> keyValueMetadataList,
+    public CatalogObjectRevisionEntity(Long commitId, String kind, LocalDateTime commitDate, String name,
+            String commitMessage, Long bucketId, String contentType, List<KeyValueMetadataEntity> keyValueMetadataList,
             byte[] rawObject) {
         this(kind, commitDate, name, commitMessage, bucketId, contentType, keyValueMetadataList, rawObject);
         this.commitId = commitId;
     }
 
-    public CatalogObjectRevision(String kind, LocalDateTime commitDate, String name, String commitMessage,
-            Long bucketId, String contentType, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
+    public CatalogObjectRevisionEntity(String kind, LocalDateTime commitDate, String name, String commitMessage,
+                                       Long bucketId, String contentType, List<KeyValueMetadataEntity> keyValueMetadataList, byte[] rawObject) {
         this(kind, commitDate, name, commitMessage, bucketId, contentType, rawObject);
         this.keyValueMetadataList = keyValueMetadataList;
     }
 
-    public CatalogObjectRevision(Long commitId, String kind, LocalDateTime commitDate, String name,
+    public CatalogObjectRevisionEntity(Long commitId, String kind, LocalDateTime commitDate, String name,
             String commitMessage, Long bucketId, String contentType, byte[] rawObject) {
         this(kind, commitDate, name, commitMessage, bucketId, contentType, rawObject);
         this.commitId = commitId;
@@ -136,16 +136,16 @@ public class CatalogObjectRevision implements Comparable {
         return commitDate;
     }
 
-    public void addKeyValue(KeyValueMetadata keyValueMetadata) {
+    public void addKeyValue(KeyValueMetadataEntity keyValueMetadata) {
         this.keyValueMetadataList.add(keyValueMetadata);
         keyValueMetadata.setCatalogObjectRevision(this);
     }
 
-    public void addKeyValueList(Collection<KeyValueMetadata> keyValueMetadataList) {
+    public void addKeyValueList(Collection<KeyValueMetadataEntity> keyValueMetadataList) {
         keyValueMetadataList.forEach(kv -> addKeyValue(kv));
     }
 
-    public List<KeyValueMetadata> getKeyValueMetadataList() {
+    public List<KeyValueMetadataEntity> getKeyValueMetadataList() {
         return keyValueMetadataList;
     }
 
@@ -169,7 +169,7 @@ public class CatalogObjectRevision implements Comparable {
         return contentType;
     }
 
-    public CatalogObject getCatalogObject() {
+    public CatalogObjectEntity getCatalogObject() {
         return catalogObject;
     }
 
@@ -193,7 +193,7 @@ public class CatalogObjectRevision implements Comparable {
         this.name = name;
     }
 
-    public void setCatalogObject(CatalogObject catalogObject) {
+    public void setCatalogObject(CatalogObjectEntity catalogObject) {
         this.catalogObject = catalogObject;
     }
 
@@ -205,7 +205,7 @@ public class CatalogObjectRevision implements Comparable {
         this.contentType = contentType;
     }
 
-    public void setKeyValueMetadataList(List<KeyValueMetadata> keyValueMetadataList) {
+    public void setKeyValueMetadataList(List<KeyValueMetadataEntity> keyValueMetadataList) {
         this.keyValueMetadataList = keyValueMetadataList;
     }
 
@@ -215,14 +215,14 @@ public class CatalogObjectRevision implements Comparable {
 
     @Override
     public String toString() {
-        return "CatalogObjectRevision{" + "commitId=" + commitId + ", kind='" + kind + '\'' + ", commitMessage='" +
-               commitMessage + '\'' + ", commitDate=" + commitDate + ", name='" + name + '\'' + ", bucketId=" +
-               bucketId + ", contentType='" + contentType + '\'' + ", keyValueMetadataList=" + keyValueMetadataList +
-               '}';
+        return "CatalogObjectRevisionEntity{" + "commitId=" + commitId + ", kind='" + kind + '\'' +
+               ", commitMessage='" + commitMessage + '\'' + ", commitDate=" + commitDate + ", name='" + name + '\'' +
+               ", bucketId=" + bucketId + ", contentType='" + contentType + '\'' + ", keyValueMetadataList=" +
+               keyValueMetadataList + '}';
     }
 
     @Override
     public int compareTo(Object o) {
-        return ((CatalogObjectRevision) o).commitDate.compareTo(commitDate);
+        return ((CatalogObjectRevisionEntity) o).commitDate.compareTo(commitDate);
     }
 }

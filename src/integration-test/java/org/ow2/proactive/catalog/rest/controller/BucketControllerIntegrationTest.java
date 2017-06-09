@@ -40,7 +40,7 @@ import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.rest.Application;
-import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -127,7 +127,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testGetBucketShouldReturnSavedBucket() throws Exception {
-        Bucket bucket = bucketRepository.save(new Bucket("myBucket", "BucketControllerIntegrationTestUser"));
+        BucketEntity bucket = bucketRepository.save(new BucketEntity("myBucket",
+                                                                     "BucketControllerIntegrationTestUser"));
         final long bucketId = bucket.getId();
         final String bucketName = bucket.getName();
         JsonPath jsonPath = given().pathParam("bucketId", 1L).when().get(BUCKET_RESOURCE).thenReturn().jsonPath();
@@ -153,9 +154,10 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testListBucketsShouldReturnSavedBuckets() {
-        List<Bucket> buckets = IntStream.rangeClosed(1, 25)
-                                        .mapToObj(i -> new Bucket("bucket" + i, "BucketResourceAssemblerTestUser"))
-                                        .collect(Collectors.toList());
+        List<BucketEntity> buckets = IntStream.rangeClosed(1, 25)
+                                              .mapToObj(i -> new BucketEntity("bucket" + i,
+                                                                              "BucketResourceAssemblerTestUser"))
+                                              .collect(Collectors.toList());
 
         bucketRepository.save(buckets);
 
@@ -170,7 +172,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testListBucketsOwnerShouldReturnNothing() {
-        bucketRepository.save(new Bucket("TotosBucket", "toto"));
+        bucketRepository.save(new BucketEntity("TotosBucket", "toto"));
 
         given().param("owner", "nonExistingUser")
                .get(BUCKETS_RESOURCE)
@@ -184,7 +186,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     @Test
     public void testListBucketsOwnerShouldReturnOneBucketOnly() {
         final String owner = "toto";
-        bucketRepository.save(new Bucket("TotosBucket", owner));
+        bucketRepository.save(new BucketEntity("TotosBucket", owner));
 
         given().param("owner", owner)
                .get(BUCKETS_RESOURCE)
@@ -200,8 +202,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String bucketName = "TheBucketOfLove";
         final String userAlice = "Alice";
         final String userBob = "Bob";
-        bucketRepository.save(new Bucket(bucketName, userAlice));
-        bucketRepository.save(new Bucket(bucketName, userBob));
+        bucketRepository.save(new BucketEntity(bucketName, userAlice));
+        bucketRepository.save(new BucketEntity(bucketName, userBob));
 
         // list all -> should return the 2 buckets
         when().get(BUCKETS_RESOURCE)

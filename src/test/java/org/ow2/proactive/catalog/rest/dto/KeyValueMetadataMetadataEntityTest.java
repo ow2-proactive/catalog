@@ -34,7 +34,7 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 /**
  * @author ActiveEon Team
  */
-public class KeyValueMetadataMetadataTest {
+public class KeyValueMetadataMetadataEntityTest {
 
     @Test
     public void testEqualsContract() {

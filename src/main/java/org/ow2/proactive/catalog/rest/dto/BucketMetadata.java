@@ -25,7 +25,7 @@
  */
 package org.ow2.proactive.catalog.rest.dto;
 
-import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 
 
 /**
@@ -35,7 +35,7 @@ public final class BucketMetadata extends NamedMetadata {
 
     public final String owner;
 
-    public BucketMetadata(Bucket bucket) {
+    public BucketMetadata(BucketEntity bucket) {
         super(bucket.getId(), bucket.getName());
         this.owner = bucket.getOwner();
     }
