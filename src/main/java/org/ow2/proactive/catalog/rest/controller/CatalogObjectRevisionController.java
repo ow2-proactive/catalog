@@ -73,10 +73,10 @@ public class CatalogObjectRevisionController {
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public CatalogObjectMetadata create(@PathVariable Long bucketId, @PathVariable Long objectId,
-            @ApiParam(value = "The kind of CatalogObjectEntity Revision") @RequestParam String kind,
-            @ApiParam(value = "The name of the CatalogObjectEntity") @RequestParam String name,
-            @ApiParam(value = "The commit message of the CatalogObjectEntity Revision") @RequestParam String commitMessage,
-            @ApiParam(value = "The content type of CatalogObjectEntity Revision") @RequestParam String contentType,
+            @ApiParam(value = "The kind of CatalogObject Revision") @RequestParam String kind,
+            @ApiParam(value = "The name of the CatalogObject") @RequestParam String name,
+            @ApiParam(value = "The commit message of the CatalogObject Revision") @RequestParam String commitMessage,
+            @ApiParam(value = "The content type of CatalogObject Revision") @RequestParam String contentType,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
         return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
                                                                         kind,
@@ -115,7 +115,7 @@ public class CatalogObjectRevisionController {
         return catalogObjectRevisionService.listCatalogObjectRevisions(bucketId, objectId, pageable, assembler);
     }
 
-    @ApiOperation(value = "Delete a catalog object's revision", notes = "If the revisionId references the latest revision, it is deleted and the catalog object then points to the previous revision. If the revisionId doesn't references the latest revision, it is simply deleted without any impact on the current catalog object. Returns the deleted CatalogObjectRevisionEntity metadata.")
+    @ApiOperation(value = "Delete a catalog object's revision", notes = "If the revisionId references the latest revision, it is deleted and the catalog object then points to the previous revision. If the revisionId doesn't references the latest revision, it is simply deleted without any impact on the current catalog object. Returns the deleted CatalogObjectRevision metadata.")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions/{revisionId}", method = DELETE)
     public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable Long objectId,
