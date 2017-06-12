@@ -66,7 +66,7 @@ public class ProActiveCatalogObjectParserTest {
 
     @Test
     public void testParseWorkflowContainingNoName() throws Exception {
-        List<KeyValueMetadata> result = parseWorkflow("workflow-no-name.xml");
+        List<KeyValueMetadataEntity> result = parseWorkflow("workflow-no-name.xml");
 
         assertThat(result).hasSize(5);
         assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
@@ -78,7 +78,7 @@ public class ProActiveCatalogObjectParserTest {
 
     @Test
     public void testParseWorkflowContainingNoProjectName() throws Exception {
-        List<KeyValueMetadata> result = parseWorkflow("workflow-no-project-name.xml");
+        List<KeyValueMetadataEntity> result = parseWorkflow("workflow-no-project-name.xml");
 
         assertThat(result).hasSize(5);
         assertKeyValueDataAre(result.get(0), "name", "Valid Workflow", "job_information");

@@ -185,13 +185,15 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
                                         xmlStreamReader);
     }
 
-    private void handleJobElement(ImmutableList.Builder<KeyValueMetadata> keyValueMapBuilder,
+    private void handleJobElement(ImmutableList.Builder<KeyValueMetadataEntity> keyValueMapBuilder,
             XMLStreamReader xmlStreamReader) {
         iterateOverAttributes((attributeName, attributeValue) -> {
             if (attributeName.equals(ATTRIBUTE_JOB_NAME)) {
-                keyValueMapBuilder.add(new KeyValueMetadata(JOB_NAME_KEY, attributeValue, JOB_AND_PROJECT_LABEL));
+                keyValueMapBuilder.add(new KeyValueMetadataEntity(JOB_NAME_KEY, attributeValue, JOB_AND_PROJECT_LABEL));
             } else if (attributeName.equals(ATTRIBUTE_JOB_PROJECT_NAME)) {
-                keyValueMapBuilder.add(new KeyValueMetadata(PROJECT_NAME_KEY, attributeValue, JOB_AND_PROJECT_LABEL));
+                keyValueMapBuilder.add(new KeyValueMetadataEntity(PROJECT_NAME_KEY,
+                                                                  attributeValue,
+                                                                  JOB_AND_PROJECT_LABEL));
             }
         }, xmlStreamReader);
         jobHandled = true;
