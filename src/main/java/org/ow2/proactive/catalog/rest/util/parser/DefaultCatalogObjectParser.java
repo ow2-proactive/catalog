@@ -31,7 +31,7 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
+import org.ow2.proactive.catalog.rest.entity.KeyValueMetadataEntity;
 
 
 /**
@@ -41,7 +41,7 @@ import org.ow2.proactive.catalog.rest.entity.KeyValueMetadata;
  */
 public final class DefaultCatalogObjectParser implements CatalogObjectParserInterface {
 
-    public List<KeyValueMetadata> parse(InputStream inputStream) throws XMLStreamException {
+    public List<KeyValueMetadataEntity> parse(InputStream inputStream) throws XMLStreamException {
         return new ArrayList<>();
     }
 }

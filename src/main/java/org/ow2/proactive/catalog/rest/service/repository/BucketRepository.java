@@ -25,7 +25,7 @@
  */
 package org.ow2.proactive.catalog.rest.service.repository;
 
-import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
@@ -36,8 +36,9 @@ import org.springframework.data.repository.query.Param;
 /**
  * @author ActiveEon Team
  */
-public interface BucketRepository extends PagingAndSortingRepository<Bucket, Long>, QueryDslPredicateExecutor<Bucket> {
+public interface BucketRepository
+        extends PagingAndSortingRepository<BucketEntity, Long>, QueryDslPredicateExecutor<BucketEntity> {
 
-    Page<Bucket> findByOwner(@Param("owner") String owner, Pageable pageable);
+    Page<BucketEntity> findByOwner(@Param("owner") String owner, Pageable pageable);
 
 }

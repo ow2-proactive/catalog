@@ -23,22 +23,31 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.dto;
+package org.ow2.proactive.catalog.graphql.schema.commons;
 
-import org.junit.Test;
-import org.ow2.proactive.catalog.rest.dto.KeyValueMetadata;
-
-import nl.jqno.equalsverifier.EqualsVerifier;
+import com.google.common.base.CaseFormat;
 
 
 /**
  * @author ActiveEon Team
+ * @since 08/06/2017
  */
-public class KeyValueMetadataMetadataTest {
+public enum Fields {
 
-    @Test
-    public void testEqualsContract() {
-        EqualsVerifier.forClass(KeyValueMetadata.class).verify();
+    EDGES,
+    END_CURSOR,
+    HAS_NEXT_PAGE,
+    HAS_PREVIOUS_PAGE,
+    ID,
+    KEY,
+    OWNER,
+    PAGE_INFO,
+    VALUE,
+    VERSION,
+    VIEWER;
+
+    public String getName() {
+        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
     }
 
 }

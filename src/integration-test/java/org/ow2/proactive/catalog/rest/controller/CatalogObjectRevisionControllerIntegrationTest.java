@@ -43,7 +43,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.rest.Application;
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.rest.entity.Bucket;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.ow2.proactive.catalog.rest.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
@@ -65,7 +65,7 @@ import com.jayway.restassured.response.Response;
 @WebIntegrationTest(randomPort = true)
 public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCatalogObjectRevisionControllerTest {
 
-    protected Bucket bucket;
+    protected BucketEntity bucket;
 
     protected CatalogObjectMetadata firstCatalogObjectRevision;
 
@@ -77,7 +77,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     @Before
     public void setup() throws IOException {
-        bucket = bucketRepository.save(new Bucket("bucket", "WorkflowRevisionControllerIntegrationTestUser"));
+        bucket = bucketRepository.save(new BucketEntity("bucket", "WorkflowRevisionControllerIntegrationTestUser"));
 
         catalogObjectRevisionAlone = catalogObjectRevisionService.createCatalogObjectRevision(bucket.getId(),
                                                                                               "workflow",
