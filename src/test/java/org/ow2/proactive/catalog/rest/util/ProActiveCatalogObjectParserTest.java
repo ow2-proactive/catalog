@@ -50,11 +50,13 @@ public class ProActiveCatalogObjectParserTest {
     public void testParseWorkflow() throws Exception {
         List<KeyValueMetadata> result = parseWorkflow("workflow.xml");
 
-        assertThat(result).hasSize(4);
-        assertKeyValueDataAre(result.get(0), "var1", "var1Value", "variable");
-        assertKeyValueDataAre(result.get(1), "var2", "var2Value", "variable");
-        assertKeyValueDataAre(result.get(2), "genericInfo1", "genericInfo1Value", "generic_information");
-        assertKeyValueDataAre(result.get(3), "genericInfo2", "genericInfo2Value", "generic_information");
+        assertThat(result).hasSize(6);
+        assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
+        assertKeyValueDataAre(result.get(1), "name", "Valid Workflow", "job_information");
+        assertKeyValueDataAre(result.get(2), "var1", "var1Value", "variable");
+        assertKeyValueDataAre(result.get(3), "var2", "var2Value", "variable");
+        assertKeyValueDataAre(result.get(4), "genericInfo1", "genericInfo1Value", "generic_information");
+        assertKeyValueDataAre(result.get(5), "genericInfo2", "genericInfo2Value", "generic_information");
 
     }
 
@@ -63,10 +65,36 @@ public class ProActiveCatalogObjectParserTest {
     }
 
     @Test
+    public void testParseWorkflowContainingNoName() throws Exception {
+        List<KeyValueMetadata> result = parseWorkflow("workflow-no-name.xml");
+
+        assertThat(result).hasSize(5);
+        assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
+        assertKeyValueDataAre(result.get(1), "var1", "var1Value", "variable");
+        assertKeyValueDataAre(result.get(2), "var2", "var2Value", "variable");
+        assertKeyValueDataAre(result.get(3), "genericInfo1", "genericInfo1Value", "generic_information");
+        assertKeyValueDataAre(result.get(4), "genericInfo2", "genericInfo2Value", "generic_information");
+    }
+
+    @Test
+    public void testParseWorkflowContainingNoProjectName() throws Exception {
+        List<KeyValueMetadata> result = parseWorkflow("workflow-no-project-name.xml");
+
+        assertThat(result).hasSize(5);
+        assertKeyValueDataAre(result.get(0), "name", "Valid Workflow", "job_information");
+        assertKeyValueDataAre(result.get(1), "var1", "var1Value", "variable");
+        assertKeyValueDataAre(result.get(2), "var2", "var2Value", "variable");
+        assertKeyValueDataAre(result.get(3), "genericInfo1", "genericInfo1Value", "generic_information");
+        assertKeyValueDataAre(result.get(4), "genericInfo2", "genericInfo2Value", "generic_information");
+    }
+
+    @Test
     public void testParseWorkflowContainingNoGenericInformationAndNoVariable() throws Exception {
         List<KeyValueMetadata> result = parseWorkflow("workflow-no-generic-information-no-variable.xml");
 
-        assertThat(result).isEmpty();
+        assertThat(result).hasSize(2);
+        assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
+        assertKeyValueDataAre(result.get(1), "name", "Valid Workflow", "job_information");
     }
 
     private List<KeyValueMetadata> parseWorkflow(String xmlFilename) throws XMLStreamException {
