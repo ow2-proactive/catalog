@@ -51,6 +51,16 @@ import com.google.common.collect.ImmutableList;
  */
 public final class WorkflowParser implements CatalogObjectParserInterface {
 
+    private static final String JOB_NAME_KEY = "name";
+
+    private static final String PROJECT_NAME_KEY = "project_name";
+
+    private static final String JOB_AND_PROJECT_LABEL = "job_information";
+
+    private static final String ATTRIBUTE_JOB_NAME = "name";
+
+    private static final String ATTRIBUTE_JOB_PROJECT_NAME = "projectName";
+
     private static final String ATTRIBUTE_GENERIC_INFORMATION_LABEL = "generic_information";
 
     private static final String ATTRIBUTE_GENERIC_INFORMATION_NAME = "name";
@@ -116,7 +126,7 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
 
                         switch (elementLocalPart) {
                             case ELEMENT_JOB:
-                                handleJobElement(xmlStreamReader);
+                                handleJobElement(keyValueMapBuilder, xmlStreamReader);
                                 break;
                             case ELEMENT_TASK_FLOW:
                                 isTaskFlow = true;
@@ -175,7 +185,17 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
                                         xmlStreamReader);
     }
 
-    private void handleJobElement(XMLStreamReader xmlStreamReader) {
+    private void handleJobElement(ImmutableList.Builder<KeyValueMetadataEntity> keyValueMapBuilder,
+            XMLStreamReader xmlStreamReader) {
+        iterateOverAttributes((attributeName, attributeValue) -> {
+            if (attributeName.equals(ATTRIBUTE_JOB_NAME)) {
+                keyValueMapBuilder.add(new KeyValueMetadataEntity(JOB_NAME_KEY, attributeValue, JOB_AND_PROJECT_LABEL));
+            } else if (attributeName.equals(ATTRIBUTE_JOB_PROJECT_NAME)) {
+                keyValueMapBuilder.add(new KeyValueMetadataEntity(PROJECT_NAME_KEY,
+                                                                  attributeValue,
+                                                                  JOB_AND_PROJECT_LABEL));
+            }
+        }, xmlStreamReader);
         jobHandled = true;
     }
 

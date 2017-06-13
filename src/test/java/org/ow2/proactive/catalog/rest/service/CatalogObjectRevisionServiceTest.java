@@ -58,6 +58,7 @@ import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.rest.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.RevisionNotFoundException;
+import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRevisionRepository;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -85,7 +86,7 @@ public class CatalogObjectRevisionServiceTest {
     private CatalogObjectService catalogObjectService;
 
     @Mock
-    private BucketService bucketService;
+    private BucketRepository bucketRepository;
 
     private static final Long DUMMY_ID = 0L;
 
@@ -120,7 +121,7 @@ public class CatalogObjectRevisionServiceTest {
 
     @Test(expected = BucketNotFoundException.class)
     public void testCreateWorkflowRevisionWithInvalidBucket() throws Exception {
-        when(bucketService.findBucket(Matchers.anyLong())).thenThrow(BucketNotFoundException.class);
+        when(bucketRepository.findOne(Matchers.anyLong())).thenThrow(BucketNotFoundException.class);
         catalogObjectRevisionService.createCatalogObjectRevision(DUMMY_ID,
                                                                  "workflow",
                                                                  "name",
@@ -133,7 +134,7 @@ public class CatalogObjectRevisionServiceTest {
 
     @Test(expected = BucketNotFoundException.class)
     public void testCreateCatalogObjectRevisionWithInvalidBucket() throws Exception {
-        when(bucketService.findBucket(Matchers.anyLong())).thenThrow(BucketNotFoundException.class);
+        when(bucketRepository.findOne(Matchers.anyLong())).thenThrow(BucketNotFoundException.class);
         catalogObjectRevisionService.createCatalogObjectRevision(DUMMY_ID,
                                                                  "oject",
                                                                  "name",
@@ -210,7 +211,7 @@ public class CatalogObjectRevisionServiceTest {
 
     @Test(expected = RevisionNotFoundException.class)
     public void testGetWorkflowWithInvalidRevisionId() throws Exception {
-        when(bucketService.findBucket(anyLong())).thenReturn(mock(BucketEntity.class));
+        when(bucketRepository.findOne(anyLong())).thenReturn(mock(BucketEntity.class));
         when(catalogObjectService.findObjectById(anyLong())).thenReturn(mock(CatalogObjectEntity.class));
         when(catalogObjectService.getMostRecentCatalogObjectRevision(anyLong(), anyLong())).thenReturn(null);
         catalogObjectRevisionService.getCatalogObject(DUMMY_ID, DUMMY_ID, Optional.empty());
@@ -252,7 +253,7 @@ public class CatalogObjectRevisionServiceTest {
                                                                             getWorkflowAsByteArray("workflow.xml"));
         wfRev.setCatalogObject(mockedWf);
 
-        when(bucketService.findBucket(anyLong())).thenReturn(mock(BucketEntity.class));
+        when(bucketRepository.findOne(anyLong())).thenReturn(mock(BucketEntity.class));
         when(catalogObjectService.findObjectById(anyLong())).thenReturn(mock(CatalogObjectEntity.class));
 
         if (revisionId.isPresent()) {
@@ -265,7 +266,7 @@ public class CatalogObjectRevisionServiceTest {
 
         getFunction.apply(revisionId);
 
-        verify(bucketService, times(1)).findBucket(DUMMY_ID);
+        verify(bucketRepository, times(1)).findOne(DUMMY_ID);
         verify(catalogObjectService, times(1)).findObjectById(DUMMY_ID);
     }
 
@@ -367,13 +368,13 @@ public class CatalogObjectRevisionServiceTest {
         List<Long> idList = new ArrayList<>();
         idList.add(0L);
         idList.add(2L);
-        when(bucketService.findBucket(mockedBucket.getId())).thenReturn(mockedBucket);
+        when(bucketRepository.findOne(mockedBucket.getId())).thenReturn(mockedBucket);
         when(catalogObjectService.getMostRecentCatalogObjectRevision(mockedBucket.getId(),
                                                                      0L)).thenReturn(revisions.first());
         when(catalogObjectService.getMostRecentCatalogObjectRevision(mockedBucket.getId(),
                                                                      2L)).thenReturn(revisions.last());
         catalogObjectRevisionService.getCatalogObjectsRevisions(mockedBucket.getId(), idList);
-        verify(bucketService, times(1)).findBucket(mockedBucket.getId());
+        verify(bucketRepository, times(1)).findOne(mockedBucket.getId());
         verify(catalogObjectService, times(1)).getMostRecentCatalogObjectRevision(mockedBucket.getId(), 0L);
         verify(catalogObjectService, times(1)).getMostRecentCatalogObjectRevision(mockedBucket.getId(), 2L);
     }
@@ -415,7 +416,7 @@ public class CatalogObjectRevisionServiceTest {
     }
 
     private void listWorkflows(Optional<Long> wId) {
-        when(bucketService.findBucket(anyLong())).thenReturn(mock(BucketEntity.class));
+        when(bucketRepository.findOne(anyLong())).thenReturn(mock(BucketEntity.class));
         when(catalogObjectService.findObjectById(anyLong())).thenReturn(mock(CatalogObjectEntity.class));
         PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
         when(mockedAssembler.toResource(any(PageImpl.class),
@@ -437,7 +438,7 @@ public class CatalogObjectRevisionServiceTest {
     private void createCatalogObject(String name, String kind, String fileName, Optional<Long> wId, String layout)
             throws IOException {
         String layoutStr = "application/xml";
-        when(bucketService.findBucket(anyLong())).thenReturn(mock(BucketEntity.class));
+        when(bucketRepository.findOne(anyLong())).thenReturn(mock(BucketEntity.class));
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(new CatalogObjectRevisionEntity(EXISTING_ID,
                                                                                                                                       kind,
                                                                                                                                       LocalDateTime.now(),

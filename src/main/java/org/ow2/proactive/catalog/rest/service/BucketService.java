@@ -97,16 +97,6 @@ public class BucketService {
         }
     }
 
-    protected BucketEntity findBucket(Long bucketId) {
-        BucketEntity bucket = bucketRepository.findOne(bucketId);
-
-        if (bucket == null) {
-            throw new BucketNotFoundException();
-        }
-
-        return bucket;
-    }
-
     /**
      * The Catalog can be populated with buckets and objects all at once.
      *
