@@ -44,8 +44,10 @@ import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.rest.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.rest.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.rest.service.exception.UnprocessableEntityException;
+import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
 import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserFactory;
 import org.ow2.proactive.catalog.rest.util.parser.CatalogObjectParserInterface;
@@ -73,10 +75,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class CatalogObjectRevisionService {
 
     @Autowired
-    private BucketService bucketService;
+    private BucketRepository bucketRepository;
 
     @Autowired
-    CatalogObjectService catalogObjectService;
+    private CatalogObjectService catalogObjectService;
 
     @Autowired
     private CatalogObjectRevisionResourceAssembler catalogObjectRevisionResourceAssembler;
@@ -108,7 +110,7 @@ public class CatalogObjectRevisionService {
     public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String kind, String name,
             String commitMessage, Optional<Long> objectId, String contentType,
             List<KeyValueMetadataEntity> keyValueMetadataListParsed, byte[] rawObject) {
-        BucketEntity bucket = bucketService.findBucket(bucketId);
+        BucketEntity bucket = findBucket(bucketId);
 
         CatalogObjectRevisionEntity catalogObjectRevision;
 
@@ -138,10 +140,20 @@ public class CatalogObjectRevisionService {
         return new CatalogObjectMetadata(catalogObjectRevision);
     }
 
+    protected BucketEntity findBucket(Long bucketId) {
+        BucketEntity bucket = bucketRepository.findOne(bucketId);
+
+        if (bucket == null) {
+            throw new BucketNotFoundException();
+        }
+
+        return bucket;
+    }
+
     public PagedResources listCatalogObjects(Long bucketId, Optional<String> kind, Pageable pageable,
             PagedResourcesAssembler assembler) {
 
-        bucketService.findBucket(bucketId);
+        findBucket(bucketId);
 
         Page<CatalogObjectRevisionEntity> page = catalogObjectService.getMostRecentRevisions(bucketId, pageable, kind);
 
@@ -151,7 +163,7 @@ public class CatalogObjectRevisionService {
     public PagedResources listCatalogObjectRevisions(Long bucketId, Long catalogObjectId, Pageable pageable,
             PagedResourcesAssembler assembler) {
 
-        bucketService.findBucket(bucketId);
+        findBucket(bucketId);
         catalogObjectService.findObjectById(catalogObjectId);
 
         Page<CatalogObjectRevisionEntity> page = catalogObjectRevisionRepository.getRevisions(catalogObjectId,
@@ -163,7 +175,7 @@ public class CatalogObjectRevisionService {
     public ResponseEntity<CatalogObjectMetadata> getCatalogObject(Long bucketId, Long objectId,
             Optional<Long> revisionId) {
 
-        bucketService.findBucket(bucketId);
+        findBucket(bucketId);
         catalogObjectService.findObjectById(objectId);
 
         CatalogObjectRevisionEntity catalogObjectRevision = getCatalogObjectRevision(bucketId, objectId, revisionId);
@@ -178,7 +190,7 @@ public class CatalogObjectRevisionService {
     public ResponseEntity<InputStreamResource> getCatalogObjectRaw(Long bucketId, Long objectId,
             Optional<Long> revisionId) {
 
-        bucketService.findBucket(bucketId);
+        findBucket(bucketId);
         catalogObjectService.findObjectById(objectId);
 
         CatalogObjectRevisionEntity catalogObjectRevision = getCatalogObjectRevision(bucketId, objectId, revisionId);
@@ -199,7 +211,7 @@ public class CatalogObjectRevisionService {
     }
 
     public List<CatalogObjectRevisionEntity> getCatalogObjectsRevisions(Long bucketId, List<Long> idList) {
-        bucketService.findBucket(bucketId);
+        findBucket(bucketId);
         List<CatalogObjectRevisionEntity> revisions = idList.stream()
                                                             .map(objectId -> getCatalogObjectRevision(bucketId,
                                                                                                       objectId,
