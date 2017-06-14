@@ -32,8 +32,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import java.io.IOException;
 import java.util.Optional;
 
-import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
+import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.service.CatalogObjectRevisionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Pageable;

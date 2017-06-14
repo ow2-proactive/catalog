@@ -38,10 +38,12 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
-import org.ow2.proactive.catalog.rest.service.exception.CatalogObjectNotFoundException;
-import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
-import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRepository;
+import org.ow2.proactive.catalog.repository.BucketRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.service.CatalogObjectRevisionService;
+import org.ow2.proactive.catalog.service.CatalogObjectService;
+import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 
 
 /**

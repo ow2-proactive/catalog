@@ -36,8 +36,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.rest.controller.BucketController;
-import org.ow2.proactive.catalog.rest.service.BucketService;
+import org.ow2.proactive.catalog.service.BucketService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 
