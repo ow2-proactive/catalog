@@ -25,9 +25,9 @@
  */
 package org.ow2.proactive.catalog.rest.assembler;
 
+import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.rest.controller.CatalogObjectController;
-import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevisionEntity;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Component;
 

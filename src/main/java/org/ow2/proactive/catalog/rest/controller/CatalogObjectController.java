@@ -35,9 +35,9 @@ import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadataList;
-import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
-import org.ow2.proactive.catalog.rest.service.CatalogObjectService;
+import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
+import org.ow2.proactive.catalog.service.CatalogObjectRevisionService;
+import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Pageable;

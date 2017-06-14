@@ -31,8 +31,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.catalog.rest.entity.BucketEntity;
+import org.ow2.proactive.catalog.dto.BucketMetadata;
+import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 
 
 /**

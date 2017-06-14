@@ -38,9 +38,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
-import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 
 import com.google.common.io.ByteStreams;
 

@@ -37,7 +37,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
+import org.ow2.proactive.catalog.service.CatalogObjectRevisionService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.web.multipart.MultipartFile;
