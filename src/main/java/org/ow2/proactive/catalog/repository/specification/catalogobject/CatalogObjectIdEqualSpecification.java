@@ -23,32 +23,30 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.fetcher;
+package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
-import org.ow2.proactive.catalog.graphql.handler.Handler;
-import org.ow2.proactive.catalog.graphql.schema.type.filter.BucketWhereArgs;
-import org.ow2.proactive.catalog.rest.entity.BucketEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
+import org.ow2.proactive.catalog.repository.specification.common.IdSpecification;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.rest.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 
 
 /**
  * @author ActiveEon Team
- * @since 09/06/2017
+ * @since 12/06/2017
  */
-@Component
-@Transactional(readOnly = true)
-public class BucketFetcher implements DataFetcher<BucketEntity> {
+public class CatalogObjectIdEqualSpecification extends IdSpecification<CatalogObjectEntity> {
 
-    @Autowired
-    private Handler<BucketWhereArgs, BucketEntity> bucketHandlers;
+    public CatalogObjectIdEqualSpecification(Long[] ids) {
+        super(ids);
+    }
 
     @Override
-    public BucketEntity get(DataFetchingEnvironment environment) {
-        return null;
+    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        return cb.equal(root.get(CatalogObjectEntityMetaModelEnum.ID.getName()), ids[0]);
     }
 }

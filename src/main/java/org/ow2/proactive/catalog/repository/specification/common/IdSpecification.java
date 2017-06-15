@@ -23,32 +23,20 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.fetcher;
+package org.ow2.proactive.catalog.repository.specification.common;
 
-import org.ow2.proactive.catalog.graphql.handler.Handler;
-import org.ow2.proactive.catalog.graphql.schema.type.filter.BucketWhereArgs;
-import org.ow2.proactive.catalog.rest.entity.BucketEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
+import org.springframework.data.jpa.domain.Specification;
 
 
 /**
  * @author ActiveEon Team
- * @since 09/06/2017
+ * @since 12/06/2017
  */
-@Component
-@Transactional(readOnly = true)
-public class BucketFetcher implements DataFetcher<BucketEntity> {
+public abstract class IdSpecification<T> implements Specification<T> {
 
-    @Autowired
-    private Handler<BucketWhereArgs, BucketEntity> bucketHandlers;
+    protected Long[] ids;
 
-    @Override
-    public BucketEntity get(DataFetchingEnvironment environment) {
-        return null;
+    public IdSpecification(Long[] ids) {
+        ids = ids;
     }
 }

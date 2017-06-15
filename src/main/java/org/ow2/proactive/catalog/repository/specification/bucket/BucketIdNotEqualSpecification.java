@@ -23,25 +23,30 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification;
+package org.ow2.proactive.catalog.repository.specification.bucket;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.springframework.data.jpa.domain.Specification;
+import org.ow2.proactive.catalog.repository.specification.common.IdSpecification;
+import org.ow2.proactive.catalog.rest.entity.BucketEntity;
+import org.ow2.proactive.catalog.rest.entity.metamodel.BucketEntityMetaModelEnum;
 
 
 /**
  * @author ActiveEon Team
- * @since 09/06/2017
+ * @since 12/06/2017
  */
-public class BucketSpecification implements Specification<BucketEntity> {
+public class BucketIdNotEqualSpecification extends IdSpecification<BucketEntity> {
+
+    public BucketIdNotEqualSpecification(Long[] ids) {
+        super(ids);
+    }
 
     @Override
     public Predicate toPredicate(Root<BucketEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-        return null;
+        return cb.notEqual(root.get(BucketEntityMetaModelEnum.ID.getName()), ids[0]);
     }
 }

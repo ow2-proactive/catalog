@@ -23,34 +23,18 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.filter;
+package org.ow2.proactive.catalog.graphql.handler;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import java.util.Optional;
+
+import org.springframework.data.jpa.domain.Specification;
 
 
 /**
  * @author ActiveEon Team
- * @since 09/06/2017
+ * @since 12/06/2017
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class WhereArgs<T> extends BaseWhereArgs<T> {
+public interface Handler<T, R> {
 
-    private final T[] between;
-
-    private final T[] notBetween;
-
-    private final String like;
-
-    private final String notLike;
-
-    public WhereArgs(T eq, T ne, T gt, T gte, T lt, T lte, T[] in, T[] notIn, Boolean isNull, T[] between,
-            T[] notBetween, String like, String notLike) {
-        super(eq, ne, gt, gte, lt, lte, in, notIn, isNull);
-        this.between = between;
-        this.notBetween = notBetween;
-        this.like = like;
-        this.notLike = notLike;
-    }
+    Optional<Specification<R>> handle(T t);
 }

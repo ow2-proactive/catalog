@@ -25,9 +25,65 @@
  */
 package org.ow2.proactive.catalog.graphql.schema.type;
 
+import static graphql.Scalars.GraphQLLong;
+import static graphql.Scalars.GraphQLString;
+import static graphql.schema.GraphQLArgument.newArgument;
+import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
+
+import graphql.schema.DataFetcher;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLObjectType;
+import lombok.Data;
+import lombok.ToString;
+
+
 /**
  * @author ActiveEon Team
  * @since 08/06/2017
  */
+@Data
+@ToString
 public class Bucket {
+
+    public final static TypeSingleton<GraphQLObjectType> TYPE = new TypeSingleton<GraphQLObjectType>() {
+        @Override
+        public GraphQLObjectType buildType(DataFetcher... dataFetchers) {
+
+            DataFetcher genericInformationDataFetcher = dataFetchers[0];
+            DataFetcher taskDataFetcher = dataFetchers[1];
+            DataFetcher variableDataFetcher = dataFetchers[2];
+
+            return GraphQLObjectType.newObject()
+                                    .name(Types.JOB.getName())
+                                    .description("Job managed by a ProActive Scheduler instance. A Job is made of one or more Tasks.")
+                                    .withInterface(JobTaskCommon.TYPE.getInstance(genericInformationDataFetcher,
+                                                                                  variableDataFetcher))
+                                    .field(newFieldDefinition().name(DATA_MANAGEMENT.getName())
+                                                               .description("User configuration for data spaces.")
+                                                               .type(DataManagement.TYPE.getInstance()))
+                                    .field(newFieldDefinition().name(DESCRIPTION.getName())
+                                                               .description("The description of the job.")
+                                                               .type(GraphQLString))
+                                    .field(newFieldDefinition().name(FINISHED_TIME.getName())
+                                                               .description("The timestamp at which the Job has finished its execution.")
+                                                               .type(GraphQLLong))
+                                    .field(newFieldDefinition().name(GENERIC_INFORMATION.getName())
+                                                               .description("Generic information list, empty if there is none.")
+                                                               .type(new GraphQLList(GenericInformation.TYPE.getInstance(dataFetchers)))
+                                                               .argument(newArgument().name(FILTER.getName())
+                                                                                      .description("Generic information input filter.")
+                                                                                      .type(new GraphQLList(KeyValueInput.TYPE.getInstance()))
+                                                                                      .build())
+                                                               .dataFetcher(genericInformationDataFetcher))
+                                    .build();
+        }
+    };
+
+    private DataManagement dataManagement;
+
+    private long lastUpdatedTime;
+
+    private int numberOfFailedTasks;
+
+    private int numberOfFaultyTasks;
 }

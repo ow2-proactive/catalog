@@ -4,6 +4,9 @@ buildscript {
         maven {
             url "http://repository.activeeon.com/content/groups/proactive/"
         }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
 
     dependencies {
@@ -48,6 +51,8 @@ configurations {
     integrationTestRuntime.extendsFrom testRuntime
 
     querydsl
+
+    jpaModelgen
 }
 
 compileJava {

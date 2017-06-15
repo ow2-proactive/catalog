@@ -46,6 +46,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.ow2.proactive.catalog.util.LocalDateTimeAttributeConverter;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -54,7 +57,8 @@ import org.springframework.data.annotation.CreatedDate;
  * @author ActiveEon Team
  */
 @Entity
-@Table(name = "CATALOG_OBJECT_REVISION", indexes = { @Index(columnList = "NAME"), @Index(columnList = "KIND") })
+@Table(name = "CATALOG_OBJECT_REVISION", indexes = { @Index(columnList = "NAME"), @Index(columnList = "KIND"),
+                                                     @Index(columnList = "COMMIT_DATE") })
 public class CatalogObjectRevisionEntity implements Comparable {
 
     @Id
@@ -88,6 +92,8 @@ public class CatalogObjectRevisionEntity implements Comparable {
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(nullable = true)
+    @Fetch(FetchMode.SELECT)
+    @BatchSize(size = 10)
     private List<KeyValueMetadataEntity> keyValueMetadataList;
 
     @Lob

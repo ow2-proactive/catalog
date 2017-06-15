@@ -23,23 +23,24 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.filter;
+package org.ow2.proactive.catalog.graphql.schema.common;
 
-import org.ow2.proactive.catalog.graphql.schema.type.ID;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.google.common.base.CaseFormat;
 
 
 /**
  * @author ActiveEon Team
- * @since 09/06/2017
+ * @since 14/06/2017
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class IdWhereArgs extends BaseWhereArgs<ID> {
+public enum Arguments {
+    AFTER,
+    BEFORE,
+    FIRST,
+    LAST,
+    ORDER_BY,
+    WHERE;
 
-    public IdWhereArgs(ID eq, ID ne, ID gt, ID gte, ID lt, ID lte, ID[] in, ID[] notIn, Boolean isNull) {
-        super(eq, ne, gt, gte, lt, lte, in, notIn, isNull);
+    public String getName() {
+        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
     }
 }

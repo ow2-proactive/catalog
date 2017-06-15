@@ -23,32 +23,32 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.fetcher;
+package org.ow2.proactive.catalog.graphql.handler.catalogobject;
+
+import java.util.Optional;
 
 import org.ow2.proactive.catalog.graphql.handler.Handler;
-import org.ow2.proactive.catalog.graphql.schema.type.filter.BucketWhereArgs;
-import org.ow2.proactive.catalog.rest.entity.BucketEntity;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.ow2.proactive.catalog.graphql.schema.type.filter.CatalogObjectWhereArgs;
+import org.ow2.proactive.catalog.repository.specification.catalogobject.CatalogObjectIdEqualSpecification;
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
 
 
 /**
  * @author ActiveEon Team
- * @since 09/06/2017
+ * @since 12/06/2017
  */
 @Component
-@Transactional(readOnly = true)
-public class BucketFetcher implements DataFetcher<BucketEntity> {
-
-    @Autowired
-    private Handler<BucketWhereArgs, BucketEntity> bucketHandlers;
+public class CatalogObjectIdEqualHandler implements Handler<CatalogObjectWhereArgs, CatalogObjectEntity> {
 
     @Override
-    public BucketEntity get(DataFetchingEnvironment environment) {
-        return null;
+    public Optional<Specification<CatalogObjectEntity>> handle(CatalogObjectWhereArgs whereArgs) {
+
+        if (whereArgs.getIdArgs() != null && whereArgs.getIdArgs().getEq() != null) {
+            return Optional.of(new CatalogObjectIdEqualSpecification(new Long[] { whereArgs.getIdArgs().getEq() }));
+        }
+        return Optional.empty();
     }
+
 }

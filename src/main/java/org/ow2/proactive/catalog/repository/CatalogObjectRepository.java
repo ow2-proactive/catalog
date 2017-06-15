@@ -29,6 +29,7 @@ import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -37,8 +38,8 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 /**
  * @author ActiveEon Team
  */
-public interface CatalogObjectRepository
-        extends PagingAndSortingRepository<CatalogObjectEntity, Long>, QueryDslPredicateExecutor<CatalogObjectEntity> {
+public interface CatalogObjectRepository extends PagingAndSortingRepository<CatalogObjectEntity, Long>,
+        JpaSpecificationExecutor<CatalogObjectEntity>, QueryDslPredicateExecutor<CatalogObjectEntity> {
 
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId")
     Page<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId, Pageable pageable);

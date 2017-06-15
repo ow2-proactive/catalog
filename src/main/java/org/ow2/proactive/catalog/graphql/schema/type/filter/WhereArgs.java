@@ -23,32 +23,28 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.fetcher;
-
-import org.ow2.proactive.catalog.graphql.handler.Handler;
-import org.ow2.proactive.catalog.graphql.schema.type.filter.BucketWhereArgs;
-import org.ow2.proactive.catalog.rest.entity.BucketEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
-
+package org.ow2.proactive.catalog.graphql.schema.type.filter;
 
 /**
  * @author ActiveEon Team
  * @since 09/06/2017
  */
-@Component
-@Transactional(readOnly = true)
-public class BucketFetcher implements DataFetcher<BucketEntity> {
+public class WhereArgs<T> extends BaseWhereArgs<T> {
 
-    @Autowired
-    private Handler<BucketWhereArgs, BucketEntity> bucketHandlers;
+    private final T[] between;
 
-    @Override
-    public BucketEntity get(DataFetchingEnvironment environment) {
-        return null;
+    private final T[] notBetween;
+
+    private final String like;
+
+    private final String notLike;
+
+    public WhereArgs(T eq, T ne, T gt, T gte, T lt, T lte, T[] in, T[] notIn, Boolean isNull, T[] between,
+            T[] notBetween, String like, String notLike) {
+        super(eq, ne, gt, gte, lt, lte, in, notIn, isNull);
+        this.between = between;
+        this.notBetween = notBetween;
+        this.like = like;
+        this.notLike = notLike;
     }
 }

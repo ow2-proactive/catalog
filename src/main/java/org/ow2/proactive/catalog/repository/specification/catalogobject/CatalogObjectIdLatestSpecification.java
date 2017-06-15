@@ -23,33 +23,30 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.filter;
+package org.ow2.proactive.catalog.repository.specification.catalogobject;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
+import org.springframework.data.jpa.domain.Specification;
 
 import lombok.Data;
 
 
 /**
  * @author ActiveEon Team
- * @since 09/06/2017
+ * @since 14/06/2017
  */
 @Data
-public class BaseWhereArgs<T> {
+public class CatalogObjectIdLatestSpecification implements Specification<CatalogObjectEntity> {
 
-    private final T eq;
+    private final Boolean isLatest;
 
-    private final T ne;
-
-    private final T gt;
-
-    private final T gte;
-
-    private final T lt;
-
-    private final T lte;
-
-    private final T[] in;
-
-    private final T[] notIn;
-
-    private final Boolean isNull;
+    @Override
+    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        return null;
+    }
 }

@@ -29,8 +29,10 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -40,6 +42,10 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import com.google.common.collect.Lists;
 
@@ -60,8 +66,11 @@ public class CatalogObjectEntity {
     @JoinColumn(name = "BUCKET_ID", nullable = false)
     private BucketEntity bucket;
 
-    @OneToMany(mappedBy = "catalogObject", orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST,
+                                                   CascadeType.REMOVE }, mappedBy = "catalogObject", orphanRemoval = true)
     @OrderBy("commitDate DESC")
+    @Fetch(FetchMode.SELECT)
+    @BatchSize(size = 10)
     private SortedSet<CatalogObjectRevisionEntity> revisions;
 
     @Column(name = "LAST_COMMIT_ID")
