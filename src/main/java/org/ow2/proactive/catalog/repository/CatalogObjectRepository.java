@@ -25,26 +25,26 @@
  */
 package org.ow2.proactive.catalog.repository;
 
+import java.util.List;
+
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.CrudRepository;
 
 
 /**
  * @author ActiveEon Team
  */
 public interface CatalogObjectRepository
-        extends PagingAndSortingRepository<CatalogObjectEntity, Long>, QueryDslPredicateExecutor<CatalogObjectEntity> {
+        extends CrudRepository<CatalogObjectEntity, Long>, QueryDslPredicateExecutor<CatalogObjectEntity> {
 
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId")
-    Page<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId, Pageable pageable);
+    List<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId);
 
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId AND cor.kind = ?3")
-    Page<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId, Pageable pageable, String kind);
+    List<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId, String kind);
 
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND cor.catalogObject.id = ?2 AND co.lastCommitId = cor.commitId")
     CatalogObjectRevisionEntity getMostRecentCatalogObjectRevision(Long bucketId, Long objectId);

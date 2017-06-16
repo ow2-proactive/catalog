@@ -33,12 +33,10 @@ import java.io.IOException;
 import java.util.Optional;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.service.CatalogObjectRevisionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -110,9 +108,8 @@ public class CatalogObjectRevisionController {
                                                                                                                                   "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions", method = GET)
-    public PagedResources list(@PathVariable Long bucketId, @PathVariable Long objectId,
-            @ApiParam(hidden = true) Pageable pageable, @ApiParam(hidden = true) PagedResourcesAssembler assembler) {
-        return catalogObjectRevisionService.listCatalogObjectRevisions(bucketId, objectId, pageable, assembler);
+    public CatalogObjectMetadataList list(@PathVariable Long bucketId, @PathVariable Long objectId) {
+        return catalogObjectRevisionService.listCatalogObjectRevisions(bucketId, objectId);
     }
 
     @ApiOperation(value = "Delete a catalog object's revision", notes = "If the revisionId references the latest revision, it is deleted and the catalog object then points to the previous revision. If the revisionId doesn't references the latest revision, it is simply deleted without any impact on the current catalog object. Returns the deleted CatalogObjectRevision metadata.")

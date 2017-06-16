@@ -50,7 +50,6 @@ import org.ow2.proactive.catalog.rest.assembler.CatalogObjectRevisionResourceAss
 import org.ow2.proactive.catalog.service.CatalogObjectRevisionService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.web.multipart.MultipartFile;
@@ -114,11 +113,8 @@ public class CatalogObjectControllerTest {
         when(bucketRepository.findOne(1L)).thenReturn(bucket);
         when(pagedResourcesAssembler.toResource(any(Page.class),
                                                 any(CatalogObjectRevisionResourceAssembler.class))).thenReturn(mock(PagedResources.class));
-        catalogObjectController.list(1L, null, pagedResourcesAssembler, Optional.empty());
-        verify(catalogObjectService, times(1)).listCatalogObjects(anyLong(),
-                                                                  Optional.of(anyString()),
-                                                                  any(Pageable.class),
-                                                                  any(PagedResourcesAssembler.class));
+        catalogObjectController.list(1L, Optional.empty());
+        verify(catalogObjectService, times(1)).listCatalogObjects(anyLong(), Optional.of(anyString()));
     }
 
     @Test

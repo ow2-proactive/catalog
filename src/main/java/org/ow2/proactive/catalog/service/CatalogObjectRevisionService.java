@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamException;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
@@ -55,11 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -150,26 +147,27 @@ public class CatalogObjectRevisionService {
         return bucket;
     }
 
-    public PagedResources listCatalogObjects(Long bucketId, Optional<String> kind, Pageable pageable,
-            PagedResourcesAssembler assembler) {
+    public CatalogObjectMetadataList listCatalogObjects(Long bucketId, Optional<String> kind) {
 
         findBucket(bucketId);
 
-        Page<CatalogObjectRevisionEntity> page = catalogObjectService.getMostRecentRevisions(bucketId, pageable, kind);
+        List<CatalogObjectRevisionEntity> list = catalogObjectService.getMostRecentRevisions(bucketId, kind);
 
-        return assembler.toResource(page, catalogObjectRevisionResourceAssembler);
+        return new CatalogObjectMetadataList(list.stream()
+                                                 .map(entity -> new CatalogObjectMetadata(entity))
+                                                 .collect(Collectors.toList()));
     }
 
-    public PagedResources listCatalogObjectRevisions(Long bucketId, Long catalogObjectId, Pageable pageable,
-            PagedResourcesAssembler assembler) {
+    public CatalogObjectMetadataList listCatalogObjectRevisions(Long bucketId, Long catalogObjectId) {
 
         findBucket(bucketId);
         catalogObjectService.findObjectById(catalogObjectId);
 
-        Page<CatalogObjectRevisionEntity> page = catalogObjectRevisionRepository.getRevisions(catalogObjectId,
-                                                                                              pageable);
+        List<CatalogObjectRevisionEntity> list = catalogObjectRevisionRepository.getRevisions(catalogObjectId);
 
-        return assembler.toResource(page, catalogObjectRevisionResourceAssembler);
+        return new CatalogObjectMetadataList(list.stream()
+                                                 .map(entity -> new CatalogObjectMetadata(entity))
+                                                 .collect(Collectors.toList()));
     }
 
     public ResponseEntity<CatalogObjectMetadata> getCatalogObject(Long bucketId, Long objectId,

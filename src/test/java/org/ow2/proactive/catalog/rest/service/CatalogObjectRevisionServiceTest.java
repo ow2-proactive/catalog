@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.rest.service;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -57,14 +58,10 @@ import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.rest.assembler.CatalogObjectRevisionResourceAssembler;
 import org.ow2.proactive.catalog.service.CatalogObjectRevisionService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
 
@@ -198,17 +195,22 @@ public class CatalogObjectRevisionServiceTest {
     }
 
     @Test
-    public void testListWorkflowsWithoutWorkflowId() throws Exception {
-        listWorkflows(Optional.empty());
-        verify(catalogObjectService, times(1)).getMostRecentRevisions(anyLong(),
-                                                                      any(Pageable.class),
-                                                                      any(Optional.class));
+    public void testListCatalogObjects() throws Exception {
+        when(catalogObjectService.getMostRecentRevisions(anyLong(),
+                                                         Optional.of(anyString()))).thenReturn(new ArrayList<>());
+        when(bucketRepository.findOne(anyLong())).thenReturn(mock(BucketEntity.class));
+        when(catalogObjectService.findObjectById(anyLong())).thenReturn(mock(CatalogObjectEntity.class));
+        catalogObjectRevisionService.listCatalogObjects(DUMMY_ID, Optional.empty());
+        verify(catalogObjectService, times(1)).getMostRecentRevisions(anyLong(), any(Optional.class));
     }
 
     @Test
-    public void testListWorkflowsWithWorkflowId() throws Exception {
-        listWorkflows(Optional.of(DUMMY_ID));
-        verify(catalogObjectRevisionRepository, times(1)).getRevisions(anyLong(), any(Pageable.class));
+    public void testListCatalogObjectRevisions() throws Exception {
+        when(catalogObjectRevisionRepository.getRevisions(anyLong())).thenReturn(new ArrayList<>());
+        when(bucketRepository.findOne(anyLong())).thenReturn(mock(BucketEntity.class));
+        when(catalogObjectService.findObjectById(anyLong())).thenReturn(mock(CatalogObjectEntity.class));
+        catalogObjectRevisionService.listCatalogObjectRevisions(DUMMY_ID, DUMMY_ID);
+        verify(catalogObjectRevisionRepository, times(1)).getRevisions(anyLong());
     }
 
     @Test(expected = RevisionNotFoundException.class)
@@ -415,26 +417,6 @@ public class CatalogObjectRevisionServiceTest {
             catalogObjectRevision.setCatalogObject(catalogObject);
         }
         return catalogObject;
-    }
-
-    private void listWorkflows(Optional<Long> wId) {
-        when(bucketRepository.findOne(anyLong())).thenReturn(mock(BucketEntity.class));
-        when(catalogObjectService.findObjectById(anyLong())).thenReturn(mock(CatalogObjectEntity.class));
-        PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
-        when(mockedAssembler.toResource(any(PageImpl.class),
-                                        any(CatalogObjectRevisionResourceAssembler.class))).thenReturn(null);
-
-        if (wId.isPresent()) {
-            when(catalogObjectRevisionRepository.getRevisions(anyLong(),
-                                                              any(Pageable.class))).thenReturn(mock(PageImpl.class));
-            catalogObjectRevisionService.listCatalogObjectRevisions(DUMMY_ID, wId.get(), null, mockedAssembler);
-        } else {
-            when(catalogObjectService.getMostRecentRevisions(anyLong(),
-                                                             any(Pageable.class),
-                                                             any(Optional.class))).thenReturn(mock(PageImpl.class));
-            catalogObjectRevisionService.listCatalogObjects(DUMMY_ID, Optional.empty(), null, mockedAssembler);
-        }
-
     }
 
     private void createCatalogObject(String name, String kind, String fileName, Optional<Long> wId, String layout)

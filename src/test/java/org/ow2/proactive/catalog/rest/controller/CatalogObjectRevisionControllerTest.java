@@ -38,8 +38,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.service.CatalogObjectRevisionService;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.web.multipart.MultipartFile;
 
 
@@ -102,13 +100,8 @@ public class CatalogObjectRevisionControllerTest {
 
     @Test
     public void testList() throws Exception {
-        Pageable mockedPageable = mock(Pageable.class);
-        PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
-        catalogObjectRevisionController.list(BUCKET_ID, CO_ID, mockedPageable, mockedAssembler);
-        verify(catalogObjectRevisionService, times(1)).listCatalogObjectRevisions(BUCKET_ID,
-                                                                                  CO_ID,
-                                                                                  mockedPageable,
-                                                                                  mockedAssembler);
+        catalogObjectRevisionController.list(BUCKET_ID, CO_ID);
+        verify(catalogObjectRevisionService, times(1)).listCatalogObjectRevisions(BUCKET_ID, CO_ID);
     }
 
     @Test
