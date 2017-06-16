@@ -337,7 +337,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     @Test
     public void testListWorkflowRevisionsShouldReturnSavedRevisions() {
-        IntStream.rangeClosed(1, 25).forEach(i -> {
+        int size = 25;
+        IntStream.rangeClosed(1, size).forEach(i -> {
             try {
                 catalogObjectRevisionService.createCatalogObjectRevision(secondCatalogObjectRevision.bucketId,
                                                                          "workflow",
@@ -356,14 +357,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                                    .when()
                                    .get(CATALOG_OBJECT_REVISIONS_RESOURCE);
 
-        int pageSize = response.getBody().jsonPath().getInt("page.size");
-
-        response.then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("_embedded.catalogObjectMetadataList", hasSize(pageSize))
-                .body("page.number", is(0))
-                .body("page.totalElements", is(25 + 2));
+        //Size + 2 because there were already 2 objects created for this object
+        response.then().assertThat().statusCode(HttpStatus.SC_OK).body("object", hasSize(size + 2));
     }
 
     @Test

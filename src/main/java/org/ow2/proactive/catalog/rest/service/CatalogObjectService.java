@@ -29,16 +29,13 @@ import java.util.List;
 import java.util.Optional;
 
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.rest.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.rest.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.rest.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,9 +81,8 @@ public class CatalogObjectService {
         return catalogObjectRevisionService.getCatalogObject(bucketId, catalogObjectId, Optional.empty());
     }
 
-    public PagedResources listCatalogObjects(Long bucketId, Optional<String> kind, Pageable pageable,
-            PagedResourcesAssembler assembler) {
-        return catalogObjectRevisionService.listCatalogObjects(bucketId, kind, pageable, assembler);
+    public CatalogObjectMetadataList listCatalogObjects(Long bucketId, Optional<String> kind) {
+        return catalogObjectRevisionService.listCatalogObjects(bucketId, kind);
     }
 
     public ResponseEntity<CatalogObjectMetadata> delete(Long bucketId, Long catalogObjectId) {
@@ -107,15 +103,14 @@ public class CatalogObjectService {
         return catalogObjectRepository.getMostRecentCatalogObjectRevision(bucketId, catalogObjectId);
     }
 
-    public Page<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId, Pageable pageable,
-            Optional<String> kind) {
-        Page<CatalogObjectRevisionEntity> page;
+    public List<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId, Optional<String> kind) {
+        List<CatalogObjectRevisionEntity> list;
         if (kind.isPresent()) {
-            page = catalogObjectRepository.getMostRecentRevisions(bucketId, pageable, kind.get());
+            list = catalogObjectRepository.getMostRecentRevisions(bucketId, kind.get());
         } else {
-            page = catalogObjectRepository.getMostRecentRevisions(bucketId, pageable);
+            list = catalogObjectRepository.getMostRecentRevisions(bucketId);
         }
-        return page;
+        return list;
     }
 
     public void save(CatalogObjectEntity catalogObject) {

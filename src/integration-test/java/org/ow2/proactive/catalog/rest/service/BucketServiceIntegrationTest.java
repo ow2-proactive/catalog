@@ -29,6 +29,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
 import static com.jayway.restassured.path.json.JsonPath.from;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD;
 
@@ -84,8 +85,7 @@ public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
     }
 
     /*
-     * Create 3 buckets, check that the buckets exists
-     * 1 bucket is empty
+     * Create 3 buckets, check that the buckets exists 1 bucket is empty
      */
     @Test
     public void testPopulateCatalogCheckBucketsCreation() throws Exception {
@@ -120,7 +120,7 @@ public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
                    .then()
                    .assertThat()
                    .statusCode(HttpStatus.SC_OK)
-                   .body("page.totalElements", is(nbWorkflows));
+                   .body("object", hasSize(nbWorkflows));
         }
     }
 

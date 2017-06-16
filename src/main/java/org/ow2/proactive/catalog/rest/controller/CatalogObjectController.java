@@ -35,14 +35,12 @@ import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.rest.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
 import org.ow2.proactive.catalog.rest.service.CatalogObjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -79,18 +77,13 @@ public class CatalogObjectController {
                             @ApiResponse(code = 422, message = "Invalid file content supplied") })
     @RequestMapping(value = "/buckets/{bucketId}/resources", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public CatalogObjectMetadataList create(@PathVariable Long bucketId,
+    public CatalogObjectMetadata create(@PathVariable Long bucketId,
             @ApiParam(value = "Kind of the new object") @RequestParam String kind,
             @ApiParam(value = "Name of the object") @RequestParam String name,
             @ApiParam(value = "Commit message") @RequestParam String commitMessage,
             @ApiParam(value = "The content type of CatalogObject") @RequestParam String contentType,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        return new CatalogObjectMetadataList(catalogService.createCatalogObject(bucketId,
-                                                                                kind,
-                                                                                name,
-                                                                                commitMessage,
-                                                                                contentType,
-                                                                                file.getBytes()));
+        return catalogService.createCatalogObject(bucketId, kind, name, commitMessage, contentType, file.getBytes());
     }
 
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
@@ -115,10 +108,9 @@ public class CatalogObjectController {
                                                                                                                                   "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
     @RequestMapping(value = "/buckets/{bucketId}/resources", method = GET)
-    public PagedResources list(@PathVariable Long bucketId, @ApiParam(hidden = true) Pageable pageable,
-            @ApiParam(hidden = true) PagedResourcesAssembler assembler,
+    public CatalogObjectMetadataList list(@PathVariable Long bucketId,
             @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind) {
-        return catalogService.listCatalogObjects(bucketId, kind, pageable, assembler);
+        return catalogService.listCatalogObjects(bucketId, kind);
     }
 
     @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogObject's metadata")

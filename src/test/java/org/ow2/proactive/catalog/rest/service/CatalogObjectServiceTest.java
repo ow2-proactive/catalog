@@ -90,8 +90,8 @@ public class CatalogObjectServiceTest {
 
     @Test
     public void testListCatalogObjects() {
-        catalogObjectService.listCatalogObjects(DUMMY_ID, Optional.empty(), null, null);
-        verify(catalogObjectRevisionService, times(1)).listCatalogObjects(DUMMY_ID, Optional.empty(), null, null);
+        catalogObjectService.listCatalogObjects(DUMMY_ID, Optional.empty());
+        verify(catalogObjectRevisionService, times(1)).listCatalogObjects(DUMMY_ID, Optional.empty());
     }
 
     @Test
