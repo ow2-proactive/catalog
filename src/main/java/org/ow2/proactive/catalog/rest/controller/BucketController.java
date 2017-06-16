@@ -30,8 +30,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.util.Optional;
 
-import org.ow2.proactive.catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.catalog.rest.service.BucketService;
+import org.ow2.proactive.catalog.dto.BucketMetadata;
+import org.ow2.proactive.catalog.service.BucketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;

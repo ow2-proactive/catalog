@@ -31,7 +31,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.ow2.proactive.catalog.rest.Application;
+import org.ow2.proactive.catalog.Application;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;

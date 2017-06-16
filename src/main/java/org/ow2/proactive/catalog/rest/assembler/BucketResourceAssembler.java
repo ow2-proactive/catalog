@@ -25,9 +25,9 @@
  */
 package org.ow2.proactive.catalog.rest.assembler;
 
+import org.ow2.proactive.catalog.dto.BucketMetadata;
+import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.rest.controller.BucketController;
-import org.ow2.proactive.catalog.rest.dto.BucketMetadata;
-import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
 import org.springframework.stereotype.Component;
 

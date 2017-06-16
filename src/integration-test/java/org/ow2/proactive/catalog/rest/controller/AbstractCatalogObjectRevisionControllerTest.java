@@ -25,11 +25,11 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
-import org.ow2.proactive.catalog.rest.service.BucketService;
-import org.ow2.proactive.catalog.rest.service.CatalogObjectRevisionService;
-import org.ow2.proactive.catalog.rest.service.CatalogObjectService;
-import org.ow2.proactive.catalog.rest.service.repository.BucketRepository;
-import org.ow2.proactive.catalog.rest.service.repository.CatalogObjectRevisionRepository;
+import org.ow2.proactive.catalog.repository.BucketRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
+import org.ow2.proactive.catalog.service.BucketService;
+import org.ow2.proactive.catalog.service.CatalogObjectRevisionService;
+import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.Gson;
