@@ -51,8 +51,6 @@ configurations {
     integrationTestRuntime.extendsFrom testRuntime
 
     querydsl
-
-    jpaModelgen
 }
 
 compileJava {

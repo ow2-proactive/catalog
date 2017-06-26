@@ -42,6 +42,9 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -112,6 +115,19 @@ public class Application extends WebMvcConfigurerAdapter {
                                 .url(jdbcUrl)
                                 .driverClassName(dataSourceDriverClassName)
                                 .build();
+    }
+
+    @Bean
+    @Profile("test")
+    public DataSource testDataSource() {
+        return createMemDataSource();
+    }
+
+    private DataSource createMemDataSource() {
+        EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+        EmbeddedDatabase db = builder.setType(EmbeddedDatabaseType.HSQL).build();
+
+        return db;
     }
 
     private String getDatabaseDirectory() {
