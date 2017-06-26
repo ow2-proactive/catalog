@@ -61,7 +61,7 @@ public class ProActiveCatalogObjectParserTest {
     }
 
     private static void assertKeyValueDataAre(KeyValueMetadataEntity data, String key, String value, String type) {
-        assertTrue(data.getKey().equals(key) && data.getValue().equals(value) && data.getLabel().equals(type));
+        assertTrue(data.getKey().equals(key) && data.getValue().equals(value) && data.getType().equals(type));
     }
 
     @Test

@@ -30,9 +30,9 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.medamodel.CatalogObjectEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.common.IdSpecification;
-import org.ow2.proactive.catalog.rest.entity.CatalogObjectEntity;
-import org.ow2.proactive.catalog.rest.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 
 
 /**

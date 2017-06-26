@@ -23,10 +23,11 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.service;
+package org.ow2.proactive.catalog.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Optional;
 
 import org.junit.Before;
@@ -48,15 +50,9 @@ import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.ow2.proactive.catalog.rest.assembler.BucketResourceAssembler;
-import org.ow2.proactive.catalog.service.BucketService;
-import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DefaultCatalogObjectsFolderNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DefaultRawCatalogObjectsFolderNotFoundException;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
 
 
 /**
@@ -86,9 +82,9 @@ public class BucketServiceTest {
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
         BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
         verify(bucketRepository, times(1)).save(any(BucketEntity.class));
-        assertEquals(mockedBucket.getName(), bucketMetadata.name);
-        assertEquals(mockedBucket.getId(), bucketMetadata.id);
-        assertEquals(mockedBucket.getOwner(), bucketMetadata.owner);
+        assertEquals(mockedBucket.getName(), bucketMetadata.getName());
+        assertEquals(mockedBucket.getId(), bucketMetadata.getMetaDataId());
+        assertEquals(mockedBucket.getOwner(), bucketMetadata.getOwner());
     }
 
     @Test
@@ -97,8 +93,8 @@ public class BucketServiceTest {
         when(bucketRepository.findOne(anyLong())).thenReturn(mockedBucket);
         BucketMetadata bucketMetadata = bucketService.getBucketMetadata(1L);
         verify(bucketRepository, times(1)).findOne(anyLong());
-        assertEquals(mockedBucket.getName(), bucketMetadata.name);
-        assertEquals(mockedBucket.getId(), bucketMetadata.id);
+        assertEquals(mockedBucket.getName(), bucketMetadata.getName());
+        assertEquals(mockedBucket.getId(), bucketMetadata.getMetaDataId());
     }
 
     @Test(expected = BucketNotFoundException.class)
@@ -140,7 +136,8 @@ public class BucketServiceTest {
                                                                                   anyString(),
                                                                                   anyString(),
                                                                                   anyString(),
-                                                                                  anyObject());
+                                                                                  anyList(),
+                                                                                  any(byte[].class));
     }
 
     @Test
@@ -175,15 +172,13 @@ public class BucketServiceTest {
     }
 
     private void listBucket(Optional<String> owner) {
-        PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
-        when(bucketRepository.findAll(any(Pageable.class))).thenReturn(null);
-        bucketService.listBuckets(owner, null, mockedAssembler);
+        when(bucketRepository.findAll()).thenReturn(Collections.EMPTY_LIST);
+        bucketService.listBuckets(owner);
         if (owner.isPresent()) {
-            verify(bucketRepository, times(1)).findByOwner(any(String.class), any(Pageable.class));
+            verify(bucketRepository, times(1)).findByOwner(anyString());
         } else {
-            verify(bucketRepository, times(1)).findAll(any(Pageable.class));
+            verify(bucketRepository, times(1)).findAll();
         }
-        verify(mockedAssembler, times(1)).toResource(any(PageImpl.class), any(BucketResourceAssembler.class));
     }
 
     private BucketEntity newMockedBucket(Long id, String name, LocalDateTime createdAt) {

@@ -30,14 +30,17 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.Data;
+
 
 /**
  * @author ActiveEon Team
  */
-public final class CatalogObjectMetadataList {
+@Data
+public class CatalogObjectMetadataList {
 
     @JsonProperty("object")
-    public final List<CatalogObjectMetadata> objectMetadataList;
+    private final List<CatalogObjectMetadata> objectMetadataList;
 
     public CatalogObjectMetadataList(List<CatalogObjectMetadata> objectMetadataList) {
         this.objectMetadataList = objectMetadataList;

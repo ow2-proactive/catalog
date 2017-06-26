@@ -34,4 +34,7 @@ public class RevisionNotFoundException extends ResourceNotFoundException {
         super("No such revision");
     }
 
+    public RevisionNotFoundException(String message) {
+        super(message);
+    }
 }

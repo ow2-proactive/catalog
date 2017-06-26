@@ -27,16 +27,23 @@ package org.ow2.proactive.catalog.dto;
 
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 
+import lombok.EqualsAndHashCode;
+
 
 /**
  * @author ActiveEon Team
  */
-public final class BucketMetadata extends NamedMetadata {
+@EqualsAndHashCode(callSuper = true)
+public class BucketMetadata extends NamedMetadata {
 
-    public final String owner;
+    private final String owner;
 
     public BucketMetadata(BucketEntity bucket) {
         super(bucket.getId(), bucket.getName());
         this.owner = bucket.getOwner();
+    }
+
+    public String getOwner() {
+        return owner;
     }
 }

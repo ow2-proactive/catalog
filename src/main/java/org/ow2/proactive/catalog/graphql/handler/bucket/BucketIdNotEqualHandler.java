@@ -29,8 +29,8 @@ import java.util.Optional;
 
 import org.ow2.proactive.catalog.graphql.handler.Handler;
 import org.ow2.proactive.catalog.graphql.schema.type.filter.BucketWhereArgs;
+import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.specification.bucket.BucketIdNotEqualSpecification;
-import org.ow2.proactive.catalog.rest.entity.BucketEntity;
 import org.springframework.data.jpa.domain.Specification;
 
 

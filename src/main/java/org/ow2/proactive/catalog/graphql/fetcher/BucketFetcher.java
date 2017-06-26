@@ -27,7 +27,7 @@ package org.ow2.proactive.catalog.graphql.fetcher;
 
 import org.ow2.proactive.catalog.graphql.handler.Handler;
 import org.ow2.proactive.catalog.graphql.schema.type.filter.BucketWhereArgs;
-import org.ow2.proactive.catalog.rest.entity.BucketEntity;
+import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

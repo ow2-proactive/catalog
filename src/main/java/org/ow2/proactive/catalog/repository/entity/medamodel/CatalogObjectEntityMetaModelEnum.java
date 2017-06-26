@@ -23,34 +23,26 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util;
+package org.ow2.proactive.catalog.repository.entity.medamodel;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import com.google.common.base.CaseFormat;
 
 
-@Converter(autoApply = true)
-public class LocalDateTimeAttributeConverter implements AttributeConverter<LocalDateTime, Timestamp> {
+/**
+ * @author ActiveEon Team
+ * @since 13/06/2017
+ */
+public enum CatalogObjectEntityMetaModelEnum {
 
-    @Override
-    public Timestamp convertToDatabaseColumn(LocalDateTime localDateTime) {
-        if (localDateTime == null) {
-            return null;
-        }
+    ID,
+    NAME,
+    COMMIT_ID,
+    KIND,
+    COMMIT_DATE,
+    BUCKET_ID,
+    CONTENT_TYPE;
 
-        return Timestamp.valueOf(localDateTime);
+    public String getName() {
+        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
     }
-
-    @Override
-    public LocalDateTime convertToEntityAttribute(Timestamp sqlTimestamp) {
-        if (sqlTimestamp == null) {
-            return null;
-        }
-
-        return sqlTimestamp.toLocalDateTime();
-    }
-
 }

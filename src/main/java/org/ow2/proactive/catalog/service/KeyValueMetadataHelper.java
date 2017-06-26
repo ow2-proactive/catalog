@@ -23,26 +23,31 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.entity.metamodel;
+package org.ow2.proactive.catalog.service;
 
-import com.google.common.base.CaseFormat;
+import java.io.ByteArrayInputStream;
+import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
+
+import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
+import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
+import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
 
 
 /**
  * @author ActiveEon Team
- * @since 13/06/2017
+ * @since 19/06/2017
  */
-public enum CatalogObjectEntityMetaModelEnum {
+public class KeyValueMetadataHelper {
 
-    ID,
-    NAME,
-    COMMIT_ID,
-    KIND,
-    COMMIT_DATE,
-    BUCKET_ID,
-    CONTENT_TYPE;
-
-    public String getName() {
-        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
+    public static List<KeyValueMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {
+        try {
+            CatalogObjectParserInterface catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
+            return catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
+        } catch (XMLStreamException e) {
+            throw new UnprocessableEntityException(e);
+        }
     }
 }

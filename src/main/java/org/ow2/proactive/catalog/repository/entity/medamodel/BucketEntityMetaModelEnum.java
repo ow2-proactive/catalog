@@ -23,28 +23,22 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.assembler;
+package org.ow2.proactive.catalog.repository.entity.medamodel;
 
-import org.ow2.proactive.catalog.dto.BucketMetadata;
-import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.ow2.proactive.catalog.rest.controller.BucketController;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-import org.springframework.stereotype.Component;
+import com.google.common.base.CaseFormat;
 
 
 /**
  * @author ActiveEon Team
+ * @since 12/06/2017
  */
-@Component
-public class BucketResourceAssembler extends ResourceAssemblerSupport<BucketEntity, BucketMetadata> {
+public enum BucketEntityMetaModelEnum {
 
-    public BucketResourceAssembler() {
-        super(BucketController.class, BucketMetadata.class);
+    ID,
+    NAME,
+    OWNER;
+
+    public String getName() {
+        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
     }
-
-    @Override
-    public BucketMetadata toResource(BucketEntity entity) {
-        return new BucketMetadata(entity);
-    }
-
 }

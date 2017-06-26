@@ -25,7 +25,6 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -37,8 +36,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.service.BucketService;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
 
 
 /**
@@ -71,19 +68,9 @@ public class BucketControllerTest {
     }
 
     @Test
-    public void testListNoOwner() throws Exception {
-        Pageable mockedPageable = mock(Pageable.class);
-        PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
-        bucketController.list(Optional.empty(), mockedPageable, mockedAssembler);
-        verify(bucketService, times(1)).listBuckets(Optional.empty(), mockedPageable, mockedAssembler);
+    public void testList() throws Exception {
+        bucketController.list(Optional.empty());
+        verify(bucketService, times(1)).listBuckets(Optional.empty());
     }
 
-    @Test
-    public void testListWithOwner() throws Exception {
-        Pageable mockedPageable = mock(Pageable.class);
-        PagedResourcesAssembler mockedAssembler = mock(PagedResourcesAssembler.class);
-        final Optional<String> owner = Optional.of("toto");
-        bucketController.list(owner, mockedPageable, mockedAssembler);
-        verify(bucketService, times(1)).listBuckets(owner, mockedPageable, mockedAssembler);
-    }
 }

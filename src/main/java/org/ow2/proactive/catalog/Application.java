@@ -29,7 +29,6 @@ import java.io.File;
 
 import javax.sql.DataSource;
 
-import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -43,9 +42,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
@@ -64,10 +61,11 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 /**
  * @author ActiveEon Team
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = { "org.ow2.proactive.catalog" })
 @EnableAutoConfiguration(exclude = { MultipartAutoConfiguration.class })
 @EnableSwagger2
-@EntityScan(basePackageClasses = BucketEntity.class)
+@EnableTransactionManagement
+@EntityScan(basePackages = "org.ow2.proactive.catalog.repository.entity")
 @PropertySource("classpath:application.properties")
 public class Application extends WebMvcConfigurerAdapter {
 
@@ -125,25 +123,6 @@ public class Application extends WebMvcConfigurerAdapter {
 
         return proactiveHome + File.separator + "data" + File.separator + "db" + File.separator + "catalog" +
                File.separator + "wc";
-    }
-
-    @Bean
-    @Profile("mem")
-    public DataSource memDataSource() {
-        return createMemDataSource();
-    }
-
-    @Bean
-    @Profile("test")
-    public DataSource testDataSource() {
-        return createMemDataSource();
-    }
-
-    private DataSource createMemDataSource() {
-        EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-        EmbeddedDatabase db = builder.setType(EmbeddedDatabaseType.HSQL).build();
-
-        return db;
     }
 
     @Bean

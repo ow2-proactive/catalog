@@ -30,19 +30,12 @@ package org.ow2.proactive.catalog.util.parser;
  *
  * @author ActiveEon Team
  */
-public final class CatalogObjectParserFactory {
+public enum CatalogObjectParserFactory {
 
-    private static CatalogObjectParserFactory factory;
-
-    private CatalogObjectParserFactory() {
-
-    }
+    INSTANCE;
 
     public static CatalogObjectParserFactory get() {
-        if (factory == null) {
-            factory = new CatalogObjectParserFactory();
-        }
-        return factory;
+        return INSTANCE;
     }
 
     public CatalogObjectParserInterface getParser(String type) {

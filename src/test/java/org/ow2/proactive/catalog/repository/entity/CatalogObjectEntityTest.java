@@ -29,6 +29,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -36,13 +38,11 @@ import java.util.TreeSet;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableSortedSet;
-
 
 /**
  * @author ActiveEon Team
  */
-public class CatalogObjectTest {
+public class CatalogObjectEntityTest {
 
     private BucketEntity bucket;
 
@@ -50,54 +50,62 @@ public class CatalogObjectTest {
 
     private CatalogObjectRevisionEntity catalogObjectRevision;
 
+    private LocalDateTime now;
+
     @Before
     public void setUp() {
+        now = LocalDateTime.now();
         bucket = new BucketEntity("test", "WorkflowTestUser");
-        catalogObjectRevision = newCatalogObjectRevision(1L, LocalDateTime.now());
-        catalogObject = new CatalogObjectEntity(bucket);
+        catalogObjectRevision = newCatalogObjectRevision(now);
+        catalogObject = new CatalogObjectEntity();
+        catalogObject.setBucket(bucket);
     }
 
     @Test
     public void testAddRevision() throws Exception {
 
-        assertThat(catalogObject.getLastCommitId()).isEqualTo(0L);
+        assertThat(catalogObject.getLastCommitTime() == 0);
         assertThat(catalogObject.getRevisions()).hasSize(0);
 
         catalogObject.addRevision(catalogObjectRevision);
 
-        assertThat(catalogObject.getLastCommitId()).isEqualTo(1L);
+        assertThat(catalogObject.getLastCommitTime()).isEqualTo(now.atZone(ZoneId.systemDefault())
+                                                                   .toInstant()
+                                                                   .toEpochMilli());
         assertThat(catalogObject.getRevisions()).hasSize(1);
     }
 
     @Test
     public void testSetRevisions() throws Exception {
-        SortedSet<CatalogObjectRevisionEntity> revisions = ImmutableSortedSet.of(catalogObjectRevision);
-        catalogObject.setRevisions(revisions);
-        assertEquals(revisions, catalogObject.getRevisions());
+        catalogObject.addRevision(catalogObjectRevision);
+        assertEquals(catalogObjectRevision, catalogObject.getRevisions().first());
     }
 
     @Test
     public void testGetRevisions() throws Exception {
         SortedSet<CatalogObjectRevisionEntity> revisions = new TreeSet<>();
         revisions.add(catalogObjectRevision);
-        revisions.add(newCatalogObjectRevision(10L, LocalDateTime.now().plusHours(1)));
-        revisions.add(newCatalogObjectRevision(2L, LocalDateTime.now().plusHours(2)));
+        LocalDateTime rev1Time = LocalDateTime.now().plusHours(1);
+        revisions.add(newCatalogObjectRevision(rev1Time));
+        LocalDateTime rev2Time = LocalDateTime.now().plusHours(2);
+        revisions.add(newCatalogObjectRevision(rev2Time));
         catalogObject.setRevisions(revisions);
         assertEquals(revisions, catalogObject.getRevisions());
         Iterator iterator = catalogObject.getRevisions().iterator();
-        assertEquals(2L, ((CatalogObjectRevisionEntity) iterator.next()).getCommitId().longValue());
-        assertEquals(10L, ((CatalogObjectRevisionEntity) iterator.next()).getCommitId().longValue());
-        assertEquals(1L, ((CatalogObjectRevisionEntity) iterator.next()).getCommitId().longValue());
+        assertEquals(rev2Time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+                     ((CatalogObjectRevisionEntity) iterator.next()).getCommitTime());
+        assertEquals(rev1Time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+                     ((CatalogObjectRevisionEntity) iterator.next()).getCommitTime());
+        assertEquals(now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+                     ((CatalogObjectRevisionEntity) iterator.next()).getCommitTime());
     }
 
-    private CatalogObjectRevisionEntity newCatalogObjectRevision(Long revisionId, LocalDateTime date) {
-        return new CatalogObjectRevisionEntity(revisionId,
-                                               "object",
-                                               date,
-                                               "name",
+    private CatalogObjectRevisionEntity newCatalogObjectRevision(LocalDateTime time) {
+        return new CatalogObjectRevisionEntity(null,
                                                "commit message",
-                                               1L,
-                                               "application/xml",
+                                               time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+                                               catalogObject,
+                                               Collections.emptyList(),
                                                new byte[0]);
     }
 }

@@ -23,35 +23,35 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.assembler;
+package org.ow2.proactive.catalog.rest.controller.validator;
 
-import static org.junit.Assert.assertEquals;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.dto.BucketMetadata;
-import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 
 
 /**
  * @author ActiveEon Team
+ * @since 19/06/2017
  */
-public class BucketResourceAssemblerTest {
+@Component
+public class CatalogObjectNameEncodingValidator implements Validator {
 
-    @InjectMocks
-    private BucketResourceAssembler bucketResourceAssembler;
-
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
+    @Override
+    public boolean supports(Class<?> clazz) {
+        return CatalogObjectNamePathParam.class.isAssignableFrom(clazz);
     }
 
-    @Test
-    public void testToResource() throws Exception {
-        BucketEntity bucket = new BucketEntity("BUCKET-TEST", "BucketResourceAssemblerTestUser");
-        BucketMetadata bucketMetadata = bucketResourceAssembler.toResource(bucket);
-        assertEquals(bucket.getName(), bucketMetadata.name);
+    @Override
+    public void validate(Object target, Errors errors) {
+        CatalogObjectNamePathParam pathParam = (CatalogObjectNamePathParam) target;
+        try {
+            String decodedName = URLDecoder.decode(pathParam.getName(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            errors.rejectValue("name path parameter", "name", "name path parameter cannot be decoded in UTF-8");
+        }
     }
 }

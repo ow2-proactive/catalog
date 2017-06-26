@@ -23,29 +23,42 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.assembler;
+package org.ow2.proactive.catalog.dto;
 
-import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import java.util.List;
+
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.rest.controller.CatalogObjectController;
-import org.springframework.hateoas.mvc.ResourceAssemblerSupport;
-import org.springframework.stereotype.Component;
+
+import lombok.EqualsAndHashCode;
 
 
 /**
  * @author ActiveEon Team
+ * @since 19/06/2017
  */
-@Component
-public class CatalogObjectRevisionResourceAssembler
-        extends ResourceAssemblerSupport<CatalogObjectRevisionEntity, CatalogObjectMetadata> {
+@EqualsAndHashCode(callSuper = true)
+public class CatalogRawObject extends CatalogObjectMetadata {
 
-    public CatalogObjectRevisionResourceAssembler() {
-        super(CatalogObjectController.class, CatalogObjectMetadata.class);
+    private final byte[] rawObject;
+
+    public CatalogRawObject(CatalogObjectEntity catalogObject) {
+        super(catalogObject);
+        this.rawObject = catalogObject.getRevisions().first().getRawObject();
     }
 
-    @Override
-    public CatalogObjectMetadata toResource(CatalogObjectRevisionEntity catalogObject) {
-        return new CatalogObjectMetadata(catalogObject);
+    public CatalogRawObject(CatalogObjectRevisionEntity catalogObject) {
+        super(catalogObject);
+        this.rawObject = catalogObject.getRawObject();
     }
 
+    public CatalogRawObject(Long bucketId, String name, String kind, String contentType, long createdAt,
+            String commitMessage, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
+        super(bucketId, name, kind, contentType, createdAt, commitMessage, keyValueMetadataList);
+        this.rawObject = rawObject;
+    }
+
+    public byte[] getRawObject() {
+        return rawObject;
+    }
 }

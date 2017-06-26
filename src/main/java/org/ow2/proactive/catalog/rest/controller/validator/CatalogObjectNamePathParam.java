@@ -23,22 +23,22 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.service;
+package org.ow2.proactive.catalog.rest.controller.validator;
 
-import org.ow2.proactive.catalog.graphql.handler.Handler;
-import org.ow2.proactive.catalog.graphql.schema.type.filter.BucketWhereArgs;
-import org.ow2.proactive.catalog.rest.entity.BucketEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.hibernate.validator.constraints.NotEmpty;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 
 /**
  * @author ActiveEon Team
- * @since 13/06/2017
+ * @since 19/06/2017
  */
-@Service
-public class BucketGraphqlService {
+@AllArgsConstructor
+@Data
+public class CatalogObjectNamePathParam {
 
-    @Autowired
-    private Handler<BucketWhereArgs, BucketEntity> bucketHandlers;
+    @NotEmpty
+    private String name;
 }

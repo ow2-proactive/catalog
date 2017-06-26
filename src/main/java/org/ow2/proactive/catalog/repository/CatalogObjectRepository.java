@@ -26,28 +26,19 @@
 package org.ow2.proactive.catalog.repository;
 
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
-import org.springframework.data.repository.PagingAndSortingRepository;
 
 
 /**
  * @author ActiveEon Team
  */
-public interface CatalogObjectRepository extends PagingAndSortingRepository<CatalogObjectEntity, Long>,
+public interface CatalogObjectRepository
+        extends JpaRepository<CatalogObjectEntity, CatalogObjectEntity.CatalogObjectEntityKey>,
         JpaSpecificationExecutor<CatalogObjectEntity>, QueryDslPredicateExecutor<CatalogObjectEntity> {
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId")
-    Page<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId, Pageable pageable);
-
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId AND cor.kind = ?3")
-    Page<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId, Pageable pageable, String kind);
-
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND cor.catalogObject.id = ?2 AND co.lastCommitId = cor.commitId")
-    CatalogObjectRevisionEntity getMostRecentCatalogObjectRevision(Long bucketId, Long objectId);
-
+    @EntityGraph("catalogObject.withRevisions")
+    CatalogObjectEntity readCatalogObjectRevisionsById(CatalogObjectEntity.CatalogObjectEntityKey key);
 }

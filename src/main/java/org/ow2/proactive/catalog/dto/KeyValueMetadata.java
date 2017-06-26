@@ -27,17 +27,20 @@ package org.ow2.proactive.catalog.dto;
 
 import java.util.Objects;
 
+import lombok.Data;
+
 
 /**
  * @author ActiveEon Team
  */
+@Data
 public class KeyValueMetadata {
 
-    public final String key;
+    private final String key;
 
-    public final String value;
+    private final String value;
 
-    public final String label;
+    private final String label;
 
     public KeyValueMetadata(String key, String value, String label) {
         this.key = key;

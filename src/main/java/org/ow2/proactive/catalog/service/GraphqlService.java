@@ -23,21 +23,16 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.entity.metamodel;
+package org.ow2.proactive.catalog.service;
 
-import com.google.common.base.CaseFormat;
+import org.springframework.stereotype.Service;
+
 
 /**
  * @author ActiveEon Team
- * @since 12/06/2017
+ * @since 13/06/2017
  */
-public enum BucketEntityMetaModelEnum {
+@Service
+public class GraphqlService {
 
-    ID,
-    NAME,
-    OWNER;
-
-    public String getName() {
-        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
-    }
 }
