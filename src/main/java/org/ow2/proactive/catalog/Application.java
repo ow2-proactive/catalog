@@ -26,6 +26,8 @@
 package org.ow2.proactive.catalog;
 
 import java.io.File;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.sql.DataSource;
 
@@ -37,6 +39,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.domain.Pageable;
@@ -51,6 +54,9 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer;
 import com.google.common.base.Predicate;
 
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -169,6 +175,16 @@ public class Application extends WebMvcConfigurerAdapter {
 
     private Predicate<String> allowedPaths() {
         return PathSelectors.regex("/buckets.*");
+    }
+
+    @Bean
+    @Primary
+    public ObjectMapper objectMapper() {
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        javaTimeModule.addSerializer(ZonedDateTime.class,
+                                     new ZonedDateTimeSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")));
+        return new ObjectMapper().registerModule(javaTimeModule);
+
     }
 
 }
