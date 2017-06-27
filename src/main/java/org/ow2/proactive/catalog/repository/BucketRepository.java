@@ -27,9 +27,15 @@ package org.ow2.proactive.catalog.repository;
 
 import java.util.List;
 
+import javax.persistence.LockModeType;
+import javax.persistence.QueryHint;
+
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.repository.query.Param;
 
@@ -41,5 +47,10 @@ public interface BucketRepository extends JpaRepository<BucketEntity, Long>, Jpa
         QueryDslPredicateExecutor<BucketEntity> {
 
     List<BucketEntity> findByOwner(@Param("owner") String owner);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
+    @Query(value = "select bk from BucketEntity bk where size(bk.catalogObjects) = 0")
+    List<BucketEntity> findEmptyBucketsForUpdate();
 
 }

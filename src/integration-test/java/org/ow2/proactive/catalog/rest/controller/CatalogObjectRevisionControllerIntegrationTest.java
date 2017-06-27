@@ -31,6 +31,7 @@ import static org.hamcrest.Matchers.is;
 
 import java.io.IOException;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
@@ -50,6 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.google.common.io.ByteStreams;
 import com.jayway.restassured.response.Response;
+import com.jayway.restassured.response.ValidatableResponse;
 
 
 /**
@@ -165,43 +167,54 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     @Test
     public void testGetWorkflowRevisionShouldReturnSavedWorkflowRevision() {
-        given().pathParam("bucketId", secondCatalogObjectRevision.getBucketId())
-               .pathParam("name", "WF_1_Rev_1")
-               .pathParam("commitTime",
-                          secondCatalogObjectRevision.getCommitDateTime()
-                                                     .atZone(ZoneId.systemDefault())
-                                                     .toInstant()
-                                                     .toEpochMilli())
-               .when()
-               .get(CATALOG_OBJECT_REVISION_RESOURCE)
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_OK)
-               .body("bucket_id", is(bucket.getId().intValue()))
-               .body("name", is(secondCatalogObjectRevision.getName()))
-               .body("commit_time", is(secondCatalogObjectRevision.getCommitDateTime().toString()))
-               .body("object_key_values", hasSize(6))
-               //check generic_information label
-               .body("object_key_values[0].label", is("generic_information"))
-               .body("object_key_values[0].key", is("genericInfo1"))
-               .body("object_key_values[0].value", is("genericInfo1ValueUpdated"))
-               .body("object_key_values[1].label", is("generic_information"))
-               .body("object_key_values[1].key", is("genericInfo2"))
-               .body("object_key_values[1].value", is("genericInfo2ValueUpdated"))
-               //check job info
-               .body("object_key_values[2].label", is("job_information"))
-               .body("object_key_values[2].key", is("name"))
-               .body("object_key_values[2].value", is("Valid Workflow Updated"))
-               .body("object_key_values[3].label", is("job_information"))
-               .body("object_key_values[3].key", is("project_name"))
-               .body("object_key_values[3].value", is("Project Name Updated"))
-               //check variables label
-               .body("object_key_values[4].label", is("variable"))
-               .body("object_key_values[4].key", is("var1"))
-               .body("object_key_values[4].value", is("var1ValueUpdated"))
-               .body("object_key_values[5].label", is("variable"))
-               .body("object_key_values[5].key", is("var2"))
-               .body("object_key_values[5].value", is("var2ValueUpdated"));
+        ValidatableResponse validatableResponse = given().pathParam("bucketId",
+                                                                    secondCatalogObjectRevision.getBucketId())
+                                                         .pathParam("name", "WF_1_Rev_1")
+                                                         .pathParam("commitTime",
+                                                                    secondCatalogObjectRevision.getCommitDateTime()
+                                                                                               .atZone(ZoneId.systemDefault())
+                                                                                               .toInstant()
+                                                                                               .toEpochMilli())
+                                                         .when()
+                                                         .get(CATALOG_OBJECT_REVISION_RESOURCE)
+                                                         .then()
+                                                         .assertThat();
+
+        String responseString = validatableResponse.extract().asString();
+
+        System.out.println(responseString);
+
+        System.out.println(secondCatalogObjectRevision.getCommitDateTime()
+                                                      .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+
+        validatableResponse.statusCode(HttpStatus.SC_OK)
+                           .body("bucket_id", is(bucket.getId().intValue()))
+                           .body("name", is(secondCatalogObjectRevision.getName()))
+                           .body("commit_time",
+                                 is(secondCatalogObjectRevision.getCommitDateTime()
+                                                               .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+                           .body("object_key_values", hasSize(6))
+                           //check generic_information label
+                           .body("object_key_values[0].label", is("generic_information"))
+                           .body("object_key_values[0].key", is("genericInfo1"))
+                           .body("object_key_values[0].value", is("genericInfo1ValueUpdated"))
+                           .body("object_key_values[1].label", is("generic_information"))
+                           .body("object_key_values[1].key", is("genericInfo2"))
+                           .body("object_key_values[1].value", is("genericInfo2ValueUpdated"))
+                           //check job info
+                           .body("object_key_values[2].label", is("job_information"))
+                           .body("object_key_values[2].key", is("name"))
+                           .body("object_key_values[2].value", is("Valid Workflow Updated"))
+                           .body("object_key_values[3].label", is("job_information"))
+                           .body("object_key_values[3].key", is("project_name"))
+                           .body("object_key_values[3].value", is("Project Name Updated"))
+                           //check variables label
+                           .body("object_key_values[4].label", is("variable"))
+                           .body("object_key_values[4].key", is("var1"))
+                           .body("object_key_values[4].value", is("var1ValueUpdated"))
+                           .body("object_key_values[5].label", is("variable"))
+                           .body("object_key_values[5].key", is("var2"))
+                           .body("object_key_values[5].value", is("var2ValueUpdated"));
     }
 
     @Test

@@ -188,8 +188,9 @@ public class BucketService {
         return result;
     }
 
-    public void cleanAll() {
-        bucketRepository.deleteAll();
+    public void cleanAllEmptyBuckets() {
+        List<BucketEntity> emptyBucketsForUpdate = bucketRepository.findEmptyBucketsForUpdate();
+        bucketRepository.deleteInBatch(emptyBucketsForUpdate);
     }
 
 }
