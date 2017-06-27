@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.http.HttpStatus;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
@@ -66,6 +67,11 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Autowired
     private BucketRepository bucketRepository;
+
+    @Before
+    public void setup() {
+        given().delete(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_OK);
+    }
 
     @Test
     public void testCreateBucketShouldReturnSavedBucket() {
@@ -111,7 +117,6 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testListBucketsShouldReturnSavedBuckets() {
-        given().delete(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_OK);
 
         List<BucketEntity> buckets = IntStream.rangeClosed(1, 25)
                                               .mapToObj(i -> new BucketEntity("bucket" + i,
