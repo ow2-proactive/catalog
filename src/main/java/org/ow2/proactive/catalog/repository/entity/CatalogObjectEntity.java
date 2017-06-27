@@ -25,103 +25,142 @@
  */
 package org.ow2.proactive.catalog.repository.entity;
 
-import java.util.List;
+import java.io.Serializable;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.FetchType;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.MapsId;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
-import com.google.common.collect.Lists;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
  */
+@AllArgsConstructor
+@Builder
+@Data
 @Entity
-@Table(name = "CATALOG_OBJECT", indexes = { @Index(columnList = "LAST_COMMIT_ID") })
-public class CatalogObjectEntity {
+@NamedEntityGraph(name = "catalogObject.withRevisions", attributeNodes = { @NamedAttributeNode("revisions") })
+@Table(name = "CATALOG_OBJECT", indexes = { @Index(columnList = "LAST_COMMIT_TIME") })
+public class CatalogObjectEntity implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "ID")
-    protected Long id;
+    @AllArgsConstructor
+    @Data
+    @Embeddable
+    @NoArgsConstructor
+    public static class CatalogObjectEntityKey implements Serializable {
+
+        @Column(name = "BUCKET_ID")
+        private Long bucketId;
+
+        @Column(name = "NAME", nullable = false)
+        private String name;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            if (!super.equals(o))
+                return false;
+
+            CatalogObjectEntityKey that = (CatalogObjectEntityKey) o;
+
+            if (bucketId != null ? !bucketId.equals(that.bucketId) : that.bucketId != null)
+                return false;
+            return name.equals(that.name);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + (bucketId != null ? bucketId.hashCode() : 0);
+            result = 31 * result + name.hashCode();
+            return result;
+        }
+    }
+
+    @EmbeddedId
+    private CatalogObjectEntityKey id;
 
     @ManyToOne
+    @MapsId("bucketId")
     @JoinColumn(name = "BUCKET_ID", nullable = false)
     private BucketEntity bucket;
 
-    @OneToMany(mappedBy = "catalogObject", orphanRemoval = true)
-    @OrderBy("commitDate DESC")
-    private SortedSet<CatalogObjectRevisionEntity> revisions;
+    @Column(name = "CONTENT_TYPE")
+    private String contentType;
 
-    @Column(name = "LAST_COMMIT_ID")
-    private Long lastCommitId = 0L;
+    @Column(name = "KIND", nullable = false)
+    private String kind;
+
+    @OneToMany(mappedBy = "catalogObject", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST,
+                                                                               CascadeType.REMOVE }, orphanRemoval = true)
+    @OrderBy("commitTime DESC")
+    @Fetch(FetchMode.SELECT)
+    @BatchSize(size = 10)
+    @Builder.Default
+    private SortedSet<CatalogObjectRevisionEntity> revisions = new TreeSet<>();
+
+    @Column(name = "LAST_COMMIT_TIME")
+    private long lastCommitTime;
 
     public CatalogObjectEntity() {
-        this.revisions = new TreeSet<CatalogObjectRevisionEntity>();
-    }
-
-    public CatalogObjectEntity(BucketEntity bucket) {
-        this(bucket, Lists.newArrayList());
-    }
-
-    public CatalogObjectEntity(BucketEntity bucket, CatalogObjectRevisionEntity... revisions) {
-        this(bucket, Lists.newArrayList(revisions));
-    }
-
-    public CatalogObjectEntity(BucketEntity bucket, List<CatalogObjectRevisionEntity> revisions) {
-        this.bucket = bucket;
-        this.revisions = new TreeSet<CatalogObjectRevisionEntity>();
-        revisions.forEach(this::addRevision);
+        revisions = new TreeSet<>();
     }
 
     public void addRevision(CatalogObjectRevisionEntity catalogObjectRevision) {
         this.revisions.add(catalogObjectRevision);
-        this.lastCommitId = catalogObjectRevision.getCommitId();
-        catalogObjectRevision.setCatalogObject(this);
+        this.lastCommitTime = catalogObjectRevision.getCommitTime();
     }
 
-    public Long getId() {
-        return id;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        if (!super.equals(o))
+            return false;
+
+        CatalogObjectEntity that = (CatalogObjectEntity) o;
+
+        return id.equals(that.id);
     }
 
-    public BucketEntity getBucket() {
-        return bucket;
-    }
-
-    public Long getLastCommitId() {
-        return lastCommitId;
-    }
-
-    public SortedSet<CatalogObjectRevisionEntity> getRevisions() {
-        return revisions;
-    }
-
-    public void setBucket(BucketEntity bucket) {
-        this.bucket = bucket;
-    }
-
-    public void setLastCommitId(Long lastCommitId) {
-        this.lastCommitId = lastCommitId;
-    }
-
-    public void setRevisions(SortedSet<CatalogObjectRevisionEntity> revisions) {
-        this.revisions = revisions;
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + id.hashCode();
+        return result;
     }
 
     @Override
     public String toString() {
-        return "CatalogObjectEntity{" + "id=" + id + ", bucket=" + bucket + ", lastCommitId=" + lastCommitId + '}';
+        return "CatalogObjectEntity{" + "id=" + id + ", bucket=" + bucket + ", contentType='" + contentType + '\'' +
+               ", kind='" + kind + '\'' + ", lastCommitTime=" + lastCommitTime + '}';
     }
-
 }

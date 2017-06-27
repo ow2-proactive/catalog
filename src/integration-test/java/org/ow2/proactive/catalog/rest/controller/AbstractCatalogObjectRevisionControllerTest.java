@@ -26,9 +26,9 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import org.ow2.proactive.catalog.repository.BucketRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.service.BucketService;
-import org.ow2.proactive.catalog.service.CatalogObjectRevisionService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -43,19 +43,16 @@ import com.google.gson.JsonParser;
  */
 public class AbstractCatalogObjectRevisionControllerTest extends AbstractRestAssuredTest {
 
-    protected static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketId}/resources/{objectId}";
+    protected static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketId}/resources/{name}";
 
     protected static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketId}/resources/";
 
-    protected static final String CATALOG_OBJECT_REVISIONS_RESOURCE = "/buckets/{bucketId}/resources/{objectId}/revisions";
+    protected static final String CATALOG_OBJECT_REVISIONS_RESOURCE = "/buckets/{bucketId}/resources/{name}/revisions";
 
-    protected static final String CATALOG_OBJECT_REVISION_RESOURCE = "/buckets/{bucketId}/resources/{objectId}/revisions/{commitId}";
+    protected static final String CATALOG_OBJECT_REVISION_RESOURCE = "/buckets/{bucketId}/resources/{name}/revisions/{commitTime}";
 
     @Autowired
     protected BucketRepository bucketRepository;
-
-    @Autowired
-    protected CatalogObjectRevisionRepository catalogObjectRevisionRepository;
 
     @Autowired
     protected BucketService bucketService;
@@ -64,7 +61,10 @@ public class AbstractCatalogObjectRevisionControllerTest extends AbstractRestAss
     protected CatalogObjectService catalogObjectService;
 
     @Autowired
-    protected CatalogObjectRevisionService catalogObjectRevisionService;
+    protected CatalogObjectRepository catalogObjectRepository;
+
+    @Autowired
+    protected CatalogObjectRevisionRepository catalogObjectRevisionRepository;
 
     protected String prettify(String json) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();

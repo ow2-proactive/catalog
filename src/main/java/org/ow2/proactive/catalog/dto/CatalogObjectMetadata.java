@@ -25,66 +25,87 @@
  */
 package org.ow2.proactive.catalog.dto;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.util.KeyValueEntityToDtoTransformer;
+import org.springframework.hateoas.ResourceSupport;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 
 /**
  * @author ActiveEon Team
  */
-public final class CatalogObjectMetadata extends NamedMetadata {
+@Data
+@EqualsAndHashCode(callSuper = false)
+public class CatalogObjectMetadata extends ResourceSupport {
 
     @JsonProperty("kind")
-    public final String kind;
+    protected final String kind;
 
     @JsonProperty("bucket_id")
-    public final Long bucketId;
+    protected final Long bucketId;
+
+    @JsonProperty
+    protected final String name;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @JsonProperty("commit_date")
-    public final LocalDateTime commitDate;
+    @JsonProperty("commit_time")
+    protected final LocalDateTime commitDateTime;
 
     @JsonProperty("content_type")
-    public final String contentType;
-
-    @JsonProperty("commit_id")
-    public final Long commitId;
+    protected final String contentType;
 
     @JsonProperty("commit_message")
-    public final String commitMessage;
+    protected final String commitMessage;
 
     @JsonProperty("object_key_values")
-    public final List<KeyValueMetadata> keyValueMetadataList;
+    protected final List<KeyValueMetadata> keyValueMetadataList;
 
-    public CatalogObjectMetadata(CatalogObjectRevisionEntity catalogObjectRevision) {
-        this(catalogObjectRevision.getKind(),
-             catalogObjectRevision.getBucketId(),
-             catalogObjectRevision.getCatalogObject().getId(),
-             catalogObjectRevision.getCommitDate(),
-             catalogObjectRevision.getName(),
-             catalogObjectRevision.getContentType(),
-             catalogObjectRevision.getCommitId(),
-             catalogObjectRevision.getCommitMessage(),
-             KeyValueEntityToDtoTransformer.to(catalogObjectRevision.getKeyValueMetadataList()));
+    public CatalogObjectMetadata(CatalogObjectEntity catalogObject) {
+        this(catalogObject.getId().getBucketId(),
+             catalogObject.getId().getName(),
+             catalogObject.getKind(),
+             catalogObject.getContentType(),
+             catalogObject.getRevisions().first().getCommitTime(),
+             catalogObject.getRevisions().first().getCommitMessage(),
+             KeyValueEntityToDtoTransformer.to(catalogObject.getRevisions().first().getKeyValueMetadataList()));
     }
 
-    public CatalogObjectMetadata(String kind, Long bucketId, Long id, LocalDateTime createdAt, String name,
-            String contentType, Long commitId, String commitMessage, List<KeyValueMetadata> keyValueMetadataList) {
+    public CatalogObjectMetadata(CatalogObjectRevisionEntity catalogObject) {
+        this(catalogObject.getCatalogObject().getId().getBucketId(),
+             catalogObject.getCatalogObject().getId().getName(),
+             catalogObject.getCatalogObject().getKind(),
+             catalogObject.getCatalogObject().getContentType(),
+             catalogObject.getCommitTime(),
+             catalogObject.getCommitMessage(),
+             KeyValueEntityToDtoTransformer.to(catalogObject.getKeyValueMetadataList()));
+    }
 
-        super(id, name);
+    public CatalogObjectMetadata(Long bucketId, String name, String kind, String contentType, long createdAt,
+            String commitMessage, List<KeyValueMetadata> keyValueMetadataList) {
+        this.bucketId = bucketId;
+        this.name = name;
         this.kind = kind;
         this.contentType = contentType;
-        this.commitId = commitId;
-        this.commitDate = createdAt;
-        this.bucketId = bucketId;
+        this.commitDateTime = Instant.ofEpochMilli(createdAt).atZone(ZoneId.systemDefault()).toLocalDateTime();
         this.commitMessage = commitMessage;
-        this.keyValueMetadataList = keyValueMetadataList;
+        if (keyValueMetadataList == null) {
+            this.keyValueMetadataList = new ArrayList<>();
+        } else {
+            this.keyValueMetadataList = keyValueMetadataList;
+        }
+
     }
 
 }

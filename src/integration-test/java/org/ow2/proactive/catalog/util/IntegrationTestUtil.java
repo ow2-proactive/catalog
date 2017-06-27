@@ -29,20 +29,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import org.slf4j.LoggerFactory;
-
 import com.google.common.io.ByteStreams;
+
+import lombok.extern.log4j.Log4j2;
 
 
 /**
  * @author ActiveEon Team
  */
+@Log4j2
 public class IntegrationTestUtil {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(IntegrationTestUtil.class);
-
     public static byte[] getWorkflowAsByteArray(String filename) throws IOException {
-        logger.debug("The file path of loading file: " + getWorkflowFile(filename).getPath());
+        log.debug("The file path of loading file: " + getWorkflowFile(filename).getPath());
         return ByteStreams.toByteArray(new FileInputStream(getWorkflowFile(filename)));
     }
 

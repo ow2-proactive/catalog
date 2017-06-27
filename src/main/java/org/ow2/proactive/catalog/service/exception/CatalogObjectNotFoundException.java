@@ -34,4 +34,7 @@ public class CatalogObjectNotFoundException extends ResourceNotFoundException {
         super("No such catalog object");
     }
 
+    public CatalogObjectNotFoundException(String message) {
+        super(message);
+    }
 }

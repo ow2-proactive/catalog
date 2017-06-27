@@ -25,100 +25,80 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
+import java.util.Collections;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.service.CatalogObjectRevisionService;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.ow2.proactive.catalog.dto.CatalogRawObject;
+import org.ow2.proactive.catalog.rest.controller.validator.CatalogObjectNamePathParam;
+import org.ow2.proactive.catalog.service.CatalogObjectService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 
 /**
  * @author ActiveEon Team
  */
+@RunWith(MockitoJUnitRunner.class)
 public class CatalogObjectRevisionControllerTest {
 
     @InjectMocks
     private CatalogObjectRevisionController catalogObjectRevisionController;
 
     @Mock
-    private CatalogObjectRevisionService catalogObjectRevisionService;
+    private CatalogObjectService catalogObjectService;
 
     private static final Long BUCKET_ID = 1L;
 
-    private static final Long CO_ID = 2L;
-
-    private static final Long REV_ID = 3L;
-
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-    }
+    private static final long COMMIT_TIME = System.currentTimeMillis();
 
     @Test
     public void testCreate() throws Exception {
         MultipartFile mockedFile = mock(MultipartFile.class);
         when(mockedFile.getBytes()).thenReturn(null);
-        catalogObjectRevisionController.create(BUCKET_ID,
-                                               CO_ID,
-                                               "workflow",
-                                               "name",
-                                               "Commit message",
-                                               "application/xml",
-                                               mockedFile);
-        verify(catalogObjectRevisionService, times(1)).createCatalogObjectRevision(BUCKET_ID,
-                                                                                   "workflow",
-                                                                                   "name",
-                                                                                   "Commit message",
-                                                                                   Optional.of(CO_ID),
-                                                                                   "application/xml",
-                                                                                   null);
-
-        catalogObjectRevisionController.create(BUCKET_ID,
-                                               CO_ID,
-                                               "image",
-                                               "name",
-                                               "Commit message",
-                                               "image/gif",
-                                               mockedFile);
-        verify(catalogObjectRevisionService, times(1)).createCatalogObjectRevision(BUCKET_ID,
-                                                                                   "image",
-                                                                                   "name",
-                                                                                   "Commit message",
-                                                                                   Optional.of(CO_ID),
-                                                                                   "image/gif",
-                                                                                   null);
+        catalogObjectRevisionController.create(BUCKET_ID, "name", "Commit message", mockedFile);
+        verify(catalogObjectService, times(1)).createCatalogObjectRevision(BUCKET_ID, "name", "Commit message", null);
     }
 
     @Test
     public void testList() throws Exception {
-        catalogObjectRevisionController.list(BUCKET_ID, CO_ID);
-        verify(catalogObjectRevisionService, times(1)).listCatalogObjectRevisions(BUCKET_ID, CO_ID);
+        catalogObjectRevisionController.list(BUCKET_ID, new CatalogObjectNamePathParam("name"));
+        verify(catalogObjectService, times(1)).listCatalogObjectRevisions(BUCKET_ID, "name");
     }
 
     @Test
     public void testGet() throws Exception {
-        catalogObjectRevisionController.get(BUCKET_ID, CO_ID, REV_ID);
-        verify(catalogObjectRevisionService, times(1)).getCatalogObject(BUCKET_ID, CO_ID, Optional.of(REV_ID));
+        catalogObjectRevisionController.get(BUCKET_ID, new CatalogObjectNamePathParam("name"), COMMIT_TIME);
+        verify(catalogObjectService, times(1)).getCatalogObjectRevision(BUCKET_ID, "name", COMMIT_TIME);
     }
 
     @Test
     public void testGetRevisionRaw() throws Exception {
-        catalogObjectRevisionController.getRaw(BUCKET_ID, CO_ID, REV_ID);
-        verify(catalogObjectRevisionService, times(1)).getCatalogObjectRaw(BUCKET_ID, CO_ID, Optional.of(REV_ID));
-    }
+        CatalogRawObject rawObject = new CatalogRawObject(1L,
+                                                          "name",
+                                                          "object",
+                                                          "application/xml",
+                                                          1400343L,
+                                                          "commit message",
+                                                          Collections.emptyList(),
+                                                          new byte[0]);
 
-    @Test
-    public void testDelete() throws Exception {
-        catalogObjectRevisionController.delete(BUCKET_ID, CO_ID, REV_ID);
-        verify(catalogObjectRevisionService, times(1)).delete(BUCKET_ID, CO_ID, Optional.of(REV_ID));
+        when(catalogObjectService.getCatalogObjectRevisionRaw(anyLong(), anyString(), anyLong())).thenReturn(rawObject);
+        ResponseEntity responseEntity = catalogObjectRevisionController.getRaw(BUCKET_ID,
+                                                                               new CatalogObjectNamePathParam("name"),
+                                                                               System.currentTimeMillis());
+        verify(catalogObjectService, times(1)).getCatalogObjectRevisionRaw(anyLong(), anyString(), anyLong());
+        assertThat(responseEntity).isNotNull();
     }
 }

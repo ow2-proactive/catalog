@@ -25,9 +25,16 @@
  */
 package org.ow2.proactive.catalog.graphql.schema.type;
 
+import lombok.Data;
+import lombok.ToString;
+
+
 /**
  * @author ActiveEon Team
  * @since 08/06/2017
  */
+@Data
+@ToString
 public class Bucket {
+
 }

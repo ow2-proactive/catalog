@@ -28,12 +28,12 @@ package org.ow2.proactive.catalog.repository.entity;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 
 /**
@@ -54,8 +54,9 @@ public class BucketEntityTest {
 
     @Test
     public void testAddWorkflow() throws Exception {
-        CatalogObjectEntity catalogObject = new CatalogObjectEntity(bucket);
-
+        CatalogObjectEntity catalogObject = new CatalogObjectEntity();
+        catalogObject.setBucket(bucket);
+        catalogObject.setId(new CatalogObjectEntity.CatalogObjectEntityKey(null, "name"));
         bucket.addCatalogObject(catalogObject);
 
         assertThat(bucket.getCatalogObjects()).hasSize(1);
@@ -71,7 +72,7 @@ public class BucketEntityTest {
 
     @Test
     public void testSetWorkflows() throws Exception {
-        List<CatalogObjectEntity> catalogObjectList = ImmutableList.of();
+        Set<CatalogObjectEntity> catalogObjectList = ImmutableSet.of();
         bucket.setCatalogObjects(catalogObjectList);
         assertEquals(catalogObjectList, bucket.getCatalogObjects());
     }
@@ -90,7 +91,7 @@ public class BucketEntityTest {
 
     @Test
     public void testGetWorkflows() throws Exception {
-        List<CatalogObjectEntity> catalogObjectList = ImmutableList.of();
+        Set<CatalogObjectEntity> catalogObjectList = ImmutableSet.of();
         bucket.setCatalogObjects(catalogObjectList);
         assertEquals(catalogObjectList, bucket.getCatalogObjects());
     }

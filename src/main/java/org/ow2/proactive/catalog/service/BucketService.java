@@ -30,14 +30,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.ow2.proactive.catalog.rest.assembler.BucketResourceAssembler;
 import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DefaultCatalogObjectsFolderNotFoundException;
@@ -48,28 +50,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.io.ByteStreams;
 
+import lombok.extern.log4j.Log4j2;
+
 
 /**
  * @author ActiveEon Team
  */
+@Log4j2
 @Service
 @Transactional
 public class BucketService {
 
     @Autowired
     private BucketRepository bucketRepository;
-
-    @Autowired
-    private BucketResourceAssembler bucketAssembler;
 
     @Autowired
     private CatalogObjectService catalogObjectService;
@@ -134,10 +132,11 @@ public class BucketService {
                         fisobject = new FileInputStream(fobject);
                         byte[] bObject = ByteStreams.toByteArray(fisobject);
                         catalogObjectService.createCatalogObject(bucketId,
-                                                                 objectData.getKind(),
                                                                  objectData.getName(),
+                                                                 objectData.getKind(),
                                                                  objectData.getCommitMessage(),
                                                                  objectData.getContentType(),
+                                                                 Collections.emptyList(),
                                                                  bObject);
                     } finally {
                         if (fisobject != null) {
@@ -174,16 +173,23 @@ public class BucketService {
         return new BucketMetadata(bucket);
     }
 
-    public PagedResources listBuckets(Optional<String> ownerName, Pageable pageable,
-            PagedResourcesAssembler assembler) {
-        Page<BucketEntity> page;
+    public List<BucketMetadata> listBuckets(Optional<String> ownerName) {
+        List<BucketEntity> entities;
+
         if (ownerName.isPresent()) {
-            page = bucketRepository.findByOwner(ownerName.get(), pageable);
+            entities = bucketRepository.findByOwner(ownerName.get());
         } else {
-            page = bucketRepository.findAll(pageable);
+            entities = bucketRepository.findAll();
         }
 
-        return assembler.toResource(page, bucketAssembler);
+        log.info("Buckets size {}", entities.size());
+        List<BucketMetadata> result = entities.stream().map(BucketMetadata::new).collect(Collectors.toList());
+
+        return result;
+    }
+
+    public void cleanAll() {
+        bucketRepository.deleteAll();
     }
 
 }

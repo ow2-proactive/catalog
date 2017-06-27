@@ -25,10 +25,14 @@
  */
 package org.ow2.proactive.catalog.repository.entity;
 
-import java.util.List;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -36,15 +40,24 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
-import com.google.common.collect.Lists;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.ToString;
 
 
 /**
  * @author ActiveEon Team
  */
+@AllArgsConstructor
+@Data
 @Entity
 @Table(name = "BUCKET", uniqueConstraints = @UniqueConstraint(columnNames = { "NAME", "OWNER" }))
-public class BucketEntity {
+@ToString(exclude = "catalogObjects")
+public class BucketEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -57,20 +70,20 @@ public class BucketEntity {
     @Column(name = "OWNER", nullable = false)
     protected String owner;
 
-    @OneToMany(mappedBy = "bucket")
-    private List<CatalogObjectEntity> catalogObjects;
+    @OneToMany(mappedBy = "bucket", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST,
+                                                                        CascadeType.REMOVE }, orphanRemoval = true)
+    @Fetch(FetchMode.SELECT)
+    @BatchSize(size = 10)
+    private Set<CatalogObjectEntity> catalogObjects = new HashSet<>();
 
     public BucketEntity() {
+        catalogObjects = new HashSet<>();
     }
 
     public BucketEntity(String name, String owner) {
-        this(name, owner, new CatalogObjectEntity[0]);
-    }
-
-    public BucketEntity(String name, String owner, CatalogObjectEntity... catalogObjects) {
         this.name = name;
         this.owner = owner;
-        this.catalogObjects = Lists.newArrayList(catalogObjects);
+        this.catalogObjects = new HashSet<>();
     }
 
     public void addCatalogObject(CatalogObjectEntity catalogObject) {
@@ -78,32 +91,24 @@ public class BucketEntity {
         catalogObject.setBucket(this);
     }
 
-    public Long getId() {
-        return id;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        if (!super.equals(o))
+            return false;
+
+        BucketEntity that = (BucketEntity) o;
+
+        return id != null ? id.equals(that.id) : that.id == null;
     }
 
-    public String getName() {
-        return name;
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (id != null ? id.hashCode() : 0);
+        return result;
     }
-
-    public List<CatalogObjectEntity> getCatalogObjects() {
-        return catalogObjects;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setCatalogObjects(List<CatalogObjectEntity> catalogObjects) {
-        this.catalogObjects = catalogObjects;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
 }

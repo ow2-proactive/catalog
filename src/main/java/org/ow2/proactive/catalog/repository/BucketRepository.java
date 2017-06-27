@@ -25,20 +25,21 @@
  */
 package org.ow2.proactive.catalog.repository;
 
+import java.util.List;
+
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 
 
 /**
  * @author ActiveEon Team
  */
-public interface BucketRepository
-        extends PagingAndSortingRepository<BucketEntity, Long>, QueryDslPredicateExecutor<BucketEntity> {
+public interface BucketRepository extends JpaRepository<BucketEntity, Long>, JpaSpecificationExecutor<BucketEntity>,
+        QueryDslPredicateExecutor<BucketEntity> {
 
-    Page<BucketEntity> findByOwner(@Param("owner") String owner, Pageable pageable);
+    List<BucketEntity> findByOwner(@Param("owner") String owner);
 
 }

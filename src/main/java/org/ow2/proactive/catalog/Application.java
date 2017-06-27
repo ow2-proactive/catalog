@@ -26,10 +26,11 @@
 package org.ow2.proactive.catalog;
 
 import java.io.File;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.sql.DataSource;
 
-import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -38,6 +39,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.domain.Pageable;
@@ -46,11 +48,15 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer;
 import com.google.common.base.Predicate;
 
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -64,10 +70,11 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 /**
  * @author ActiveEon Team
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = { "org.ow2.proactive.catalog" })
 @EnableAutoConfiguration(exclude = { MultipartAutoConfiguration.class })
 @EnableSwagger2
-@EntityScan(basePackageClasses = BucketEntity.class)
+@EnableTransactionManagement
+@EntityScan(basePackages = "org.ow2.proactive.catalog.repository.entity")
 @PropertySource("classpath:application.properties")
 public class Application extends WebMvcConfigurerAdapter {
 
@@ -116,23 +123,6 @@ public class Application extends WebMvcConfigurerAdapter {
                                 .build();
     }
 
-    private String getDatabaseDirectory() {
-        String proactiveHome = System.getProperty("proactive.home");
-
-        if (proactiveHome == null) {
-            return System.getProperty("java.io.tmpdir") + File.separator + "proactive" + File.separator + "catalog";
-        }
-
-        return proactiveHome + File.separator + "data" + File.separator + "db" + File.separator + "catalog" +
-               File.separator + "wc";
-    }
-
-    @Bean
-    @Profile("mem")
-    public DataSource memDataSource() {
-        return createMemDataSource();
-    }
-
     @Bean
     @Profile("test")
     public DataSource testDataSource() {
@@ -144,6 +134,17 @@ public class Application extends WebMvcConfigurerAdapter {
         EmbeddedDatabase db = builder.setType(EmbeddedDatabaseType.HSQL).build();
 
         return db;
+    }
+
+    private String getDatabaseDirectory() {
+        String proactiveHome = System.getProperty("proactive.home");
+
+        if (proactiveHome == null) {
+            return System.getProperty("java.io.tmpdir") + File.separator + "proactive" + File.separator + "catalog";
+        }
+
+        return proactiveHome + File.separator + "data" + File.separator + "db" + File.separator + "catalog" +
+               File.separator + "wc";
     }
 
     @Bean
@@ -174,6 +175,16 @@ public class Application extends WebMvcConfigurerAdapter {
 
     private Predicate<String> allowedPaths() {
         return PathSelectors.regex("/buckets.*");
+    }
+
+    @Bean
+    @Primary
+    public ObjectMapper objectMapper() {
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        javaTimeModule.addSerializer(ZonedDateTime.class,
+                                     new ZonedDateTimeSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")));
+        return new ObjectMapper().registerModule(javaTimeModule);
+
     }
 
 }

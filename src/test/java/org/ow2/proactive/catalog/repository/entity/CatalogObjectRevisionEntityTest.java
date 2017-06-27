@@ -27,12 +27,8 @@ package org.ow2.proactive.catalog.repository.entity;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import java.time.LocalDateTime;
-
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import com.google.common.collect.Lists;
 
 
 /**
@@ -53,14 +49,8 @@ public class CatalogObjectRevisionEntityTest {
     private CatalogObjectRevisionEntity createCatalogObjectRevision() {
         KeyValueMetadataEntity variableMock = Mockito.mock(KeyValueMetadataEntity.class);
 
-        CatalogObjectRevisionEntity catalogObjectRevision = new CatalogObjectRevisionEntity("object",
-                                                                                            LocalDateTime.now(),
-                                                                                            "test",
-                                                                                            "commit message",
-                                                                                            1L,
-                                                                                            "application/xml",
-                                                                                            Lists.newArrayList(variableMock),
-                                                                                            new byte[0]);
+        CatalogObjectRevisionEntity catalogObjectRevision = new CatalogObjectRevisionEntity();
+        catalogObjectRevision.addKeyValue(variableMock);
 
         return catalogObjectRevision;
     }

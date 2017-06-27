@@ -25,116 +25,82 @@
  */
 package org.ow2.proactive.catalog.repository.entity;
 
-import java.time.LocalDateTime;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.ow2.proactive.catalog.util.LocalDateTimeAttributeConverter;
-import org.springframework.data.annotation.CreatedDate;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.GenericGenerator;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 
 
 /**
  * @author ActiveEon Team
  */
+@AllArgsConstructor
+@Builder
+@Data
 @Entity
-@Table(name = "CATALOG_OBJECT_REVISION", indexes = { @Index(columnList = "NAME"), @Index(columnList = "KIND") })
-public class CatalogObjectRevisionEntity implements Comparable {
+@Table(name = "CATALOG_OBJECT_REVISION", uniqueConstraints = @UniqueConstraint(columnNames = { "BUCKET", "NAME",
+                                                                                               "COMMIT_TIME" }), indexes = { @Index(name = "REVISION_INDEX", columnList = "BUCKET,NAME,COMMIT_TIME") })
+public class CatalogObjectRevisionEntity implements Comparable, Serializable {
 
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "ID", columnDefinition = "BINARY(16)")
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "COMMIT_ID")
-    private Long commitId;
+    private UUID id;
 
-    @Column(name = "KIND", nullable = false)
-    private String kind;
-
-    @Column(name = "COMMIT_MESSAGE", nullable = false)
+    @Column(name = "COMMIT_MESSAGE")
     private String commitMessage;
 
-    @CreatedDate
-    @Convert(converter = LocalDateTimeAttributeConverter.class)
-    @Column(name = "COMMIT_DATE", nullable = false)
-    private LocalDateTime commitDate;
+    @Column(name = "COMMIT_TIME", nullable = false)
+    private long commitTime;
 
-    @Column(name = "NAME", nullable = false)
-    private String name;
-
-    @Column(name = "BUCKET_ID", nullable = false)
-    private Long bucketId;
-
-    @ManyToOne
-    @JoinColumn(name = "CATALOG_OBJECT_ID")
+    @ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST })
+    @JoinColumns({ @JoinColumn(name = "BUCKET", referencedColumnName = "BUCKET_ID"),
+                   @JoinColumn(name = "NAME", referencedColumnName = "NAME") })
     private CatalogObjectEntity catalogObject;
 
-    @Column(name = "CONTENT_TYPE")
-    private String contentType;
-
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(nullable = true)
-    private List<KeyValueMetadataEntity> keyValueMetadataList;
+    @OneToMany(mappedBy = "catalogObjectRevision", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SELECT)
+    @BatchSize(size = 10)
+    @Builder.Default
+    private List<KeyValueMetadataEntity> keyValueMetadataList = new ArrayList<>();
 
     @Lob
-    @Column(name = "RAW_OBJECT", columnDefinition = "blob", nullable = false)
+    @Column(name = "RAW_OBJECT", length = Integer.MAX_VALUE)
     private byte[] rawObject;
 
+    @Override
+    public int compareTo(Object o) {
+        return Long.valueOf(((CatalogObjectRevisionEntity) o).commitTime).compareTo(Long.valueOf(commitTime));
+    }
+
     public CatalogObjectRevisionEntity() {
-        this.keyValueMetadataList = new ArrayList<>();
-    }
-
-    public CatalogObjectRevisionEntity(String kind, LocalDateTime commitDate, String name, String commitMessage,
-            Long bucketId, String contentType, byte[] rawObject) {
-        this();
-        this.kind = kind;
-        this.name = name;
-        this.commitMessage = commitMessage;
-        this.commitDate = commitDate;
-        this.bucketId = bucketId;
-        this.contentType = contentType;
-        this.rawObject = rawObject;
-    }
-
-    public CatalogObjectRevisionEntity(Long commitId, String kind, LocalDateTime commitDate, String name,
-            String commitMessage, Long bucketId, String contentType, List<KeyValueMetadataEntity> keyValueMetadataList,
-            byte[] rawObject) {
-        this(kind, commitDate, name, commitMessage, bucketId, contentType, keyValueMetadataList, rawObject);
-        this.commitId = commitId;
-    }
-
-    public CatalogObjectRevisionEntity(String kind, LocalDateTime commitDate, String name, String commitMessage,
-            Long bucketId, String contentType, List<KeyValueMetadataEntity> keyValueMetadataList, byte[] rawObject) {
-        this(kind, commitDate, name, commitMessage, bucketId, contentType, rawObject);
-        this.keyValueMetadataList = keyValueMetadataList;
-    }
-
-    public CatalogObjectRevisionEntity(Long commitId, String kind, LocalDateTime commitDate, String name,
-            String commitMessage, Long bucketId, String contentType, byte[] rawObject) {
-        this(kind, commitDate, name, commitMessage, bucketId, contentType, rawObject);
-        this.commitId = commitId;
-    }
-
-    public Long getBucketId() {
-        return bucketId;
-    }
-
-    public LocalDateTime getCommitDate() {
-        return commitDate;
+        keyValueMetadataList = new ArrayList<>();
     }
 
     public void addKeyValue(KeyValueMetadataEntity keyValueMetadata) {
@@ -146,90 +112,30 @@ public class CatalogObjectRevisionEntity implements Comparable {
         keyValueMetadataList.forEach(kv -> addKeyValue(kv));
     }
 
-    public List<KeyValueMetadataEntity> getKeyValueMetadataList() {
-        return keyValueMetadataList;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        if (!super.equals(o))
+            return false;
+
+        CatalogObjectRevisionEntity that = (CatalogObjectRevisionEntity) o;
+
+        return id != null ? id.equals(that.id) : that.id == null;
     }
 
-    public String getKind() {
-        return kind;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Long getCommitId() {
-        return commitId;
-    }
-
-    public String getCommitMessage() {
-        return commitMessage;
-    }
-
-    public String getContentType() {
-        return contentType;
-    }
-
-    public CatalogObjectEntity getCatalogObject() {
-        return catalogObject;
-    }
-
-    public byte[] getRawObject() {
-        return rawObject;
-    }
-
-    public void setBucketId(Long bucketId) {
-        this.bucketId = bucketId;
-    }
-
-    public void setCommitDate(LocalDateTime commitDate) {
-        this.commitDate = commitDate;
-    }
-
-    public void setKind(String kind) {
-        this.kind = kind;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setCatalogObject(CatalogObjectEntity catalogObject) {
-        this.catalogObject = catalogObject;
-    }
-
-    public void setCommitMessage(String commitMessage) {
-        this.commitMessage = commitMessage;
-    }
-
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
-    }
-
-    public void setKeyValueMetadataList(List<KeyValueMetadataEntity> keyValueMetadataList) {
-        this.keyValueMetadataList = keyValueMetadataList;
-    }
-
-    public void setRawObject(byte[] rawObject) {
-        this.rawObject = rawObject;
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (id != null ? id.hashCode() : 0);
+        return result;
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("commitId", commitId)
-                                        .append("name", name)
-                                        .append("kind", kind)
-                                        .append("commitMessage", commitMessage)
-                                        .append("commitDate", commitDate)
-                                        .append("commitDate", commitDate)
-                                        .append("bucketId", bucketId)
-                                        .append("contentType", contentType)
-                                        .append("keyValueMetadataList", keyValueMetadataList)
-                                        .toString();
-    }
-
-    @Override
-    public int compareTo(Object o) {
-        return ((CatalogObjectRevisionEntity) o).commitDate.compareTo(commitDate);
+        return "CatalogObjectRevisionRepository{" + "commitMessage='" + commitMessage + '\'' + ", commitTime=" +
+               commitTime + ", keyValueMetadataList=" + keyValueMetadataList + '}';
     }
 }

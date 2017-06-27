@@ -25,28 +25,20 @@
  */
 package org.ow2.proactive.catalog.repository;
 
-import java.util.List;
-
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
-import org.springframework.data.repository.CrudRepository;
 
 
 /**
  * @author ActiveEon Team
  */
 public interface CatalogObjectRepository
-        extends CrudRepository<CatalogObjectEntity, Long>, QueryDslPredicateExecutor<CatalogObjectEntity> {
+        extends JpaRepository<CatalogObjectEntity, CatalogObjectEntity.CatalogObjectEntityKey>,
+        JpaSpecificationExecutor<CatalogObjectEntity>, QueryDslPredicateExecutor<CatalogObjectEntity> {
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId")
-    List<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId);
-
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND co.lastCommitId = cor.commitId AND cor.kind = ?3")
-    List<CatalogObjectRevisionEntity> getMostRecentRevisions(Long bucketId, String kind);
-
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.catalogObject co WHERE cor.bucketId = ?1 AND cor.catalogObject.id = ?2 AND co.lastCommitId = cor.commitId")
-    CatalogObjectRevisionEntity getMostRecentCatalogObjectRevision(Long bucketId, Long objectId);
-
+    @EntityGraph("catalogObject.withRevisions")
+    CatalogObjectEntity readCatalogObjectRevisionsById(CatalogObjectEntity.CatalogObjectEntityKey key);
 }

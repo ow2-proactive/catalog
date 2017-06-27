@@ -25,9 +25,30 @@
  */
 package org.ow2.proactive.catalog.graphql.fetcher;
 
+import org.ow2.proactive.catalog.graphql.handler.Handler;
+import org.ow2.proactive.catalog.graphql.schema.type.filter.BucketWhereArgs;
+import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import graphql.schema.DataFetcher;
+import graphql.schema.DataFetchingEnvironment;
+
+
 /**
  * @author ActiveEon Team
  * @since 09/06/2017
  */
-public class BucketFetcher {
+@Component
+@Transactional(readOnly = true)
+public class BucketFetcher implements DataFetcher<BucketEntity> {
+
+    @Autowired
+    private Handler<BucketWhereArgs, BucketEntity> bucketHandlers;
+
+    @Override
+    public BucketEntity get(DataFetchingEnvironment environment) {
+        return null;
+    }
 }

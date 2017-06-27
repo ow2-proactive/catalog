@@ -25,17 +25,16 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.BucketService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedResources;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,8 +42,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -55,13 +52,14 @@ import io.swagger.annotations.ApiResponses;
  * @author ActiveEon Team
  */
 @RestController
+@RequestMapping(value = "/buckets")
 public class BucketController {
 
     @Autowired
     private BucketService bucketService;
 
     @ApiOperation(value = "Creates a new bucket")
-    @RequestMapping(value = "/buckets", method = POST)
+    @RequestMapping(method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public BucketMetadata create(@RequestParam(value = "name", required = true) String bucketName,
             @ApiParam(value = "The name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String ownerName) {
@@ -70,21 +68,21 @@ public class BucketController {
 
     @ApiOperation(value = "Gets a bucket's metadata by ID")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
-    @RequestMapping(value = "/buckets/{bucketId}", method = GET)
+    @RequestMapping(value = "/{bucketId}", method = GET)
     public BucketMetadata getMetadata(@PathVariable long bucketId) {
         return bucketService.getBucketMetadata(bucketId);
     }
 
     @ApiOperation(value = "Lists the buckets")
-    @ApiImplicitParams({ @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "Results page you want to retrieve (0..N)"),
-                         @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
-                         @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
-                                                                                                                                  "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
-    @RequestMapping(value = "/buckets", method = GET)
-    public PagedResources list(
-            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) Optional<String> ownerName,
-            Pageable pageable, PagedResourcesAssembler assembler) {
-        return bucketService.listBuckets(ownerName, pageable, assembler);
+    @RequestMapping(method = GET)
+    public List<BucketMetadata> list(
+            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) Optional<String> ownerName) {
+        return bucketService.listBuckets(ownerName);
     }
 
+    @ApiOperation(value = "Lists the buckets")
+    @RequestMapping(method = DELETE)
+    public void clean() {
+        bucketService.cleanAll();
+    }
 }

@@ -25,31 +25,47 @@
  */
 package org.ow2.proactive.catalog.repository.entity;
 
-import javax.persistence.CascadeType;
+import java.io.Serializable;
+import java.util.UUID;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+
+import org.hibernate.annotations.GenericGenerator;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
  */
+@AllArgsConstructor
+@Data
 @Entity
-@Table(name = "METADATA_KEY_VALUE", indexes = { @Index(columnList = "KEY"), @Index(columnList = "VALUE") })
+@NoArgsConstructor
+@Table(name = "METADATA_KEY_VALUE", uniqueConstraints = @UniqueConstraint(columnNames = { "CATALOGOBJECTREVISION",
+                                                                                          "KEY" }), indexes = { @Index(columnList = "KEY"),
+                                                                                                                @Index(columnList = "VALUE") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public class KeyValueMetadataEntity {
+public class KeyValueMetadataEntity implements Serializable {
 
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "ID", columnDefinition = "BINARY(16)")
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "ID")
-    protected Long id;
+    private UUID id;
 
     @Column(name = "KEY", nullable = false)
     protected String key;
@@ -60,57 +76,43 @@ public class KeyValueMetadataEntity {
     @Column(name = "TYPE", nullable = true)
     protected String type;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
+    @JoinColumns({ @JoinColumn(name = "CATALOGOBJECTREVISION", referencedColumnName = "ID") })
     protected CatalogObjectRevisionEntity catalogObjectRevision;
 
-    public KeyValueMetadataEntity() {
-    }
-
-    public KeyValueMetadataEntity(String key, String value, String label) {
+    public KeyValueMetadataEntity(String key, String value, String type) {
         this.key = key;
         this.value = value;
-        this.type = label;
+        this.type = type;
     }
 
-    public Long getId() {
-        return id;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        if (!super.equals(o))
+            return false;
+
+        KeyValueMetadataEntity that = (KeyValueMetadataEntity) o;
+
+        if (!key.equals(that.key))
+            return false;
+        return catalogObjectRevision.equals(that.catalogObjectRevision);
     }
 
-    public String getKey() {
-        return key;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public String getLabel() {
-        return type;
-    }
-
-    public CatalogObjectRevisionEntity getCatalogObjectRevision() {
-        return catalogObjectRevision;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public void setLabel(String label) {
-        this.type = label;
-    }
-
-    public void setCatalogObjectRevision(CatalogObjectRevisionEntity catalogObjectRevision) {
-        this.catalogObjectRevision = catalogObjectRevision;
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + key.hashCode();
+        result = 31 * result + catalogObjectRevision.hashCode();
+        return result;
     }
 
     @Override
     public String toString() {
-        return "KeyValueMetadataEntity [id=" + id + ", key=" + key + ", value=" + value + ", type=" + type + "]";
+        return "KeyValueMetadataEntity{" + "key='" + key + '\'' + ", value='" + value + '\'' + ", type='" + type +
+               '\'' + '}';
     }
-
 }

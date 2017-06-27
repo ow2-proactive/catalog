@@ -37,14 +37,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public abstract class NamedMetadata extends ResourceSupport {
 
-    @JsonProperty
-    public final Long id;
+    @JsonProperty("id")
+    protected final Long metaDataId;
 
-    public final String name;
+    protected final String name;
 
     public NamedMetadata(Long id, String name) {
-        this.id = id;
+        this.metaDataId = id;
         this.name = name;
+    }
+
+    public Long getMetaDataId() {
+        return metaDataId;
+    }
+
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -57,12 +65,12 @@ public abstract class NamedMetadata extends ResourceSupport {
             return false;
         }
 
-        return Objects.equals(this.id, ((NamedMetadata) o).id);
+        return Objects.equals(this.getMetaDataId(), ((NamedMetadata) o).getMetaDataId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(metaDataId);
     }
 
 }

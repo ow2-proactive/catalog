@@ -34,4 +34,7 @@ public class BucketNotFoundException extends ResourceNotFoundException {
         super("No such bucket");
     }
 
+    public BucketNotFoundException(String message) {
+        super(message);
+    }
 }

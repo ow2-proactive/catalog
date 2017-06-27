@@ -25,21 +25,30 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Optional;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.List;
+
+import javax.validation.Valid;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
-import org.ow2.proactive.catalog.service.CatalogObjectRevisionService;
+import org.ow2.proactive.catalog.dto.CatalogRawObject;
+import org.ow2.proactive.catalog.rest.controller.validator.CatalogObjectNameEncodingValidator;
+import org.ow2.proactive.catalog.rest.controller.validator.CatalogObjectNamePathParam;
+import org.ow2.proactive.catalog.service.CatalogObjectService;
+import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,76 +57,94 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.log4j.Log4j2;
 
 
 /**
  * @author ActiveEon Team
  */
 @RestController
+@RequestMapping("/buckets/{bucketId}/resources/{name}/revisions")
+@Log4j2
 public class CatalogObjectRevisionController {
 
     @Autowired
-    private CatalogObjectRevisionService catalogObjectRevisionService;
+    private CatalogObjectService catalogObjectService;
+
+    @Autowired
+    private CatalogObjectNameEncodingValidator validator;
+
+    @InitBinder
+    protected void initBinder(WebDataBinder binder) {
+        binder.addValidators(validator);
+    }
 
     @ApiOperation(value = "Creates a new catalog object revision")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
                             @ApiResponse(code = 422, message = "Invalid catalog object JSON content supplied") })
-    @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
+    @RequestMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public CatalogObjectMetadata create(@PathVariable Long bucketId, @PathVariable Long objectId,
-            @ApiParam(value = "The kind of CatalogObject Revision") @RequestParam String kind,
-            @ApiParam(value = "The name of the CatalogObject") @RequestParam String name,
-            @ApiParam(value = "The commit message of the CatalogObject Revision") @RequestParam String commitMessage,
-            @ApiParam(value = "The content type of CatalogObject Revision") @RequestParam String contentType,
+    public CatalogObjectMetadata create(@PathVariable Long bucketId, @PathVariable String name,
+            @ApiParam(value = "The commit message of the CatalogRawObject Revision") @RequestParam String commitMessage,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        return catalogObjectRevisionService.createCatalogObjectRevision(bucketId,
-                                                                        kind,
-                                                                        name,
-                                                                        commitMessage,
-                                                                        Optional.of(objectId),
-                                                                        contentType,
-                                                                        file.getBytes());
+        return catalogObjectService.createCatalogObjectRevision(bucketId, name, commitMessage, file.getBytes());
     }
 
     @ApiOperation(value = "Gets a specific revision")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
-    @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions/{revisionId}", method = GET)
-    public ResponseEntity<CatalogObjectMetadata> get(@PathVariable Long bucketId, @PathVariable Long objectId,
-            @PathVariable Long revisionId) {
-        return catalogObjectRevisionService.getCatalogObject(bucketId, objectId, Optional.ofNullable(revisionId));
+    @RequestMapping(value = "/{commitTime}", method = GET)
+    public ResponseEntity<CatalogObjectMetadata> get(@PathVariable Long bucketId,
+            @PathVariable @Valid CatalogObjectNamePathParam name, @PathVariable long commitTime)
+            throws UnsupportedEncodingException {
+        try {
+            String decodedName = URLDecoder.decode(name.getName(), "UTF-8");
+            CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketId,
+                                                                                           decodedName,
+                                                                                           commitTime);
+            return ResponseEntity.ok(metadata);
+        } catch (RevisionNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @ApiOperation(value = "Gets the raw content of a specific revision")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
-    @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions/{revisionId}/raw", method = GET)
-    public ResponseEntity<InputStreamResource> getRaw(@PathVariable Long bucketId, @PathVariable Long objectId,
-            @PathVariable Long revisionId) {
-        return catalogObjectRevisionService.getCatalogObjectRaw(bucketId, objectId, Optional.ofNullable(revisionId));
+    @RequestMapping(value = "/{commitTime}/raw", method = GET)
+    public ResponseEntity<InputStreamResource> getRaw(@PathVariable Long bucketId,
+            @PathVariable @Valid CatalogObjectNamePathParam name, @PathVariable long commitTime)
+            throws UnsupportedEncodingException {
+
+        String decodedName = URLDecoder.decode(name.getName(), "UTF-8");
+        CatalogRawObject objectRevisionRaw = catalogObjectService.getCatalogObjectRevisionRaw(bucketId,
+                                                                                              decodedName,
+                                                                                              commitTime);
+
+        byte[] bytes = objectRevisionRaw.getRawObject();
+
+        ResponseEntity.BodyBuilder responseBodyBuilder = ResponseEntity.ok().contentLength(bytes.length);
+
+        try {
+            MediaType mediaType = MediaType.valueOf(objectRevisionRaw.getContentType());
+            responseBodyBuilder = responseBodyBuilder.contentType(mediaType);
+        } catch (org.springframework.http.InvalidMediaTypeException mimeEx) {
+            log.warn("The wrong content type for object: " + decodedName + ", revisionId:" + commitTime +
+                     ", the contentType: " + objectRevisionRaw.getContentType(), mimeEx);
+            mimeEx.printStackTrace();
+        }
+        return responseBodyBuilder.body(new InputStreamResource(new ByteArrayInputStream(bytes)));
     }
 
     @ApiOperation(value = "Lists a catalog object revisions")
-    @ApiImplicitParams({ @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "Results page you want to retrieve (0..N)"),
-                         @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
-                         @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
-                                                                                                                                  "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
-    @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions", method = GET)
-    public CatalogObjectMetadataList list(@PathVariable Long bucketId, @PathVariable Long objectId) {
-        return catalogObjectRevisionService.listCatalogObjectRevisions(bucketId, objectId);
-    }
-
-    @ApiOperation(value = "Delete a catalog object's revision", notes = "If the revisionId references the latest revision, it is deleted and the catalog object then points to the previous revision. If the revisionId doesn't references the latest revision, it is simply deleted without any impact on the current catalog object. Returns the deleted CatalogObjectRevision metadata.")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
-    @RequestMapping(value = "/buckets/{bucketId}/resources/{objectId}/revisions/{revisionId}", method = DELETE)
-    public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable Long objectId,
-            @PathVariable Long revisionId) {
-        return catalogObjectRevisionService.delete(bucketId, objectId, Optional.of(revisionId));
+    @RequestMapping(method = GET)
+    public ResponseEntity<List<CatalogObjectMetadata>> list(@PathVariable Long bucketId,
+            @PathVariable @Valid CatalogObjectNamePathParam name) throws UnsupportedEncodingException {
+        String decodedName = URLDecoder.decode(name.getName(), "UTF-8");
+        return ResponseEntity.ok(catalogObjectService.listCatalogObjectRevisions(bucketId, decodedName));
     }
 
 }

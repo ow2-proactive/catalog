@@ -1,0 +1,54 @@
+/*
+ * ProActive Parallel Suite(TM):
+ * The Open Source library for parallel and distributed
+ * Workflows & Scheduling, Orchestration, Cloud Automation
+ * and Big Data Analysis on Enterprise Grids & Clouds.
+ *
+ * Copyright (c) 2007 - 2017 ActiveEon
+ * Contact: contact@activeeon.com
+ *
+ * This library is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation: version 3 of
+ * the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * If needed, contact us to obtain a release under GPL Version 2 or 3
+ * or a different license than the AGPL.
+ */
+package org.ow2.proactive.catalog.graphql.handler.catalogobject;
+
+import java.util.Optional;
+
+import org.ow2.proactive.catalog.graphql.handler.Handler;
+import org.ow2.proactive.catalog.graphql.schema.type.filter.CatalogObjectWhereArgs;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.specification.catalogobject.CatalogObjectIdEqualSpecification;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
+
+
+/**
+ * @author ActiveEon Team
+ * @since 12/06/2017
+ */
+@Component
+public class CatalogObjectIdEqualHandler implements Handler<CatalogObjectWhereArgs, CatalogObjectEntity> {
+
+    @Override
+    public Optional<Specification<CatalogObjectEntity>> handle(CatalogObjectWhereArgs whereArgs) {
+
+        if (whereArgs.getIdArgs() != null && whereArgs.getIdArgs().getEq() != null) {
+            return Optional.of(new CatalogObjectIdEqualSpecification(new Long[] { whereArgs.getIdArgs().getEq() }));
+        }
+        return Optional.empty();
+    }
+
+}
