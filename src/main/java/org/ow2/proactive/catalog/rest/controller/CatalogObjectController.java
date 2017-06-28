@@ -37,13 +37,9 @@ import java.net.URLDecoder;
 import java.util.List;
 import java.util.Optional;
 
-import javax.validation.Valid;
-
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
-import org.ow2.proactive.catalog.rest.controller.validator.CatalogObjectNameEncodingValidator;
-import org.ow2.proactive.catalog.rest.controller.validator.CatalogObjectNamePathParam;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,8 +47,6 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -81,14 +75,6 @@ public class CatalogObjectController {
     @Autowired
     private CatalogObjectService catalogObjectService;
 
-    @Autowired
-    private CatalogObjectNameEncodingValidator validator;
-
-    @InitBinder
-    protected void initBinder(WebDataBinder binder) {
-        binder.addValidators(validator);
-    }
-
     @ApiOperation(value = "Creates a new catalog object")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
                             @ApiResponse(code = 422, message = "Invalid file content supplied") })
@@ -111,10 +97,10 @@ public class CatalogObjectController {
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
     @RequestMapping(value = "/{name}", method = GET)
-    public ResponseEntity<?> get(@PathVariable Long bucketId, @PathVariable @Valid CatalogObjectNamePathParam name)
+    public ResponseEntity<?> get(@PathVariable Long bucketId, @PathVariable String name)
             throws MalformedURLException, UnsupportedEncodingException {
 
-        String decodedName = URLDecoder.decode(name.getName(), "UTF-8");
+        String decodedName = URLDecoder.decode(name, "UTF-8");
         try {
             CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketId, decodedName);
             return ResponseEntity.ok(metadata);
@@ -127,10 +113,10 @@ public class CatalogObjectController {
     @ApiOperation(value = "Gets the raw content of a last revision of a catalog object")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
     @RequestMapping(value = "/{name}/raw", method = GET)
-    public ResponseEntity<InputStreamResource> getRaw(@PathVariable Long bucketId,
-            @PathVariable @Valid CatalogObjectNamePathParam name) throws UnsupportedEncodingException {
+    public ResponseEntity<InputStreamResource> getRaw(@PathVariable Long bucketId, @PathVariable String name)
+            throws UnsupportedEncodingException {
 
-        String decodedName = URLDecoder.decode(name.getName(), "UTF-8");
+        String decodedName = URLDecoder.decode(name, "UTF-8");
 
         try {
             CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucketId, decodedName);
@@ -179,9 +165,9 @@ public class CatalogObjectController {
     @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogRawObject's metadata")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or object not found"))
     @RequestMapping(value = "/{name}", method = DELETE)
-    public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable @Valid CatalogObjectNamePathParam name)
+    public ResponseEntity<?> delete(@PathVariable Long bucketId, @PathVariable String name)
             throws UnsupportedEncodingException {
-        String decodedName = URLDecoder.decode(name.getName(), "UTF-8");
+        String decodedName = URLDecoder.decode(name, "UTF-8");
         try {
             catalogObjectService.delete(bucketId, decodedName);
         } catch (CatalogObjectNotFoundException e) {

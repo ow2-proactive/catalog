@@ -34,12 +34,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
-import org.ow2.proactive.catalog.rest.controller.validator.CatalogObjectNameEncodingValidator;
-import org.ow2.proactive.catalog.rest.controller.validator.CatalogObjectNamePathParam;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,8 +43,6 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -75,14 +69,6 @@ public class CatalogObjectRevisionController {
     @Autowired
     private CatalogObjectService catalogObjectService;
 
-    @Autowired
-    private CatalogObjectNameEncodingValidator validator;
-
-    @InitBinder
-    protected void initBinder(WebDataBinder binder) {
-        binder.addValidators(validator);
-    }
-
     @ApiOperation(value = "Creates a new catalog object revision")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
                             @ApiResponse(code = 422, message = "Invalid catalog object JSON content supplied") })
@@ -97,11 +83,10 @@ public class CatalogObjectRevisionController {
     @ApiOperation(value = "Gets a specific revision")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
     @RequestMapping(value = "/{commitTime}", method = GET)
-    public ResponseEntity<CatalogObjectMetadata> get(@PathVariable Long bucketId,
-            @PathVariable @Valid CatalogObjectNamePathParam name, @PathVariable long commitTime)
-            throws UnsupportedEncodingException {
+    public ResponseEntity<CatalogObjectMetadata> get(@PathVariable Long bucketId, @PathVariable String name,
+            @PathVariable long commitTime) throws UnsupportedEncodingException {
         try {
-            String decodedName = URLDecoder.decode(name.getName(), "UTF-8");
+            String decodedName = URLDecoder.decode(name, "UTF-8");
             CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketId,
                                                                                            decodedName,
                                                                                            commitTime);
@@ -114,11 +99,10 @@ public class CatalogObjectRevisionController {
     @ApiOperation(value = "Gets the raw content of a specific revision")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"))
     @RequestMapping(value = "/{commitTime}/raw", method = GET)
-    public ResponseEntity<InputStreamResource> getRaw(@PathVariable Long bucketId,
-            @PathVariable @Valid CatalogObjectNamePathParam name, @PathVariable long commitTime)
-            throws UnsupportedEncodingException {
+    public ResponseEntity<InputStreamResource> getRaw(@PathVariable Long bucketId, @PathVariable String name,
+            @PathVariable long commitTime) throws UnsupportedEncodingException {
 
-        String decodedName = URLDecoder.decode(name.getName(), "UTF-8");
+        String decodedName = URLDecoder.decode(name, "UTF-8");
         CatalogRawObject objectRevisionRaw = catalogObjectService.getCatalogObjectRevisionRaw(bucketId,
                                                                                               decodedName,
                                                                                               commitTime);
@@ -141,9 +125,9 @@ public class CatalogObjectRevisionController {
     @ApiOperation(value = "Lists a catalog object revisions")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
     @RequestMapping(method = GET)
-    public ResponseEntity<List<CatalogObjectMetadata>> list(@PathVariable Long bucketId,
-            @PathVariable @Valid CatalogObjectNamePathParam name) throws UnsupportedEncodingException {
-        String decodedName = URLDecoder.decode(name.getName(), "UTF-8");
+    public ResponseEntity<List<CatalogObjectMetadata>> list(@PathVariable Long bucketId, @PathVariable String name)
+            throws UnsupportedEncodingException {
+        String decodedName = URLDecoder.decode(name, "UTF-8");
         return ResponseEntity.ok(catalogObjectService.listCatalogObjectRevisions(bucketId, decodedName));
     }
 

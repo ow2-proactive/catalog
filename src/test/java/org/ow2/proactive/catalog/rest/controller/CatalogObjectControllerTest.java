@@ -48,7 +48,6 @@ import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.ow2.proactive.catalog.rest.controller.validator.CatalogObjectNamePathParam;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -112,7 +111,7 @@ public class CatalogObjectControllerTest {
                                                           Collections.emptyList(),
                                                           new byte[0]);
         when(catalogObjectService.getCatalogRawObject(anyLong(), anyString())).thenReturn(rawObject);
-        ResponseEntity responseEntity = catalogObjectController.getRaw(1L, new CatalogObjectNamePathParam("name"));
+        ResponseEntity responseEntity = catalogObjectController.getRaw(1L, "name");
         verify(catalogObjectService, times(1)).getCatalogRawObject(anyLong(), anyString());
         assertThat(responseEntity).isNotNull();
     }
@@ -127,14 +126,14 @@ public class CatalogObjectControllerTest {
                                                                                                               1400343L,
                                                                                                               "commit message",
                                                                                                               Collections.emptyList()));
-        catalogObjectController.get(1L, new CatalogObjectNamePathParam("name"));
+        catalogObjectController.get(1L, "name");
         verify(catalogObjectService, times(1)).getCatalogObjectMetadata(anyLong(), anyString());
     }
 
     @Test
     public void testDelete() throws Exception {
         doNothing().when(catalogObjectService).delete(anyLong(), anyString());
-        catalogObjectController.delete(1L, new CatalogObjectNamePathParam("name"));
+        catalogObjectController.delete(1L, "name");
         verify(catalogObjectService, times(1)).delete(anyLong(), anyString());
     }
 }
