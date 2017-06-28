@@ -30,6 +30,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 import org.apache.http.HttpStatus;
@@ -191,7 +192,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
         response.body("bucket_id", is(thirdWFRevision.getBucketId().intValue()))
                 .body("name", is(thirdWFRevision.getName()))
-                .body("commit_time", is(thirdWFRevision.getCommitDateTime().toString()))
+                .body("commit_time",
+                      is(thirdWFRevision.getCommitDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
                 .body("object_key_values", hasSize(6))
                 //check generic_information label
                 .body("object_key_values[0].label", is("generic_information"))

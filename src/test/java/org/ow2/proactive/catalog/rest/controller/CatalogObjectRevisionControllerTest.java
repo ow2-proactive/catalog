@@ -41,7 +41,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
-import org.ow2.proactive.catalog.rest.controller.validator.CatalogObjectNamePathParam;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -73,13 +72,13 @@ public class CatalogObjectRevisionControllerTest {
 
     @Test
     public void testList() throws Exception {
-        catalogObjectRevisionController.list(BUCKET_ID, new CatalogObjectNamePathParam("name"));
+        catalogObjectRevisionController.list(BUCKET_ID, "name");
         verify(catalogObjectService, times(1)).listCatalogObjectRevisions(BUCKET_ID, "name");
     }
 
     @Test
     public void testGet() throws Exception {
-        catalogObjectRevisionController.get(BUCKET_ID, new CatalogObjectNamePathParam("name"), COMMIT_TIME);
+        catalogObjectRevisionController.get(BUCKET_ID, "name", COMMIT_TIME);
         verify(catalogObjectService, times(1)).getCatalogObjectRevision(BUCKET_ID, "name", COMMIT_TIME);
     }
 
@@ -96,7 +95,7 @@ public class CatalogObjectRevisionControllerTest {
 
         when(catalogObjectService.getCatalogObjectRevisionRaw(anyLong(), anyString(), anyLong())).thenReturn(rawObject);
         ResponseEntity responseEntity = catalogObjectRevisionController.getRaw(BUCKET_ID,
-                                                                               new CatalogObjectNamePathParam("name"),
+                                                                               "name",
                                                                                System.currentTimeMillis());
         verify(catalogObjectService, times(1)).getCatalogObjectRevisionRaw(anyLong(), anyString(), anyLong());
         assertThat(responseEntity).isNotNull();

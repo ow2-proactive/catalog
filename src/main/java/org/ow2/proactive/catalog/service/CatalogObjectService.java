@@ -45,7 +45,6 @@ import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.rest.controller.CatalogObjectRevisionController;
-import org.ow2.proactive.catalog.rest.controller.validator.CatalogObjectNamePathParam;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
@@ -275,7 +274,7 @@ public class CatalogObjectService {
 
     public Link createLink(Long bucketId, String name, long commitTime) throws UnsupportedEncodingException {
         ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectRevisionController.class).getRaw(bucketId,
-                                                                                                                    new CatalogObjectNamePathParam(name),
+                                                                                                                    name,
                                                                                                                     commitTime));
 
         return new Link(controllerLinkBuilder.toString()).withRel("content");
