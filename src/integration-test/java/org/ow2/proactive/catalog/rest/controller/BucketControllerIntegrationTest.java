@@ -35,17 +35,15 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.http.HttpStatus;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
-import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.jayway.restassured.response.Response;
 
@@ -55,21 +53,15 @@ import com.jayway.restassured.response.Response;
  */
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
+//@DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 @SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest(randomPort = true)
+@Transactional
 public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private static final String BUCKETS_RESOURCE = "/buckets";
 
     private static final String BUCKET_RESOURCE = "/buckets/{bucketId}";
-
-    @Autowired
-    private BucketRepository bucketRepository;
-
-    @Before
-    public void setup() {
-        given().delete(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_OK);
-    }
 
     @Test
     public void testCreateBucketShouldReturnSavedBucket() {
@@ -116,6 +108,12 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     @Test
     public void testListBucketsShouldReturnSavedBuckets() {
 
+        List<?> existingBucketsList = given().get(BUCKETS_RESOURCE)
+                                             .then()
+                                             .statusCode(HttpStatus.SC_OK)
+                                             .extract()
+                                             .path("");
+
         List<BucketEntity> buckets = IntStream.rangeClosed(1, 25)
                                               .mapToObj(i -> new BucketEntity("bucket" + i,
                                                                               "BucketResourceAssemblerTestUser"))
@@ -125,7 +123,11 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                   .when()
                                                   .post(BUCKETS_RESOURCE));
 
-        when().get(BUCKETS_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_OK).body("", hasSize(25));
+        when().get(BUCKETS_RESOURCE)
+              .then()
+              .assertThat()
+              .statusCode(HttpStatus.SC_OK)
+              .body("", hasSize(25 + existingBucketsList.size()));
     }
 
     @Test
@@ -147,9 +149,6 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String userBob = "Bob";
         given().parameters("name", bucketName, "owner", userAlice).when().post(BUCKETS_RESOURCE);
         given().parameters("name", bucketName, "owner", userBob).when().post(BUCKETS_RESOURCE);
-
-        // list all -> should return the 2 buckets
-        when().get(BUCKETS_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_OK).body("", hasSize(2));
 
         // list alice -> should return one only
         given().param("owner", userAlice)
