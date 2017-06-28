@@ -69,8 +69,8 @@ public class BucketControllerTest {
 
     @Test
     public void testList() throws Exception {
-        bucketController.list(Optional.empty());
-        verify(bucketService, times(1)).listBuckets(Optional.empty());
+        bucketController.list(Optional.empty(), Optional.empty());
+        verify(bucketService, times(1)).listBuckets(Optional.empty(), Optional.empty());
     }
 
 }

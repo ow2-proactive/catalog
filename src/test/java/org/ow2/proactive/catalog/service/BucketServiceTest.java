@@ -105,12 +105,17 @@ public class BucketServiceTest {
 
     @Test
     public void testListBucketsNoOwner() throws Exception {
-        listBucket(Optional.empty());
+        listBucket(Optional.empty(), Optional.empty());
     }
 
     @Test
     public void testListBucketsWithOwner() throws Exception {
-        listBucket(Optional.of("toto"));
+        listBucket(Optional.of("toto"), Optional.empty());
+    }
+
+    @Test
+    public void testListBucketsNoOwnerWithKind() throws Exception {
+        listBucket(Optional.empty(), Optional.of("workflow"));
     }
 
     @Test
@@ -171,11 +176,13 @@ public class BucketServiceTest {
         bucketService.populateCatalog(buckets, "/default-objects", "/this-folder-doesnt-exist");
     }
 
-    private void listBucket(Optional<String> owner) {
+    private void listBucket(Optional<String> owner, Optional<String> kind) {
         when(bucketRepository.findAll()).thenReturn(Collections.EMPTY_LIST);
-        bucketService.listBuckets(owner);
+        bucketService.listBuckets(owner, kind);
         if (owner.isPresent()) {
             verify(bucketRepository, times(1)).findByOwner(anyString());
+        } else if (kind.isPresent()) {
+            verify(bucketRepository, times(1)).findContainingKind(anyString());
         } else {
             verify(bucketRepository, times(1)).findAll();
         }
