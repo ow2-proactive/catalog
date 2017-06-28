@@ -37,11 +37,13 @@ import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.IntegrationTestConfig;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
+import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 
 /**
@@ -51,7 +53,6 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = { IntegrationTestConfig.class })
-@Transactional
 public class BucketServiceTest {
 
     @Autowired
@@ -61,6 +62,9 @@ public class BucketServiceTest {
 
     @Autowired
     private BucketRepository bucketRepository;
+
+    @Autowired
+    private CatalogObjectRepository catalogObjectRepository;
 
     @Before
     public void createBucket() {
@@ -73,6 +77,30 @@ public class BucketServiceTest {
     @After
     public void deleteBucket() {
         bucketRepository.deleteAll();
+    }
+
+    @Test
+    public void testDeleteEmptyBucket() {
+        BucketEntity bucketEntity = new BucketEntity("bucketnotempty", "emptyBucketTest");
+        bucketEntity = bucketRepository.save(bucketEntity);
+        CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
+                                                                     .id(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
+                                                                                                                        "catalog"))
+                                                                     .kind("object")
+                                                                     .contentType("application/xml")
+                                                                     .bucket(bucketEntity)
+                                                                     .build();
+        bucketEntity.addCatalogObject(catalogObjectEntity);
+        catalogObjectRepository.save(catalogObjectEntity);
+        BucketEntity emptyBucketEntity = new BucketEntity("bucketempty", "emptyBucketTest");
+        bucketRepository.save(emptyBucketEntity);
+        List<BucketMetadata> emptyBucketTest = bucketService.listBuckets(Optional.of("emptyBucketTest"));
+        assertThat(emptyBucketTest).hasSize(2);
+
+        bucketService.cleanAllEmptyBuckets();
+        emptyBucketTest = bucketService.listBuckets(Optional.of("emptyBucketTest"));
+        assertThat(emptyBucketTest).hasSize(1);
+        assertThat(emptyBucketTest.get(0).getName()).isEqualTo("bucketnotempty");
     }
 
     @Test

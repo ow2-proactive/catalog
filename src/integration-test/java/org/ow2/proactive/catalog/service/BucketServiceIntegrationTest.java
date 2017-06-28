@@ -38,11 +38,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.rest.controller.AbstractRestAssuredTest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -54,11 +53,10 @@ import com.jayway.restassured.path.json.JsonPath;
  */
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD, classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest(randomPort = true)
 public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
-
-    private static final Logger log = LoggerFactory.getLogger(BucketServiceIntegrationTest.class);
 
     private static final String DEFAULT_OBJECTS_FOLDER = "/default-objects";
 
@@ -83,7 +81,6 @@ public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
      */
     @Test
     public void testPopulateCatalogCheckBucketsCreation() throws Exception {
-        given().delete(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_OK);
 
         final String[] buckets = { "Examples", "Cloud-automation", "Toto" };
         bucketService.populateCatalog(buckets, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);

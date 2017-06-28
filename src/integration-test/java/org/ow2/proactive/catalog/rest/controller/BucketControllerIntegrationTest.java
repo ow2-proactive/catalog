@@ -46,7 +46,6 @@ import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.jayway.restassured.response.Response;
 
@@ -57,7 +56,6 @@ import com.jayway.restassured.response.Response;
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = { Application.class })
-@Transactional
 @WebIntegrationTest(randomPort = true)
 public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 

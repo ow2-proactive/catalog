@@ -80,9 +80,9 @@ public class BucketController {
         return bucketService.listBuckets(ownerName);
     }
 
-    @ApiOperation(value = "Lists the buckets")
+    @ApiOperation(value = "Delete the empty buckets")
     @RequestMapping(method = DELETE)
-    public void clean() {
-        bucketService.cleanAll();
+    public void cleanEmpty() {
+        bucketService.cleanAllEmptyBuckets();
     }
 }
