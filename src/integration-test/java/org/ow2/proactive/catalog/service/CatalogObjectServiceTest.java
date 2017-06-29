@@ -34,6 +34,7 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,10 +48,10 @@ import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.hateoas.Link;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,8 +62,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD, classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-@SpringApplicationConfiguration(classes = { IntegrationTestConfig.class })
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@ContextConfiguration(classes = IntegrationTestConfig.class)
 @Transactional
 public class CatalogObjectServiceTest {
 
@@ -143,6 +144,11 @@ public class CatalogObjectServiceTest {
                                                  "application/xml",
                                                  keyValues,
                                                  workflowAsByteArray);
+    }
+
+    @After
+    public void cleanup() {
+        bucketRepository.deleteAll();
     }
 
     @Test

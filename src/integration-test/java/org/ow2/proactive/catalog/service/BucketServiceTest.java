@@ -41,8 +41,8 @@ import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 
@@ -52,7 +52,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = { IntegrationTestConfig.class })
+@ContextConfiguration(classes = { IntegrationTestConfig.class })
 public class BucketServiceTest {
 
     @Autowired

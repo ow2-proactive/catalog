@@ -33,6 +33,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -44,6 +45,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
  */
 @EnableAutoConfiguration
 @EntityScan(basePackages = { "org.ow2.proactive.catalog.repository.entity" })
+@PropertySource("classpath:application-test.properties")
 @Profile("test")
 public class IntegrationTestConfig {
 

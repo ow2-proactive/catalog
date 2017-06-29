@@ -46,6 +46,7 @@ import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -59,6 +60,7 @@ import com.jayway.restassured.response.ValidatableResponse;
  */
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest(randomPort = true)
 public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCatalogObjectRevisionControllerTest {
@@ -76,7 +78,6 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     @Before
     public void setup() throws IOException {
         bucketRepository.deleteAll();
-        catalogObjectRepository.deleteAll();
 
         bucket = bucketRepository.save(new BucketEntity("bucket", "WorkflowRevisionControllerIntegrationTestUser"));
 
@@ -154,7 +155,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     @Test
     public void testCreateWorkflowRevisionShouldReturnNotFoundIfNonExistingBucketId() {
-        given().pathParam("bucketId", 42)
+        given().pathParam("bucketId", 35434245)
                .pathParam("name", "WF_1_Rev_1")
                .queryParam("commitMessage", "first commit")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
