@@ -53,7 +53,7 @@ public interface BucketRepository extends JpaRepository<BucketEntity, Long>, Jpa
     @Query(value = "select bk from BucketEntity bk where size(bk.catalogObjects) = 0")
     List<BucketEntity> findEmptyBucketsForUpdate();
 
-    @Query(value = "SELECT bk FROM BucketEntity bk JOIN bk.catalogObjects cos WHERE cos.kind = ?1")
+    @Query(value = "SELECT bk FROM BucketEntity bk INNER JOIN bk.catalogObjects cos WHERE cos.kind = ?1 GROUP BY bk")
     List<BucketEntity> findContainingKind(String kind);
 
 }
