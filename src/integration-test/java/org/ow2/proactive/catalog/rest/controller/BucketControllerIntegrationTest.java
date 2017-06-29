@@ -30,6 +30,9 @@ import static com.jayway.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -179,9 +182,9 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     }
 
     @Test
-    public void testListBucketsGivenKind() {
+    public void testListBucketsGivenKind() throws UnsupportedEncodingException {
         final String bucketName1 = "BucketWithObject";
-        final String bucketName2 = "BucketWithWorkflow";
+        final String bucketName2 = "EmptyBucket";
         // Get bucket ID from response to create an object in it
         Integer bucket1Id = given().parameters("name", bucketName1, "owner", "owner")
                                    .when()
@@ -191,9 +194,11 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                    .path("id");
 
         given().parameters("name", bucketName2, "owner", "owner ").when().post(BUCKETS_RESOURCE);
+
+        // Add an object of kind "workflow" into first bucket
         given().pathParam("bucketId", bucket1Id)
-               .queryParam("kind", "workflow")
-               .queryParam("name", "workflow_test")
+               .queryParam("kind", "myobjectkind")
+               .queryParam("name", "myobjectname")
                .queryParam("commitMessage", "first commit")
                .queryParam("contentType", "application/xml")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -201,7 +206,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .post(CATALOG_OBJECTS_RESOURCE);
 
         // list workflow -> should return one only
-        given().param("kind", "workflow")
+        given().param("kind", "myobjectkind")
                .get(BUCKETS_RESOURCE)
                .then()
                .assertThat()
@@ -210,7 +215,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
         //Delete object so that buckets can be emptied
         given().pathParam("bucketId", bucket1Id)
-               .pathParam("name", "workflow_test")
+               .pathParam("name", URLEncoder.encode("myobjectname", "UTF-8"))
                .delete(CATALOG_OBJECT_RESOURCE)
                .then()
                .statusCode(HttpStatus.SC_OK);
