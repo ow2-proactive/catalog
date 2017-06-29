@@ -89,8 +89,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Before
     public void setup() throws IOException {
-        bucketRepository.deleteAll();
         catalogObjectRepository.deleteAll();
+        bucketRepository.deleteAll();
 
         bucket = bucketRepository.save(new BucketEntity("myBucket", "BucketControllerIntegrationTestUser"));
         catalogObject = catalogObjectService.createCatalogObject(bucket.getId(),
