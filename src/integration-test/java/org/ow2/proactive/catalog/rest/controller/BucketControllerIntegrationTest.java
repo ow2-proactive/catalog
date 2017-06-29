@@ -30,15 +30,20 @@ import static com.jayway.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.apache.http.HttpStatus;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -62,6 +67,15 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     private static final String BUCKETS_RESOURCE = "/buckets";
 
     private static final String BUCKET_RESOURCE = "/buckets/{bucketId}";
+
+    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketId}/resources";
+
+    private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketId}/resources/{name}";
+
+    @Before
+    public void setup() {
+        given().delete(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_OK);
+    }
 
     @Test
     public void testCreateBucketShouldReturnSavedBucket() {
@@ -165,6 +179,46 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("", hasSize(1));
+    }
+
+    @Test
+    public void testListBucketsGivenKind() throws UnsupportedEncodingException {
+        final String bucketName1 = "BucketWithObject";
+        final String bucketName2 = "EmptyBucket";
+        // Get bucket ID from response to create an object in it
+        Integer bucket1Id = given().parameters("name", bucketName1, "owner", "owner")
+                                   .when()
+                                   .post(BUCKETS_RESOURCE)
+                                   .then()
+                                   .extract()
+                                   .path("id");
+
+        given().parameters("name", bucketName2, "owner", "owner ").when().post(BUCKETS_RESOURCE);
+
+        // Add an object of kind "workflow" into first bucket
+        given().pathParam("bucketId", bucket1Id)
+               .queryParam("kind", "myobjectkind")
+               .queryParam("name", "myobjectname")
+               .queryParam("commitMessage", "first commit")
+               .queryParam("contentType", "application/xml")
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE);
+
+        // list workflow -> should return one only
+        given().param("kind", "myobjectkind")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(1));
+
+        //Delete object so that buckets can be emptied
+        given().pathParam("bucketId", bucket1Id)
+               .pathParam("name", URLEncoder.encode("myobjectname", "UTF-8"))
+               .delete(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_OK);
     }
 
 }

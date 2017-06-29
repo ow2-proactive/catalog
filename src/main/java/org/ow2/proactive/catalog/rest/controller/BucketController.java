@@ -76,8 +76,9 @@ public class BucketController {
     @ApiOperation(value = "Lists the buckets")
     @RequestMapping(method = GET)
     public List<BucketMetadata> list(
-            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) Optional<String> ownerName) {
-        return bucketService.listBuckets(ownerName);
+            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) Optional<String> ownerName,
+            @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind) {
+        return bucketService.listBuckets(ownerName, kind);
     }
 
     @ApiOperation(value = "Delete the empty buckets")

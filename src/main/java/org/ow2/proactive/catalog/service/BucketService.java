@@ -173,11 +173,13 @@ public class BucketService {
         return new BucketMetadata(bucket);
     }
 
-    public List<BucketMetadata> listBuckets(Optional<String> ownerName) {
+    public List<BucketMetadata> listBuckets(Optional<String> ownerName, Optional<String> kind) {
         List<BucketEntity> entities;
 
         if (ownerName.isPresent()) {
             entities = bucketRepository.findByOwner(ownerName.get());
+        } else if (kind.isPresent()) {
+            entities = bucketRepository.findContainingKind(kind.get());
         } else {
             entities = bucketRepository.findAll();
         }

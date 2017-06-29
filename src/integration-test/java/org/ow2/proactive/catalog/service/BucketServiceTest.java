@@ -94,18 +94,19 @@ public class BucketServiceTest {
         catalogObjectRepository.save(catalogObjectEntity);
         BucketEntity emptyBucketEntity = new BucketEntity("bucketempty", "emptyBucketTest");
         bucketRepository.save(emptyBucketEntity);
-        List<BucketMetadata> emptyBucketTest = bucketService.listBuckets(Optional.of("emptyBucketTest"));
+        List<BucketMetadata> emptyBucketTest = bucketService.listBuckets(Optional.of("emptyBucketTest"),
+                                                                         Optional.empty());
         assertThat(emptyBucketTest).hasSize(2);
 
         bucketService.cleanAllEmptyBuckets();
-        emptyBucketTest = bucketService.listBuckets(Optional.of("emptyBucketTest"));
+        emptyBucketTest = bucketService.listBuckets(Optional.of("emptyBucketTest"), Optional.empty());
         assertThat(emptyBucketTest).hasSize(1);
         assertThat(emptyBucketTest.get(0).getName()).isEqualTo("bucketnotempty");
     }
 
     @Test
     public void testGetBucket() {
-        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets(Optional.of("toto"));
+        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets(Optional.of("toto"), Optional.empty());
         assertThat(bucketMetadatas).hasSize(1);
         BucketMetadata bucketMetadata = bucketService.getBucketMetadata(bucket.getMetaDataId());
         assertThat(bucketMetadata).isNotNull();
@@ -115,9 +116,26 @@ public class BucketServiceTest {
 
     @Test
     public void testListBucket() {
-        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets(Optional.of("toto"));
+        BucketEntity bucket2Entity = new BucketEntity("owner", "bucket2");
+        bucket2Entity = bucketRepository.save(bucket2Entity);
+
+        CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
+                                                                     .id(new CatalogObjectEntity.CatalogObjectEntityKey(bucket2Entity.getId(),
+                                                                                                                        "catalog"))
+                                                                     .kind("workflow")
+                                                                     .contentType("application/xml")
+                                                                     .bucket(bucket2Entity)
+                                                                     .build();
+        bucket2Entity.addCatalogObject(catalogObjectEntity);
+        catalogObjectRepository.save(catalogObjectEntity);
+
+        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets(Optional.of("toto"), Optional.empty());
         assertThat(bucketMetadatas).hasSize(1);
         assertThat(bucketMetadatas.get(0).getOwner()).isEqualTo(bucket.getOwner());
         assertThat(bucketMetadatas.get(0).getMetaDataId()).isEqualTo(bucket.getMetaDataId());
+
+        bucketMetadatas = bucketService.listBuckets(Optional.empty(), Optional.of("workflow"));
+        assertThat(bucketMetadatas).hasSize(1);
+        assertThat(bucketMetadatas.get(0).getMetaDataId()).isEqualTo(bucket2Entity.getId());
     }
 }
