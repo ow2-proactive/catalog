@@ -53,7 +53,7 @@ import com.jayway.restassured.path.json.JsonPath;
  */
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD, classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest(randomPort = true)
 public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
