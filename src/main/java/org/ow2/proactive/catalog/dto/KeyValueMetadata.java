@@ -27,6 +27,8 @@ package org.ow2.proactive.catalog.dto;
 
 import java.util.Objects;
 
+import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+
 import lombok.Data;
 
 
@@ -46,6 +48,12 @@ public class KeyValueMetadata {
         this.key = key;
         this.value = value;
         this.label = label;
+    }
+
+    public KeyValueMetadata(KeyValueMetadataEntity entity) {
+        this.key = entity.getKey();
+        this.value = entity.getValue();
+        this.label = entity.getType();
     }
 
     @Override

@@ -51,6 +51,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -146,8 +147,9 @@ public class CatalogObjectController {
                          @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
                                                                                                                                   "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
-    @RequestMapping(method = GET)
-    public ResponseEntity<List<CatalogObjectMetadata>> list(@PathVariable Long bucketId,
+    @RequestMapping(method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<CatalogObjectMetadata> list(@PathVariable Long bucketId,
             @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind) {
         List<CatalogObjectMetadata> result;
 
@@ -156,10 +158,7 @@ public class CatalogObjectController {
         } else {
             result = catalogObjectService.listCatalogObjects(bucketId);
         }
-        if (result.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return ResponseEntity.ok(result);
+        return result;
     }
 
     @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogRawObject's metadata")

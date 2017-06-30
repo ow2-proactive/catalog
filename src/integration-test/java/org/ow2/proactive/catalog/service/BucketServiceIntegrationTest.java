@@ -26,26 +26,25 @@
 package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.when;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
-import org.apache.http.HttpStatus;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
-import org.ow2.proactive.catalog.rest.controller.AbstractRestAssuredTest;
+import org.ow2.proactive.catalog.IntegrationTestConfig;
+import org.ow2.proactive.catalog.dto.BucketMetadata;
+import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.dto.KeyValueMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import com.jayway.restassured.path.json.JsonPath;
 
 
 /**
@@ -53,26 +52,42 @@ import com.jayway.restassured.path.json.JsonPath;
  */
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@SpringApplicationConfiguration(classes = { Application.class })
-@WebIntegrationTest(randomPort = true)
-public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
+@ContextConfiguration(classes = { IntegrationTestConfig.class })
+public class BucketServiceIntegrationTest {
 
     private static final String DEFAULT_OBJECTS_FOLDER = "/default-objects";
 
     private static final String RAW_OBJECTS_FOLDER = "/raw-objects";
 
-    private static final String BUCKETS_RESOURCE = "/buckets";
-
-    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketId}/resources";
-
     @Autowired
     private BucketService bucketService;
+
+    @Autowired
+    private CatalogObjectService catalogObjectService;
+
+    private BucketMetadata bucket;
+
+    private List<KeyValueMetadata> keyValues;
+
+    @Before
+    public void createBucket() {
+        bucket = bucketService.createBucket("bucket", "BucketServiceIntegrationTest");
+        keyValues = Collections.singletonList(new KeyValueMetadata("key", "value", "type"));
+        assertThat(bucket).isNotNull();
+        assertThat(bucket.getOwner()).isEqualTo("BucketServiceIntegrationTest");
+        assertThat(bucket.getMetaDataId()).isNotNull();
+    }
+
+    @After
+    public void deleteBucket() {
+        bucketService.cleanAll();
+    }
 
     @Test
     public void testPopulateCatalogEmpty() throws Exception {
         bucketService.populateCatalog(new String[] {}, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
-        when().get(BUCKETS_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_OK);
+        List<BucketMetadata> bucketMetadataList = bucketService.listBuckets(Optional.empty(), Optional.empty());
+        assertThat(bucketMetadataList).hasSize(1);
     }
 
     /*
@@ -86,19 +101,11 @@ public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
         bucketService.populateCatalog(buckets, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
 
         // verify that all buckets have been created in the Catalog
-        String response = when().get(BUCKETS_RESOURCE)
-                                .then()
-                                .assertThat()
-                                .statusCode(HttpStatus.SC_OK)
-                                .extract()
-                                .response()
-                                .asString();
+        List<BucketMetadata> bucketMetadataList = bucketService.listBuckets(Optional.empty(), Optional.empty());
 
-        List<Map<String, ?>> jsonList = JsonPath.from(response).get("");
-
-        jsonList.stream().forEach(map -> {
-            String name = (String) map.get("name");
-            Integer id = (Integer) map.get("id");
+        bucketMetadataList.stream().forEach(bucket -> {
+            String name = bucket.getName();
+            Long id = bucket.getMetaDataId();
             int nbWorkflows = 0;
             String[] workflows = new File(Application.class.getResource(DEFAULT_OBJECTS_FOLDER).getPath() +
                                           File.separator + name).list();
@@ -106,31 +113,66 @@ public class BucketServiceIntegrationTest extends AbstractRestAssuredTest {
                 nbWorkflows = workflows.length;
             }
 
-            if (nbWorkflows > 0) {
+            List<CatalogObjectMetadata> catalogObjectMetadataList = catalogObjectService.listCatalogObjects(id);
 
-                String bucketResponse = given().pathParam("bucketId", id)
-                                               .when()
-                                               .get(CATALOG_OBJECTS_RESOURCE)
-                                               .then()
-                                               .assertThat()
-                                               .statusCode(HttpStatus.SC_OK)
-                                               .extract()
-                                               .response()
-                                               .asString();
-
-                List<Map<String, ?>> bucketWorkflowList = JsonPath.from(bucketResponse).get("");
-                assertThat(bucketWorkflowList).hasSize(nbWorkflows);
-            } else {
-                given().pathParam("bucketId", id)
-                       .when()
-                       .get(CATALOG_OBJECTS_RESOURCE)
-                       .then()
-                       .assertThat()
-                       .statusCode(HttpStatus.SC_NOT_FOUND);
-            }
-
+            assertThat(catalogObjectMetadataList).hasSize(nbWorkflows);
         });
 
+    }
+
+    @Test
+    public void testDeleteEmptyBucket() {
+        bucket = bucketService.createBucket("bucketnotempty", "emptyBucketTest");
+        catalogObjectService.createCatalogObject(bucket.getMetaDataId(),
+                                                 "catalog",
+                                                 "object",
+                                                 "commit message",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 null);
+
+        BucketMetadata emptyBucket = bucketService.createBucket("bucketempty", "emptyBucketTest");
+
+        List<BucketMetadata> emptyBucketTest = bucketService.listBuckets(Optional.of("emptyBucketTest"),
+                                                                         Optional.empty());
+        assertThat(emptyBucketTest).hasSize(2);
+
+        bucketService.cleanAllEmptyBuckets();
+        emptyBucketTest = bucketService.listBuckets(Optional.of("emptyBucketTest"), Optional.empty());
+        assertThat(emptyBucketTest).hasSize(1);
+        assertThat(emptyBucketTest.get(0).getName()).isEqualTo("bucketnotempty");
+    }
+
+    @Test
+    public void testGetBucket() {
+        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets(Optional.of("BucketServiceIntegrationTest"),
+                                                                         Optional.empty());
+        assertThat(bucketMetadatas).hasSize(1);
+        BucketMetadata bucketMetadata = bucketService.getBucketMetadata(bucket.getMetaDataId());
+        assertThat(bucketMetadata).isNotNull();
+        assertThat(bucketMetadata.getOwner()).isEqualTo(bucket.getOwner());
+        assertThat(bucketMetadata.getMetaDataId()).isEqualTo(bucket.getMetaDataId());
+    }
+
+    @Test
+    public void testListBucket() {
+        bucket = bucketService.createBucket("owner", "bucket2");
+        catalogObjectService.createCatalogObject(bucket.getMetaDataId(),
+                                                 "catalog",
+                                                 "workflow",
+                                                 "commit message",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 null);
+
+        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets(Optional.of("bucket2"), Optional.empty());
+        assertThat(bucketMetadatas).hasSize(1);
+        assertThat(bucketMetadatas.get(0).getOwner()).isEqualTo(bucket.getOwner());
+        assertThat(bucketMetadatas.get(0).getMetaDataId()).isEqualTo(bucket.getMetaDataId());
+
+        bucketMetadatas = bucketService.listBuckets(Optional.empty(), Optional.of("workflow"));
+        assertThat(bucketMetadatas).hasSize(1);
+        assertThat(bucketMetadatas.get(0).getMetaDataId()).isEqualTo(bucket.getMetaDataId());
     }
 
 }

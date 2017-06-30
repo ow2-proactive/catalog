@@ -37,13 +37,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -62,7 +63,9 @@ public class BucketEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "BUCKET_SEQUENCE")
-    @SequenceGenerator(name = "BUCKET_SEQUENCE", sequenceName = "BUCKET_SEQUENCE")
+    @GenericGenerator(name = "BUCKET_SEQUENCE", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator", parameters = { @Parameter(name = "sequence_name", value = "BUCKET_SEQUENCE"),
+                                                                                                                              @Parameter(name = "initial_value", value = "1000"),
+                                                                                                                              @Parameter(name = "increment_size", value = "1") })
     @Column(name = "ID")
     protected Long id;
 

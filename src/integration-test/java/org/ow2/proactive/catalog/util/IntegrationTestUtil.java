@@ -25,9 +25,15 @@
  */
 package org.ow2.proactive.catalog.util;
 
+import static com.jayway.restassured.RestAssured.given;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+
+import org.apache.http.HttpStatus;
 
 import com.google.common.io.ByteStreams;
 
@@ -39,6 +45,40 @@ import lombok.extern.log4j.Log4j2;
  */
 @Log4j2
 public class IntegrationTestUtil {
+
+    private static final String BUCKETS_RESOURCE = "/buckets";
+
+    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketId}/resources";
+
+    private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketId}/resources/{name}";
+
+    public static void cleanup() {
+        List<HashMap<String, String>> bucketMetadataList = given().get(BUCKETS_RESOURCE)
+                                                                  .then()
+                                                                  .statusCode(HttpStatus.SC_OK)
+                                                                  .extract()
+                                                                  .path("");
+
+        bucketMetadataList.stream().forEach(bucketMetadata -> {
+            List<HashMap<String, String>> catalogObjectMetadataList = given().pathParam("bucketId",
+                                                                                        bucketMetadata.get("id"))
+                                                                             .when()
+                                                                             .get(CATALOG_OBJECTS_RESOURCE)
+                                                                             .then()
+                                                                             .extract()
+                                                                             .path("");
+
+            catalogObjectMetadataList.stream().forEach(catalogObjectMetadata -> {
+                given().pathParam("bucketId", catalogObjectMetadata.get("bucket_id"))
+                       .pathParam("name", catalogObjectMetadata.get("name"))
+                       .delete(CATALOG_OBJECT_RESOURCE)
+                       .then()
+                       .statusCode(HttpStatus.SC_OK);
+            });
+        });
+
+        given().delete(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_OK);
+    }
 
     public static byte[] getWorkflowAsByteArray(String filename) throws IOException {
         log.debug("The file path of loading file: " + getWorkflowFile(filename).getPath());

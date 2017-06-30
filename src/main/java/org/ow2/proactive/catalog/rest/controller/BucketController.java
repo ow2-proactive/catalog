@@ -34,7 +34,9 @@ import java.util.Optional;
 
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.BucketService;
+import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,7 +65,12 @@ public class BucketController {
     @ResponseStatus(HttpStatus.CREATED)
     public BucketMetadata create(@RequestParam(value = "name", required = true) String bucketName,
             @ApiParam(value = "The name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String ownerName) {
-        return bucketService.createBucket(bucketName, ownerName);
+        try {
+            return bucketService.createBucket(bucketName, ownerName);
+        } catch (DataIntegrityViolationException exception) {
+            throw new BucketAlreadyExistingException("The bucket named " + bucketName + " owned by " + ownerName +
+                                                     " already exist");
+        }
     }
 
     @ApiOperation(value = "Gets a bucket's metadata by ID")
