@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
+import org.ow2.proactive.catalog.dto.KeyValueMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
@@ -101,7 +102,7 @@ public class CatalogObjectService {
     }
 
     public CatalogObjectMetadata createCatalogObject(Long bucketId, String name, String kind, String commitMessage,
-            String contentType, List<KeyValueMetadataEntity> keyValueMetadataList, byte[] rawObject) {
+            String contentType, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
 
         BucketEntity bucketEntity = bucketRepository.findOne(bucketId);
         if (bucketEntity == null) {
@@ -127,11 +128,13 @@ public class CatalogObjectService {
     }
 
     private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(String kind, String commitMessage,
-            List<KeyValueMetadataEntity> keyValueMetadataList, byte[] rawObject,
-            CatalogObjectEntity catalogObjectEntity) {
+            List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject, CatalogObjectEntity catalogObjectEntity) {
+
+        List<KeyValueMetadataEntity> keyValueMetadataEntities = KeyValueMetadataHelper.convertToEntity(keyValueMetadataList);
+
         List<KeyValueMetadataEntity> keyValues = CollectionUtils.isEmpty(keyValueMetadataList) ? KeyValueMetadataHelper.extractKeyValuesFromRaw(kind,
                                                                                                                                                 rawObject)
-                                                                                               : keyValueMetadataList;
+                                                                                               : keyValueMetadataEntities;
 
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)
@@ -203,7 +206,7 @@ public class CatalogObjectService {
     }
 
     public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String name, String commitMessage,
-            List<KeyValueMetadataEntity> keyValueMetadataListParsed, byte[] rawObject) {
+            List<KeyValueMetadata> keyValueMetadataListParsed, byte[] rawObject) {
 
         CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketId,
                                                                                                                            name));
@@ -226,10 +229,15 @@ public class CatalogObjectService {
         CatalogObjectEntity list = catalogObjectRepository.readCatalogObjectRevisionsById(new CatalogObjectEntity.CatalogObjectEntityKey(bucketId,
                                                                                                                                          name));
 
-        return list.getRevisions()
-                   .stream()
-                   .map(entity -> new CatalogObjectMetadata(entity))
-                   .collect(Collectors.toList());
+        return list.getRevisions().stream().map(entity -> {
+            CatalogObjectMetadata catalogObjectMetadata = new CatalogObjectMetadata(entity);
+            try {
+                catalogObjectMetadata.add(createLink(bucketId, name, entity.getCommitTime()));
+            } catch (UnsupportedEncodingException e) {
+                log.error("bucketId : {}, name : {}", bucketId, name, e);
+            }
+            return catalogObjectMetadata;
+        }).collect(Collectors.toList());
     }
 
     public CatalogObjectMetadata getCatalogObjectRevision(Long bucketId, String name, long commitTime)

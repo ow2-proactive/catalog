@@ -40,7 +40,6 @@ import javax.annotation.PostConstruct;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DefaultCatalogObjectsFolderNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DefaultRawCatalogObjectsFolderNotFoundException;
@@ -152,14 +151,9 @@ public class BucketService {
         return createBucket(name, DEFAULT_BUCKET_OWNER);
     }
 
-    public BucketMetadata createBucket(String name, String owner) {
+    public BucketMetadata createBucket(String name, String owner) throws DataIntegrityViolationException {
         BucketEntity bucket = new BucketEntity(name, owner);
-        try {
-            bucket = bucketRepository.save(bucket);
-        } catch (DataIntegrityViolationException exception) {
-            throw new BucketAlreadyExistingException("The bucket named " + name + " owned by " + owner +
-                                                     " already exist");
-        }
+        bucket = bucketRepository.save(bucket);
         return new BucketMetadata(bucket);
     }
 
@@ -193,6 +187,10 @@ public class BucketService {
     public void cleanAllEmptyBuckets() {
         List<BucketEntity> emptyBucketsForUpdate = bucketRepository.findEmptyBucketsForUpdate();
         bucketRepository.deleteInBatch(emptyBucketsForUpdate);
+    }
+
+    public void cleanAll() {
+        bucketRepository.deleteAll();
     }
 
 }

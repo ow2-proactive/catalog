@@ -125,10 +125,10 @@ public class CatalogObjectRevisionController {
     @ApiOperation(value = "Lists a catalog object revisions")
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket or catalog object not found"))
     @RequestMapping(method = GET)
-    public ResponseEntity<List<CatalogObjectMetadata>> list(@PathVariable Long bucketId, @PathVariable String name)
+    public List<CatalogObjectMetadata> list(@PathVariable Long bucketId, @PathVariable String name)
             throws UnsupportedEncodingException {
         String decodedName = URLDecoder.decode(name, "UTF-8");
-        return ResponseEntity.ok(catalogObjectService.listCatalogObjectRevisions(bucketId, decodedName));
+        return catalogObjectService.listCatalogObjectRevisions(bucketId, decodedName);
     }
 
 }

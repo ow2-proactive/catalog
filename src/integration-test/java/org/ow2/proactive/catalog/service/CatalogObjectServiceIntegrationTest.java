@@ -39,21 +39,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.IntegrationTestConfig;
+import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
+import org.ow2.proactive.catalog.dto.KeyValueMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
-import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 
 /**
@@ -62,10 +60,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ContextConfiguration(classes = IntegrationTestConfig.class)
-@Transactional
-public class CatalogObjectServiceTest {
+public class CatalogObjectServiceIntegrationTest {
 
     @Autowired
     private CatalogObjectService catalogObjectService;
@@ -84,9 +80,9 @@ public class CatalogObjectServiceTest {
 
     private CatalogObjectService mockedCatalogObjectService;
 
-    private BucketEntity bucket;
+    private BucketMetadata bucket;
 
-    private List<KeyValueMetadataEntity> keyValues;
+    private List<KeyValueMetadata> keyValues;
 
     private byte[] workflowAsByteArray;
 
@@ -98,6 +94,8 @@ public class CatalogObjectServiceTest {
 
     @Before
     public void setup() throws IOException {
+        bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
+        keyValues = Collections.singletonList(new KeyValueMetadata("key", "value", "type"));
 
         mockedCatalogObjectService = new CatalogObjectService(catalogObjectRepository,
                                                               catalogObjectRevisionRepository,
@@ -109,11 +107,9 @@ public class CatalogObjectServiceTest {
             }
         };
 
-        bucket = bucketRepository.save(new BucketEntity("bucket", "toto"));
-        keyValues = Collections.singletonList(new KeyValueMetadataEntity("key", "value", "type"));
         workflowAsByteArray = IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml");
         workflowAsByteArrayUpdated = IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml");
-        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucket.getId(),
+        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucket.getMetaDataId(),
                                                                                        "catalog1",
                                                                                        "object",
                                                                                        "commit message",
@@ -122,14 +118,14 @@ public class CatalogObjectServiceTest {
                                                                                        workflowAsByteArray);
         firstCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-        catalogObject = catalogObjectService.createCatalogObjectRevision(bucket.getId(),
+        catalogObject = catalogObjectService.createCatalogObjectRevision(bucket.getMetaDataId(),
                                                                          "catalog1",
                                                                          "commit message 2",
                                                                          keyValues,
                                                                          workflowAsByteArrayUpdated);
         secondCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-        catalogObjectService.createCatalogObject(bucket.getId(),
+        catalogObjectService.createCatalogObject(bucket.getMetaDataId(),
                                                  "catalog2",
                                                  "object",
                                                  "commit message",
@@ -137,7 +133,7 @@ public class CatalogObjectServiceTest {
                                                  keyValues,
                                                  workflowAsByteArray);
 
-        catalogObjectService.createCatalogObject(bucket.getId(),
+        catalogObjectService.createCatalogObject(bucket.getMetaDataId(),
                                                  "catalog3",
                                                  "workflow",
                                                  "commit message",
@@ -147,29 +143,29 @@ public class CatalogObjectServiceTest {
     }
 
     @After
-    public void cleanup() {
-        bucketRepository.deleteAll();
+    public void deleteBucket() {
+        bucketService.cleanAll();
     }
 
     @Test
     public void testListCatalogObjectsInBucket() {
-        List<CatalogObjectMetadata> catalogObjecs = catalogObjectService.listCatalogObjects(bucket.getId());
+        List<CatalogObjectMetadata> catalogObjecs = catalogObjectService.listCatalogObjects(bucket.getMetaDataId());
         assertThat(catalogObjecs).hasSize(3);
     }
 
     @Test
     public void testListCatalogObjectsByKindInBucket() {
-        List<CatalogObjectMetadata> catalogObjecs = catalogObjectService.listCatalogObjectsByKind(bucket.getId(),
+        List<CatalogObjectMetadata> catalogObjecs = catalogObjectService.listCatalogObjectsByKind(bucket.getMetaDataId(),
                                                                                                   "object");
         assertThat(catalogObjecs).hasSize(2);
 
-        catalogObjecs = catalogObjectService.listCatalogObjectsByKind(bucket.getId(), "workflow");
+        catalogObjecs = catalogObjectService.listCatalogObjectsByKind(bucket.getMetaDataId(), "workflow");
         assertThat(catalogObjecs).hasSize(1);
     }
 
     @Test
     public void testGetDefaultCatalogObject() {
-        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucket.getId(),
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucket.getMetaDataId(),
                                                                                                     "catalog1");
         assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("commit message 2");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("object");
@@ -179,7 +175,7 @@ public class CatalogObjectServiceTest {
 
     @Test
     public void testGetDefaultCatalogRawObject() {
-        CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucket.getId(), "catalog1");
+        CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucket.getMetaDataId(), "catalog1");
         assertThat(rawObject.getRawObject()).isNotNull();
         assertThat(rawObject.getRawObject()).isEqualTo(workflowAsByteArrayUpdated);
     }
@@ -187,15 +183,15 @@ public class CatalogObjectServiceTest {
     @Test
     public void testListCatalogObjectRevisions() {
 
-        List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjectRevisions(bucket.getId(),
-                                                                                                   "catalog1");
+        List<CatalogObjectMetadata> metadataList = mockedCatalogObjectService.listCatalogObjectRevisions(bucket.getMetaDataId(),
+                                                                                                         "catalog1");
         assertThat(metadataList).hasSize(2);
     }
 
     @Test
     public void testGetCatalogObjectRevision() throws UnsupportedEncodingException {
 
-        CatalogObjectMetadata metadata = mockedCatalogObjectService.getCatalogObjectRevision(bucket.getId(),
+        CatalogObjectMetadata metadata = mockedCatalogObjectService.getCatalogObjectRevision(bucket.getMetaDataId(),
                                                                                              "catalog1",
                                                                                              firstCommitTime);
         assertThat(metadata.getCommitMessage()).isEqualTo("commit message");
@@ -204,7 +200,7 @@ public class CatalogObjectServiceTest {
     @Test
     public void testGetCatalogObjectRevisionRaw() throws UnsupportedEncodingException {
 
-        CatalogRawObject rawObject = mockedCatalogObjectService.getCatalogObjectRevisionRaw(bucket.getId(),
+        CatalogRawObject rawObject = mockedCatalogObjectService.getCatalogObjectRevisionRaw(bucket.getMetaDataId(),
                                                                                             "catalog1",
                                                                                             firstCommitTime);
         assertThat(rawObject.getCommitMessage()).isEqualTo("commit message");
