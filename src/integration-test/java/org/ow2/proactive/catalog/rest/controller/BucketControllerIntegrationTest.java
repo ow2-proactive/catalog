@@ -30,6 +30,7 @@ import static com.jayway.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
@@ -214,6 +215,70 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .pathParam("name", URLEncoder.encode("myobjectname", "UTF-8"))
                .delete(CATALOG_OBJECT_RESOURCE)
                .then()
+               .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testDeleteEmptyBucket() {
+        // Get bucket ID from response to create an object in it
+        Integer bucketId = given().parameters("name", "bucketName", "owner", "owner")
+                                  .when()
+                                  .post(BUCKETS_RESOURCE)
+                                  .then()
+                                  .extract()
+                                  .path("id");
+
+        given().pathParam("bucketId", bucketId)
+               .when()
+               .delete(BUCKET_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK);
+
+        // check that the bucket is really gone
+        given().pathParam("bucketId", bucketId)
+               .when()
+               .get(BUCKET_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void testDeleteNonEmptyBucket() throws IOException {
+        final String bucketName = "BucketWithObject";
+
+        // Get bucket ID from response to create an object in it
+        Integer bucketId = given().parameters("name", bucketName, "owner", "owner")
+                                  .when()
+                                  .post(BUCKETS_RESOURCE)
+                                  .then()
+                                  .extract()
+                                  .path("id");
+
+        // Add an object of kind "workflow" into first bucket
+        given().pathParam("bucketId", bucketId)
+               .queryParam("kind", "myobjectkind")
+               .queryParam("name", "myobjectname")
+               .queryParam("commitMessage", "first commit")
+               .queryParam("contentType", "application/xml")
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE);
+
+        given().pathParam("bucketId", bucketId)
+               .when()
+               .delete(BUCKET_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_FORBIDDEN);
+
+        // check that the bucket is still there
+        given().pathParam("bucketId", bucketId)
+               .when()
+               .get(BUCKET_RESOURCE)
+               .then()
+               .assertThat()
                .statusCode(HttpStatus.SC_OK);
     }
 
