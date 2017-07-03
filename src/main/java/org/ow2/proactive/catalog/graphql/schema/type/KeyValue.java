@@ -28,42 +28,40 @@ package org.ow2.proactive.catalog.graphql.schema.type;
 import static graphql.Scalars.GraphQLString;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 
-import org.ow2.proactive.catalog.graphql.schema.common.Fields;
-import org.ow2.proactive.catalog.graphql.schema.common.Types;
-
-import graphql.schema.DataFetcher;
-import graphql.schema.GraphQLInterfaceType;
-import lombok.AllArgsConstructor;
+import graphql.schema.GraphQLObjectType;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
  * @since 08/06/2017
  */
-@AllArgsConstructor
-@NoArgsConstructor
+@Builder
 @Data
-public abstract class KeyValue {
+public class KeyValue {
 
-    public static final TypeSingleton<GraphQLInterfaceType> TYPE = new TypeSingleton<GraphQLInterfaceType>() {
-        @Override
-        public GraphQLInterfaceType buildType(DataFetcher... dataFetchers) {
-            return GraphQLInterfaceType.newInterface()
-                                       .name(Types.KEY_VALUE.getName())
-                                       .description("Key value type as a map.")
-                                       .field(newFieldDefinition().name(Fields.KEY.getName())
-                                                                  .description("Key as the key in a map.")
-                                                                  .type(GraphQLString))
-                                       .field(newFieldDefinition().name(Fields.VALUE.getName())
-                                                                  .description("Value as the value in a map.")
-                                                                  .type(GraphQLString))
-                                       .build();
-        }
-    };
+    private final String key;
 
-    protected String key;
+    private final String value;
 
-    protected String value;
+    private final static GraphQLObjectType TYPE;
+
+    static {
+        TYPE = GraphQLObjectType.newObject()
+                                .name("metadata")
+                                .description("Key value metadata as a map.")
+                                .field(newFieldDefinition().name("key")
+                                                           .description("Key as the key in a map.")
+                                                           .type(GraphQLString))
+                                .field(newFieldDefinition().name("value")
+                                                           .description("Value as the value in a map.")
+                                                           .type(GraphQLString))
+                                .build();
+    }
+
+    public final static GraphQLObjectType getTypeInstance() {
+        return TYPE;
+    }
+
 }

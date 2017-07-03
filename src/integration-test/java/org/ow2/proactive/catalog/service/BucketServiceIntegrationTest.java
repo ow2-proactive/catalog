@@ -26,8 +26,10 @@
 package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -41,7 +43,11 @@ import org.ow2.proactive.catalog.IntegrationTestConfig;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.KeyValueMetadata;
+import org.ow2.proactive.catalog.repository.BucketRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Link;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -65,12 +71,33 @@ public class BucketServiceIntegrationTest {
     @Autowired
     private CatalogObjectService catalogObjectService;
 
+    private CatalogObjectService mockedCatalogObjectService;
+
+    @Autowired
+    private CatalogObjectRepository catalogObjectRepository;
+
+    @Autowired
+    private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
+
+    @Autowired
+    private BucketRepository bucketRepository;
+
     private BucketMetadata bucket;
 
     private List<KeyValueMetadata> keyValues;
 
     @Before
     public void createBucket() {
+        mockedCatalogObjectService = new CatalogObjectService(catalogObjectRepository,
+                                                              catalogObjectRevisionRepository,
+
+                                                              bucketRepository) {
+            @Override
+            public Link createLink(Long bucketId, String name, long commitTime) throws UnsupportedEncodingException {
+                return mock(Link.class);
+            }
+        };
+
         bucket = bucketService.createBucket("bucket", "BucketServiceIntegrationTest");
         keyValues = Collections.singletonList(new KeyValueMetadata("key", "value", "type"));
         assertThat(bucket).isNotNull();
@@ -113,7 +140,7 @@ public class BucketServiceIntegrationTest {
                 nbWorkflows = workflows.length;
             }
 
-            List<CatalogObjectMetadata> catalogObjectMetadataList = catalogObjectService.listCatalogObjects(id);
+            List<CatalogObjectMetadata> catalogObjectMetadataList = mockedCatalogObjectService.listCatalogObjects(id);
 
             assertThat(catalogObjectMetadataList).hasSize(nbWorkflows);
         });

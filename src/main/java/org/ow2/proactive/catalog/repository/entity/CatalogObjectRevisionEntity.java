@@ -61,6 +61,7 @@ import lombok.Data;
  */
 @AllArgsConstructor
 @Builder
+@BatchSize(size = 10)
 @Data
 @Entity
 @Table(name = "CATALOG_OBJECT_REVISION", uniqueConstraints = @UniqueConstraint(columnNames = { "BUCKET", "NAME",

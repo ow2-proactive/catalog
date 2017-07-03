@@ -149,17 +149,17 @@ public class CatalogObjectServiceIntegrationTest {
 
     @Test
     public void testListCatalogObjectsInBucket() {
-        List<CatalogObjectMetadata> catalogObjecs = catalogObjectService.listCatalogObjects(bucket.getMetaDataId());
+        List<CatalogObjectMetadata> catalogObjecs = mockedCatalogObjectService.listCatalogObjects(bucket.getMetaDataId());
         assertThat(catalogObjecs).hasSize(3);
     }
 
     @Test
     public void testListCatalogObjectsByKindInBucket() {
-        List<CatalogObjectMetadata> catalogObjecs = catalogObjectService.listCatalogObjectsByKind(bucket.getMetaDataId(),
-                                                                                                  "object");
+        List<CatalogObjectMetadata> catalogObjecs = mockedCatalogObjectService.listCatalogObjectsByKind(bucket.getMetaDataId(),
+                                                                                                        "object");
         assertThat(catalogObjecs).hasSize(2);
 
-        catalogObjecs = catalogObjectService.listCatalogObjectsByKind(bucket.getMetaDataId(), "workflow");
+        catalogObjecs = mockedCatalogObjectService.listCatalogObjectsByKind(bucket.getMetaDataId(), "workflow");
         assertThat(catalogObjecs).hasSize(1);
     }
 

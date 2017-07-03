@@ -25,9 +25,75 @@
  */
 package org.ow2.proactive.catalog.graphql.schema.type;
 
+import static graphql.Scalars.GraphQLLong;
+import static graphql.Scalars.GraphQLString;
+import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
+
+import java.util.Map;
+
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLObjectType;
+import lombok.Builder;
+import lombok.Data;
+
+
 /**
  * @author ActiveEon Team
  * @since 08/06/2017
  */
+@Builder
+@Data
 public class CatalogObject {
+
+    private final Long bucketId;
+
+    private final long commitDateTime;
+
+    private final String commitMessage;
+
+    private final String contentType;
+
+    private final Map<String, String> keyValueMetadata;
+
+    private final String kind;
+
+    private final String link;
+
+    private final String name;
+
+    private final static GraphQLObjectType TYPE;
+
+    static {
+        TYPE = GraphQLObjectType.newObject()
+                                .name("CatalogObject")
+                                .description("Catalog Object")
+                                .field(newFieldDefinition().name("bucketId")
+                                                           .description("Bucket Identifier")
+                                                           .type(GraphQLLong))
+                                .field(newFieldDefinition().name("commitDateTime")
+                                                           .description("Commit Datetime")
+                                                           .type(GraphQLLong))
+                                .field(newFieldDefinition().name("commitMessage")
+                                                           .description("Commit Message")
+                                                           .type(GraphQLString))
+                                .field(newFieldDefinition().name("keyValueMetadata")
+                                                           .description("Catalog Object key valu metadata list")
+                                                           .type(new GraphQLList(KeyValue.getTypeInstance()))
+                                                           .build())
+                                .field(newFieldDefinition().name("kind")
+                                                           .description("Catalog Object kind")
+                                                           .type(GraphQLString))
+                                .field(newFieldDefinition().name("name")
+                                                           .description("Catalog Object name")
+                                                           .type(GraphQLString))
+                                .field(newFieldDefinition().name("link")
+                                                           .description("Catalog Object link")
+                                                           .type(GraphQLString))
+                                .build();
+    }
+
+    public final static GraphQLObjectType getTypeInstance() {
+        return TYPE;
+    }
+
 }

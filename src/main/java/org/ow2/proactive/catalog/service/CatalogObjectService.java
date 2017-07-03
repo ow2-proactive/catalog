@@ -157,14 +157,28 @@ public class CatalogObjectService {
     public List<CatalogObjectMetadata> listCatalogObjects(Long bucketId) {
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketId);
 
-        return result.stream().map(entity -> new CatalogObjectMetadata(entity)).collect(Collectors.toList());
+        return buildMetadataWithLink(bucketId, result);
+    }
+
+    private List<CatalogObjectMetadata> buildMetadataWithLink(Long bucketId, List<CatalogObjectRevisionEntity> result) {
+        return result.stream().map(entity -> {
+            CatalogObjectMetadata catalogObjectMetadata = new CatalogObjectMetadata(entity);
+            try {
+                catalogObjectMetadata.add(createLink(bucketId,
+                                                     catalogObjectMetadata.getName(),
+                                                     entity.getCommitTime()));
+            } catch (UnsupportedEncodingException e) {
+                log.error("bucketId : {}, name : {}", bucketId, catalogObjectMetadata.getName(), e);
+            }
+            return catalogObjectMetadata;
+        }).collect(Collectors.toList());
     }
 
     public List<CatalogObjectMetadata> listCatalogObjectsByKind(Long bucketId, String kind) {
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindInBucket(bucketId,
                                                                                                                            kind);
 
-        return result.stream().map(entity -> new CatalogObjectMetadata(entity)).collect(Collectors.toList());
+        return buildMetadataWithLink(bucketId, result);
     }
 
     public void delete(Long bucketId, String name) throws CatalogObjectNotFoundException {

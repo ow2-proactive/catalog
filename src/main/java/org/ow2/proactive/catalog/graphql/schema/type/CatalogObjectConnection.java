@@ -25,9 +25,62 @@
  */
 package org.ow2.proactive.catalog.graphql.schema.type;
 
+import static graphql.Scalars.GraphQLInt;
+import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
+
+import java.util.List;
+
+import com.google.common.collect.ImmutableList;
+
+import graphql.relay.Relay;
+import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLObjectType;
+
+
 /**
  * @author ActiveEon Team
  * @since 08/06/2017
  */
 public class CatalogObjectConnection {
+    private final static Relay RELAY = new Relay();
+
+    private final static GraphQLObjectType TYPE;
+
+    static {
+        List<GraphQLFieldDefinition> extendedFields = ImmutableList.of(newFieldDefinition().name("totalCount")
+                                                                                           .description("Total number of the items.")
+                                                                                           .type(GraphQLInt)
+                                                                                           .build());
+
+        TYPE = RELAY.connectionType("CatalogObjects", CatalogObjectEdge.getInstance(), extendedFields);
+    }
+
+    public final static GraphQLObjectType getInstance() {
+        return TYPE;
+    }
+
+    public final static List<GraphQLArgument> getConnectionFieldArguments() {
+        return RELAY.getConnectionFieldArguments();
+    }
+
+    private CatalogObjectConnection() {
+    }
+
+    /**
+     *
+     */
+    public final static class CatalogObjectEdge {
+        private final static GraphQLObjectType TYPE = RELAY.edgeType("Jobs",
+                                                                     CatalogObject.getTypeInstance(),
+                                                                     null,
+                                                                     ImmutableList.of());
+
+        private CatalogObjectEdge() {
+        }
+
+        public final static GraphQLObjectType getInstance() {
+            return TYPE;
+        }
+    }
 }

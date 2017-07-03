@@ -61,6 +61,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Data
+@BatchSize(size = 25)
 @Entity
 @NamedEntityGraph(name = "catalogObject.withRevisions", attributeNodes = { @NamedAttributeNode("revisions") })
 @Table(name = "CATALOG_OBJECT", indexes = { @Index(columnList = "LAST_COMMIT_TIME") })
@@ -106,7 +107,7 @@ public class CatalogObjectEntity implements Serializable {
     @EmbeddedId
     private CatalogObjectEntityKey id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("bucketId")
     @JoinColumn(name = "BUCKET_ID", nullable = false)
     private BucketEntity bucket;
