@@ -69,6 +69,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     private static final String CATALOG_OBJECT_REVISIONS_RESOURCE = "/buckets/{bucketId}/resources/{name}/revisions";
 
     private static final String BUCKETS_RESOURCE = "/buckets";
+    
+    private static final Long SLEEP_TIME = 501L; //in miliseconds
 
     protected BucketMetadata bucket;
 
@@ -83,7 +85,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     private LocalDateTime secondCatalogObjectRevisionCommitTime;
 
     @Before
-    public void setup() throws IOException {
+    public void setup() throws IOException, InterruptedException {
 
         HashMap<String, Object> result = given().parameters("name",
                                                             "bucket",
@@ -114,6 +116,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                                             .extract()
                                             .path("");
 
+        Thread.sleep(SLEEP_TIME);
         firstCatalogObjectRevision = given().pathParam("bucketId", bucket.getMetaDataId())
                                             .pathParam("name", "WF_1_Rev_1")
                                             .queryParam("commitMessage", "first commit")
@@ -125,6 +128,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                                             .extract()
                                             .path("");
 
+        Thread.sleep(SLEEP_TIME);
         secondCatalogObjectRevision = given().pathParam("bucketId", bucket.getMetaDataId())
                                              .pathParam("name", "WF_1_Rev_1")
                                              .queryParam("commitMessage", "second commit")
@@ -352,6 +356,11 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     @Test
     public void testListWorkflowRevisionsShouldReturnSavedRevisions() {
         IntStream.rangeClosed(1, 25).forEach(i -> {
+            try {
+                Thread.sleep(SLEEP_TIME);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             given().pathParam("bucketId", bucket.getMetaDataId())
                    .pathParam("name", "WF_1_Rev_1")
