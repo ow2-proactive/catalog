@@ -73,4 +73,9 @@ public class BucketControllerTest {
         verify(bucketService, times(1)).listBuckets(Optional.empty(), Optional.empty());
     }
 
+    @Test
+    public void testDelete() throws Exception {
+        bucketService.deleteEmptyBucket(1L);
+        verify(bucketService, times(1)).deleteEmptyBucket(1L);
+    }
 }

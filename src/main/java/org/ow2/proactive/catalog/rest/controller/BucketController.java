@@ -38,6 +38,7 @@ import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingExceptio
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -92,5 +93,14 @@ public class BucketController {
     @RequestMapping(method = DELETE)
     public void cleanEmpty() {
         bucketService.cleanAllEmptyBuckets();
+    }
+
+    @ApiOperation(value = "Delete an empty bucket", notes = "It's forbidden to delete a non-empty bucket. You need to delete manually all workflows in the bucket before.")
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
+    @RequestMapping(value = "/{bucketId}", method = DELETE)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<?> delete(@PathVariable Long bucketId) {
+        BucketMetadata deletedBucketMetadata = bucketService.deleteEmptyBucket(bucketId);
+        return ResponseEntity.ok(deletedBucketMetadata);
     }
 }
