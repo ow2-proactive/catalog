@@ -69,8 +69,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     private static final String CATALOG_OBJECT_REVISIONS_RESOURCE = "/buckets/{bucketId}/resources/{name}/revisions";
 
     private static final String BUCKETS_RESOURCE = "/buckets";
-    
-    private static final Long SLEEP_TIME = 501L; //in miliseconds
+
+    private static final Long SLEEP_TIME = 503L; //in miliseconds
 
     protected BucketMetadata bucket;
 
