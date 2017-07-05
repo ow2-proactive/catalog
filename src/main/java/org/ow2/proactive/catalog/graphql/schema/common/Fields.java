@@ -42,9 +42,7 @@ public enum Fields {
     KEY,
     OWNER,
     PAGE_INFO,
-    VALUE,
-    VERSION,
-    VIEWER;
+    VALUE;
 
     public String getName() {
         return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());

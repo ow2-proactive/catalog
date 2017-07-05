@@ -23,16 +23,22 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.schema.type.filter;
+package org.ow2.proactive.catalog.repository.entity.metamodel;
+
+import com.google.common.base.CaseFormat;
+
 
 /**
  * @author ActiveEon Team
  * @since 12/06/2017
  */
-public class KindWhereArgs extends WhereArgs<String> {
+public enum BucketEntityMetaModelEnum {
 
-    public KindWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String[] in,
-            String[] notIn, Boolean isNull, String[] between, String[] notBetween, String like, String notLike) {
-        super(eq, ne, gt, gte, lt, lte, in, notIn, isNull, between, notBetween, like, notLike);
+    ID,
+    NAME,
+    OWNER;
+
+    public String getName() {
+        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
     }
 }

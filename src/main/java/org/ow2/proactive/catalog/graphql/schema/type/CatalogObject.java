@@ -29,7 +29,7 @@ import static graphql.Scalars.GraphQLLong;
 import static graphql.Scalars.GraphQLString;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 
-import java.util.Map;
+import java.util.List;
 
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
@@ -53,7 +53,7 @@ public class CatalogObject {
 
     private final String contentType;
 
-    private final Map<String, String> keyValueMetadata;
+    private final List<MetaData> metaData;
 
     private final String kind;
 
@@ -76,9 +76,9 @@ public class CatalogObject {
                                 .field(newFieldDefinition().name("commitMessage")
                                                            .description("Commit Message")
                                                            .type(GraphQLString))
-                                .field(newFieldDefinition().name("keyValueMetadata")
+                                .field(newFieldDefinition().name("metaData")
                                                            .description("Catalog Object key valu metadata list")
-                                                           .type(new GraphQLList(KeyValue.getTypeInstance()))
+                                                           .type(new GraphQLList(MetaData.getTypeInstance()))
                                                            .build())
                                 .field(newFieldDefinition().name("kind")
                                                            .description("Catalog Object kind")

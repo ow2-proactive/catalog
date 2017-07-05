@@ -25,6 +25,10 @@
  */
 package org.ow2.proactive.catalog.graphql.schema.type.filter;
 
+import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
+import static graphql.schema.GraphQLInputObjectType.newInputObject;
+
+import graphql.schema.GraphQLInputType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -37,13 +41,43 @@ import lombok.Data;
 @Data
 public class CatalogObjectWhereArgs {
 
-    private final IdWhereArgs idArgs;
+    private final AndOrArgs andOrArgs;
 
-    private final NameWhereArgs nameArgs;
+    private final CatalogObjectHavingMetadataWhereArgs havingArgs;
 
-    private final AndWhereArgs andArgs;
+    private final CatalogObjectBucketIdWhereArgs idArgs;
 
-    private final KindWhereArgs kindArgs;
+    private final CatalogObjectKindWhereArgs kindArgs;
 
-    private final RevisionWhereArgs revisionArgs;
+    private final CatalogObjectNameWhereArgs nameArgs;
+
+    private final CatalogObjectRevisionWhereArgs revisionArgs;
+
+    private final static GraphQLInputType args;
+
+    static {
+        args = newInputObject().field(newInputObjectField().name("havingMetadataArg")
+                                                           .description("CatalogObject metadata argument")
+                                                           .type(CatalogObjectHavingMetadataWhereArgs.getTypeInstance())
+                                                           .build())
+                               .field(newInputObjectField().name("bucketIdArg")
+                                                           .description("Bucket id argument")
+                                                           .description("CatalogObject bucket id argument")
+                                                           .type(CatalogObjectBucketIdWhereArgs.getTypeInstance())
+                                                           .build())
+                               .field(newInputObjectField().name("kindArg")
+                                                           .description("CatalogObject kind argument")
+                                                           .type(CatalogObjectKindWhereArgs.getTypeInstance())
+                                                           .build())
+                               .field(newInputObjectField().name("nameArg")
+                                                           .description("CatalogObject name argument")
+                                                           .type(CatalogObjectNameWhereArgs.getTypeInstance())
+                                                           .build())
+                               .build();
+
+    }
+
+    public static GraphQLInputType getWhereArguments() {
+        return args;
+    }
 }

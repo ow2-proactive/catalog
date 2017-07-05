@@ -29,10 +29,10 @@ package org.ow2.proactive.catalog.graphql.schema.type.filter;
  * @author ActiveEon Team
  * @since 12/06/2017
  */
-public class NameWhereArgs extends WhereArgs<String> {
+public class CatalogObjectNameWhereArgs extends StringWhereArgs {
 
-    public NameWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String[] in,
-            String[] notIn, Boolean isNull, String[] between, String[] notBetween, String like, String notLike) {
-        super(eq, ne, gt, gte, lt, lte, in, notIn, isNull, between, notBetween, like, notLike);
+    public CatalogObjectNameWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String like,
+            String notLike) {
+        super(eq, ne, gt, gte, lt, lte, like, notLike);
     }
 }

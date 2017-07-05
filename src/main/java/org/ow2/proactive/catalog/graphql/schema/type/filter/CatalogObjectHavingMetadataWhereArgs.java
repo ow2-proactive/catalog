@@ -25,75 +25,39 @@
  */
 package org.ow2.proactive.catalog.graphql.schema.type.filter;
 
+import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
+import static graphql.schema.GraphQLInputObjectType.newInputObject;
+
+import java.util.List;
+
+import graphql.schema.GraphQLInputType;
+import graphql.schema.GraphQLList;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+
 /**
  * @author ActiveEon Team
- * @since 09/06/2017
+ * @since 03/07/2017
  */
-public class BaseWhereArgs<T> {
+@AllArgsConstructor
+@Data
+public class CatalogObjectHavingMetadataWhereArgs {
 
-    private final T eq;
+    private final List<CatalogObjectMetadataArgs> keyValues;
 
-    private final T ne;
+    private static final GraphQLInputType TYPE;
 
-    private final T gt;
-
-    private final T gte;
-
-    private final T lt;
-
-    private final T lte;
-
-    private final T[] in;
-
-    private final T[] notIn;
-
-    private final Boolean isNull;
-
-    public BaseWhereArgs(T eq, T ne, T gt, T gte, T lt, T lte, T[] in, T[] notIn, Boolean isNull) {
-        this.eq = eq;
-        this.ne = ne;
-        this.gt = gt;
-        this.gte = gte;
-        this.lt = lt;
-        this.lte = lte;
-        this.in = in;
-        this.notIn = notIn;
-        this.isNull = isNull;
+    static {
+        TYPE = newInputObject().name("havingMetadata")
+                               .field(newInputObjectField().name("metadata")
+                                                           .type(GraphQLList.list(CatalogObjectMetadataArgs.getTypeInstance()))
+                                                           .build())
+                               .build();
     }
 
-    public T getEq() {
-        return eq;
+    public static GraphQLInputType getTypeInstance() {
+        return TYPE;
     }
 
-    public T getNe() {
-        return ne;
-    }
-
-    public T getGt() {
-        return gt;
-    }
-
-    public T getGte() {
-        return gte;
-    }
-
-    public T getLt() {
-        return lt;
-    }
-
-    public T getLte() {
-        return lte;
-    }
-
-    public T[] getIn() {
-        return in;
-    }
-
-    public T[] getNotIn() {
-        return notIn;
-    }
-
-    public Boolean getNull() {
-        return isNull;
-    }
 }

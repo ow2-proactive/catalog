@@ -23,28 +23,30 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.handler.bucket;
+package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
-import java.util.Optional;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
-import org.ow2.proactive.catalog.graphql.handler.Handler;
-import org.ow2.proactive.catalog.graphql.schema.type.filter.BucketWhereArgs;
-import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.ow2.proactive.catalog.repository.specification.bucket.BucketIdInSpecification;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.springframework.data.jpa.domain.Specification;
+
+import lombok.Data;
 
 
 /**
  * @author ActiveEon Team
- * @since 12/06/2017
+ * @since 14/06/2017
  */
-public class BucketIdInHandler implements Handler<BucketWhereArgs, BucketEntity> {
+@Data
+public class CatalogObjectRevisionLatestSpecification implements Specification<CatalogObjectEntity> {
+
+    private final Boolean isLatest;
 
     @Override
-    public Optional<Specification<BucketEntity>> handle(BucketWhereArgs bucket) {
-        if (bucket.getIdArgs() != null && bucket.getIdArgs().getEq() != null) {
-            return Optional.of(new BucketIdInSpecification((bucket.getIdArgs().getIn())));
-        }
-        return Optional.empty();
+    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        return null;
     }
 }

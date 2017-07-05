@@ -28,7 +28,10 @@ package org.ow2.proactive.catalog.graphql.schema.type;
 import static graphql.Scalars.GraphQLString;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 
+import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+
 import graphql.schema.GraphQLObjectType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
@@ -37,13 +40,16 @@ import lombok.Data;
  * @author ActiveEon Team
  * @since 08/06/2017
  */
+@AllArgsConstructor
 @Builder
 @Data
-public class KeyValue {
+public class MetaData {
 
     private final String key;
 
     private final String value;
+
+    private final String label;
 
     private final static GraphQLObjectType TYPE;
 
@@ -57,6 +63,9 @@ public class KeyValue {
                                 .field(newFieldDefinition().name("value")
                                                            .description("Value as the value in a map.")
                                                            .type(GraphQLString))
+                                .field(newFieldDefinition().name("label")
+                                                           .description("label value for ui display.")
+                                                           .type(GraphQLString))
                                 .build();
     }
 
@@ -64,4 +73,9 @@ public class KeyValue {
         return TYPE;
     }
 
+    public MetaData(KeyValueMetadataEntity entity) {
+        this.key = entity.getKey();
+        this.value = entity.getValue();
+        this.label = entity.getLabel();
+    }
 }

@@ -25,22 +25,41 @@
  */
 package org.ow2.proactive.catalog.graphql.schema.type.filter;
 
+import static graphql.Scalars.GraphQLString;
+import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
+import static graphql.schema.GraphQLInputObjectType.newInputObject;
+
+import org.ow2.proactive.catalog.graphql.schema.common.Fields;
+
+import graphql.schema.GraphQLInputType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 
 /**
  * @author ActiveEon Team
- * @since 12/06/2017
+ * @since 04/07/2017
  */
 @AllArgsConstructor
 @Data
-public class BucketWhereArgs {
+public class CatalogObjectMetadataArgs {
 
-    private final IdWhereArgs idArgs;
+    private final String key;
 
-    private final NameWhereArgs nameArgs;
+    private final String value;
 
-    private final AndWhereArgs andArgs;
+    private static final GraphQLInputType TYPE;
 
+    static {
+        TYPE = newInputObject().name("metadata")
+                               .field(newInputObjectField().name(Fields.KEY.getName()).type(GraphQLString).build())
+                               .field(newInputObjectField().name(Fields.VALUE.getName())
+                                                           .type(StringWhereArgs.getTypeInstance())
+                                                           .build())
+                               .build();
+    }
+
+    public static GraphQLInputType getTypeInstance() {
+        return TYPE;
+    }
 }

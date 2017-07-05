@@ -23,32 +23,36 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.fetcher;
+package org.ow2.proactive.catalog.graphql.schema.type.filter;
 
-import org.ow2.proactive.catalog.graphql.handler.Handler;
-import org.ow2.proactive.catalog.graphql.schema.type.filter.BucketWhereArgs;
-import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
+import static graphql.schema.GraphQLInputObjectType.newInputObject;
 
-import graphql.schema.DataFetcher;
-import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLInputType;
+import graphql.schema.GraphQLList;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 
 /**
  * @author ActiveEon Team
- * @since 09/06/2017
+ * @since 12/06/2017
  */
-@Component
-@Transactional(readOnly = true)
-public class BucketFetcher implements DataFetcher<BucketEntity> {
+@AllArgsConstructor
+@Data
+public class AndOrArgs {
 
-    @Autowired
-    private Handler<BucketWhereArgs, BucketEntity> bucketHandlers;
+    private final CatalogObjectWhereArgs[] args;
 
-    @Override
-    public BucketEntity get(DataFetchingEnvironment environment) {
-        return null;
+    private final static GraphQLInputType TYPE;
+
+    static {
+        TYPE = newInputObject().field(newInputObjectField().type(GraphQLList.list(CatalogObjectWhereArgs.getWhereArguments()))
+                                                           .build())
+                               .build();
+    }
+
+    public static GraphQLInputType getTypeInstance() {
+        return TYPE;
     }
 }

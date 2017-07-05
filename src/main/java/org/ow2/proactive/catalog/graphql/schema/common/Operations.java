@@ -37,6 +37,7 @@ import com.google.common.base.CaseFormat;
  */
 public enum Operations {
     EQ,
+    NE,
     GT,
     GTE,
     LT,

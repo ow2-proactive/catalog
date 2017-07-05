@@ -30,7 +30,7 @@ import java.util.Optional;
 import org.ow2.proactive.catalog.graphql.handler.Handler;
 import org.ow2.proactive.catalog.graphql.schema.type.filter.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
-import org.ow2.proactive.catalog.repository.specification.catalogobject.CatalogObjectIdLatestSpecification;
+import org.ow2.proactive.catalog.repository.specification.catalogobject.CatalogObjectRevisionLatestSpecification;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +46,7 @@ public class CatalogObjectIdLatestHandler implements Handler<CatalogObjectWhereA
     public Optional<Specification<CatalogObjectEntity>> handle(CatalogObjectWhereArgs whereArgs) {
 
         if (whereArgs.getIdArgs() != null && whereArgs.getRevisionArgs().getIsLatest() != null) {
-            return Optional.of(new CatalogObjectIdLatestSpecification(whereArgs.getRevisionArgs().getIsLatest()));
+            return Optional.of(new CatalogObjectRevisionLatestSpecification(whereArgs.getRevisionArgs().getIsLatest()));
         }
         return Optional.empty();
     }

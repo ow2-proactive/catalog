@@ -29,22 +29,50 @@ package org.ow2.proactive.catalog.graphql.schema.type.filter;
  * @author ActiveEon Team
  * @since 09/06/2017
  */
-public class WhereArgs<T> extends BaseWhereArgs<T> {
+public class WhereArgs<T> {
 
-    private final T[] between;
+    protected final T eq;
 
-    private final T[] notBetween;
+    protected final T ne;
 
-    private final String like;
+    protected final T gt;
 
-    private final String notLike;
+    protected final T gte;
 
-    public WhereArgs(T eq, T ne, T gt, T gte, T lt, T lte, T[] in, T[] notIn, Boolean isNull, T[] between,
-            T[] notBetween, String like, String notLike) {
-        super(eq, ne, gt, gte, lt, lte, in, notIn, isNull);
-        this.between = between;
-        this.notBetween = notBetween;
-        this.like = like;
-        this.notLike = notLike;
+    protected final T lt;
+
+    protected final T lte;
+
+    public WhereArgs(T eq, T ne, T gt, T gte, T lt, T lte) {
+        this.eq = eq;
+        this.ne = ne;
+        this.gt = gt;
+        this.gte = gte;
+        this.lt = lt;
+        this.lte = lte;
+    }
+
+    public T getEq() {
+        return eq;
+    }
+
+    public T getNe() {
+        return ne;
+    }
+
+    public T getGt() {
+        return gt;
+    }
+
+    public T getGte() {
+        return gte;
+    }
+
+    public T getLt() {
+        return lt;
+    }
+
+    public T getLte() {
+        return lte;
     }
 }

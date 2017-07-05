@@ -1,0 +1,19 @@
+schema {
+    query: Query
+}
+
+type Query {
+    allCatalogObjects(where: CatalogObjectWhereArgs): CatalogObjectConnection
+}
+
+type CatalogObjectWhereArgs {
+   AND: [CatalogObjectWhereArgs!]
+   OR: [CatalogObjectWhereArgs!]
+   bucketId: BucketIdWhereArgs
+   name: CatalogObjectNameWhereArgs
+   kind: CatalogObjectKindWhereArgs
+   content_type: CatalogObjectContentTypeWhereArgs
+   metadata: CatalogObjectMetadataWhereArgs
+}
+
+type

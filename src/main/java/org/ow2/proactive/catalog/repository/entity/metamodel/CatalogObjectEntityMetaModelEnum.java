@@ -23,31 +23,26 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.handler.bucket;
+package org.ow2.proactive.catalog.repository.entity.metamodel;
 
-import java.util.Optional;
-
-import org.ow2.proactive.catalog.graphql.handler.Handler;
-import org.ow2.proactive.catalog.graphql.schema.type.filter.BucketWhereArgs;
-import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.ow2.proactive.catalog.repository.specification.bucket.BucketIdEqualSpecification;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Component;
+import com.google.common.base.CaseFormat;
 
 
 /**
  * @author ActiveEon Team
- * @since 12/06/2017
+ * @since 13/06/2017
  */
-@Component
-public class BucketIdEqualHandler implements Handler<BucketWhereArgs, BucketEntity> {
+public enum CatalogObjectEntityMetaModelEnum {
 
-    @Override
-    public Optional<Specification<BucketEntity>> handle(BucketWhereArgs bucket) {
-        if (bucket.getIdArgs() != null && bucket.getIdArgs().getEq() != null) {
-            return Optional.of(new BucketIdEqualSpecification(new Long[] { bucket.getIdArgs().getEq() }));
-        }
-        return Optional.empty();
+    ID,
+    NAME,
+    COMMIT_ID,
+    KIND,
+    COMMIT_DATE,
+    BUCKET_ID,
+    CONTENT_TYPE;
+
+    public String getName() {
+        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
     }
-
 }

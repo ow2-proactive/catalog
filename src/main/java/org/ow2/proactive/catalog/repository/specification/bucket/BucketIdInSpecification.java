@@ -31,7 +31,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.ow2.proactive.catalog.repository.entity.medamodel.BucketEntityMetaModelEnum;
+import org.ow2.proactive.catalog.repository.entity.metamodel.BucketEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.common.IdSpecification;
 
 

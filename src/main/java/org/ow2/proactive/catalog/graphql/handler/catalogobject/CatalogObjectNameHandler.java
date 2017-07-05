@@ -23,22 +23,31 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.entity.medamodel;
+package org.ow2.proactive.catalog.graphql.handler.catalogobject;
 
-import com.google.common.base.CaseFormat;
+import java.util.Optional;
+
+import org.ow2.proactive.catalog.graphql.handler.Handler;
+import org.ow2.proactive.catalog.graphql.schema.type.filter.CatalogObjectWhereArgs;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.specification.catalogobject.CatalogObjectRevisionLatestSpecification;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
 
 
 /**
  * @author ActiveEon Team
- * @since 12/06/2017
+ * @since 14/06/2017
  */
-public enum BucketEntityMetaModelEnum {
+@Component
+public class CatalogObjectNameHandler implements Handler<CatalogObjectWhereArgs, CatalogObjectEntity> {
 
-    ID,
-    NAME,
-    OWNER;
+    @Override
+    public Optional<Specification<CatalogObjectEntity>> handle(CatalogObjectWhereArgs whereArgs) {
 
-    public String getName() {
-        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
+        if (whereArgs.getIdArgs() != null && whereArgs.getRevisionArgs().getIsLatest() != null) {
+            return Optional.of(new CatalogObjectRevisionLatestSpecification(whereArgs.getRevisionArgs().getIsLatest()));
+        }
+        return Optional.empty();
     }
 }

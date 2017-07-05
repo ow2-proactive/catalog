@@ -25,17 +25,22 @@
  */
 package org.ow2.proactive.catalog.graphql.schema.type.filter;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 
 /**
  * @author ActiveEon Team
- * @since 12/06/2017
+ * @since 14/06/2017
  */
-@AllArgsConstructor
 @Data
-public class AndWhereArgs {
+@EqualsAndHashCode(callSuper = true)
+public class CatalogObjectRevisionWhereArgs extends WhereArgs<Long> {
 
-    private final WhereArgs<?>[] args;
+    private final Boolean isLatest;
+
+    public CatalogObjectRevisionWhereArgs(Long eq, Long ne, Long gt, Long gte, Long lt, Long lte, Boolean isLatest) {
+        super(eq, ne, gt, gte, lt, lte);
+        this.isLatest = isLatest;
+    }
 }

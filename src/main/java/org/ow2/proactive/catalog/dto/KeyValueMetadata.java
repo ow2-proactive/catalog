@@ -53,7 +53,7 @@ public class KeyValueMetadata {
     public KeyValueMetadata(KeyValueMetadataEntity entity) {
         this.key = entity.getKey();
         this.value = entity.getValue();
-        this.label = entity.getType();
+        this.label = entity.getLabel();
     }
 
     @Override

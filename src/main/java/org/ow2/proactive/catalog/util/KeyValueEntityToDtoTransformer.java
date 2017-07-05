@@ -43,7 +43,7 @@ public final class KeyValueEntityToDtoTransformer {
         return from.stream()
                    .map(entity -> new org.ow2.proactive.catalog.dto.KeyValueMetadata(entity.getKey(),
                                                                                      entity.getValue(),
-                                                                                     entity.getType()))
+                                                                                     entity.getLabel()))
                    .collect(Collectors.toList());
     }
 }
