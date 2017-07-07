@@ -3,7 +3,59 @@ schema {
 }
 
 type Query {
-    allCatalogObjects(where: CatalogObjectWhereArgs): CatalogObjectConnection
+    allCatalogObjects(where: CatalogObjectWhereArgs, first: Int, last: Int, after: String, before: String): CatalogObjectConnection
+}
+
+type CatalogObjectMetadataArgs {
+    key: String
+    value: String
+}
+
+type CatalogObjectBucketIdWhereArgs{
+    in: [Long]
+    notIn: [Long]
+    eq: Long
+    ne: Long
+    gt: Long
+    gte: Long
+    lt: Long
+    lte: Long
+}
+
+type CatalogObjectHavingMetadataWhereArgs {
+    keyValues: [CatalogObjectMetadataArgs]
+}
+
+type CatalogObjectKindWhereArgs{
+    like: String
+    notLike: String
+    eq: String
+    ne: String
+    gt: String
+    gte: String
+    lt: String
+    lte: String
+}
+
+CatalogObjectNameWhereArgs{
+    like: String
+    notLike: String
+    eq: String
+    ne: String
+    gt: String
+    gte: String
+    lt: String
+    lte: String
+}
+
+type CatalogObjectRevisionWhereArgs extends WhereArgs {
+    isLatest: Boolean
+    eq: Long
+    ne: Long
+    gt: Long
+    gte: Long
+    lt: Long
+    lte: Long
 }
 
 type CatalogObjectWhereArgs {
@@ -16,4 +68,28 @@ type CatalogObjectWhereArgs {
    metadata: CatalogObjectMetadataWhereArgs
 }
 
-type
+
+type CatalogObjectConnection {
+    edges: [Edge!]!
+    pageInfo: PageInfo
+    totalCount: Int
+}
+
+type MetaData {
+    key: String
+    value: String
+    label: String
+}
+
+type CatalogObject {
+    bucketId: ID!
+    commitDateTime: Long!
+    commitMessage: String
+    contentType: String
+    metaData: [MetaData!]
+    kind: String!
+    link: String
+    name: String
+}
+
+
