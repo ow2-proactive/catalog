@@ -37,7 +37,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ow2.proactive.catalog.graphql.bean.filter.AndOrArgs;
 import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectBucketIdWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectNameWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectWhereArgs;
@@ -84,9 +83,9 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
         when(metadataHandler.handle(any(CatalogObjectWhereArgs.class))).thenReturn(Optional.empty());
 
         CatalogObjectWhereArgs bucketid = CatalogObjectWhereArgs.builder()
-                                                                .idArgs(CatalogObjectBucketIdWhereArgs.builder()
-                                                                                                      .eq(1L)
-                                                                                                      .build())
+                                                                .bucketIdArgs(CatalogObjectBucketIdWhereArgs.builder()
+                                                                                                            .eq(1L)
+                                                                                                            .build())
                                                                 .build();
         CatalogObjectWhereArgs name = CatalogObjectWhereArgs.builder()
                                                             .nameArgs(CatalogObjectNameWhereArgs.builder()
@@ -95,9 +94,9 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
                                                             .build();
 
         CatalogObjectWhereArgs bucketid2 = CatalogObjectWhereArgs.builder()
-                                                                 .idArgs(CatalogObjectBucketIdWhereArgs.builder()
-                                                                                                       .eq(2L)
-                                                                                                       .build())
+                                                                 .bucketIdArgs(CatalogObjectBucketIdWhereArgs.builder()
+                                                                                                             .eq(2L)
+                                                                                                             .build())
                                                                  .build();
 
         CatalogObjectWhereArgs name2 = CatalogObjectWhereArgs.builder()
@@ -112,18 +111,17 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
                                                                                                  .build())
                                                              .build();
 
-        AndOrArgs and1 = new AndOrArgs(ImmutableList.of(bucketid, name));
+        CatalogObjectWhereArgs orwhere3 = CatalogObjectWhereArgs.builder()
+                                                                .orArgs(ImmutableList.of(name2, name3))
+                                                                .build();
 
-        AndOrArgs or3 = new AndOrArgs(ImmutableList.of(name2, name3));
-        CatalogObjectWhereArgs orwhere3 = CatalogObjectWhereArgs.builder().orArgs(or3).build();
-
-        AndOrArgs and2 = new AndOrArgs(ImmutableList.of(bucketid2, orwhere3));
-
-        CatalogObjectWhereArgs andwhere1 = CatalogObjectWhereArgs.builder().andArgs(and1).build();
-        CatalogObjectWhereArgs andwhere2 = CatalogObjectWhereArgs.builder().andArgs(and2).build();
-        AndOrArgs or = new AndOrArgs(ImmutableList.of(andwhere1, andwhere2));
-
-        whereArgs = CatalogObjectWhereArgs.builder().orArgs(or).build();
+        CatalogObjectWhereArgs andwhere1 = CatalogObjectWhereArgs.builder()
+                                                                 .andArgs(ImmutableList.of(bucketid, name))
+                                                                 .build();
+        CatalogObjectWhereArgs andwhere2 = CatalogObjectWhereArgs.builder()
+                                                                 .andArgs(ImmutableList.of(bucketid2, orwhere3))
+                                                                 .build();
+        whereArgs = CatalogObjectWhereArgs.builder().orArgs(ImmutableList.of(andwhere1, andwhere2)).build();
         andFilterHandler.init();
     }
 

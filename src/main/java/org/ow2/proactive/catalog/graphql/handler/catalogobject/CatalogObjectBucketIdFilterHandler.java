@@ -50,8 +50,8 @@ public class CatalogObjectBucketIdFilterHandler implements FilterHandler<Catalog
     @Override
     public Optional<Specification<CatalogObjectEntity>> handle(CatalogObjectWhereArgs whereArgs) {
 
-        if (whereArgs.getIdArgs() != null) {
-            CatalogObjectBucketIdWhereArgs bucketIdWhereArgs = whereArgs.getIdArgs();
+        if (whereArgs.getBucketIdArgs() != null) {
+            CatalogObjectBucketIdWhereArgs bucketIdWhereArgs = whereArgs.getBucketIdArgs();
 
             if (bucketIdWhereArgs.getEq() != null) {
                 return Optional.of(new LongEqNeSpecification(CatalogObjectEntityMetaModelEnum.BUCKET_ID,

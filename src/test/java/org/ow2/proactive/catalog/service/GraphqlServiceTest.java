@@ -23,22 +23,38 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.service;
 
-import java.util.List;
+import static com.google.common.truth.Truth.assertThat;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import java.io.IOException;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import graphql.schema.DataFetcher;
 
 
 /**
  * @author ActiveEon Team
- * @since 12/06/2017
+ * @since 07/07/2017
  */
-@AllArgsConstructor
-@Data
-public class AndOrArgs {
+@RunWith(MockitoJUnitRunner.class)
+public class GraphqlServiceTest {
 
-    private final List<CatalogObjectWhereArgs> args;
+    @InjectMocks
+    private GraphqlService graphqlService;
+
+    @Mock
+    private DataFetcher catalogObjectFetcher;
+
+    @Test
+    public void testSchemaBuilding() throws IOException {
+        graphqlService.init();
+        assertThat(graphqlService.getGraphql()).isNotNull();
+    }
 
 }

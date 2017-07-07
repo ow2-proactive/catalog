@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
-import org.ow2.proactive.catalog.graphql.bean.filter.AndOrArgs;
 import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
@@ -85,7 +84,7 @@ public class CatalogObjectAndOrGroupFilterHandler
 
     @Override
     public Optional<Specification<CatalogObjectEntity>> handle(CatalogObjectWhereArgs catalogObjectWhereArgs) {
-        AndOrArgs andOrArgs;
+        List<CatalogObjectWhereArgs> andOrArgs;
         Operations operations;
 
         log.debug(catalogObjectWhereArgs);
@@ -148,6 +147,10 @@ public class CatalogObjectAndOrGroupFilterHandler
                 }
             }
 
+            if (nodeSpecList.isEmpty()) {
+                throw new IllegalArgumentException("At least one argument is needed");
+            }
+
             Specification<CatalogObjectEntity> temp;
             if (nodeOperations == Operations.AND) {
                 temp = AndSpecification.builder().fieldSpcifications(nodeSpecList).build();
@@ -165,23 +168,23 @@ public class CatalogObjectAndOrGroupFilterHandler
         return leftChildSpec;
     }
 
-    private List<CatalogObjectWhereArgsTreeNode> postOrderTraverseWhereArgsToHaveTreeNodes(AndOrArgs andOrArgs,
-            Operations operations) {
-        Deque<AndOrArgs> stack = new LinkedList<>();
+    private List<CatalogObjectWhereArgsTreeNode>
+            postOrderTraverseWhereArgsToHaveTreeNodes(List<CatalogObjectWhereArgs> andOrArgs, Operations operations) {
+        Deque<List<CatalogObjectWhereArgs>> stack = new LinkedList<>();
         stack.push(andOrArgs);
 
         List<CatalogObjectWhereArgsTreeNode> ret = new ArrayList<>();
 
         while (!stack.isEmpty()) {
-            AndOrArgs top = stack.pop();
+            List<CatalogObjectWhereArgs> top = stack.pop();
             if (top != null) {
-                ret.add(new CatalogObjectWhereArgsTreeNode(operations, top.getArgs()));
+                ret.add(new CatalogObjectWhereArgsTreeNode(operations, top));
 
-                ArrayList<CatalogObjectWhereArgs> argsCopy = new ArrayList<>(top.getArgs());
+                ArrayList<CatalogObjectWhereArgs> argsCopy = new ArrayList<>(top);
 
                 Iterator<CatalogObjectWhereArgs> iterator = argsCopy.iterator();
-                AndOrArgs left = null;
-                AndOrArgs right = null;
+                List<CatalogObjectWhereArgs> left = null;
+                List<CatalogObjectWhereArgs> right = null;
                 while (iterator.hasNext()) {
                     CatalogObjectWhereArgs next = iterator.next();
                     if (next.getAndArgs() != null) {
@@ -189,7 +192,7 @@ public class CatalogObjectAndOrGroupFilterHandler
                         left = next.getAndArgs();
                         iterator.remove();
                         if (!argsCopy.isEmpty()) {
-                            right = new AndOrArgs(argsCopy);
+                            right = argsCopy;
                         }
                         break;
                     } else if (next.getOrArgs() != null) {
@@ -197,7 +200,7 @@ public class CatalogObjectAndOrGroupFilterHandler
                         left = next.getOrArgs();
                         iterator.remove();
                         if (!argsCopy.isEmpty()) {
-                            right = new AndOrArgs(argsCopy);
+                            right = argsCopy;
                         }
                         break;
                     }

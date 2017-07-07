@@ -27,14 +27,13 @@ package org.ow2.proactive.catalog.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;
@@ -47,6 +46,7 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
 
@@ -58,6 +58,7 @@ import lombok.extern.log4j.Log4j2;
 @Service
 public class GraphqlService {
 
+    @Getter
     private GraphQL graphql;
 
     @Autowired
@@ -68,30 +69,19 @@ public class GraphqlService {
         SchemaParser schemaParser = new SchemaParser();
         SchemaGenerator schemaGenerator = new SchemaGenerator();
 
-        String pathToFile = "D:\\Workspace\\IDEA\\catalog-generic\\src\\main\\resources\\graphql-idl\\catalogObjectSchema.graphqls";
-        String content = new String(Files.readAllBytes(Paths.get(pathToFile)));
-        System.out.println("The content" + content);
-
-        File schemaFile = new File(pathToFile);
+        File schemaFile = new ClassPathResource("graphql-idl/catalogObjectSchema.graphqls").getFile();
 
         TypeDefinitionRegistry typeRegistry = schemaParser.parse(schemaFile);
         RuntimeWiring wiring = buildRuntimeWiring();
         GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeRegistry, wiring);
 
         graphql = GraphQL.newGraphQL(graphQLSchema).build();
-
-        //        graphql = GraphQL.newGraphQL(GraphQLSchema.newSchema()
-        //                                                  .query(Query.builder()
-        //                                                              .catalogObjectFetcher(catalogObjectFetcher)
-        //                                                              .build()
-        //                                                              .getType())
-        //                                                  .build())
-        //                         .build();
     }
 
-    RuntimeWiring buildRuntimeWiring() {
+    private RuntimeWiring buildRuntimeWiring() {
         return RuntimeWiring.newRuntimeWiring()
-                            .type("Query", typeWiring -> typeWiring.dataFetcher("CatalogObjects", catalogObjectFetcher))
+                            .type("Query",
+                                  typeWiring -> typeWiring.dataFetcher("allCatalogObjects", catalogObjectFetcher))
                             .build();
     }
 

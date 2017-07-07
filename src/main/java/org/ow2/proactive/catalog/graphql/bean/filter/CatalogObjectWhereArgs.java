@@ -25,6 +25,8 @@
  */
 package org.ow2.proactive.catalog.graphql.bean.filter;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,18 +41,16 @@ import lombok.Data;
 @Data
 public class CatalogObjectWhereArgs {
 
-    private final AndOrArgs andArgs;
+    private final List<CatalogObjectWhereArgs> andArgs;
 
-    private final AndOrArgs orArgs;
+    private final List<CatalogObjectWhereArgs> orArgs;
 
     private final CatalogObjectMetadataArgs metadataArgs;
 
-    private final CatalogObjectBucketIdWhereArgs idArgs;
+    private final CatalogObjectBucketIdWhereArgs bucketIdArgs;
 
     private final CatalogObjectKindWhereArgs kindArgs;
 
     private final CatalogObjectNameWhereArgs nameArgs;
-
-    private final CatalogObjectRevisionWhereArgs revisionArgs;
 
 }
