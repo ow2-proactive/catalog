@@ -23,30 +23,34 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.entity.metamodel;
+package org.ow2.proactive.catalog.graphql.bean.filter;
 
-import com.google.common.base.CaseFormat;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 
 
 /**
  * @author ActiveEon Team
- * @since 13/06/2017
+ * @since 12/06/2017
  */
-public enum CatalogObjectEntityMetaModelEnum {
+@AllArgsConstructor
+@Builder
+@Data
+public class CatalogObjectWhereArgs {
 
-    BUCKET_ID,
-    COMMIT_DATE,
-    COMMIT_ID,
-    COMMIT_TIME,
-    CONTENT_TYPE,
-    ID,
-    KEY,
-    KIND,
-    LAST_COMMIT_TIME,
-    NAME,
-    VALUE;
+    private final AndOrArgs andArgs;
 
-    public String getName() {
-        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
-    }
+    private final AndOrArgs orArgs;
+
+    private final CatalogObjectMetadataArgs metadataArgs;
+
+    private final CatalogObjectBucketIdWhereArgs idArgs;
+
+    private final CatalogObjectKindWhereArgs kindArgs;
+
+    private final CatalogObjectNameWhereArgs nameArgs;
+
+    private final CatalogObjectRevisionWhereArgs revisionArgs;
+
 }

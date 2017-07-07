@@ -23,28 +23,22 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.entity.metamodel;
+package org.ow2.proactive.catalog.graphql.bean.common;
 
 import com.google.common.base.CaseFormat;
 
 
 /**
  * @author ActiveEon Team
- * @since 13/06/2017
+ * @since 14/06/2017
  */
-public enum CatalogObjectEntityMetaModelEnum {
-
-    BUCKET_ID,
-    COMMIT_DATE,
-    COMMIT_ID,
-    COMMIT_TIME,
-    CONTENT_TYPE,
-    ID,
-    KEY,
-    KIND,
-    LAST_COMMIT_TIME,
-    NAME,
-    VALUE;
+public enum Arguments {
+    AFTER,
+    BEFORE,
+    FIRST,
+    LAST,
+    ORDER_BY,
+    WHERE;
 
     public String getName() {
         return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());

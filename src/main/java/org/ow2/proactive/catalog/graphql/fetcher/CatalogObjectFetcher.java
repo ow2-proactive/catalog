@@ -26,21 +26,18 @@
 package org.ow2.proactive.catalog.graphql.fetcher;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.ow2.proactive.catalog.graphql.handler.Handler;
-import org.ow2.proactive.catalog.graphql.schema.common.Arguments;
-import org.ow2.proactive.catalog.graphql.schema.type.CatalogObject;
-import org.ow2.proactive.catalog.graphql.schema.type.CatalogObjectConnection;
-import org.ow2.proactive.catalog.graphql.schema.type.MetaData;
-import org.ow2.proactive.catalog.graphql.schema.type.filter.CatalogObjectWhereArgs;
+import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.graphql.bean.common.Arguments;
+import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectWhereArgs;
+import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
 import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,30 +51,25 @@ import graphql.schema.DataFetchingEnvironment;
  */
 @Component
 @Transactional(readOnly = true)
-public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection> {
+public class CatalogObjectFetcher implements DataFetcher {
 
     @Autowired
-    private List<Handler<CatalogObjectWhereArgs, CatalogObjectEntity>> catalogObjectHandlers;
+    private List<FilterHandler<CatalogObjectWhereArgs, CatalogObjectEntity>> catalogObjectFilterHandlers;
 
     @Autowired
     private CatalogObjectRepository catalogObjectRepository;
 
     @Override
-    public CatalogObjectConnection get(DataFetchingEnvironment environment) {
+    public Object get(DataFetchingEnvironment environment) {
         CatalogObjectWhereArgs argument = environment.getArgument(Arguments.WHERE.getName());
 
-        List<Specification<CatalogObjectEntity>> specificationList = catalogObjectHandlers.stream()
-                                                                                          .map(handler -> handler.handle(argument))
-                                                                                          .filter(specificationOptional -> specificationOptional.isPresent())
-                                                                                          .map(optional -> optional.get())
-                                                                                          .collect(Collectors.toList());
+        Optional<Specification<CatalogObjectEntity>> specificationOptional = catalogObjectFilterHandlers.stream()
+                                                                                                        .map(handler -> handler.handle(argument))
+                                                                                                        .filter(spec -> spec.isPresent())
+                                                                                                        .map(optional -> optional.get())
+                                                                                                        .findFirst();
 
-        Specification<CatalogObjectEntity> specifications = specificationList.get(0);
-        for (int i = 1; i < specificationList.size(); i++) {
-            specifications = Specifications.where(specifications).and(specificationList.get(i));
-        }
-
-        List<CatalogObjectEntity> catalogObjectEntities = catalogObjectRepository.findAll(specifications);
+        List<CatalogObjectEntity> catalogObjectEntities = catalogObjectRepository.findAll(specificationOptional.get());
         return null;
     }
 
@@ -123,28 +115,12 @@ public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection
         return false;
     }
 
-    public static class CatalogObjectMapper implements Function<Stream<CatalogObjectEntity>, Stream<CatalogObject>> {
+    public static class CatalogObjectMapper
+            implements Function<Stream<CatalogObjectEntity>, Stream<CatalogObjectMetadata>> {
 
         @Override
-        public Stream<CatalogObject> apply(Stream<CatalogObjectEntity> catalogObjectEntityStream) {
-            return catalogObjectEntityStream.map(entity -> {
-                List<MetaData> metaData = entity.getRevisions()
-                                                .first()
-                                                .getKeyValueMetadataList()
-                                                .stream()
-                                                .map(MetaData::new)
-                                                .collect(Collectors.toList());
-
-                return CatalogObject.builder()
-                                    .bucketId(entity.getId().getBucketId())
-                                    .commitDateTime(entity.getRevisions().first().getCommitTime())
-                                    .commitMessage(entity.getRevisions().first().getCommitMessage())
-                                    .contentType(entity.getContentType())
-                                    .kind(entity.getKind())
-                                    .name(entity.getId().getName())
-                                    .metaData(metaData)
-                                    .build();
-            });
+        public Stream<CatalogObjectMetadata> apply(Stream<CatalogObjectEntity> catalogObjectEntityStream) {
+            return catalogObjectEntityStream.map(CatalogObjectMetadata::new);
         }
     }
 }
