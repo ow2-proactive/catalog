@@ -23,30 +23,38 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.entity.metamodel;
+package org.ow2.proactive.catalog.service;
 
-import com.google.common.base.CaseFormat;
+import static com.google.common.truth.Truth.assertThat;
+
+import java.io.IOException;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import graphql.schema.DataFetcher;
 
 
 /**
  * @author ActiveEon Team
- * @since 13/06/2017
+ * @since 07/07/2017
  */
-public enum CatalogObjectEntityMetaModelEnum {
+@RunWith(MockitoJUnitRunner.class)
+public class GraphqlServiceTest {
 
-    BUCKET_ID,
-    COMMIT_DATE,
-    COMMIT_ID,
-    COMMIT_TIME,
-    CONTENT_TYPE,
-    ID,
-    KEY,
-    KIND,
-    LAST_COMMIT_TIME,
-    NAME,
-    VALUE;
+    @InjectMocks
+    private GraphqlService graphqlService;
 
-    public String getName() {
-        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());
+    @Mock
+    private DataFetcher catalogObjectFetcher;
+
+    @Test
+    public void testSchemaBuilding() throws IOException {
+        graphqlService.init();
+        assertThat(graphqlService.getGraphql()).isNotNull();
     }
+
 }
