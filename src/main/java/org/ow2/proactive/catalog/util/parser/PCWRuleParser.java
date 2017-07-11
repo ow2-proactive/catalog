@@ -62,21 +62,12 @@ public final class PCWRuleParser implements CatalogObjectParserInterface {
 
         List<KeyValueMetadataEntity> keyValueMetadataEntities = new ArrayList<>();
 
-        PollConfiguration pollConfiguration = pcwRule.getPollConfiguration();
+        PollConfiguration pollConfiguration = checkAndGetPollConfiguration(pcwRule);
 
-        String pcwRuleName = "";
-        if (pcwRule.getName() != null) {
-            pcwRuleName = pcwRule.getName();
-        }
-        if (pollConfiguration == null) {
-            throw new RuntimeException("Poll Configuration is missing in the pcw-rule: " + pcwRuleName);
-        }
+        String pcwRuleName = ((pcwRule.getName() == null) ? "" : pcwRule.getName());
         keyValueMetadataEntities.add(new KeyValueMetadataEntity("name", pcwRuleName, GENERAL_LABEL));
 
-        String pcwPollType = "";
-        if (pollConfiguration.getPollType() != null) {
-            pcwPollType = pollConfiguration.getPollType();
-        }
+        String pcwPollType = ((pollConfiguration.getPollType() == null) ? "" : pollConfiguration.getPollType());
         keyValueMetadataEntities.add(new KeyValueMetadataEntity("PollType", pcwPollType, POLL_CONFIGURATION_LABEL));
         keyValueMetadataEntities.add(new KeyValueMetadataEntity("pollingPeriodInSeconds",
                                                                 String.valueOf(pollConfiguration.getPollingPeriodInSeconds()),
@@ -84,19 +75,9 @@ public final class PCWRuleParser implements CatalogObjectParserInterface {
         keyValueMetadataEntities.add(new KeyValueMetadataEntity("calmPeriodInSeconds",
                                                                 String.valueOf(pollConfiguration.getCalmPeriodInSeconds()),
                                                                 POLL_CONFIGURATION_LABEL));
-        List<String> nodeUrlsList = new LinkedList<>();
-        pollConfiguration.getNodeInformations()
-                         .stream()
-                         .forEach(nodeInformation -> nodeUrlsList.add(nodeInformation.getUrl()));
 
-        String nodeUrlsListAsJson = "";
-        String kpisListAsJson = "";
-        try {
-            nodeUrlsListAsJson = mapper.writeValueAsString(nodeUrlsList);
-            kpisListAsJson = mapper.writeValueAsString(pollConfiguration.getKpis());
-        } catch (JsonProcessingException e) {
-            log.error("Unable to process pcw-rule parameters to json string", e);
-        }
+        String nodeUrlsListAsJson = getNodeUrlsAsJsonListToString(pollConfiguration);
+        String kpisListAsJson = getKpisAsJsonListToString(pollConfiguration);
         keyValueMetadataEntities.add(new KeyValueMetadataEntity("kpis", kpisListAsJson, POLL_CONFIGURATION_LABEL));
         keyValueMetadataEntities.add(new KeyValueMetadataEntity("NodeUrls",
                                                                 nodeUrlsListAsJson,
@@ -111,5 +92,38 @@ public final class PCWRuleParser implements CatalogObjectParserInterface {
         } catch (IOException e) {
             throw new RuntimeException("Problem to parse the pcw-rule", e);
         }
+    }
+
+    private PollConfiguration checkAndGetPollConfiguration(Rule rule) {
+        PollConfiguration pollConfiguration = rule.getPollConfiguration();
+        if (pollConfiguration == null) {
+            throw new RuntimeException("Poll Configuration is missing in the pcw-rule: " + rule.getName());
+        }
+        return pollConfiguration;
+    }
+
+    private String getNodeUrlsAsJsonListToString(PollConfiguration pollConfiguration) {
+        List<String> nodeUrlsList = new LinkedList<>();
+        pollConfiguration.getNodeInformations()
+                         .stream()
+                         .forEach(nodeInformation -> nodeUrlsList.add(nodeInformation.getUrl()));
+
+        String nodeUrlsListAsJson = "[]";
+        try {
+            nodeUrlsListAsJson = mapper.writeValueAsString(nodeUrlsList);
+        } catch (JsonProcessingException e) {
+            log.error("Unable to process node urls pcw-rule parameters to json string", e);
+        }
+        return nodeUrlsListAsJson;
+    }
+
+    private String getKpisAsJsonListToString(PollConfiguration pollConfiguration) {
+        String kpisListAsJson = "[]";
+        try {
+            kpisListAsJson = mapper.writeValueAsString(pollConfiguration.getKpis());
+        } catch (JsonProcessingException e) {
+            log.error("Unable to process kpis pcw-rule parameters to json string", e);
+        }
+        return kpisListAsJson;
     }
 }

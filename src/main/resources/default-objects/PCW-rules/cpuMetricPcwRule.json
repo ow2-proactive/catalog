@@ -1,0 +1,7 @@
+{
+	"kind": "pcw-rule",
+	"name": "cpuMetricPcwRule",
+	"commitMessage": "First commit",
+	"objectFileName": "cpuMetricPcwRule.json",
+	"contentType": "application/json"
+}

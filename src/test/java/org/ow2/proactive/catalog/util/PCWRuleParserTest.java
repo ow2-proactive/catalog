@@ -25,8 +25,8 @@
  */
 package org.ow2.proactive.catalog.util;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
@@ -48,7 +48,7 @@ public final class PCWRuleParserTest {
     public void testParseCpuRule() throws XMLStreamException {
         List<KeyValueMetadataEntity> result = parseRule("pcwRuleExample.json");
 
-        assertThat(result).hasSize(6);
+        assertThat(result.size(), is(6));
         assertKeyValueDataAre(result.get(0), "name", "ruleNodeIsUpMetric", "General");
         assertKeyValueDataAre(result.get(1), "PollType", "Ping", "PollConfiguration");
         assertKeyValueDataAre(result.get(2), "pollingPeriodInSeconds", "100", "PollConfiguration");
@@ -65,14 +65,16 @@ public final class PCWRuleParserTest {
     }
 
     private static void assertKeyValueDataAre(KeyValueMetadataEntity data, String key, String value, String type) {
-        assertTrue(data.getKey().equals(key) && data.getValue().equals(value) && data.getType().equals(type));
+        assertThat(data.getKey(), is(key));
+        assertThat(data.getValue(), is(value));
+        assertThat(data.getType(), is(type));
     }
 
     @Test
     public void testParseRuleContainingNoName() throws Exception {
         List<KeyValueMetadataEntity> result = parseRule("pcwRuleNoName.json");
 
-        assertThat(result).hasSize(6);
+        assertThat(result.size(), is(6));
         assertKeyValueDataAre(result.get(0), "name", "", "General");
         assertKeyValueDataAre(result.get(1), "PollType", "Ping", "PollConfiguration");
         assertKeyValueDataAre(result.get(2), "pollingPeriodInSeconds", "100", "PollConfiguration");
@@ -91,7 +93,7 @@ public final class PCWRuleParserTest {
     public void testParseRuleContainingNoType() throws Exception {
         List<KeyValueMetadataEntity> result = parseRule("pcwRuleNoType.json");
 
-        assertThat(result).hasSize(6);
+        assertThat(result.size(), is(6));
         assertKeyValueDataAre(result.get(0), "name", "ruleNodeIsUpMetric", "General");
         assertKeyValueDataAre(result.get(1), "PollType", "", "PollConfiguration");
         assertKeyValueDataAre(result.get(2), "pollingPeriodInSeconds", "100", "PollConfiguration");
@@ -110,7 +112,7 @@ public final class PCWRuleParserTest {
     public void testParseRuleContainingNoPollingPeriod() throws Exception {
         List<KeyValueMetadataEntity> result = parseRule("pcwRuleNoPollingPeriod.json");
 
-        assertThat(result).hasSize(6);
+        assertThat(result.size(), is(6));
         assertKeyValueDataAre(result.get(0), "name", "ruleNodeIsUpMetric", "General");
         assertKeyValueDataAre(result.get(1), "PollType", "Ping", "PollConfiguration");
         assertKeyValueDataAre(result.get(2), "pollingPeriodInSeconds", "0", "PollConfiguration");
@@ -129,7 +131,7 @@ public final class PCWRuleParserTest {
     public void testParseRuleContainingNoUrl() throws Exception {
         List<KeyValueMetadataEntity> result = parseRule("pcwRuleNoNodeUrl.json");
 
-        assertThat(result).hasSize(6);
+        assertThat(result.size(), is(6));
         assertKeyValueDataAre(result.get(0), "name", "ruleNodeIsUpMetric", "General");
         assertKeyValueDataAre(result.get(1), "PollType", "Ping", "PollConfiguration");
         assertKeyValueDataAre(result.get(2), "pollingPeriodInSeconds", "100", "PollConfiguration");
@@ -148,7 +150,7 @@ public final class PCWRuleParserTest {
 
     @Test(expected = RuntimeException.class)
     public void testLoadFromNotValidFolderException() throws XMLStreamException {
-        parseRule("WronRuleToParse.json");
+        parseRule("pcwRuleWrongToParse.json");
     }
 
     private List<KeyValueMetadataEntity> parseRule(String filename) throws XMLStreamException {

@@ -201,7 +201,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .queryParam("name", "pcw-rule test")
                .queryParam("commitMessage", "first commit")
                .queryParam("contentType", "application/json")
-               .multiPart(IntegrationTestUtil.getPCWRule("WronRuleToParse.json"))
+               .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleWrongToParse.json"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
