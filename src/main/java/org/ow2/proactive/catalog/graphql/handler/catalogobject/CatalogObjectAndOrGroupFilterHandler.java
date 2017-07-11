@@ -36,8 +36,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
-import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification;
@@ -89,11 +89,11 @@ public class CatalogObjectAndOrGroupFilterHandler
 
         log.debug(catalogObjectWhereArgs);
 
-        if (catalogObjectWhereArgs.getAndArgs() != null) {
-            andOrArgs = catalogObjectWhereArgs.getAndArgs();
+        if (catalogObjectWhereArgs.getAndArg() != null) {
+            andOrArgs = catalogObjectWhereArgs.getAndArg();
             operations = Operations.AND;
         } else {
-            andOrArgs = catalogObjectWhereArgs.getOrArgs();
+            andOrArgs = catalogObjectWhereArgs.getOrArg();
             operations = Operations.OR;
         }
 
@@ -129,7 +129,7 @@ public class CatalogObjectAndOrGroupFilterHandler
             List<Specification<CatalogObjectEntity>> nodeSpecList = new ArrayList<>();
 
             for (CatalogObjectWhereArgs whereArg : argsTreeNode.getWhereArgs()) {
-                if (whereArg.getOrArgs() == null && whereArg.getAndArgs() == null) {
+                if (whereArg.getOrArg() == null && whereArg.getAndArg() == null) {
                     for (FilterHandler<CatalogObjectWhereArgs, CatalogObjectEntity> fieldFilterHandler : fieldFilterHandlers) {
                         Optional<Specification<CatalogObjectEntity>> sp = fieldFilterHandler.handle(whereArg);
                         if (sp.isPresent()) {
@@ -187,17 +187,17 @@ public class CatalogObjectAndOrGroupFilterHandler
                 List<CatalogObjectWhereArgs> right = null;
                 while (iterator.hasNext()) {
                     CatalogObjectWhereArgs next = iterator.next();
-                    if (next.getAndArgs() != null) {
+                    if (next.getAndArg() != null) {
                         operations = Operations.AND;
-                        left = next.getAndArgs();
+                        left = next.getAndArg();
                         iterator.remove();
                         if (!argsCopy.isEmpty()) {
                             right = argsCopy;
                         }
                         break;
-                    } else if (next.getOrArgs() != null) {
+                    } else if (next.getOrArg() != null) {
                         operations = Operations.OR;
-                        left = next.getOrArgs();
+                        left = next.getOrArg();
                         iterator.remove();
                         if (!argsCopy.isEmpty()) {
                             right = argsCopy;

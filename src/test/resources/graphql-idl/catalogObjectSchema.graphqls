@@ -3,7 +3,14 @@ schema {
 }
 
 type Query {
-    allCatalogObjects(where: CatalogObjectWhereArgs, first: Int, last: Int, after: String, before: String): CatalogObjectConnection
+    allCatalogObjects(where: CatalogObjectWhereArgs, orderBy: OrderByEnum, pageInfo: PageInfo): CatalogObjectConnection
+}
+
+enum OrderByEnum {
+    catalogObjectKey_ASC
+    catalogObjectKey_DESC
+    kind_ASC
+    kind_DESC
 }
 
 input CatalogObjectMetadataWhereArgs {
@@ -53,25 +60,18 @@ input CatalogObjectWhereArgs {
 }
 
 type CatalogObjectConnection {
-    edges: [Edge!]!
-    pageInfo: PageInfo
+    edges: [CatalogObject!]
+    page: Int
+    size: Int
+    hasNext: Boolean
+    hasPrevious: Boolean
+    totalPage: Int
     totalCount: Int
 }
 
-type Edge {
-    node: CatalogObject
-    cursor: ConnectionCursor
-}
-
-type PageInfo {
-    startCursor: ConnectionCursor
-    endCursor: ConnectionCursor
-    hasPreviousPage: Boolean
-    hasNextPage: Boolean
-}
-
-type ConnectionCursor {
-    value: String
+input PageInfo {
+    page: Int
+    size: Int
 }
 
 type MetaData {
@@ -82,7 +82,7 @@ type MetaData {
 
 type CatalogObject {
     bucketId: ID!
-    commitDateTime: Long!
+    commitTime: String!
     commitMessage: String
     contentType: String
     metaData: [MetaData!]
@@ -90,5 +90,3 @@ type CatalogObject {
     link: String
     name: String!
 }
-
-

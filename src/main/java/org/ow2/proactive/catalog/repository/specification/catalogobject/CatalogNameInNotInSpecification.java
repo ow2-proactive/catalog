@@ -23,24 +23,23 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import java.util.List;
+
+import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
+import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyInNotInSpecificatoin;
 
 
 /**
  * @author ActiveEon Team
- * @since 12/06/2017
+ * @since 05/07/2017
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class CatalogObjectNameWhereArgs extends StringWhereArgs {
+public class CatalogNameInNotInSpecification extends CompositeKeyInNotInSpecificatoin<String> {
 
-    @Builder
-    public CatalogObjectNameWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String like,
-            String notLike) {
-        super(eq, ne, gt, gte, lt, lte, like, notLike);
+    public CatalogNameInNotInSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
+            List<String> value) {
+        super(entityMetaModelEnum, operations, value);
     }
 }

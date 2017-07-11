@@ -29,6 +29,7 @@ import javax.sql.DataSource;
 
 import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
+import org.ow2.proactive.catalog.service.GraphqlService;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -44,7 +45,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
  * @since 23/06/2017
  */
 @EnableAutoConfiguration
-@EntityScan(basePackages = { "org.ow2.proactive.catalog.repository.entity" })
+@EntityScan(basePackages = { "org.ow2.proactive.catalog" })
 @PropertySource("classpath:application-test.properties")
 @Profile("test")
 public class IntegrationTestConfig {
@@ -69,6 +70,11 @@ public class IntegrationTestConfig {
     @Bean
     public CatalogObjectService catalogObjectService() {
         return new CatalogObjectService();
+    }
+
+    @Bean
+    public GraphqlService graphqlService() {
+        return new GraphqlService();
     }
 
 }

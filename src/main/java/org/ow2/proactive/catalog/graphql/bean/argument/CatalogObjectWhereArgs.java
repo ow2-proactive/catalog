@@ -23,25 +23,40 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.graphql.bean.argument;
 
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
  * @since 12/06/2017
  */
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class CatalogObjectKindWhereArgs extends StringWhereArgs {
+public class CatalogObjectWhereArgs {
 
-    @Builder
-    public CatalogObjectKindWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String like,
-            String notLike) {
-        super(eq, ne, gt, gte, lt, lte, like, notLike);
-    }
+    @JsonProperty("AND")
+    private List<CatalogObjectWhereArgs> andArg;
+
+    @JsonProperty("OR")
+    private List<CatalogObjectWhereArgs> orArg;
+
+    private CatalogObjectMetadataArgs metadataArg;
+
+    private CatalogObjectBucketIdWhereArgs bucketIdArg;
+
+    private CatalogObjectKindWhereArgs kindArg;
+
+    private CatalogObjectNameWhereArgs nameArg;
 
 }

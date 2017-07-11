@@ -23,21 +23,23 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import java.util.List;
+
+import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
+import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyInNotInSpecificatoin;
 
 
 /**
  * @author ActiveEon Team
- * @since 04/07/2017
+ * @since 05/07/2017
  */
-@AllArgsConstructor
-@Data
-public class CatalogObjectMetadataArgs {
+public class BucketIdInNotInSpecification extends CompositeKeyInNotInSpecificatoin<Long> {
 
-    private final String key;
-
-    private final StringWhereArgs value;
+    public BucketIdInNotInSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
+            List<Long> value) {
+        super(entityMetaModelEnum, operations, value);
+    }
 }

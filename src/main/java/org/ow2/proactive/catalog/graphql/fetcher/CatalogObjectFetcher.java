@@ -28,18 +28,29 @@ package org.ow2.proactive.catalog.graphql.fetcher;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.graphql.bean.CatalogObject;
+import org.ow2.proactive.catalog.graphql.bean.CatalogObjectConnection;
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
+import org.ow2.proactive.catalog.graphql.bean.argument.OrderBy;
+import org.ow2.proactive.catalog.graphql.bean.argument.PageInfo;
 import org.ow2.proactive.catalog.graphql.bean.common.Arguments;
-import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
 import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -59,9 +70,12 @@ public class CatalogObjectFetcher implements DataFetcher {
     @Autowired
     private CatalogObjectRepository catalogObjectRepository;
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        CatalogObjectWhereArgs argument = environment.getArgument(Arguments.WHERE.getName());
+        CatalogObjectWhereArgs argument = objectMapper.convertValue(environment.getArgument(Arguments.WHERE.getName()),
+                                                                    CatalogObjectWhereArgs.class);
 
         Optional<Specification<CatalogObjectEntity>> specificationOptional = catalogObjectFilterHandlers.stream()
                                                                                                         .map(handler -> handler.handle(argument))
@@ -69,58 +83,70 @@ public class CatalogObjectFetcher implements DataFetcher {
                                                                                                         .map(optional -> optional.get())
                                                                                                         .findFirst();
 
-        List<CatalogObjectEntity> catalogObjectEntities = catalogObjectRepository.findAll(specificationOptional.get());
-        return null;
+        Pageable pageable = createPageable(environment);
+
+        Page<CatalogObjectEntity> catalogObjectEntitiesPage = catalogObjectRepository.findAll(specificationOptional.get(),
+                                                                                              pageable);
+
+        CatalogObjectMapper mapper = new CatalogObjectMapper();
+        return CatalogObjectConnection.builder()
+                                      .edges(mapper.apply(catalogObjectEntitiesPage.getContent().stream())
+                                                   .collect(Collectors.toList()))
+                                      .page(catalogObjectEntitiesPage.getNumber())
+                                      .size(catalogObjectEntitiesPage.getSize())
+                                      .hasNext(catalogObjectEntitiesPage.hasNext())
+                                      .hasPrevious(catalogObjectEntitiesPage.hasPrevious())
+                                      .totalPage(catalogObjectEntitiesPage.getTotalPages())
+                                      .totalCount(Long.valueOf(catalogObjectEntitiesPage.getTotalElements())
+                                                      .intValue());
     }
 
-    /**
-     * See https://facebook.github.io/relay/graphql/connections.htm#HasPreviousPage()
-     *
-     * @param nbEntriesBeforeSlicing The number of entries before slicing.
-     * @param last                   the number of last entries requested.
-     * @return {@code true} if entries have been sliced and another page is available, {@code false}
-     * otherwise.
-     */
-    protected boolean hasPreviousPage(int nbEntriesBeforeSlicing, Integer last) {
+    private Pageable createPageable(DataFetchingEnvironment environment) {
+        String orderByString = objectMapper.convertValue(environment.getArgument(Arguments.ORDER_BY.getName()),
+                                                         String.class);
+        OrderBy orderBy = OrderBy.fromValue(orderByString);
 
-        if (last == null) {
-            return false;
+        PageInfo pageInfo = objectMapper.convertValue(environment.getArgument(Arguments.PAGE_INFO.getName()),
+                                                      PageInfo.class);
+
+        if (pageInfo == null) {
+            pageInfo = new PageInfo(1, 50);
         }
 
-        if (nbEntriesBeforeSlicing > last) {
-            return true;
+        switch (orderBy) {
+            case CATALOG_OBJECT_KEY_ASC:
+                return new PageRequest(pageInfo.getPage(),
+                                       pageInfo.getSize(),
+                                       Sort.Direction.ASC,
+                                       "id.bucketId",
+                                       "id.name");
+            case CATALOG_OBJECT_KEY_DESC:
+                return new PageRequest(pageInfo.getPage(),
+                                       pageInfo.getSize(),
+                                       Sort.Direction.DESC,
+                                       "id.bucketId",
+                                       "id.name");
+            case KIND_ASC:
+                return new PageRequest(pageInfo.getPage(),
+                                       pageInfo.getSize(),
+                                       Sort.Direction.ASC,
+                                       CatalogObjectEntityMetaModelEnum.KIND.getName());
+            case KIND_DESC:
+                return new PageRequest(pageInfo.getPage(),
+                                       pageInfo.getSize(),
+                                       Sort.Direction.DESC,
+                                       CatalogObjectEntityMetaModelEnum.KIND.getName());
+            default:
+                throw new IllegalArgumentException(orderBy + " does not exist");
         }
 
-        return false;
     }
 
-    /**
-     * See https://facebook.github.io/relay/graphql/connections.htm#HasNextPage()
-     *
-     * @param nbEntriesBeforeSlicing The number of entries before slicing.
-     * @param first                  the number of first entries requested.
-     * @return {@code true} if entries have been sliced and another page is available, {@code false}
-     * otherwise.
-     */
-    protected boolean hasNextPage(int nbEntriesBeforeSlicing, Integer first) {
-
-        if (first == null) {
-            return false;
-        }
-
-        if (nbEntriesBeforeSlicing > first) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public static class CatalogObjectMapper
-            implements Function<Stream<CatalogObjectEntity>, Stream<CatalogObjectMetadata>> {
+    public static class CatalogObjectMapper implements Function<Stream<CatalogObjectEntity>, Stream<CatalogObject>> {
 
         @Override
-        public Stream<CatalogObjectMetadata> apply(Stream<CatalogObjectEntity> catalogObjectEntityStream) {
-            return catalogObjectEntityStream.map(CatalogObjectMetadata::new);
+        public Stream<CatalogObject> apply(Stream<CatalogObjectEntity> catalogObjectEntityStream) {
+            return catalogObjectEntityStream.map(CatalogObject::new);
         }
     }
 }

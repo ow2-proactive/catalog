@@ -23,36 +23,25 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.graphql.bean.argument;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 
 /**
  * @author ActiveEon Team
- * @since 04/07/2017
+ * @since 12/06/2017
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class StringWhereArgs extends WhereArgs<String> {
+public class CatalogObjectKindWhereArgs extends StringWhereArgs {
 
-    protected final String like;
-
-    protected final String notLike;
-
-    public StringWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String like,
+    @Builder
+    public CatalogObjectKindWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String like,
             String notLike) {
-        super(eq, ne, gt, gte, lt, lte);
-        this.like = like;
-        this.notLike = notLike;
+        super(eq, ne, gt, gte, lt, lte, like, notLike);
     }
 
-    public String getLike() {
-        return like;
-    }
-
-    public String getNotLike() {
-        return notLike;
-    }
 }

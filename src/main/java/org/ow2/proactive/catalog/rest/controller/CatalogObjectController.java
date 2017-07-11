@@ -36,12 +36,14 @@ import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.util.LinkUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
@@ -87,12 +89,17 @@ public class CatalogObjectController {
             @ApiParam(value = "Commit message") @RequestParam String commitMessage,
             @ApiParam(value = "The content type of CatalogRawObject") @RequestParam String contentType,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        return new CatalogObjectMetadataList(catalogObjectService.createCatalogObject(bucketId,
-                                                                                      name,
-                                                                                      kind,
-                                                                                      commitMessage,
-                                                                                      contentType,
-                                                                                      file.getBytes()));
+        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketId,
+                                                                                       name,
+                                                                                       kind,
+                                                                                       commitMessage,
+                                                                                       contentType,
+                                                                                       file.getBytes());
+        catalogObject.add(LinkUtil.createLink(catalogObject.getBucketId(),
+                                              catalogObject.getName(),
+                                              catalogObject.getCommitDateTime()));
+
+        return new CatalogObjectMetadataList(catalogObject);
     }
 
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
@@ -104,6 +111,7 @@ public class CatalogObjectController {
         String decodedName = URLDecoder.decode(name, "UTF-8");
         try {
             CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketId, decodedName);
+            metadata.add(LinkUtil.createLink(metadata.getBucketId(), metadata.getName(), metadata.getCommitDateTime()));
             return ResponseEntity.ok(metadata);
         } catch (CatalogObjectNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e);
@@ -131,7 +139,8 @@ public class CatalogObjectController {
                 responseBodyBuilder = responseBodyBuilder.contentType(mediaType);
             } catch (org.springframework.http.InvalidMediaTypeException mimeEx) {
                 log.warn("The wrong content type for object: " + name + ", commitTime:" +
-                         rawObject.getCommitDateTime() + ", the contentType: " + rawObject.getContentType(), mimeEx);
+                         rawObject.getCommitDateTime() + ", the contentType: " + rawObject.getContentType(),
+                         mimeEx);
             }
             return responseBodyBuilder.body(new InputStreamResource(new ByteArrayInputStream(bytes)));
         } catch (CatalogObjectNotFoundException e) {
@@ -145,7 +154,8 @@ public class CatalogObjectController {
     @ApiImplicitParams({ @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "Results page you want to retrieve (0..N)"),
                          @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
                          @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
-                                                                                                                                  "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
+                                                                                                                                  "Default sort order is ascending. " +
+                                                                                                                                  "Multiple sort criteria are supported.") })
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
     @RequestMapping(method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -158,6 +168,12 @@ public class CatalogObjectController {
         } else {
             result = catalogObjectService.listCatalogObjects(bucketId);
         }
+
+        result.stream().map(object -> {
+            object.add(LinkUtil.createLink(object.getBucketId(), object.getName(), object.getCommitDateTime()));
+            return object;
+        }).collect(Collectors.toList());
+
         return result;
     }
 

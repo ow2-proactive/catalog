@@ -23,21 +23,29 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.catalogobject;
+package org.ow2.proactive.catalog.service;
 
-import org.ow2.proactive.catalog.graphql.bean.common.Operations;
-import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.generic.EqNeSpecification;
+import org.ow2.proactive.catalog.repository.BucketRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.extern.log4j.Log4j2;
 
 
 /**
  * @author ActiveEon Team
- * @since 05/07/2017
+ * @since 11/07/2017
  */
-public class StringEqNeSpecification extends EqNeSpecification<String> {
+@Log4j2
+public abstract class AbstractService {
+    @Autowired
+    private BucketRepository bucketRepository;
 
-    public StringEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            String value) {
-        super(entityMetaModelEnum, operations, value);
-    }
+    @Autowired
+    private CatalogObjectRepository catalogObjectRepository;
+
+    @Autowired
+    private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
+
 }

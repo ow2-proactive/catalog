@@ -23,24 +23,23 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.graphql.bean.argument;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
- * @since 14/06/2017
+ * @since 10/07/2017
  */
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class CatalogObjectRevisionWhereArgs extends WhereArgs<Long> {
+public class PageInfo {
 
-    private final Boolean isLatest;
+    private int page;
 
-    public CatalogObjectRevisionWhereArgs(Long eq, Long ne, Long gt, Long gte, Long lt, Long lte, Boolean isLatest) {
-        super(eq, ne, gt, gte, lt, lte);
-        this.isLatest = isLatest;
-    }
+    private int size;
 }

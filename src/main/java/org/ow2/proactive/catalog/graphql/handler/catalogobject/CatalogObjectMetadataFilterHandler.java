@@ -27,9 +27,9 @@ package org.ow2.proactive.catalog.graphql.handler.catalogobject;
 
 import java.util.Optional;
 
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectMetadataArgs;
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
-import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectMetadataArgs;
-import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.KeyValueSpecification;
@@ -46,8 +46,8 @@ public class CatalogObjectMetadataFilterHandler implements FilterHandler<Catalog
 
     @Override
     public Optional<Specification<CatalogObjectEntity>> handle(CatalogObjectWhereArgs catalogObjectWhereArgs) {
-        if (catalogObjectWhereArgs.getMetadataArgs() != null) {
-            CatalogObjectMetadataArgs metadataArgs = catalogObjectWhereArgs.getMetadataArgs();
+        if (catalogObjectWhereArgs.getMetadataArg() != null) {
+            CatalogObjectMetadataArgs metadataArgs = catalogObjectWhereArgs.getMetadataArg();
             if (metadataArgs.getValue().getEq() != null) {
                 return Optional.of(KeyValueSpecification.builder()
                                                         .operations(Operations.EQ)

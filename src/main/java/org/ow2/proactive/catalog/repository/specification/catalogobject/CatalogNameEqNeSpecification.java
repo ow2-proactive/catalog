@@ -23,60 +23,21 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
-import lombok.Data;
+import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
+import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyEqNeSpecification;
 
 
 /**
  * @author ActiveEon Team
- * @since 09/06/2017
+ * @since 05/07/2017
  */
-@Data
-public class WhereArgs<T> {
+public class CatalogNameEqNeSpecification extends CompositeKeyEqNeSpecification<String> {
 
-    protected final T eq;
-
-    protected final T ne;
-
-    protected final T gt;
-
-    protected final T gte;
-
-    protected final T lt;
-
-    protected final T lte;
-
-    public WhereArgs(T eq, T ne, T gt, T gte, T lt, T lte) {
-        this.eq = eq;
-        this.ne = ne;
-        this.gt = gt;
-        this.gte = gte;
-        this.lt = lt;
-        this.lte = lte;
-    }
-
-    public T getEq() {
-        return eq;
-    }
-
-    public T getNe() {
-        return ne;
-    }
-
-    public T getGt() {
-        return gt;
-    }
-
-    public T getGte() {
-        return gte;
-    }
-
-    public T getLt() {
-        return lt;
-    }
-
-    public T getLte() {
-        return lte;
+    public CatalogNameEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
+            String value) {
+        super(entityMetaModelEnum, operations, value);
     }
 }

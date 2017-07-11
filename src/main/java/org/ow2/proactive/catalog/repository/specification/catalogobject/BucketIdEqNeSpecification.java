@@ -27,17 +27,17 @@ package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.generic.EqNeSpecification;
+import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyEqNeSpecification;
 
 
 /**
  * @author ActiveEon Team
  * @since 05/07/2017
  */
-public class StringEqNeSpecification extends EqNeSpecification<String> {
+public class BucketIdEqNeSpecification extends CompositeKeyEqNeSpecification<Long> {
 
-    public StringEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            String value) {
+    public BucketIdEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
+            Long value) {
         super(entityMetaModelEnum, operations, value);
     }
 }

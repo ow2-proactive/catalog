@@ -23,21 +23,24 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.catalogobject;
+package org.ow2.proactive.catalog.graphql.bean.argument;
 
-import org.ow2.proactive.catalog.graphql.bean.common.Operations;
-import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.generic.EqNeSpecification;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 
 /**
  * @author ActiveEon Team
- * @since 05/07/2017
+ * @since 12/06/2017
  */
-public class StringEqNeSpecification extends EqNeSpecification<String> {
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class CatalogObjectNameWhereArgs extends StringWhereArgs {
 
-    public StringEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            String value) {
-        super(entityMetaModelEnum, operations, value);
+    @Builder
+    public CatalogObjectNameWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String like,
+            String notLike) {
+        super(eq, ne, gt, gte, lt, lte, like, notLike);
     }
 }

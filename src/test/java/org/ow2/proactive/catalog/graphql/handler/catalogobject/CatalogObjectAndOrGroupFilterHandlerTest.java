@@ -37,14 +37,14 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectBucketIdWhereArgs;
-import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectNameWhereArgs;
-import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectWhereArgs;
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectBucketIdWhereArgs;
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectNameWhereArgs;
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification;
-import org.ow2.proactive.catalog.repository.specification.catalogobject.LongEqNeSpecification;
+import org.ow2.proactive.catalog.repository.specification.catalogobject.BucketIdEqNeSpecification;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification;
-import org.ow2.proactive.catalog.repository.specification.common.EqNeSpecification;
+import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyEqNeSpecification;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.google.common.collect.ImmutableList;
@@ -83,45 +83,45 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
         when(metadataHandler.handle(any(CatalogObjectWhereArgs.class))).thenReturn(Optional.empty());
 
         CatalogObjectWhereArgs bucketid = CatalogObjectWhereArgs.builder()
-                                                                .bucketIdArgs(CatalogObjectBucketIdWhereArgs.builder()
-                                                                                                            .eq(1L)
-                                                                                                            .build())
+                                                                .bucketIdArg(CatalogObjectBucketIdWhereArgs.builder()
+                                                                                                           .eq(1L)
+                                                                                                           .build())
                                                                 .build();
         CatalogObjectWhereArgs name = CatalogObjectWhereArgs.builder()
-                                                            .nameArgs(CatalogObjectNameWhereArgs.builder()
-                                                                                                .eq("name")
-                                                                                                .build())
+                                                            .nameArg(CatalogObjectNameWhereArgs.builder()
+                                                                                               .eq("name")
+                                                                                               .build())
                                                             .build();
 
         CatalogObjectWhereArgs bucketid2 = CatalogObjectWhereArgs.builder()
-                                                                 .bucketIdArgs(CatalogObjectBucketIdWhereArgs.builder()
-                                                                                                             .eq(2L)
-                                                                                                             .build())
+                                                                 .bucketIdArg(CatalogObjectBucketIdWhereArgs.builder()
+                                                                                                            .eq(2L)
+                                                                                                            .build())
                                                                  .build();
 
         CatalogObjectWhereArgs name2 = CatalogObjectWhereArgs.builder()
-                                                             .nameArgs(CatalogObjectNameWhereArgs.builder()
-                                                                                                 .eq("name2")
-                                                                                                 .build())
+                                                             .nameArg(CatalogObjectNameWhereArgs.builder()
+                                                                                                .eq("name2")
+                                                                                                .build())
                                                              .build();
 
         CatalogObjectWhereArgs name3 = CatalogObjectWhereArgs.builder()
-                                                             .nameArgs(CatalogObjectNameWhereArgs.builder()
-                                                                                                 .eq("name3")
-                                                                                                 .build())
+                                                             .nameArg(CatalogObjectNameWhereArgs.builder()
+                                                                                                .eq("name3")
+                                                                                                .build())
                                                              .build();
 
         CatalogObjectWhereArgs orwhere3 = CatalogObjectWhereArgs.builder()
-                                                                .orArgs(ImmutableList.of(name2, name3))
+                                                                .orArg(ImmutableList.of(name2, name3))
                                                                 .build();
 
         CatalogObjectWhereArgs andwhere1 = CatalogObjectWhereArgs.builder()
-                                                                 .andArgs(ImmutableList.of(bucketid, name))
+                                                                 .andArg(ImmutableList.of(bucketid, name))
                                                                  .build();
         CatalogObjectWhereArgs andwhere2 = CatalogObjectWhereArgs.builder()
-                                                                 .andArgs(ImmutableList.of(bucketid2, orwhere3))
+                                                                 .andArg(ImmutableList.of(bucketid2, orwhere3))
                                                                  .build();
-        whereArgs = CatalogObjectWhereArgs.builder().orArgs(ImmutableList.of(andwhere1, andwhere2)).build();
+        whereArgs = CatalogObjectWhereArgs.builder().orArg(ImmutableList.of(andwhere1, andwhere2)).build();
         andFilterHandler.init();
     }
 
@@ -140,17 +140,17 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
         AndSpecification rightAnd = (AndSpecification) orSpecification.getFieldSpcifications().get(1);
 
         assertThat(leftAnd.getFieldSpcifications()).hasSize(2);
-        assertThat(leftAnd.getFieldSpcifications().get(0) instanceof LongEqNeSpecification).isTrue();
-        assertThat(leftAnd.getFieldSpcifications().get(1) instanceof EqNeSpecification).isTrue();
+        assertThat(leftAnd.getFieldSpcifications().get(0) instanceof BucketIdEqNeSpecification).isTrue();
+        assertThat(leftAnd.getFieldSpcifications().get(1) instanceof CompositeKeyEqNeSpecification).isTrue();
 
         assertThat(rightAnd.getFieldSpcifications()).hasSize(2);
-        assertThat(rightAnd.getFieldSpcifications().get(0) instanceof LongEqNeSpecification).isTrue();
+        assertThat(rightAnd.getFieldSpcifications().get(0) instanceof BucketIdEqNeSpecification).isTrue();
         assertThat(rightAnd.getFieldSpcifications().get(1) instanceof OrSpecification).isTrue();
 
         OrSpecification rightAndChildOr = (OrSpecification) rightAnd.getFieldSpcifications().get(1);
         assertThat(rightAndChildOr.getFieldSpcifications()).hasSize(2);
-        assertThat(rightAndChildOr.getFieldSpcifications().get(0) instanceof EqNeSpecification).isTrue();
-        assertThat(rightAndChildOr.getFieldSpcifications().get(1) instanceof EqNeSpecification).isTrue();
+        assertThat(rightAndChildOr.getFieldSpcifications().get(0) instanceof CompositeKeyEqNeSpecification).isTrue();
+        assertThat(rightAndChildOr.getFieldSpcifications().get(1) instanceof CompositeKeyEqNeSpecification).isTrue();
 
     }
 

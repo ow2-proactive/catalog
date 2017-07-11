@@ -23,21 +23,37 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.catalogobject;
+package org.ow2.proactive.catalog.graphql.bean.argument;
 
-import org.ow2.proactive.catalog.graphql.bean.common.Operations;
-import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.generic.EqNeSpecification;
+import java.util.Arrays;
+import java.util.Optional;
 
 
 /**
  * @author ActiveEon Team
- * @since 05/07/2017
+ * @since 10/07/2017
  */
-public class StringEqNeSpecification extends EqNeSpecification<String> {
+public enum OrderBy {
+    CATALOG_OBJECT_KEY_ASC("catalogObjectKey_ASC"),
+    CATALOG_OBJECT_KEY_DESC("catalogObjectKey_DESC"),
+    KIND_ASC("kind_ASC"),
+    KIND_DESC("kind_DESC");
 
-    public StringEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            String value) {
-        super(entityMetaModelEnum, operations, value);
+    private String value;
+
+    OrderBy(String value) {
+        this.value = value;
+    }
+
+    public String value() {
+        return value;
+    }
+
+    public static OrderBy fromValue(String value) {
+        Optional<OrderBy> first = Arrays.stream(OrderBy.values()).filter(e -> e.value.equals(value)).findFirst();
+        if (first.isPresent()) {
+            return first.get();
+        }
+        throw new IllegalArgumentException(value + " does not exist");
     }
 }

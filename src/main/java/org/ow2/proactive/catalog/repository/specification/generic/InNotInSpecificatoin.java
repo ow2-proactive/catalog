@@ -23,21 +23,40 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.catalogobject;
+package org.ow2.proactive.catalog.repository.specification.generic;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.common.EqNeSpecification;
 
 
 /**
  * @author ActiveEon Team
  * @since 05/07/2017
  */
-public class LongEqNeSpecification extends EqNeSpecification<Long> {
+public class InNotInSpecificatoin<T> extends EqNeSpecification<List<T>> {
 
-    public LongEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            Long value) {
+    public InNotInSpecificatoin(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
+            List<T> value) {
         super(entityMetaModelEnum, operations, value);
+    }
+
+    @Override
+    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        switch (operations) {
+            case IN:
+                return root.<T> get(entityMetaModelEnum.getName()).in(value);
+            case NOT_IN:
+                return root.<T> get(entityMetaModelEnum.getName()).in(value).not();
+            default:
+                throw new IllegalStateException(operations + " is not supported");
+        }
     }
 }

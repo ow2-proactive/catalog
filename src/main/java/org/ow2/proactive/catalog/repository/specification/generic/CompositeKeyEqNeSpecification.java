@@ -23,7 +23,7 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.common;
+package org.ow2.proactive.catalog.repository.specification.generic;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -45,7 +45,7 @@ import lombok.Builder;
  */
 @AllArgsConstructor
 @Builder
-public class EqNeSpecification<T> implements Specification<CatalogObjectEntity> {
+public class CompositeKeyEqNeSpecification<T> implements Specification<CatalogObjectEntity> {
 
     protected CatalogObjectEntityMetaModelEnum entityMetaModelEnum;
 
@@ -57,9 +57,13 @@ public class EqNeSpecification<T> implements Specification<CatalogObjectEntity> 
     public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
         switch (operations) {
             case EQ:
-                return cb.equal(root.<T> get(entityMetaModelEnum.getName()), value);
+                return cb.equal(root.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                    .get(entityMetaModelEnum.getName()),
+                                value);
             case NE:
-                return cb.notEqual(root.<T> get(entityMetaModelEnum.getName()), value);
+                return cb.notEqual(root.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                       .get(entityMetaModelEnum.getName()),
+                                   value);
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }

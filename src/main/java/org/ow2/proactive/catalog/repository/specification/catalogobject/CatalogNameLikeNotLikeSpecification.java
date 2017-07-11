@@ -25,21 +25,41 @@
  */
 package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
-import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.common.InNotInSpecificatoin;
+import org.ow2.proactive.catalog.repository.specification.generic.EqNeSpecification;
 
 
 /**
  * @author ActiveEon Team
  * @since 05/07/2017
  */
-public class LongInNotInSpecification extends InNotInSpecificatoin<Long> {
+public class CatalogNameLikeNotLikeSpecification extends EqNeSpecification<String> {
 
-    public LongInNotInSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            List<Long> value) {
+    public CatalogNameLikeNotLikeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum,
+            Operations operations, String value) {
         super(entityMetaModelEnum, operations, value);
+    }
+
+    @Override
+    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        switch (operations) {
+            case LIKE:
+                return cb.like(root.get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                   .get(entityMetaModelEnum.getName()),
+                               value);
+            case NOT_LIKE:
+                return cb.notLike(root.get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                      .get(entityMetaModelEnum.getName()),
+                                  value);
+            default:
+                throw new IllegalStateException(operations + " is not supported");
+        }
     }
 }

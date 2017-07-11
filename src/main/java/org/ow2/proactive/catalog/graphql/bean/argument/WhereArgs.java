@@ -23,37 +23,39 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.graphql.bean.argument;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
  * @since 09/06/2017
  */
+@NoArgsConstructor
 @Data
-public class CatalogObjectBucketIdWhereArgs extends WhereArgs<Long> {
+public class WhereArgs<T> {
 
-    protected final Long[] in;
+    protected T eq;
 
-    protected final Long[] notIn;
+    protected T ne;
 
-    @Builder
-    public CatalogObjectBucketIdWhereArgs(Long eq, Long ne, Long gt, Long gte, Long lt, Long lte, Long[] in,
-            Long[] notIn) {
-        super(eq, ne, gt, gte, lt, lte);
-        this.in = in;
-        this.notIn = notIn;
-    }
+    protected T gt;
 
-    public Long[] getIn() {
-        return in;
-    }
+    protected T gte;
 
-    public Long[] getNotIn() {
-        return notIn;
+    protected T lt;
+
+    protected T lte;
+
+    public WhereArgs(T eq, T ne, T gt, T gte, T lt, T lte) {
+        this.eq = eq;
+        this.ne = ne;
+        this.gt = gt;
+        this.gte = gte;
+        this.lt = lt;
+        this.lte = lte;
     }
 
 }

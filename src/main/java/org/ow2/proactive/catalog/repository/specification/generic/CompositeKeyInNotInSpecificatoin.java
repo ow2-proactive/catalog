@@ -23,7 +23,9 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.common;
+package org.ow2.proactive.catalog.repository.specification.generic;
+
+import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -33,35 +35,31 @@ import javax.persistence.criteria.Root;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.springframework.data.jpa.domain.Specification;
-
-import lombok.Builder;
 
 
 /**
  * @author ActiveEon Team
  * @since 05/07/2017
  */
-@Builder
-public class ComparableSpecification<R extends Comparable<R>> implements Specification<CatalogObjectEntity> {
+public class CompositeKeyInNotInSpecificatoin<T> extends EqNeSpecification<List<T>> {
 
-    protected CatalogObjectEntityMetaModelEnum entityMetaModelEnum;
-
-    protected Operations operations;
-
-    protected R value;
+    public CompositeKeyInNotInSpecificatoin(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
+            List<T> value) {
+        super(entityMetaModelEnum, operations, value);
+    }
 
     @Override
     public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
         switch (operations) {
-            case GT:
-                return cb.equal(root.<R> get(entityMetaModelEnum.getName()), value);
-            case GTE:
-                return cb.notEqual(root.<R> get(entityMetaModelEnum.getName()), value);
-            case LT:
-                return cb.equal(root.<R> get(entityMetaModelEnum.getName()), value);
-            case LTE:
-                return cb.notEqual(root.<R> get(entityMetaModelEnum.getName()), value);
+            case IN:
+                return root.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                           .get(entityMetaModelEnum.getName())
+                           .in(value);
+            case NOT_IN:
+                return root.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                           .get(entityMetaModelEnum.getName())
+                           .in(value)
+                           .not();
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }
