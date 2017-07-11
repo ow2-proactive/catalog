@@ -90,9 +90,9 @@ public class BucketService {
 
         // We define the initial start by no existing buckets in the Catalog
         // On initial start, we load the Catalog with predefined objects
-//        if (!isTestProfileEnabled && bucketRepository.count() == 0) {
+        if (!isTestProfileEnabled && bucketRepository.count() == 0) {
             populateCatalog(defaultBucketNames, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
-//        }
+        }
     }
 
     /**
