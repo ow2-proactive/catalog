@@ -112,15 +112,4 @@ public final class PCWRuleParser implements CatalogObjectParserInterface {
             throw new RuntimeException("Problem to parse the pcw-rule", e);
         }
     }
-
-    //    public static void main(String[] args) throws IOException, XMLStreamException {
-    //        InputStream ruleIS = new ClassPathResource("raw-objects/pcw-rules/WronRuleToParse.json").getInputStream();
-    //        List<KeyValueMetadataEntity> keyValueMetadataEntities = parse(ruleIS);
-    //
-    //        keyValueMetadataEntities.stream().forEach(System.out::println);
-    //
-    //        //        String content = new String(Files.readAllBytes(Paths.get("src/main/resources/raw-objects/pcw-rules/WronRuleToParse.json")));
-    //        //        getClass().getResource("raw-objects/pcw-rules/WronRuleToParse.json");
-    //        //              System.out.println("The rule content" + content);
-    //    }
 }
