@@ -31,7 +31,7 @@ import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectNameWhereArg
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.CatalogNameEqNeSpecification;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.CatalogNameLikeNotLikeSpecification;
@@ -44,10 +44,11 @@ import org.springframework.stereotype.Component;
  * @since 14/06/2017
  */
 @Component
-public class CatalogObjectNameFilterHandler implements FilterHandler<CatalogObjectWhereArgs, CatalogObjectEntity> {
+public class CatalogObjectNameFilterHandler
+        implements FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> {
 
     @Override
-    public Optional<Specification<CatalogObjectEntity>> handle(CatalogObjectWhereArgs whereArgs) {
+    public Optional<Specification<CatalogObjectRevisionEntity>> handle(CatalogObjectWhereArgs whereArgs) {
 
         if (whereArgs.getNameArg() != null) {
             CatalogObjectNameWhereArgs nameWhereArgs = whereArgs.getNameArg();
@@ -62,14 +63,14 @@ public class CatalogObjectNameFilterHandler implements FilterHandler<CatalogObje
                 return Optional.of(CatalogNameEqNeSpecification.builder()
                                                                .entityMetaModelEnum(CatalogObjectEntityMetaModelEnum.NAME)
                                                                .operations(Operations.NE)
-                                                               .value(nameWhereArgs.getEq())
+                                                               .value(nameWhereArgs.getNe())
                                                                .build());
             }
             if (nameWhereArgs.getLike() != null) {
                 return Optional.of(CatalogNameLikeNotLikeSpecification.builder()
                                                                       .entityMetaModelEnum(CatalogObjectEntityMetaModelEnum.NAME)
                                                                       .operations(Operations.LIKE)
-                                                                      .value(nameWhereArgs.getEq())
+                                                                      .value(nameWhereArgs.getLike())
                                                                       .build());
             }
         }

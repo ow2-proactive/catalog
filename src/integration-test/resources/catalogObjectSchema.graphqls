@@ -14,8 +14,8 @@ enum OrderByEnum {
 }
 
 input CatalogObjectMetadataWhereArgs {
-    key: String
-    value: StringWhereArgs
+    key: String!
+    value: StringWhereArgs!
 }
 
 input StringWhereArgs {
@@ -26,8 +26,8 @@ input StringWhereArgs {
 }
 
 input CatalogObjectBucketIdWhereArgs{
-    in: [Long]
-    notIn: [Long]
+    in: [Long!]
+    notIn: [Long!]
     eq: Long
     ne: Long
     gt: Long
@@ -74,18 +74,18 @@ input PageInfo {
     size: Int
 }
 
-type MetaData {
+type Metadata {
     key: String!
     value: String!
     label: String
 }
 
 type CatalogObject {
-    bucketId: ID!
-    commitTime: String!
+    bucketId: Long!
+    commitDateTime: String!
     commitMessage: String
     contentType: String
-    metaData: [MetaData!]
+    metadata: [Metadata!]
     kind: String!
     link: String
     name: String!

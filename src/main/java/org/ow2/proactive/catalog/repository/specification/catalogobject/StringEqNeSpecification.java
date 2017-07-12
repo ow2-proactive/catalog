@@ -29,6 +29,8 @@ import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.generic.EqNeSpecification;
 
+import lombok.Builder;
+
 
 /**
  * @author ActiveEon Team
@@ -36,6 +38,7 @@ import org.ow2.proactive.catalog.repository.specification.generic.EqNeSpecificat
  */
 public class StringEqNeSpecification extends EqNeSpecification<String> {
 
+    @Builder
     public StringEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
             String value) {
         super(entityMetaModelEnum, operations, value);

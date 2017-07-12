@@ -28,12 +28,14 @@ package org.ow2.proactive.catalog.graphql.bean.argument;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
  * @since 12/06/2017
  */
+@NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class CatalogObjectKindWhereArgs extends StringWhereArgs {

@@ -35,6 +35,7 @@ import javax.persistence.criteria.Root;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -48,7 +49,7 @@ import lombok.Builder;
  */
 @AllArgsConstructor
 @Builder
-public class KeyValueSpecification implements Specification<CatalogObjectEntity> {
+public class KeyValueSpecification implements Specification<CatalogObjectRevisionEntity> {
 
     private final Operations operations;
 
@@ -57,29 +58,28 @@ public class KeyValueSpecification implements Specification<CatalogObjectEntity>
     private final String value;
 
     @Override
-    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+    public Predicate toPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
-        final Join<CatalogObjectEntity, CatalogObjectRevisionEntity> catalogObject = root.join("revisions",
+        final Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObject = root.join("catalogObject",
                                                                                                JoinType.INNER);
-        // fetch only the default revision
-        Predicate revisionPredicate = cb.equal(catalogObject.get(CatalogObjectEntityMetaModelEnum.LAST_COMMIT_TIME.getName()),
-                                               CatalogObjectEntityMetaModelEnum.COMMIT_TIME.getName());
+        final Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadata = root.join("keyValueMetadataList",
+                                                                                             JoinType.INNER);
 
-        Predicate keyPredicate = cb.equal(catalogObject.get(CatalogObjectEntityMetaModelEnum.KEY.getName()), key);
+        Predicate revisionPredicate = cb.equal(root.get(CatalogObjectEntityMetaModelEnum.COMMIT_TIME.getName()),
+                                               catalogObject.get(CatalogObjectEntityMetaModelEnum.LAST_COMMIT_TIME.getName()));
+
+        Predicate keyPredicate = cb.equal(metadata.get(CatalogObjectEntityMetaModelEnum.KEY.getName()), key);
+
+        catalogObject.on(revisionPredicate);
+        metadata.on(keyPredicate);
 
         switch (operations) {
             case EQ:
-                return cb.and(revisionPredicate,
-                              keyPredicate,
-                              cb.equal(root.get(CatalogObjectEntityMetaModelEnum.VALUE.getName()), value));
+                return cb.equal(metadata.get(CatalogObjectEntityMetaModelEnum.VALUE.getName()), value);
             case NE:
-                return cb.and(revisionPredicate,
-                              keyPredicate,
-                              cb.notEqual(root.get(CatalogObjectEntityMetaModelEnum.VALUE.getName()), value));
+                return cb.notEqual(metadata.get(CatalogObjectEntityMetaModelEnum.VALUE.getName()), value);
             case LIKE:
-                return cb.and(revisionPredicate,
-                              keyPredicate,
-                              cb.like(root.get(CatalogObjectEntityMetaModelEnum.VALUE.getName()), value));
+                return cb.like(metadata.get(CatalogObjectEntityMetaModelEnum.VALUE.getName()), value);
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }

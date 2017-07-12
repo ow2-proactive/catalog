@@ -29,6 +29,8 @@ import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyEqNeSpecification;
 
+import lombok.Builder;
+
 
 /**
  * @author ActiveEon Team
@@ -36,6 +38,7 @@ import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyEq
  */
 public class BucketIdEqNeSpecification extends CompositeKeyEqNeSpecification<Long> {
 
+    @Builder
     public BucketIdEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
             Long value) {
         super(entityMetaModelEnum, operations, value);

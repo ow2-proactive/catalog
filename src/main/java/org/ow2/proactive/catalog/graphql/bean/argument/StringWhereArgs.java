@@ -27,19 +27,21 @@ package org.ow2.proactive.catalog.graphql.bean.argument;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
  * @since 04/07/2017
  */
+@NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class StringWhereArgs extends WhereArgs<String> {
 
-    protected final String like;
+    protected String like;
 
-    protected final String notLike;
+    protected String notLike;
 
     public StringWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String like,
             String notLike) {

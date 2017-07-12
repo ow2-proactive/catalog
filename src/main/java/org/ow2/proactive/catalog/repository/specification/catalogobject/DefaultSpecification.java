@@ -23,7 +23,7 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.generic;
+package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -32,27 +32,17 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.springframework.data.jpa.domain.Specification;
 
-import lombok.AllArgsConstructor;
-
 
 /**
  * @author ActiveEon Team
- * @since 05/07/2017
+ * @since 12/07/2017
  */
-@AllArgsConstructor
-public class CompositeKeyEqNeSpecification<T> implements Specification<CatalogObjectRevisionEntity> {
-
-    protected CatalogObjectEntityMetaModelEnum entityMetaModelEnum;
-
-    protected Operations operations;
-
-    protected T value;
+public class DefaultSpecification implements Specification<CatalogObjectRevisionEntity> {
 
     @Override
     public Predicate toPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -61,18 +51,6 @@ public class CompositeKeyEqNeSpecification<T> implements Specification<CatalogOb
         Predicate lastCommit = cb.equal(root.get(CatalogObjectEntityMetaModelEnum.COMMIT_TIME.getName()),
                                         catalogObject.get(CatalogObjectEntityMetaModelEnum.LAST_COMMIT_TIME.getName()));
         catalogObject.on(lastCommit);
-
-        switch (operations) {
-            case EQ:
-                return cb.equal(catalogObject.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
-                                             .get(entityMetaModelEnum.getName()),
-                                value);
-            case NE:
-                return cb.notEqual(catalogObject.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
-                                                .get(entityMetaModelEnum.getName()),
-                                   value);
-            default:
-                throw new IllegalStateException(operations + " is not supported");
-        }
+        return lastCommit;
     }
 }

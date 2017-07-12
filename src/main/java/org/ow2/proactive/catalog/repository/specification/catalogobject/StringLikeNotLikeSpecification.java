@@ -27,13 +27,18 @@ package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.generic.EqNeSpecification;
+
+import lombok.Builder;
 
 
 /**
@@ -42,18 +47,25 @@ import org.ow2.proactive.catalog.repository.specification.generic.EqNeSpecificat
  */
 public class StringLikeNotLikeSpecification extends EqNeSpecification<String> {
 
+    @Builder
     public StringLikeNotLikeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
             String value) {
         super(entityMetaModelEnum, operations, value);
     }
 
     @Override
-    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+    public Predicate toPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        final Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObject = root.join("catalogObject",
+                                                                                               JoinType.INNER);
+        Predicate lastCommit = cb.equal(root.get(CatalogObjectEntityMetaModelEnum.COMMIT_TIME.getName()),
+                                        catalogObject.get(CatalogObjectEntityMetaModelEnum.LAST_COMMIT_TIME.getName()));
+        catalogObject.on(lastCommit);
+
         switch (operations) {
             case LIKE:
-                return cb.like(root.get(entityMetaModelEnum.getName()), value);
+                return cb.like(catalogObject.get(entityMetaModelEnum.getName()), value);
             case NOT_LIKE:
-                return cb.notLike(root.get(entityMetaModelEnum.getName()), value);
+                return cb.notLike(catalogObject.get(entityMetaModelEnum.getName()), value);
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }

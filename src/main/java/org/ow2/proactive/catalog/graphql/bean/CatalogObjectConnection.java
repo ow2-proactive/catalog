@@ -27,28 +27,33 @@ package org.ow2.proactive.catalog.graphql.bean;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
  * @since 10/07/2017
  */
+@AllArgsConstructor
 @Builder
 @Data
+@NoArgsConstructor
 public class CatalogObjectConnection {
-    private final List<CatalogObject> edges;
 
-    private final int page;
+    private List<CatalogObject> edges;
 
-    private final int size;
+    private int page;
 
-    private final boolean hasNext;
+    private int size;
 
-    private final boolean hasPrevious;
+    private boolean hasNext;
 
-    private final int totalPage;
+    private boolean hasPrevious;
 
-    private final int totalCount;
+    private int totalPage;
+
+    private int totalCount;
 }

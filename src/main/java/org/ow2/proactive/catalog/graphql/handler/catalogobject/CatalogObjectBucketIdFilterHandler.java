@@ -32,7 +32,7 @@ import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectBucketIdWher
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.BucketIdEqNeSpecification;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.BucketIdInNotInSpecification;
@@ -45,10 +45,11 @@ import org.springframework.stereotype.Component;
  * @since 12/06/2017
  */
 @Component
-public class CatalogObjectBucketIdFilterHandler implements FilterHandler<CatalogObjectWhereArgs, CatalogObjectEntity> {
+public class CatalogObjectBucketIdFilterHandler
+        implements FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> {
 
     @Override
-    public Optional<Specification<CatalogObjectEntity>> handle(CatalogObjectWhereArgs whereArgs) {
+    public Optional<Specification<CatalogObjectRevisionEntity>> handle(CatalogObjectWhereArgs whereArgs) {
 
         if (whereArgs.getBucketIdArg() != null) {
             CatalogObjectBucketIdWhereArgs bucketIdWhereArgs = whereArgs.getBucketIdArg();

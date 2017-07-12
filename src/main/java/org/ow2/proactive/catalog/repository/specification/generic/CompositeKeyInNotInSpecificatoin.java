@@ -29,11 +29,14 @@ import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 
 
@@ -49,17 +52,23 @@ public class CompositeKeyInNotInSpecificatoin<T> extends EqNeSpecification<List<
     }
 
     @Override
-    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+    public Predicate toPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        final Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObject = root.join("catalogObject",
+                                                                                               JoinType.INNER);
+        Predicate lastCommit = cb.equal(root.get(CatalogObjectEntityMetaModelEnum.COMMIT_TIME.getName()),
+                                        catalogObject.get(CatalogObjectEntityMetaModelEnum.LAST_COMMIT_TIME.getName()));
+        catalogObject.on(lastCommit);
+
         switch (operations) {
             case IN:
-                return root.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
-                           .get(entityMetaModelEnum.getName())
-                           .in(value);
+                return catalogObject.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                    .get(entityMetaModelEnum.getName())
+                                    .in(value);
             case NOT_IN:
-                return root.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
-                           .get(entityMetaModelEnum.getName())
-                           .in(value)
-                           .not();
+                return catalogObject.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                    .get(entityMetaModelEnum.getName())
+                                    .in(value)
+                                    .not();
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }

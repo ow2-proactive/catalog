@@ -27,16 +27,18 @@ package org.ow2.proactive.catalog.repository.specification.generic;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.springframework.data.jpa.domain.Specification;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 
 
 /**
@@ -44,8 +46,7 @@ import lombok.Builder;
  * @since 05/07/2017
  */
 @AllArgsConstructor
-@Builder
-public class EqNeSpecification<T> implements Specification<CatalogObjectEntity> {
+public class EqNeSpecification<T> implements Specification<CatalogObjectRevisionEntity> {
 
     protected CatalogObjectEntityMetaModelEnum entityMetaModelEnum;
 
@@ -54,12 +55,18 @@ public class EqNeSpecification<T> implements Specification<CatalogObjectEntity> 
     protected T value;
 
     @Override
-    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+    public Predicate toPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        final Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObject = root.join("catalogObject",
+                                                                                               JoinType.INNER);
+        Predicate lastCommit = cb.equal(root.get(CatalogObjectEntityMetaModelEnum.COMMIT_TIME.getName()),
+                                        catalogObject.get(CatalogObjectEntityMetaModelEnum.LAST_COMMIT_TIME.getName()));
+        catalogObject.on(lastCommit);
+
         switch (operations) {
             case EQ:
-                return cb.equal(root.<T> get("id").get("bucketId"), value);
+                return cb.equal(catalogObject.<T> get(entityMetaModelEnum.getName()), value);
             case NE:
-                return cb.notEqual(root.<T> get(entityMetaModelEnum.getName()), value);
+                return cb.notEqual(catalogObject.<T> get(entityMetaModelEnum.getName()), value);
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }

@@ -40,7 +40,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectBucketIdWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectNameWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.BucketIdEqNeSpecification;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification;
@@ -127,7 +127,7 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
 
     @Test
     public void testHandleMethod() throws Exception {
-        Optional<Specification<CatalogObjectEntity>> specification = andFilterHandler.handle(whereArgs);
+        Optional<Specification<CatalogObjectRevisionEntity>> specification = andFilterHandler.handle(whereArgs);
         assertThat(specification).isNotNull();
         assertThat(specification.get() instanceof OrSpecification).isTrue();
         OrSpecification orSpecification = (OrSpecification) specification.get();

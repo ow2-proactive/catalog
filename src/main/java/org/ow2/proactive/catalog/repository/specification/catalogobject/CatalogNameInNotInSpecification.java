@@ -31,6 +31,8 @@ import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyInNotInSpecificatoin;
 
+import lombok.Builder;
+
 
 /**
  * @author ActiveEon Team
@@ -38,6 +40,7 @@ import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyIn
  */
 public class CatalogNameInNotInSpecification extends CompositeKeyInNotInSpecificatoin<String> {
 
+    @Builder
     public CatalogNameInNotInSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
             List<String> value) {
         super(entityMetaModelEnum, operations, value);

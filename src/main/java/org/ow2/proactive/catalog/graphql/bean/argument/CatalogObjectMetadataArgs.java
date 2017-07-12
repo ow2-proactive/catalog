@@ -27,17 +27,19 @@ package org.ow2.proactive.catalog.graphql.bean.argument;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
  * @since 04/07/2017
  */
+@NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class CatalogObjectMetadataArgs {
 
-    private final String key;
+    private String key;
 
-    private final StringWhereArgs value;
+    private StringWhereArgs value;
 }

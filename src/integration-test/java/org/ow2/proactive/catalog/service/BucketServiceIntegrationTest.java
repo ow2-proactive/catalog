@@ -40,7 +40,7 @@ import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.IntegrationTestConfig;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
+import org.ow2.proactive.catalog.dto.Metadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -67,12 +67,12 @@ public class BucketServiceIntegrationTest {
 
     private BucketMetadata bucket;
 
-    private List<KeyValueMetadata> keyValues;
+    private List<Metadata> keyValues;
 
     @Before
     public void createBucket() {
         bucket = bucketService.createBucket("bucket", "BucketServiceIntegrationTest");
-        keyValues = Collections.singletonList(new KeyValueMetadata("key", "value", "type"));
+        keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
         assertThat(bucket).isNotNull();
         assertThat(bucket.getOwner()).isEqualTo("BucketServiceIntegrationTest");
         assertThat(bucket.getMetaDataId()).isNotNull();

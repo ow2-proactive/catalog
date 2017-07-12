@@ -38,9 +38,10 @@ import org.ow2.proactive.catalog.graphql.bean.argument.OrderBy;
 import org.ow2.proactive.catalog.graphql.bean.argument.PageInfo;
 import org.ow2.proactive.catalog.graphql.bean.common.Arguments;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
-import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
+import org.ow2.proactive.catalog.repository.specification.catalogobject.DefaultSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -65,28 +66,32 @@ import graphql.schema.DataFetchingEnvironment;
 public class CatalogObjectFetcher implements DataFetcher {
 
     @Autowired
-    private List<FilterHandler<CatalogObjectWhereArgs, CatalogObjectEntity>> catalogObjectFilterHandlers;
+    private List<FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity>> catalogObjectFilterHandlers;
 
     @Autowired
-    private CatalogObjectRepository catalogObjectRepository;
+    private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        CatalogObjectWhereArgs argument = objectMapper.convertValue(environment.getArgument(Arguments.WHERE.getName()),
-                                                                    CatalogObjectWhereArgs.class);
-
-        Optional<Specification<CatalogObjectEntity>> specificationOptional = catalogObjectFilterHandlers.stream()
-                                                                                                        .map(handler -> handler.handle(argument))
-                                                                                                        .filter(spec -> spec.isPresent())
-                                                                                                        .map(optional -> optional.get())
-                                                                                                        .findFirst();
 
         Pageable pageable = createPageable(environment);
 
-        Page<CatalogObjectEntity> catalogObjectEntitiesPage = catalogObjectRepository.findAll(specificationOptional.get(),
-                                                                                              pageable);
+        CatalogObjectWhereArgs argument = objectMapper.convertValue(environment.getArgument(Arguments.WHERE.getName()),
+                                                                    CatalogObjectWhereArgs.class);
+
+        Optional<Specification<CatalogObjectRevisionEntity>> specificationOptional = argument == null ? Optional.empty()
+                                                                                                      : catalogObjectFilterHandlers.stream()
+                                                                                                                                   .map(handler -> handler.handle(argument))
+                                                                                                                                   .filter(spec -> spec.isPresent())
+                                                                                                                                   .map(optional -> optional.get())
+                                                                                                                                   .findFirst();
+
+        Page<CatalogObjectRevisionEntity> catalogObjectEntitiesPage = specificationOptional.isPresent() ? catalogObjectRevisionRepository.findAll(specificationOptional.get(),
+                                                                                                                                                  pageable)
+                                                                                                        : catalogObjectRevisionRepository.findAll(new DefaultSpecification(),
+                                                                                                                                                  pageable);
 
         CatalogObjectMapper mapper = new CatalogObjectMapper();
         return CatalogObjectConnection.builder()
@@ -97,20 +102,26 @@ public class CatalogObjectFetcher implements DataFetcher {
                                       .hasNext(catalogObjectEntitiesPage.hasNext())
                                       .hasPrevious(catalogObjectEntitiesPage.hasPrevious())
                                       .totalPage(catalogObjectEntitiesPage.getTotalPages())
-                                      .totalCount(Long.valueOf(catalogObjectEntitiesPage.getTotalElements())
-                                                      .intValue());
+                                      .totalCount(Long.valueOf(catalogObjectEntitiesPage.getTotalElements()).intValue())
+                                      .build();
     }
 
     private Pageable createPageable(DataFetchingEnvironment environment) {
         String orderByString = objectMapper.convertValue(environment.getArgument(Arguments.ORDER_BY.getName()),
                                                          String.class);
-        OrderBy orderBy = OrderBy.fromValue(orderByString);
+
+        OrderBy orderBy;
+        if (orderByString == null) {
+            orderBy = OrderBy.CATALOG_OBJECT_KEY_ASC;
+        } else {
+            orderBy = OrderBy.fromValue(orderByString);
+        }
 
         PageInfo pageInfo = objectMapper.convertValue(environment.getArgument(Arguments.PAGE_INFO.getName()),
                                                       PageInfo.class);
 
         if (pageInfo == null) {
-            pageInfo = new PageInfo(1, 50);
+            pageInfo = new PageInfo(0, 50);
         }
 
         switch (orderBy) {
@@ -118,14 +129,12 @@ public class CatalogObjectFetcher implements DataFetcher {
                 return new PageRequest(pageInfo.getPage(),
                                        pageInfo.getSize(),
                                        Sort.Direction.ASC,
-                                       "id.bucketId",
-                                       "id.name");
+                                       CatalogObjectEntityMetaModelEnum.ID.getName());
             case CATALOG_OBJECT_KEY_DESC:
                 return new PageRequest(pageInfo.getPage(),
                                        pageInfo.getSize(),
                                        Sort.Direction.DESC,
-                                       "id.bucketId",
-                                       "id.name");
+                                       CatalogObjectEntityMetaModelEnum.ID.getName());
             case KIND_ASC:
                 return new PageRequest(pageInfo.getPage(),
                                        pageInfo.getSize(),
@@ -142,10 +151,11 @@ public class CatalogObjectFetcher implements DataFetcher {
 
     }
 
-    public static class CatalogObjectMapper implements Function<Stream<CatalogObjectEntity>, Stream<CatalogObject>> {
+    public static class CatalogObjectMapper
+            implements Function<Stream<CatalogObjectRevisionEntity>, Stream<CatalogObject>> {
 
         @Override
-        public Stream<CatalogObject> apply(Stream<CatalogObjectEntity> catalogObjectEntityStream) {
+        public Stream<CatalogObject> apply(Stream<CatalogObjectRevisionEntity> catalogObjectEntityStream) {
             return catalogObjectEntityStream.map(CatalogObject::new);
         }
     }

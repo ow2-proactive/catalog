@@ -25,23 +25,30 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import java.io.IOException;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.IntegrationTestConfig;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
+import org.ow2.proactive.catalog.dto.Metadata;
+import org.ow2.proactive.catalog.graphql.bean.CatalogObjectConnection;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 /**
@@ -64,7 +71,7 @@ public class GraphqlServiceIntegrationTest {
 
     private BucketMetadata bucket;
 
-    private List<KeyValueMetadata> keyValues;
+    private List<Metadata> keyValues;
 
     private byte[] workflowAsByteArray;
 
@@ -74,10 +81,12 @@ public class GraphqlServiceIntegrationTest {
 
     private long secondCommitTime;
 
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     @Before
     public void setup() throws IOException {
         bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
-        keyValues = Collections.singletonList(new KeyValueMetadata("key", "value", "type"));
+        keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
 
         workflowAsByteArray = IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml");
         workflowAsByteArrayUpdated = IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml");
@@ -105,6 +114,8 @@ public class GraphqlServiceIntegrationTest {
                                                  keyValues,
                                                  workflowAsByteArray);
 
+        keyValues = Collections.singletonList(new Metadata("key", "value2", "type"));
+
         catalogObjectService.createCatalogObject(bucket.getMetaDataId(),
                                                  "catalog3",
                                                  "workflow",
@@ -125,5 +136,292 @@ public class GraphqlServiceIntegrationTest {
     @After
     public void deleteBucket() {
         bucketService.cleanAll();
+    }
+
+    @Test
+    public void testGetAllCatalogObjects() {
+        String query = "{\n" + "  allCatalogObjects {\n" + "    edges {\n" + "      bucketId\n" + "      name\n" +
+                       "      kind\n" + "      contentType\n" + "      metadata {\n" + "        key\n" +
+                       "        value\n" + "        label\n" + "      }\n" + "      commitMessage\n" +
+                       "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
+                       "    totalCount\n" + "  }  \n" + "}\n";
+
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(4);
+        assertThat(connection.getTotalCount()).isEqualTo(4);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+        assertThat(connection.isHasNext()).isFalse();
+        assertThat(connection.isHasPrevious()).isFalse();
+        assertThat(connection.getPage()).isEqualTo(0);
+        assertThat(connection.getSize()).isEqualTo(50);
+
+    }
+
+    @Test
+    public void testPageInfoQuery() {
+        String query = "{\n" + "  allCatalogObjects(pageInfo:{page:1, size:2}) {\n" + "    edges {\n" +
+                       "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                       "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
+                       "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
+                       "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(2);
+        assertThat(connection.getTotalCount()).isEqualTo(4);
+        assertThat(connection.getTotalPage()).isEqualTo(2);
+        assertThat(connection.isHasNext()).isFalse();
+        assertThat(connection.isHasPrevious()).isTrue();
+        assertThat(connection.getPage()).isEqualTo(1);
+        assertThat(connection.getSize()).isEqualTo(2);
+    }
+
+    @Test
+    public void testNameQuery() {
+        String query = "{\n" + "  allCatalogObjects(where:{nameArg:{eq:\"catalog2\"}}) {\n" + "    edges {\n" +
+                       "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                       "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
+                       "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
+                       "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(1);
+        assertThat(connection.getTotalCount()).isEqualTo(1);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+        assertThat(connection.isHasNext()).isFalse();
+        assertThat(connection.isHasPrevious()).isFalse();
+        assertThat(connection.getEdges()
+                             .stream()
+                             .filter(e -> !e.getName().equals("catalog2"))
+                             .findAny()
+                             .isPresent()).isFalse();
+
+        query = "{\n" + "  allCatalogObjects(where:{nameArg:{like:\"%log2\"}}) {\n" + "    edges {\n" +
+                "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" + "      metadata {\n" +
+                "        key\n" + "        value\n" + "        label\n" + "      }\n" + "      commitMessage\n" +
+                "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
+                "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+
+        map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(1);
+        assertThat(connection.getTotalCount()).isEqualTo(1);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+        assertThat(connection.isHasNext()).isFalse();
+        assertThat(connection.isHasPrevious()).isFalse();
+        assertThat(connection.getEdges()
+                             .stream()
+                             .filter(e -> !e.getName().endsWith("log2"))
+                             .findAny()
+                             .isPresent()).isFalse();
+    }
+
+    @Test
+    public void testBucketIdQuery() {
+        String query = "{\n" + "  allCatalogObjects(where:{bucketIdArg:{eq:" + bucket.getMetaDataId() + "}}) {\n" +
+                       "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                       "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
+                       "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
+                       "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(4);
+        assertThat(connection.getTotalCount()).isEqualTo(4);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+
+        query = "{\n" + "  allCatalogObjects(where:{bucketIdArg:{in:[" + bucket.getMetaDataId() + "]}}) {\n" +
+                "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
+                "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
+                "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+
+        map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(4);
+        assertThat(connection.getTotalCount()).isEqualTo(4);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+    }
+
+    @Test
+    public void testKindQuery() {
+        String query = "{\n" + "  allCatalogObjects(where:{kindArg:{eq:\"object\"}}) {\n" + "    edges {\n" +
+                       "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                       "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
+                       "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
+                       "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(2);
+        assertThat(connection.getTotalCount()).isEqualTo(2);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+        assertThat(connection.getEdges()
+                             .stream()
+                             .filter(e -> !e.getKind().equals("object"))
+                             .findAny()
+                             .isPresent()).isFalse();
+
+        query = "{\n" + "  allCatalogObjects(where:{kindArg:{ne:\"object\"}}) {\n" + "    edges {\n" +
+                "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" + "      metadata {\n" +
+                "        key\n" + "        value\n" + "        label\n" + "      }\n" + "      commitMessage\n" +
+                "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
+                "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+
+        map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(2);
+        assertThat(connection.getTotalCount()).isEqualTo(2);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+        assertThat(connection.isHasNext()).isFalse();
+        assertThat(connection.isHasPrevious()).isFalse();
+        assertThat(connection.getEdges()
+                             .stream()
+                             .filter(e -> e.getKind().equals("object"))
+                             .findAny()
+                             .isPresent()).isFalse();
+
+        query = "{\n" + "  allCatalogObjects(where:{kindArg:{like:\"%work%\"}}) {\n" + "    edges {\n" +
+                "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" + "      metadata {\n" +
+                "        key\n" + "        value\n" + "        label\n" + "      }\n" + "      commitMessage\n" +
+                "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
+                "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+
+        map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(2);
+        assertThat(connection.getTotalCount()).isEqualTo(2);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+        assertThat(connection.isHasNext()).isFalse();
+        assertThat(connection.isHasPrevious()).isFalse();
+        assertThat(connection.getEdges()
+                             .stream()
+                             .filter(e -> !e.getKind().contains("work"))
+                             .findAny()
+                             .isPresent()).isFalse();
+    }
+
+    @Test
+    public void testMetadataQuery() {
+        String query = "{\n" + "  allCatalogObjects(where:{metadataArg:{key:\"key\", value:{eq:\"value\"}}}) {\n" +
+                       "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                       "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
+                       "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
+                       "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" +
+                       "}\n";
+
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(2);
+        assertThat(connection.getTotalCount()).isEqualTo(2);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+        assertThat(connection.getEdges()
+                             .stream()
+                             .filter(e -> e.getMetadata()
+                                           .stream()
+                                           .filter(m -> !m.getKey().equals("key") ||
+                                                        !m.getValue().equals("value"))
+                                           .findAny()
+                                           .isPresent())
+                             .findAny()
+                             .isPresent()).isFalse();
+
+        query = "{\n" + "  allCatalogObjects(where:{metadataArg:{key:\"key\", value:{ne:\"value\"}}}) {\n" +
+                "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
+                "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
+                "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
+
+        map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(2);
+        assertThat(connection.getTotalCount()).isEqualTo(2);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+        assertThat(connection.isHasNext()).isFalse();
+        assertThat(connection.isHasPrevious()).isFalse();
+        assertThat(connection.getEdges()
+                             .stream()
+                             .filter(e -> e.getMetadata()
+                                           .stream()
+                                           .filter(m -> !m.getKey().equals("key") ||
+                                                        m.getValue().equals("value"))
+                                           .findAny()
+                                           .isPresent())
+                             .findAny()
+                             .isPresent()).isFalse();
+
+        query = "{\n" + "  allCatalogObjects(where:{metadataArg:{key:\"key\", value:{like:\"value%\"}}}) {\n" +
+                "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
+                "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
+                "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
+
+        map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(4);
+        assertThat(connection.getTotalCount()).isEqualTo(4);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+        assertThat(connection.isHasNext()).isFalse();
+        assertThat(connection.isHasPrevious()).isFalse();
+        assertThat(connection.getEdges()
+                             .stream()
+                             .filter(e -> e.getMetadata()
+                                           .stream()
+                                           .filter(m -> !m.getKey().equals("key") ||
+                                                        !m.getValue().startsWith("value"))
+                                           .findAny()
+                                           .isPresent())
+                             .findAny()
+                             .isPresent()).isFalse();
     }
 }

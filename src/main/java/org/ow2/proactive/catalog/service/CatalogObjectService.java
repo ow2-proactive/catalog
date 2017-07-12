@@ -41,7 +41,7 @@ import javax.annotation.PostConstruct;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
+import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
@@ -177,7 +177,7 @@ public class CatalogObjectService {
     }
 
     public CatalogObjectMetadata createCatalogObject(Long bucketId, String name, String kind, String commitMessage,
-            String contentType, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
+            String contentType, List<Metadata> metadataList, byte[] rawObject) {
 
         BucketEntity bucketEntity = bucketRepository.findOne(bucketId);
         if (bucketEntity == null) {
@@ -195,7 +195,7 @@ public class CatalogObjectService {
 
         CatalogObjectRevisionEntity result = buildCatalogObjectRevisionEntity(kind,
                                                                               commitMessage,
-                                                                              keyValueMetadataList,
+                                                                              metadataList,
                                                                               rawObject,
                                                                               catalogObjectEntity);
 
@@ -203,13 +203,13 @@ public class CatalogObjectService {
     }
 
     private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(String kind, String commitMessage,
-            List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject, CatalogObjectEntity catalogObjectEntity) {
+            List<Metadata> metadataList, byte[] rawObject, CatalogObjectEntity catalogObjectEntity) {
 
-        List<KeyValueMetadataEntity> keyValueMetadataEntities = KeyValueMetadataHelper.convertToEntity(keyValueMetadataList);
+        List<KeyValueMetadataEntity> keyValueMetadataEntities = KeyValueMetadataHelper.convertToEntity(metadataList);
 
-        List<KeyValueMetadataEntity> keyValues = CollectionUtils.isEmpty(keyValueMetadataList) ? KeyValueMetadataHelper.extractKeyValuesFromRaw(kind,
-                                                                                                                                                rawObject)
-                                                                                               : keyValueMetadataEntities;
+        List<KeyValueMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? KeyValueMetadataHelper.extractKeyValuesFromRaw(kind,
+                                                                                                                                        rawObject)
+                                                                                       : keyValueMetadataEntities;
 
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)
@@ -285,7 +285,7 @@ public class CatalogObjectService {
     }
 
     public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String name, String commitMessage,
-            List<KeyValueMetadata> keyValueMetadataListParsed, byte[] rawObject) {
+            List<Metadata> metadataListParsed, byte[] rawObject) {
 
         CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketId,
                                                                                                                            name));
@@ -296,7 +296,7 @@ public class CatalogObjectService {
 
         CatalogObjectRevisionEntity revisionEntity = buildCatalogObjectRevisionEntity(catalogObject.getKind(),
                                                                                       commitMessage,
-                                                                                      keyValueMetadataListParsed,
+                                                                                      metadataListParsed,
                                                                                       rawObject,
                                                                                       catalogObject);
 

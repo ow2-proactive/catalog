@@ -25,20 +25,61 @@
  */
 package org.ow2.proactive.catalog.dto;
 
-import org.junit.Test;
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
+import java.util.Objects;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
+import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
  */
-public class KeyValueMetadataMetadataEntityTest {
+@NoArgsConstructor
+@Data
+public class Metadata {
 
-    @Test
-    public void testEqualsContract() {
-        EqualsVerifier.forClass(KeyValueMetadata.class).verify();
+    private String key;
+
+    private String value;
+
+    private String label;
+
+    public Metadata(String key, String value, String label) {
+        this.key = key;
+        this.value = value;
+        this.label = label;
+    }
+
+    public Metadata(KeyValueMetadataEntity entity) {
+        this.key = entity.getKey();
+        this.value = entity.getValue();
+        this.label = entity.getLabel();
+    }
+
+    @Override
+    public final boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (!(other instanceof Metadata)) {
+            return false;
+        }
+
+        Metadata that = (Metadata) other;
+
+        if (!Objects.equals(key, that.key)) {
+            return false;
+        }
+
+        return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public final int hashCode() {
+        return Objects.hash(key, value);
     }
 
 }

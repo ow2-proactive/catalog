@@ -27,6 +27,15 @@ package org.ow2.proactive.catalog;
 
 import javax.sql.DataSource;
 
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
+import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
+import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
+import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectAndOrGroupFilterHandler;
+import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectBucketIdFilterHandler;
+import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectKindFilterHandler;
+import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectMetadataFilterHandler;
+import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectNameFilterHandler;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.GraphqlService;
@@ -38,6 +47,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+
+import graphql.schema.DataFetcher;
 
 
 /**
@@ -75,6 +86,36 @@ public class IntegrationTestConfig {
     @Bean
     public GraphqlService graphqlService() {
         return new GraphqlService();
+    }
+
+    @Bean
+    public DataFetcher dataFetcher() {
+        return new CatalogObjectFetcher();
+    }
+
+    @Bean
+    public FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> catalogObjectBucketIdFilterHandler() {
+        return new CatalogObjectBucketIdFilterHandler();
+    }
+
+    @Bean
+    public FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> catalogObjectKindFilterHandler() {
+        return new CatalogObjectKindFilterHandler();
+    }
+
+    @Bean
+    public FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> catalogObjectNameFilterHandler() {
+        return new CatalogObjectNameFilterHandler();
+    }
+
+    @Bean
+    public FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> catalogObjectMetadataFilterHandler() {
+        return new CatalogObjectMetadataFilterHandler();
+    }
+
+    @Bean
+    public FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> catalogObjectAndOrGroupFilterHandler() {
+        return new CatalogObjectAndOrGroupFilterHandler();
     }
 
 }

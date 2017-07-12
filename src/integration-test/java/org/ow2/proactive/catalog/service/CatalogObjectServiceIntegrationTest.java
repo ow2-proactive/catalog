@@ -41,7 +41,7 @@ import org.ow2.proactive.catalog.IntegrationTestConfig;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
+import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -66,7 +66,7 @@ public class CatalogObjectServiceIntegrationTest {
 
     private BucketMetadata bucket;
 
-    private List<KeyValueMetadata> keyValues;
+    private List<Metadata> keyValues;
 
     private byte[] workflowAsByteArray;
 
@@ -79,7 +79,7 @@ public class CatalogObjectServiceIntegrationTest {
     @Before
     public void setup() throws IOException {
         bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
-        keyValues = Collections.singletonList(new KeyValueMetadata("key", "value", "type"));
+        keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
 
         workflowAsByteArray = IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml");
         workflowAsByteArrayUpdated = IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml");
@@ -143,7 +143,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                     "catalog1");
         assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("commit message 2");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("object");
-        assertThat(catalogObjectMetadata.getKeyValueMetadataList()).hasSize(1);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(1);
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("application/xml");
     }
 

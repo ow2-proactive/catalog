@@ -25,53 +25,40 @@
  */
 package org.ow2.proactive.catalog.graphql.bean;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
+import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.util.KeyValueEntityToDtoTransformer;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
  */
 @Data
+@NoArgsConstructor
 public class CatalogObject {
 
-    @JsonProperty("kind")
-    private final String kind;
+    private String kind;
 
-    @JsonProperty("bucket_id")
-    private final Long bucketId;
+    private Long bucketId;
 
-    @JsonProperty
-    private final String name;
+    private String name;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @JsonProperty("commit_time")
-    private final LocalDateTime commitDateTime;
+    private long commitDateTime;
 
-    @JsonProperty("content_type")
-    private final String contentType;
+    private String contentType;
 
-    @JsonProperty("commit_message")
-    private final String commitMessage;
+    private String commitMessage;
 
-    @JsonProperty("object_key_values")
-    private final List<KeyValueMetadata> keyValueMetadataList;
+    private List<Metadata> metadata;
 
-    @JsonProperty("content_link")
-    private String contentLink;
+    private String link;
 
     public CatalogObject(CatalogObjectEntity catalogObject) {
         this(catalogObject.getId().getBucketId(),
@@ -94,19 +81,17 @@ public class CatalogObject {
     }
 
     public CatalogObject(Long bucketId, String name, String kind, String contentType, long createdAt,
-            String commitMessage, List<KeyValueMetadata> keyValueMetadataList) {
+            String commitMessage, List<Metadata> metadataList) {
         this.bucketId = bucketId;
         this.name = name;
         this.kind = kind;
         this.contentType = contentType;
-        this.commitDateTime = Instant.ofEpochMilli(createdAt).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        this.commitDateTime = createdAt;
         this.commitMessage = commitMessage;
-        if (keyValueMetadataList == null) {
-            this.keyValueMetadataList = new ArrayList<>();
+        if (metadataList == null) {
+            this.metadata = new ArrayList<>();
         } else {
-            this.keyValueMetadataList = keyValueMetadataList;
+            this.metadata = metadataList;
         }
-
     }
-
 }

@@ -31,7 +31,7 @@ import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectMetadataArgs
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.KeyValueSpecification;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -42,10 +42,11 @@ import org.springframework.stereotype.Component;
  * @since 05/07/2017
  */
 @Component
-public class CatalogObjectMetadataFilterHandler implements FilterHandler<CatalogObjectWhereArgs, CatalogObjectEntity> {
+public class CatalogObjectMetadataFilterHandler
+        implements FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> {
 
     @Override
-    public Optional<Specification<CatalogObjectEntity>> handle(CatalogObjectWhereArgs catalogObjectWhereArgs) {
+    public Optional<Specification<CatalogObjectRevisionEntity>> handle(CatalogObjectWhereArgs catalogObjectWhereArgs) {
         if (catalogObjectWhereArgs.getMetadataArg() != null) {
             CatalogObjectMetadataArgs metadataArgs = catalogObjectWhereArgs.getMetadataArg();
             if (metadataArgs.getValue().getEq() != null) {
@@ -59,14 +60,14 @@ public class CatalogObjectMetadataFilterHandler implements FilterHandler<Catalog
                 return Optional.of(KeyValueSpecification.builder()
                                                         .operations(Operations.NE)
                                                         .key(metadataArgs.getKey())
-                                                        .value(metadataArgs.getValue().getEq())
+                                                        .value(metadataArgs.getValue().getNe())
                                                         .build());
             }
             if (metadataArgs.getValue().getLike() != null) {
                 return Optional.of(KeyValueSpecification.builder()
                                                         .operations(Operations.LIKE)
                                                         .key(metadataArgs.getKey())
-                                                        .value(metadataArgs.getValue().getEq())
+                                                        .value(metadataArgs.getValue().getLike())
                                                         .build());
             }
         }

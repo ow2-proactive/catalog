@@ -33,7 +33,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.springframework.data.jpa.domain.Specification;
 
 import lombok.Builder;
@@ -45,13 +45,13 @@ import lombok.Getter;
  * @since 06/07/2017
  */
 @Builder
-public class AndSpecification implements Specification<CatalogObjectEntity> {
+public class AndSpecification implements Specification<CatalogObjectRevisionEntity> {
 
     @Getter
-    private final List<Specification<CatalogObjectEntity>> fieldSpcifications;
+    private final List<Specification<CatalogObjectRevisionEntity>> fieldSpcifications;
 
     @Override
-    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+    public Predicate toPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
         List<Predicate> predicates = fieldSpcifications.stream()
                                                        .map(spec -> spec.toPredicate(root, query, cb))
                                                        .collect(Collectors.toList());

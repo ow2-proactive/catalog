@@ -42,7 +42,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.GenericGenerator;
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
+import org.ow2.proactive.catalog.dto.Metadata;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -87,7 +87,7 @@ public class KeyValueMetadataEntity implements Serializable {
         this.label = label;
     }
 
-    public KeyValueMetadataEntity(KeyValueMetadata metadata) {
+    public KeyValueMetadataEntity(Metadata metadata) {
         this.key = metadata.getKey();
         this.value = metadata.getValue();
         this.label = metadata.getLabel();
