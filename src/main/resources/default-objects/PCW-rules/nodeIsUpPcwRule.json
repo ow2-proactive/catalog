@@ -1,0 +1,7 @@
+{
+	"kind": "pcw-rule",
+	"name": "nodeIsUpPcwRule",
+	"commitMessage": "First commit",
+	"objectFileName": "nodeIsUpPcwRule.json",
+	"contentType": "application/json"
+}

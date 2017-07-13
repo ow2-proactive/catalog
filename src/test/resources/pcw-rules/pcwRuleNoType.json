@@ -1,0 +1,24 @@
+{
+  "name": "ruleNodeIsUpMetric",
+  "ruleContent": {
+    "drl": "package org.ow2.proactive.cloud_watch.rules \n import java.util.*;  \n import  org.ow2.proactive.cloud_watch.model.*; \nimport  org.ow2.proactive.cloud_watch.service.*; \nglobal org.ow2.proactive.cloud_watch.action.ActionExecutor actionExecutorCloudAutomationService; \ndeclare isNodeAction \n nodeMetrics: NodeMetrics \nend \n \nrule ruleNodeIsUpMetric when\n exists   kpi : NodeMetrics( url == \"localhost\" )\n $NodeConnection : NodeMetrics(metrics[\"upAndRunning\"]  == true)\n then \n    System.out.println(\"In then condition of url Metric rule that overides\"); \n    Map<String, String> parameters = new HashMap(); \n parameters.put(\"credentialsPath\",\"pathToCredentialsFile\"); \n    actionExecutorCloudAutomationService.execute(parameters, \"ruleurlMetric\", \"urlAction:2\"); \nend \n"
+  },
+  "pollConfiguration": {
+    "nodeInformations": [
+      {
+        "url": "localhost"
+      },
+      {
+        "url": "service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode"
+      }
+    ],
+    "kpis": [
+      "upAndRunning",
+      "sigar:Type=Cpu Total",
+      "sigar:Type=FileSystem,Name=/ Free"
+    ],
+    "pollingPeriodInSeconds": "100",
+    "calmPeriodInSeconds": "50"
+  }
+
+}

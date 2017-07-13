@@ -23,27 +23,39 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser;
+package org.ow2.proactive.catalog.util.parser.pcw.rule.model;
 
-/**
- * CatalogObjectParserFactory return the right Parser for the given type of object
- *
- * @author ActiveEon Team
- */
-public enum CatalogObjectParserFactory {
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-    INSTANCE;
 
-    public static CatalogObjectParserFactory get() {
-        return INSTANCE;
+@EqualsAndHashCode
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+public class JMXCredentials {
+
+    private String username;
+
+    private String password;
+
+    private String filePath;
+
+    public void validateCredentials() throws IllegalArgumentException {
+        if ((username == null || password == null) && filePath == null) {
+            throw new IllegalArgumentException("No authentication is specified for the JMX client.");
+        }
     }
 
-    public CatalogObjectParserInterface getParser(String type) {
-        if (SupportedParserKinds.WORKFLOW.toString().equals(type))
-            return new WorkflowParser();
-        if (SupportedParserKinds.PCW_RULE.toString().equals(type))
-            return new PCWRuleParser();
-        return new DefaultCatalogObjectParser();
+    public boolean verifyFileCredentials() {
+        return (filePath != null);
     }
 
+    public boolean verifyClearCredentials() {
+        return (username != null && password != null);
+    }
 }
