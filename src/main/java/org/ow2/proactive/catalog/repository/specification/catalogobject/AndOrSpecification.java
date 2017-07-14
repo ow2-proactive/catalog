@@ -23,9 +23,10 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.generic;
+package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -34,39 +35,43 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
+import org.ow2.proactive.catalog.repository.specification.generic.AbstractSpecification;
+import org.springframework.data.jpa.domain.Specification;
 
 
 /**
  * @author ActiveEon Team
- * @since 05/07/2017
+ * @since 13/07/2017
  */
-public class CompositeKeyInNotInSpecificatoin<T> extends AbstractSpecification<List<T>> {
+public abstract class AndOrSpecification extends AbstractSpecification {
 
-    public CompositeKeyInNotInSpecificatoin(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            List<T> value, Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
-            Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadataJoin) {
+    protected List<Specification<CatalogObjectRevisionEntity>> fieldSpecifications;
+
+    public AndOrSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations, Object value,
+            Join catalogObjectJoin, Join metadataJoin,
+            List<Specification<CatalogObjectRevisionEntity>> fieldSpecifications) {
         super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
+        this.fieldSpecifications = fieldSpecifications;
     }
 
     @Override
-    protected Predicate buildPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query,
-            CriteriaBuilder cb) {
-        switch (operations) {
-            case IN:
-                return catalogObjectJoin.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
-                                        .get(entityMetaModelEnum.getName())
-                                        .in(value);
-            case NOT_IN:
-                return catalogObjectJoin.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
-                                        .get(entityMetaModelEnum.getName())
-                                        .in(value)
-                                        .not();
-            default:
-                throw new IllegalStateException(operations + " is not supported");
-        }
+    protected Predicate buildPredicate(Root root, CriteriaQuery query, CriteriaBuilder cb) {
+        initMetadataJoin(root, query, cb);
+        List<Predicate> predicates = fieldSpecifications.stream().map(spec -> {
+            AbstractSpecification abstractSpecification = (AbstractSpecification) spec;
+            abstractSpecification.setCatalogObjectJoin(catalogObjectJoin);
+            abstractSpecification.setMetadataJoin(metadataJoin);
+            return abstractSpecification.toPredicate(root, query, cb);
+        }).collect(Collectors.toList());
+
+        return predicate(cb, predicates.toArray(new Predicate[predicates.size()]));
+    }
+
+    protected abstract Predicate predicate(CriteriaBuilder cb, Predicate[] predicates);
+
+    public List<Specification<CatalogObjectRevisionEntity>> getFieldSpecifications() {
+        return fieldSpecifications;
     }
 }

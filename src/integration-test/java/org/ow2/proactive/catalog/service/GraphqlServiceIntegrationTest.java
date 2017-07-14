@@ -131,6 +131,7 @@ public class GraphqlServiceIntegrationTest {
                                                  "application/xml",
                                                  keyValues,
                                                  workflowAsByteArray);
+
     }
 
     @After
@@ -423,5 +424,78 @@ public class GraphqlServiceIntegrationTest {
                                            .isPresent())
                              .findAny()
                              .isPresent()).isFalse();
+    }
+
+    @Test
+    public void testSimpleAndQuery() throws IOException {
+        String query = "{\n" +
+                       "  allCatalogObjects(where:{AND:[{nameArg:{eq:\"catalog1\"}}, {kindArg:{eq:\"object\"}}]}) {\n" +
+                       "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                       "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
+                       "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
+                       "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" +
+                       "}\n";
+
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(1);
+        assertThat(connection.getTotalCount()).isEqualTo(1);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+    }
+
+    @Test
+    public void testComplexAndQuery() throws IOException {
+        // new bucket
+        BucketMetadata bucket2 = bucketService.createBucket("bucket2", "CatalogObjectServiceIntegrationTest");
+        keyValues = Collections.singletonList(new Metadata("key2", "value", "type"));
+
+        catalogObjectService.createCatalogObject(bucket2.getMetaDataId(),
+                                                 "catalog1",
+                                                 "object",
+                                                 "commit message",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+
+        String query = "{\n" +
+                       "  allCatalogObjects(where:{OR:[{AND:[{nameArg:{eq:\"catalog1\"}}, {kindArg:{eq:\"object\"}}, {metadataArg:{key:\"key2\", value:{eq:\"value\"}}}]}, {AND:[{kindArg:{eq:\"workflow\"}}, {metadataArg:{key:\"key\",value:{eq:\"value2\"}}}]}]}) {\n" +
+                       "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                       "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
+                       "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
+                       "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" +
+                       "}\n";
+
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(3);
+        assertThat(connection.getTotalCount()).isEqualTo(3);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+
+        query = "{\n" +
+                "  allCatalogObjects(where:{OR:[{AND:[{OR:[{nameArg:{eq:\"catalog1\"}},{nameArg:{eq:\"catalog2\"}}]}, {bucketIdArg:{eq:" +
+                bucket.getMetaDataId() + "}}]}, {AND:[{nameArg:{eq:\"catalog1\"}}, {bucketIdArg:{eq:" +
+                bucket2.getMetaDataId() + "}}]}]}) {\n" + "    edges {\n" + "      bucketId\n" + "      name\n" +
+                "      kind\n" + "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
+                "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" + "    }\n" +
+                "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" + "    hasNext\n" +
+                "    hasPrevious\n" + "  }  \n" + "}\n";
+
+        map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(3);
+        assertThat(connection.getTotalCount()).isEqualTo(3);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
     }
 }

@@ -27,7 +27,12 @@ package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
 import java.util.List;
 
+import javax.persistence.criteria.Join;
+
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyInNotInSpecificatoin;
 
@@ -42,7 +47,8 @@ public class BucketIdInNotInSpecification extends CompositeKeyInNotInSpecificato
 
     @Builder
     public BucketIdInNotInSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            List<Long> value) {
-        super(entityMetaModelEnum, operations, value);
+            List<Long> value, Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
+            Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadataJoin) {
+        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
     }
 }

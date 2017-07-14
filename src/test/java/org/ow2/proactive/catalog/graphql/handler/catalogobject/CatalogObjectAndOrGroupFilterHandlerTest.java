@@ -132,25 +132,25 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
         assertThat(specification.get() instanceof OrSpecification).isTrue();
         OrSpecification orSpecification = (OrSpecification) specification.get();
 
-        assertThat(orSpecification.getFieldSpcifications()).hasSize(2);
-        assertThat(orSpecification.getFieldSpcifications().get(0) instanceof AndSpecification).isTrue();
-        assertThat(orSpecification.getFieldSpcifications().get(1) instanceof AndSpecification).isTrue();
+        assertThat(orSpecification.getFieldSpecifications()).hasSize(2);
+        assertThat(orSpecification.getFieldSpecifications().get(0) instanceof AndSpecification).isTrue();
+        assertThat(orSpecification.getFieldSpecifications().get(1) instanceof AndSpecification).isTrue();
 
-        AndSpecification leftAnd = (AndSpecification) orSpecification.getFieldSpcifications().get(0);
-        AndSpecification rightAnd = (AndSpecification) orSpecification.getFieldSpcifications().get(1);
+        AndSpecification leftAnd = (AndSpecification) orSpecification.getFieldSpecifications().get(0);
+        AndSpecification rightAnd = (AndSpecification) orSpecification.getFieldSpecifications().get(1);
 
-        assertThat(leftAnd.getFieldSpcifications()).hasSize(2);
-        assertThat(leftAnd.getFieldSpcifications().get(0) instanceof BucketIdEqNeSpecification).isTrue();
-        assertThat(leftAnd.getFieldSpcifications().get(1) instanceof CompositeKeyEqNeSpecification).isTrue();
+        assertThat(leftAnd.getFieldSpecifications()).hasSize(2);
+        assertThat(leftAnd.getFieldSpecifications().get(0) instanceof BucketIdEqNeSpecification).isTrue();
+        assertThat(leftAnd.getFieldSpecifications().get(1) instanceof CompositeKeyEqNeSpecification).isTrue();
 
-        assertThat(rightAnd.getFieldSpcifications()).hasSize(2);
-        assertThat(rightAnd.getFieldSpcifications().get(0) instanceof BucketIdEqNeSpecification).isTrue();
-        assertThat(rightAnd.getFieldSpcifications().get(1) instanceof OrSpecification).isTrue();
+        assertThat(rightAnd.getFieldSpecifications()).hasSize(2);
+        assertThat(rightAnd.getFieldSpecifications().get(0) instanceof BucketIdEqNeSpecification).isTrue();
+        assertThat(rightAnd.getFieldSpecifications().get(1) instanceof OrSpecification).isTrue();
 
-        OrSpecification rightAndChildOr = (OrSpecification) rightAnd.getFieldSpcifications().get(1);
-        assertThat(rightAndChildOr.getFieldSpcifications()).hasSize(2);
-        assertThat(rightAndChildOr.getFieldSpcifications().get(0) instanceof CompositeKeyEqNeSpecification).isTrue();
-        assertThat(rightAndChildOr.getFieldSpcifications().get(1) instanceof CompositeKeyEqNeSpecification).isTrue();
+        OrSpecification rightAndChildOr = (OrSpecification) rightAnd.getFieldSpecifications().get(1);
+        assertThat(rightAndChildOr.getFieldSpecifications()).hasSize(2);
+        assertThat(rightAndChildOr.getFieldSpecifications().get(0) instanceof CompositeKeyEqNeSpecification).isTrue();
+        assertThat(rightAndChildOr.getFieldSpecifications().get(1) instanceof CompositeKeyEqNeSpecification).isTrue();
 
     }
 

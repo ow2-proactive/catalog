@@ -126,10 +126,7 @@ public class CatalogObjectFetcher implements DataFetcher {
 
         switch (orderBy) {
             case CATALOG_OBJECT_KEY_ASC:
-                return new PageRequest(pageInfo.getPage(),
-                                       pageInfo.getSize(),
-                                       Sort.Direction.ASC,
-                                       CatalogObjectEntityMetaModelEnum.ID.getName());
+                return new PageRequest(pageInfo.getPage(), pageInfo.getSize(), Sort.Direction.ASC, "catalogObject.id");
             case CATALOG_OBJECT_KEY_DESC:
                 return new PageRequest(pageInfo.getPage(),
                                        pageInfo.getSize(),

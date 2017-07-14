@@ -46,11 +46,10 @@ public class DefaultSpecification implements Specification<CatalogObjectRevision
 
     @Override
     public Predicate toPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-        final Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObject = root.join("catalogObject",
+        final Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObject = root.join(CatalogObjectEntityMetaModelEnum.CATALOG_OBJECT.getName(),
                                                                                                JoinType.INNER);
         Predicate lastCommit = cb.equal(root.get(CatalogObjectEntityMetaModelEnum.COMMIT_TIME.getName()),
                                         catalogObject.get(CatalogObjectEntityMetaModelEnum.LAST_COMMIT_TIME.getName()));
-        catalogObject.on(lastCommit);
         return lastCommit;
     }
 }

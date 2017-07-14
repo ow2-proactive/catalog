@@ -55,21 +55,27 @@ public class CatalogObjectBucketIdFilterHandler
             CatalogObjectBucketIdWhereArgs bucketIdWhereArgs = whereArgs.getBucketIdArg();
 
             if (bucketIdWhereArgs.getEq() != null) {
-                return Optional.of(new BucketIdEqNeSpecification(CatalogObjectEntityMetaModelEnum.BUCKET_ID,
-                                                                 Operations.EQ,
-                                                                 bucketIdWhereArgs.getEq()));
+                return Optional.of(BucketIdEqNeSpecification.builder()
+                                                            .entityMetaModelEnum(CatalogObjectEntityMetaModelEnum.BUCKET_ID)
+                                                            .operations(Operations.EQ)
+                                                            .value(bucketIdWhereArgs.getEq())
+                                                            .build());
             }
 
             if (bucketIdWhereArgs.getNe() != null) {
-                return Optional.of(new BucketIdEqNeSpecification(CatalogObjectEntityMetaModelEnum.BUCKET_ID,
-                                                                 Operations.NE,
-                                                                 bucketIdWhereArgs.getNe()));
+                return Optional.of(BucketIdEqNeSpecification.builder()
+                                                            .entityMetaModelEnum(CatalogObjectEntityMetaModelEnum.BUCKET_ID)
+                                                            .operations(Operations.NE)
+                                                            .value(bucketIdWhereArgs.getNe())
+                                                            .build());
             }
 
             if (bucketIdWhereArgs.getIn() != null) {
-                return Optional.of(new BucketIdInNotInSpecification(CatalogObjectEntityMetaModelEnum.BUCKET_ID,
-                                                                    Operations.IN,
-                                                                    Arrays.asList(bucketIdWhereArgs.getIn())));
+                return Optional.of(BucketIdInNotInSpecification.builder()
+                                                               .entityMetaModelEnum(CatalogObjectEntityMetaModelEnum.BUCKET_ID)
+                                                               .operations(Operations.IN)
+                                                               .value(Arrays.asList(bucketIdWhereArgs.getIn()))
+                                                               .build());
             }
         }
         return Optional.empty();

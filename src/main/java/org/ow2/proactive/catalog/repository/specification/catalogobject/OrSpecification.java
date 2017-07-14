@@ -26,14 +26,14 @@
 package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 
+import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.springframework.data.jpa.domain.Specification;
 
 import lombok.Builder;
@@ -44,18 +44,18 @@ import lombok.Getter;
  * @author ActiveEon Team
  * @since 06/07/2017
  */
-@Builder
-public class OrSpecification implements Specification<CatalogObjectRevisionEntity> {
+@Getter
+public class OrSpecification extends AndOrSpecification {
 
-    @Getter
-    private final List<Specification<CatalogObjectRevisionEntity>> fieldSpcifications;
+    @Builder
+    public OrSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations, Object value,
+            Join catalogObjectJoin, Join metadataJoin,
+            List<Specification<CatalogObjectRevisionEntity>> fieldSpecifications) {
+        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin, fieldSpecifications);
+    }
 
     @Override
-    public Predicate toPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-        List<Predicate> predicates = fieldSpcifications.stream()
-                                                       .map(spec -> spec.toPredicate(root, query, cb))
-                                                       .collect(Collectors.toList());
-
-        return cb.or(predicates.toArray(new Predicate[predicates.size()]));
+    protected Predicate predicate(CriteriaBuilder cb, Predicate[] predicates) {
+        return cb.or(predicates);
     }
 }

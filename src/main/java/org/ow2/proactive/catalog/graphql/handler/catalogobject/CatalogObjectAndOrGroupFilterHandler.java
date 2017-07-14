@@ -123,14 +123,12 @@ public class CatalogObjectAndOrGroupFilterHandler
 
     private Specification<CatalogObjectRevisionEntity>
             buildFinalSpecification(List<CatalogObjectWhereArgsTreeNode> collect) {
-        Specification<CatalogObjectRevisionEntity> leftChildSpec = null;
-        Specification<CatalogObjectRevisionEntity> rightChildSpec = null;
+        Deque<Specification<CatalogObjectRevisionEntity>> stack = new LinkedList<>();
 
         // node
         for (CatalogObjectWhereArgsTreeNode argsTreeNode : collect) {
 
             Operations nodeOperations = argsTreeNode.getOperations();
-            boolean leafOnly = true;
 
             List<Specification<CatalogObjectRevisionEntity>> nodeSpecList = new ArrayList<>();
 
@@ -144,12 +142,7 @@ public class CatalogObjectAndOrGroupFilterHandler
                         }
                     }
                 } else {
-                    if (leafOnly) {
-                        nodeSpecList.add(rightChildSpec);
-                    } else {
-                        nodeSpecList.add(leftChildSpec);
-                    }
-                    leafOnly = false;
+                    nodeSpecList.add(stack.pop());
                 }
             }
 
@@ -159,19 +152,15 @@ public class CatalogObjectAndOrGroupFilterHandler
 
             Specification<CatalogObjectRevisionEntity> temp;
             if (nodeOperations == Operations.AND) {
-                temp = AndSpecification.builder().fieldSpcifications(nodeSpecList).build();
+                temp = AndSpecification.builder().fieldSpecifications(nodeSpecList).build();
             } else {
-                temp = OrSpecification.builder().fieldSpcifications(nodeSpecList).build();
+                temp = OrSpecification.builder().fieldSpecifications(nodeSpecList).build();
             }
 
-            if (leafOnly) {
-                rightChildSpec = temp;
-            } else {
-                leftChildSpec = temp;
-            }
+            stack.push(temp);
 
         }
-        return leftChildSpec;
+        return stack.pop();
     }
 
     private List<CatalogObjectWhereArgsTreeNode>
