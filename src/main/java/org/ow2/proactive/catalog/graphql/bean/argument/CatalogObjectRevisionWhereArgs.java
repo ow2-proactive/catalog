@@ -23,7 +23,9 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.graphql.bean.argument;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -39,6 +41,7 @@ public class CatalogObjectRevisionWhereArgs extends WhereArgs<Long> {
 
     private final Boolean isLatest;
 
+    @JsonCreator
     public CatalogObjectRevisionWhereArgs(Long eq, Long ne, Long gt, Long gte, Long lt, Long lte, Boolean isLatest) {
         super(eq, ne, gt, gte, lt, lte);
         this.isLatest = isLatest;

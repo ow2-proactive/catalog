@@ -23,60 +23,37 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.graphql.bean.argument;
 
-import lombok.Data;
+import java.util.Arrays;
+import java.util.Optional;
 
 
 /**
  * @author ActiveEon Team
- * @since 09/06/2017
+ * @since 10/07/2017
  */
-@Data
-public class WhereArgs<T> {
+public enum OrderBy {
+    CATALOG_OBJECT_KEY_ASC("catalogObjectKey_ASC"),
+    CATALOG_OBJECT_KEY_DESC("catalogObjectKey_DESC"),
+    KIND_ASC("kind_ASC"),
+    KIND_DESC("kind_DESC");
 
-    protected final T eq;
+    private String value;
 
-    protected final T ne;
-
-    protected final T gt;
-
-    protected final T gte;
-
-    protected final T lt;
-
-    protected final T lte;
-
-    public WhereArgs(T eq, T ne, T gt, T gte, T lt, T lte) {
-        this.eq = eq;
-        this.ne = ne;
-        this.gt = gt;
-        this.gte = gte;
-        this.lt = lt;
-        this.lte = lte;
+    OrderBy(String value) {
+        this.value = value;
     }
 
-    public T getEq() {
-        return eq;
+    public String value() {
+        return value;
     }
 
-    public T getNe() {
-        return ne;
-    }
-
-    public T getGt() {
-        return gt;
-    }
-
-    public T getGte() {
-        return gte;
-    }
-
-    public T getLt() {
-        return lt;
-    }
-
-    public T getLte() {
-        return lte;
+    public static OrderBy fromValue(String value) {
+        Optional<OrderBy> first = Arrays.stream(OrderBy.values()).filter(e -> e.value.equals(value)).findFirst();
+        if (first.isPresent()) {
+            return first.get();
+        }
+        throw new IllegalArgumentException(value + " does not exist");
     }
 }

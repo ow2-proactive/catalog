@@ -23,56 +23,44 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.dto;
+package org.ow2.proactive.catalog.graphql.bean;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.util.KeyValueEntityToDtoTransformer;
-import org.springframework.hateoas.ResourceSupport;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-public class CatalogObjectMetadata extends ResourceSupport {
+@NoArgsConstructor
+public class CatalogObject {
 
-    @JsonProperty("kind")
-    protected final String kind;
+    private String kind;
 
-    @JsonProperty("bucket_id")
-    protected final Long bucketId;
+    private Long bucketId;
 
-    @JsonProperty
-    protected final String name;
+    private String name;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @JsonProperty("commit_time")
-    protected final LocalDateTime commitDateTime;
+    private long commitDateTime;
 
-    @JsonProperty("content_type")
-    protected final String contentType;
+    private String contentType;
 
-    @JsonProperty("commit_message")
-    protected final String commitMessage;
+    private String commitMessage;
 
-    @JsonProperty("object_key_values")
-    protected final List<Metadata> metadataList;
+    private List<Metadata> metadata;
 
-    public CatalogObjectMetadata(CatalogObjectEntity catalogObject) {
+    private String link;
+
+    public CatalogObject(CatalogObjectEntity catalogObject) {
         this(catalogObject.getId().getBucketId(),
              catalogObject.getId().getName(),
              catalogObject.getKind(),
@@ -82,7 +70,7 @@ public class CatalogObjectMetadata extends ResourceSupport {
              KeyValueEntityToDtoTransformer.to(catalogObject.getRevisions().first().getKeyValueMetadataList()));
     }
 
-    public CatalogObjectMetadata(CatalogObjectRevisionEntity catalogObject) {
+    public CatalogObject(CatalogObjectRevisionEntity catalogObject) {
         this(catalogObject.getCatalogObject().getId().getBucketId(),
              catalogObject.getCatalogObject().getId().getName(),
              catalogObject.getCatalogObject().getKind(),
@@ -92,20 +80,18 @@ public class CatalogObjectMetadata extends ResourceSupport {
              KeyValueEntityToDtoTransformer.to(catalogObject.getKeyValueMetadataList()));
     }
 
-    public CatalogObjectMetadata(Long bucketId, String name, String kind, String contentType, long createdAt,
+    public CatalogObject(Long bucketId, String name, String kind, String contentType, long createdAt,
             String commitMessage, List<Metadata> metadataList) {
         this.bucketId = bucketId;
         this.name = name;
         this.kind = kind;
         this.contentType = contentType;
-        this.commitDateTime = Instant.ofEpochMilli(createdAt).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        this.commitDateTime = createdAt;
         this.commitMessage = commitMessage;
         if (metadataList == null) {
-            this.metadataList = new ArrayList<>();
+            this.metadata = new ArrayList<>();
         } else {
-            this.metadataList = metadataList;
+            this.metadata = metadataList;
         }
-
     }
-
 }

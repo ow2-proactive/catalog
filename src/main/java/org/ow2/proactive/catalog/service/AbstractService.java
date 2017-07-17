@@ -23,36 +23,29 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.service;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.ow2.proactive.catalog.repository.BucketRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.extern.log4j.Log4j2;
 
 
 /**
  * @author ActiveEon Team
- * @since 04/07/2017
+ * @since 11/07/2017
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class StringWhereArgs extends WhereArgs<String> {
+@Log4j2
+public abstract class AbstractService {
+    @Autowired
+    private BucketRepository bucketRepository;
 
-    protected final String like;
+    @Autowired
+    private CatalogObjectRepository catalogObjectRepository;
 
-    protected final String notLike;
+    @Autowired
+    private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
 
-    public StringWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String like,
-            String notLike) {
-        super(eq, ne, gt, gte, lt, lte);
-        this.like = like;
-        this.notLike = notLike;
-    }
-
-    public String getLike() {
-        return like;
-    }
-
-    public String getNotLike() {
-        return notLike;
-    }
 }

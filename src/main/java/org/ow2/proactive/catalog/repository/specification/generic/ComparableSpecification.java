@@ -23,45 +23,45 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.common;
+package org.ow2.proactive.catalog.repository.specification.generic;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.springframework.data.jpa.domain.Specification;
-
-import lombok.Builder;
 
 
 /**
  * @author ActiveEon Team
  * @since 05/07/2017
  */
-@Builder
-public class ComparableSpecification<R extends Comparable<R>> implements Specification<CatalogObjectEntity> {
+public class ComparableSpecification<R extends Comparable<R>> extends AbstractSpecification<R> {
 
-    protected CatalogObjectEntityMetaModelEnum entityMetaModelEnum;
-
-    protected Operations operations;
-
-    protected R value;
+    public ComparableSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations, R value,
+            Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
+            Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadataJoin) {
+        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
+    }
 
     @Override
-    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+    protected Predicate buildPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query,
+            CriteriaBuilder cb) {
         switch (operations) {
             case GT:
-                return cb.equal(root.<R> get(entityMetaModelEnum.getName()), value);
+                return cb.equal(catalogObjectJoin.<R> get(entityMetaModelEnum.getName()), value);
             case GTE:
-                return cb.notEqual(root.<R> get(entityMetaModelEnum.getName()), value);
+                return cb.notEqual(catalogObjectJoin.<R> get(entityMetaModelEnum.getName()), value);
             case LT:
-                return cb.equal(root.<R> get(entityMetaModelEnum.getName()), value);
+                return cb.equal(catalogObjectJoin.<R> get(entityMetaModelEnum.getName()), value);
             case LTE:
-                return cb.notEqual(root.<R> get(entityMetaModelEnum.getName()), value);
+                return cb.notEqual(catalogObjectJoin.<R> get(entityMetaModelEnum.getName()), value);
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }

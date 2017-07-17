@@ -33,11 +33,13 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
+import org.ow2.proactive.catalog.util.LinkUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
@@ -77,7 +79,14 @@ public class CatalogObjectRevisionController {
     public CatalogObjectMetadata create(@PathVariable Long bucketId, @PathVariable String name,
             @ApiParam(value = "The commit message of the CatalogRawObject Revision") @RequestParam String commitMessage,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        return catalogObjectService.createCatalogObjectRevision(bucketId, name, commitMessage, file.getBytes());
+        CatalogObjectMetadata catalogObjectRevision = catalogObjectService.createCatalogObjectRevision(bucketId,
+                                                                                                       name,
+                                                                                                       commitMessage,
+                                                                                                       file.getBytes());
+        catalogObjectRevision.add(LinkUtil.createLink(catalogObjectRevision.getBucketId(),
+                                                      catalogObjectRevision.getName(),
+                                                      catalogObjectRevision.getCommitDateTime()));
+        return catalogObjectRevision;
     }
 
     @ApiOperation(value = "Gets a specific revision")
@@ -90,6 +99,7 @@ public class CatalogObjectRevisionController {
             CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketId,
                                                                                            decodedName,
                                                                                            commitTime);
+            metadata.add(LinkUtil.createLink(metadata.getBucketId(), metadata.getName(), metadata.getCommitDateTime()));
             return ResponseEntity.ok(metadata);
         } catch (RevisionNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -128,7 +138,13 @@ public class CatalogObjectRevisionController {
     public List<CatalogObjectMetadata> list(@PathVariable Long bucketId, @PathVariable String name)
             throws UnsupportedEncodingException {
         String decodedName = URLDecoder.decode(name, "UTF-8");
-        return catalogObjectService.listCatalogObjectRevisions(bucketId, decodedName);
+        List<CatalogObjectMetadata> catalogObjectMetadataList = catalogObjectService.listCatalogObjectRevisions(bucketId,
+                                                                                                                decodedName);
+
+        return catalogObjectMetadataList.stream().map(object -> {
+            object.add(LinkUtil.createLink(object.getBucketId(), object.getName(), object.getCommitDateTime()));
+            return object;
+        }).collect(Collectors.toList());
     }
 
 }

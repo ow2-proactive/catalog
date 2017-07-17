@@ -25,9 +25,16 @@
  */
 package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
+import javax.persistence.criteria.Join;
+
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.common.EqNeSpecification;
+import org.ow2.proactive.catalog.repository.specification.generic.EqNeSpecification;
+
+import lombok.Builder;
 
 
 /**
@@ -36,8 +43,10 @@ import org.ow2.proactive.catalog.repository.specification.common.EqNeSpecificati
  */
 public class StringEqNeSpecification extends EqNeSpecification<String> {
 
+    @Builder
     public StringEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            String value) {
-        super(entityMetaModelEnum, operations, value);
+            String value, Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
+            Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadataJoin) {
+        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
     }
 }

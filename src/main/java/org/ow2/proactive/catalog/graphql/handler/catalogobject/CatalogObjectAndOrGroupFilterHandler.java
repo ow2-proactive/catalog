@@ -36,13 +36,14 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
-import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -58,21 +59,25 @@ import lombok.extern.log4j.Log4j2;
 @Component
 @Log4j2
 public class CatalogObjectAndOrGroupFilterHandler
-        implements FilterHandler<CatalogObjectWhereArgs, CatalogObjectEntity> {
+        implements FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> {
 
     @Autowired
-    private CatalogObjectBucketIdFilterHandler bucketIdHandler;
+    @Qualifier("catalogObjectBucketIdFilterHandler")
+    private FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> bucketIdHandler;
 
     @Autowired
-    private CatalogObjectKindFilterHandler kindHandler;
+    @Qualifier("catalogObjectKindFilterHandler")
+    private FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> kindHandler;
 
     @Autowired
-    private CatalogObjectNameFilterHandler nameHandler;
+    @Qualifier("catalogObjectNameFilterHandler")
+    private FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> nameHandler;
 
     @Autowired
-    private CatalogObjectMetadataFilterHandler metadataHandler;
+    @Qualifier("catalogObjectMetadataFilterHandler")
+    private FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> metadataHandler;
 
-    private List<FilterHandler<CatalogObjectWhereArgs, CatalogObjectEntity>> fieldFilterHandlers = new ArrayList<>();
+    private List<FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity>> fieldFilterHandlers = new ArrayList<>();
 
     @PostConstruct
     public void init() {
@@ -83,67 +88,67 @@ public class CatalogObjectAndOrGroupFilterHandler
     }
 
     @Override
-    public Optional<Specification<CatalogObjectEntity>> handle(CatalogObjectWhereArgs catalogObjectWhereArgs) {
+    public Optional<Specification<CatalogObjectRevisionEntity>> handle(CatalogObjectWhereArgs catalogObjectWhereArgs) {
         List<CatalogObjectWhereArgs> andOrArgs;
         Operations operations;
 
         log.debug(catalogObjectWhereArgs);
 
-        if (catalogObjectWhereArgs.getAndArgs() != null) {
-            andOrArgs = catalogObjectWhereArgs.getAndArgs();
+        if (catalogObjectWhereArgs.getAndArg() != null) {
+            andOrArgs = catalogObjectWhereArgs.getAndArg();
             operations = Operations.AND;
         } else {
-            andOrArgs = catalogObjectWhereArgs.getOrArgs();
+            andOrArgs = catalogObjectWhereArgs.getOrArg();
             operations = Operations.OR;
         }
 
-        // binary tree postorder traversal, iterative algo
+        // binary tree post-order traversal, iterative algorithm
         if (andOrArgs != null) {
             List<CatalogObjectWhereArgsTreeNode> ret = postOrderTraverseWhereArgsToHaveTreeNodes(andOrArgs, operations);
 
-            Collections.reverse(ret);
             log.debug(ret);
 
+            // remove unnecessary items
             List<CatalogObjectWhereArgsTreeNode> collect = ret.stream()
                                                               .filter(treeNode -> treeNode.getWhereArgs().size() > 1)
                                                               .collect(Collectors.toList());
 
             log.debug(collect);
 
-            Specification<CatalogObjectEntity> leftChildSpec = buildFinalSpecification(collect);
-            return Optional.of(leftChildSpec);
+            Specification<CatalogObjectRevisionEntity> finalSpecification = buildFinalSpecification(collect);
+            return Optional.of(finalSpecification);
         }
         return Optional.empty();
     }
 
-    private Specification<CatalogObjectEntity> buildFinalSpecification(List<CatalogObjectWhereArgsTreeNode> collect) {
-        Specification<CatalogObjectEntity> leftChildSpec = null;
-        Specification<CatalogObjectEntity> rightChildSpec = null;
+    /**
+     * build up the final specification from the post-order traverse node result
+     * 
+     * @param collect
+     * @return
+     */
+    private Specification<CatalogObjectRevisionEntity>
+            buildFinalSpecification(List<CatalogObjectWhereArgsTreeNode> collect) {
+        Deque<Specification<CatalogObjectRevisionEntity>> stack = new LinkedList<>();
 
         // node
         for (CatalogObjectWhereArgsTreeNode argsTreeNode : collect) {
 
             Operations nodeOperations = argsTreeNode.getOperations();
-            boolean leafOnly = true;
 
-            List<Specification<CatalogObjectEntity>> nodeSpecList = new ArrayList<>();
+            List<Specification<CatalogObjectRevisionEntity>> nodeSpecList = new ArrayList<>();
 
             for (CatalogObjectWhereArgs whereArg : argsTreeNode.getWhereArgs()) {
-                if (whereArg.getOrArgs() == null && whereArg.getAndArgs() == null) {
-                    for (FilterHandler<CatalogObjectWhereArgs, CatalogObjectEntity> fieldFilterHandler : fieldFilterHandlers) {
-                        Optional<Specification<CatalogObjectEntity>> sp = fieldFilterHandler.handle(whereArg);
+                if (whereArg.getOrArg() == null && whereArg.getAndArg() == null) {
+                    for (FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> fieldFilterHandler : fieldFilterHandlers) {
+                        Optional<Specification<CatalogObjectRevisionEntity>> sp = fieldFilterHandler.handle(whereArg);
                         if (sp.isPresent()) {
                             nodeSpecList.add(sp.get());
                             break;
                         }
                     }
                 } else {
-                    if (leafOnly) {
-                        nodeSpecList.add(rightChildSpec);
-                    } else {
-                        nodeSpecList.add(leftChildSpec);
-                    }
-                    leafOnly = false;
+                    nodeSpecList.add(stack.pop());
                 }
             }
 
@@ -151,25 +156,30 @@ public class CatalogObjectAndOrGroupFilterHandler
                 throw new IllegalArgumentException("At least one argument is needed");
             }
 
-            Specification<CatalogObjectEntity> temp;
+            Specification<CatalogObjectRevisionEntity> temp;
             if (nodeOperations == Operations.AND) {
-                temp = AndSpecification.builder().fieldSpcifications(nodeSpecList).build();
+                temp = AndSpecification.builder().fieldSpecifications(nodeSpecList).build();
             } else {
-                temp = OrSpecification.builder().fieldSpcifications(nodeSpecList).build();
+                temp = OrSpecification.builder().fieldSpecifications(nodeSpecList).build();
             }
 
-            if (leafOnly) {
-                rightChildSpec = temp;
-            } else {
-                leftChildSpec = temp;
-            }
+            stack.push(temp);
 
         }
-        return leftChildSpec;
+        return stack.pop();
     }
 
+    /**
+     * /!\ NOTE : do not change this method without good reason and good tests
+     *
+     * @param andOrArgs
+     * @param operations
+     * @return
+     */
     private List<CatalogObjectWhereArgsTreeNode>
             postOrderTraverseWhereArgsToHaveTreeNodes(List<CatalogObjectWhereArgs> andOrArgs, Operations operations) {
+
+        // post-order traverse tree algorithm
         Deque<List<CatalogObjectWhereArgs>> stack = new LinkedList<>();
         stack.push(andOrArgs);
 
@@ -187,17 +197,17 @@ public class CatalogObjectAndOrGroupFilterHandler
                 List<CatalogObjectWhereArgs> right = null;
                 while (iterator.hasNext()) {
                     CatalogObjectWhereArgs next = iterator.next();
-                    if (next.getAndArgs() != null) {
+                    if (next.getAndArg() != null) {
                         operations = Operations.AND;
-                        left = next.getAndArgs();
+                        left = next.getAndArg();
                         iterator.remove();
                         if (!argsCopy.isEmpty()) {
                             right = argsCopy;
                         }
                         break;
-                    } else if (next.getOrArgs() != null) {
+                    } else if (next.getOrArg() != null) {
                         operations = Operations.OR;
-                        left = next.getOrArgs();
+                        left = next.getOrArg();
                         iterator.remove();
                         if (!argsCopy.isEmpty()) {
                             right = argsCopy;
@@ -209,6 +219,8 @@ public class CatalogObjectAndOrGroupFilterHandler
                 stack.push(left);
             }
         }
+
+        Collections.reverse(ret);
         return ret;
     }
 

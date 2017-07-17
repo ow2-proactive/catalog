@@ -23,45 +23,33 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.common;
+package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.springframework.data.jpa.domain.Specification;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 
 
 /**
  * @author ActiveEon Team
- * @since 05/07/2017
+ * @since 12/07/2017
  */
-@AllArgsConstructor
-@Builder
-public class EqNeSpecification<T> implements Specification<CatalogObjectEntity> {
-
-    protected CatalogObjectEntityMetaModelEnum entityMetaModelEnum;
-
-    protected Operations operations;
-
-    protected T value;
+public class DefaultSpecification implements Specification<CatalogObjectRevisionEntity> {
 
     @Override
-    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-        switch (operations) {
-            case EQ:
-                return cb.equal(root.<T> get(entityMetaModelEnum.getName()), value);
-            case NE:
-                return cb.notEqual(root.<T> get(entityMetaModelEnum.getName()), value);
-            default:
-                throw new IllegalStateException(operations + " is not supported");
-        }
+    public Predicate toPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        final Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObject = root.join(CatalogObjectEntityMetaModelEnum.CATALOG_OBJECT.getName(),
+                                                                                               JoinType.INNER);
+        Predicate lastCommit = cb.equal(root.get(CatalogObjectEntityMetaModelEnum.COMMIT_TIME.getName()),
+                                        catalogObject.get(CatalogObjectEntityMetaModelEnum.LAST_COMMIT_TIME.getName()));
+        return lastCommit;
     }
 }

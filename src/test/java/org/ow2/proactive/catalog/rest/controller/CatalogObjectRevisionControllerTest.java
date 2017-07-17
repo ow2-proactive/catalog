@@ -28,7 +28,6 @@ package org.ow2.proactive.catalog.rest.controller;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,7 +42,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.multipart.MultipartFile;
 
 
 /**
@@ -63,23 +61,9 @@ public class CatalogObjectRevisionControllerTest {
     private static final long COMMIT_TIME = System.currentTimeMillis();
 
     @Test
-    public void testCreate() throws Exception {
-        MultipartFile mockedFile = mock(MultipartFile.class);
-        when(mockedFile.getBytes()).thenReturn(null);
-        catalogObjectRevisionController.create(BUCKET_ID, "name", "Commit message", mockedFile);
-        verify(catalogObjectService, times(1)).createCatalogObjectRevision(BUCKET_ID, "name", "Commit message", null);
-    }
-
-    @Test
     public void testList() throws Exception {
         catalogObjectRevisionController.list(BUCKET_ID, "name");
         verify(catalogObjectService, times(1)).listCatalogObjectRevisions(BUCKET_ID, "name");
-    }
-
-    @Test
-    public void testGet() throws Exception {
-        catalogObjectRevisionController.get(BUCKET_ID, "name", COMMIT_TIME);
-        verify(catalogObjectService, times(1)).getCatalogObjectRevision(BUCKET_ID, "name", COMMIT_TIME);
     }
 
     @Test

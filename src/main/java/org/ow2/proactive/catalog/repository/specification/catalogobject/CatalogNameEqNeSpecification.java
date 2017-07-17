@@ -23,61 +23,30 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.dto;
+package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
-import java.util.Objects;
+import javax.persistence.criteria.Join;
 
+import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
+import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyEqNeSpecification;
 
-import lombok.Data;
+import lombok.Builder;
 
 
 /**
  * @author ActiveEon Team
+ * @since 05/07/2017
  */
-@Data
-public class KeyValueMetadata {
+public class CatalogNameEqNeSpecification extends CompositeKeyEqNeSpecification<String> {
 
-    private final String key;
-
-    private final String value;
-
-    private final String label;
-
-    public KeyValueMetadata(String key, String value, String label) {
-        this.key = key;
-        this.value = value;
-        this.label = label;
+    @Builder
+    public CatalogNameEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
+            String value, Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
+            Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadataJoin) {
+        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
     }
-
-    public KeyValueMetadata(KeyValueMetadataEntity entity) {
-        this.key = entity.getKey();
-        this.value = entity.getValue();
-        this.label = entity.getLabel();
-    }
-
-    @Override
-    public final boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-
-        if (!(other instanceof KeyValueMetadata)) {
-            return false;
-        }
-
-        KeyValueMetadata that = (KeyValueMetadata) other;
-
-        if (!Objects.equals(key, that.key)) {
-            return false;
-        }
-
-        return Objects.equals(value, that.value);
-    }
-
-    @Override
-    public final int hashCode() {
-        return Objects.hash(key, value);
-    }
-
 }

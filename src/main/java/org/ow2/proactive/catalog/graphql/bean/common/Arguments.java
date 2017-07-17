@@ -33,12 +33,9 @@ import com.google.common.base.CaseFormat;
  * @since 14/06/2017
  */
 public enum Arguments {
-    AFTER,
-    BEFORE,
-    FIRST,
-    LAST,
+    WHERE,
     ORDER_BY,
-    WHERE;
+    PAGE_INFO;
 
     public String getName() {
         return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, name());

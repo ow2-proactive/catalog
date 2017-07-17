@@ -23,7 +23,7 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.catalogobject;
+package org.ow2.proactive.catalog.repository.specification.generic;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -36,20 +36,16 @@ import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.generic.AbstractSpecification;
-
-import lombok.Builder;
 
 
 /**
  * @author ActiveEon Team
  * @since 05/07/2017
  */
-public class StringLikeNotLikeSpecification extends AbstractSpecification<String> {
+public class CompositeKeyEqNeSpecification<T> extends AbstractSpecification<T> {
 
-    @Builder
-    public StringLikeNotLikeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            String value, Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
+    public CompositeKeyEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
+            T value, Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
             Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadataJoin) {
         super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
     }
@@ -58,10 +54,14 @@ public class StringLikeNotLikeSpecification extends AbstractSpecification<String
     protected Predicate buildPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query,
             CriteriaBuilder cb) {
         switch (operations) {
-            case LIKE:
-                return cb.like(catalogObjectJoin.get(entityMetaModelEnum.getName()), value);
-            case NOT_LIKE:
-                return cb.notLike(catalogObjectJoin.get(entityMetaModelEnum.getName()), value);
+            case EQ:
+                return cb.equal(catalogObjectJoin.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                                 .get(entityMetaModelEnum.getName()),
+                                value);
+            case NE:
+                return cb.notEqual(catalogObjectJoin.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                                    .get(entityMetaModelEnum.getName()),
+                                   value);
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }

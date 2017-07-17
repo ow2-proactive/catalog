@@ -137,6 +137,6 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
     @Override
     public String toString() {
         return "CatalogObjectRevisionRepository{" + "commitMessage='" + commitMessage + '\'' + ", commitTime=" +
-               commitTime + ", keyValueMetadataList=" + keyValueMetadataList + '}';
+               commitTime + ", metadataList=" + keyValueMetadataList + '}';
     }
 }

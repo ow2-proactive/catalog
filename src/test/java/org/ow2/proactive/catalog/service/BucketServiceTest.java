@@ -27,26 +27,22 @@ package org.ow2.proactive.catalog.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.Application;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
@@ -58,23 +54,19 @@ import org.ow2.proactive.catalog.service.exception.DefaultRawCatalogObjectsFolde
 /**
  * @author ActiveEon Team
  */
+@RunWith(MockitoJUnitRunner.class)
 public class BucketServiceTest {
 
     @InjectMocks
     private BucketService bucketService;
 
-    @Mock
+    @InjectMocks
     private CatalogObjectService catalogObjectService;
 
     @Mock
     private BucketRepository bucketRepository;
 
     private static final String DEFAULT_BUCKET_NAME = "BucketServiceTest";
-
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-    }
 
     @Test
     public void testCreateBucket() throws Exception {
@@ -118,54 +110,12 @@ public class BucketServiceTest {
         listBucket(Optional.empty(), Optional.of("workflow"));
     }
 
-    @Test
-    public void testPopulateCatalogAndFillBuckets() throws Exception {
-        final String[] buckets = { "Examples", "Cloud-automation" };
-        final String catalogObjectsFolder = "/default-objects";
-        final String rawCatalogObjectsFolder = "/raw-objects";
-        BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
-        int totalNbWorkflows = 0;
-
-        for (String bucketName : buckets) {
-            File bucketFolder = new File(Application.class.getResource(catalogObjectsFolder).getPath() +
-                                         File.separator + bucketName);
-            if (bucketFolder.exists()) {
-                totalNbWorkflows += bucketFolder.list().length;
-            }
-        }
-        when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
-        bucketService.populateCatalog(buckets, catalogObjectsFolder, rawCatalogObjectsFolder);
-        verify(bucketRepository, times(buckets.length)).save(any(BucketEntity.class));
-        verify(catalogObjectService, times(totalNbWorkflows)).createCatalogObject(anyLong(),
-                                                                                  anyString(),
-                                                                                  anyString(),
-                                                                                  anyString(),
-                                                                                  anyString(),
-                                                                                  anyList(),
-                                                                                  any(byte[].class));
-    }
-
-    @Test
-    public void testPopulateCatalogWithEmptyBuckets() throws Exception {
-        final String[] buckets = { "Titi", "Tata", "Toto" };
-        BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
-        when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
-        bucketService.populateCatalog(buckets, "/default-objects", "/raw-objects");
-        verify(bucketRepository, times(buckets.length)).save(any(BucketEntity.class));
-        verify(catalogObjectService, times(0)).createCatalogObject(anyLong(),
-                                                                   anyString(),
-                                                                   anyString(),
-                                                                   anyString(),
-                                                                   anyString(),
-                                                                   anyObject());
-    }
-
     @Test(expected = DefaultCatalogObjectsFolderNotFoundException.class)
     public void testPopulateCatalogFromInvalidFolder() throws Exception {
         final String[] buckets = { "NonExistentBucket" };
         BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
-        bucketService.populateCatalog(buckets, "/this-folder-doesnt-exist", "/raw-objects");
+        catalogObjectService.populateCatalog(buckets, "/this-folder-doesnt-exist", "/raw-objects");
     }
 
     @Test(expected = DefaultRawCatalogObjectsFolderNotFoundException.class)
@@ -173,7 +123,7 @@ public class BucketServiceTest {
         final String[] buckets = { "NonExistentBucket" };
         BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
-        bucketService.populateCatalog(buckets, "/default-objects", "/this-folder-doesnt-exist");
+        catalogObjectService.populateCatalog(buckets, "/default-objects", "/this-folder-doesnt-exist");
     }
 
     private void listBucket(Optional<String> owner, Optional<String> kind) {

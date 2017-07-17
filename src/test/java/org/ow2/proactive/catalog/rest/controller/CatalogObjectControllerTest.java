@@ -34,7 +34,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -43,14 +42,11 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.repository.BucketRepository;
-import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.multipart.MultipartFile;
 
 
 /**
@@ -67,30 +63,6 @@ public class CatalogObjectControllerTest {
 
     @Mock
     private BucketRepository bucketRepository;
-
-    @Mock
-    private CatalogObjectRepository catalogObjectRepository;
-
-    @Test
-    public void testCreate() throws IOException {
-        MultipartFile file = mock(MultipartFile.class);
-        when(file.getBytes()).thenReturn(null);
-        catalogObjectController.create(1L, "workflow", "name", "Commit message", "application/xml", file);
-        verify(catalogObjectService, times(1)).createCatalogObject(1L,
-                                                                   "workflow",
-                                                                   "name",
-                                                                   "Commit message",
-                                                                   "application/xml",
-                                                                   null);
-
-        catalogObjectController.create(1L, "image", "name", "Commit message", "image/gif", file);
-        verify(catalogObjectService, times(1)).createCatalogObject(1L,
-                                                                   "image",
-                                                                   "name",
-                                                                   "Commit message",
-                                                                   "image/gif",
-                                                                   null);
-    }
 
     @Test
     public void testList() throws Exception {
@@ -114,20 +86,6 @@ public class CatalogObjectControllerTest {
         ResponseEntity responseEntity = catalogObjectController.getRaw(1L, "name");
         verify(catalogObjectService, times(1)).getCatalogRawObject(anyLong(), anyString());
         assertThat(responseEntity).isNotNull();
-    }
-
-    @Test
-    public void testGet() throws Exception {
-        when(catalogObjectService.getCatalogObjectMetadata(anyLong(),
-                                                           anyString())).thenReturn(new CatalogObjectMetadata(1L,
-                                                                                                              "name",
-                                                                                                              "object",
-                                                                                                              "application/xml",
-                                                                                                              1400343L,
-                                                                                                              "commit message",
-                                                                                                              Collections.emptyList()));
-        catalogObjectController.get(1L, "name");
-        verify(catalogObjectService, times(1)).getCatalogObjectMetadata(anyLong(), anyString());
     }
 
     @Test

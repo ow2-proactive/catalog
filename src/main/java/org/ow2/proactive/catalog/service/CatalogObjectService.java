@@ -25,19 +25,23 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
-
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
+import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
@@ -45,19 +49,22 @@ import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
-import org.ow2.proactive.catalog.rest.controller.CatalogObjectRevisionController;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.service.exception.DefaultCatalogObjectsFolderNotFoundException;
+import org.ow2.proactive.catalog.service.exception.DefaultRawCatalogObjectsFolderNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
+import org.ow2.proactive.catalog.util.CatalogObjectJSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.io.ByteStreams;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -79,15 +86,83 @@ public class CatalogObjectService {
     @Autowired
     private BucketRepository bucketRepository;
 
+    @Value("${pa.catalog.default.buckets}")
+    private String[] defaultBucketNames;
+
+    @Autowired
+    private Environment environment;
+
+    private static final String DEFAULT_BUCKET_OWNER = "object-catalog";
+
+    private static final String DEFAULT_OBJECTS_FOLDER = "/default-objects";
+
+    private static final String RAW_OBJECTS_FOLDER = "/raw-objects";
+
     public CatalogObjectService() {
     }
 
-    @Autowired
-    public CatalogObjectService(CatalogObjectRepository catalogObjectRepository,
-            CatalogObjectRevisionRepository catalogObjectRevisionRepository, BucketRepository bucketRepository) {
-        this.catalogObjectRepository = catalogObjectRepository;
-        this.catalogObjectRevisionRepository = catalogObjectRevisionRepository;
-        this.bucketRepository = bucketRepository;
+    @PostConstruct
+    public void init() throws Exception {
+        boolean isTestProfileEnabled = Arrays.stream(environment.getActiveProfiles()).anyMatch("test"::equals);
+
+        // We define the initial start by no existing buckets in the Catalog
+        // On initial start, we load the Catalog with predefined objects
+        if (!isTestProfileEnabled && bucketRepository.count() == 0) {
+            populateCatalog(defaultBucketNames, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
+        }
+    }
+
+    /**
+     * The Catalog can be populated with buckets and objects all at once.
+     *
+     * @param bucketNames The array of bucket names to create
+     * @param objectsFolder The folder that contains sub-folders of all objects to inject
+     * @throws SecurityException if the Catalog is not allowed to read or access the file
+     * @throws IOException if the file or folder could not be found or read properly
+     */
+    public void populateCatalog(String[] bucketNames, String objectsFolder, String rawObjectsFolder)
+            throws SecurityException, IOException {
+        for (String bucketName : bucketNames) {
+            final Long bucketId = bucketRepository.save(new BucketEntity(bucketName, DEFAULT_BUCKET_OWNER)).getId();
+            final URL folderResource = getClass().getResource(objectsFolder);
+            if (folderResource == null) {
+                throw new DefaultCatalogObjectsFolderNotFoundException();
+            }
+
+            final URL rawFolderResource = getClass().getResource(rawObjectsFolder);
+            if (rawFolderResource == null) {
+                throw new DefaultRawCatalogObjectsFolderNotFoundException();
+            }
+
+            final File bucketFolder = new File(folderResource.getPath() + File.separator + bucketName);
+            if (bucketFolder.isDirectory()) {
+                String[] wfs = bucketFolder.list();
+                Arrays.sort(wfs);
+                for (String object : wfs) {
+                    FileInputStream fisobject = null;
+                    try {
+                        File catalogObjectFile = new File(bucketFolder.getPath() + File.separator + object);
+                        CatalogObjectJSONParser.CatalogObjectData objectData = CatalogObjectJSONParser.parseJSONFile(catalogObjectFile);
+
+                        File fobject = new File(rawFolderResource.getPath() + File.separator +
+                                                objectData.getObjectFileName());
+                        fisobject = new FileInputStream(fobject);
+                        byte[] bObject = ByteStreams.toByteArray(fisobject);
+                        createCatalogObject(bucketId,
+                                            objectData.getName(),
+                                            objectData.getKind(),
+                                            objectData.getCommitMessage(),
+                                            objectData.getContentType(),
+                                            Collections.emptyList(),
+                                            bObject);
+                    } finally {
+                        if (fisobject != null) {
+                            fisobject.close();
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public CatalogObjectMetadata createCatalogObject(Long bucketId, String name, String kind, String commitMessage,
@@ -102,7 +177,7 @@ public class CatalogObjectService {
     }
 
     public CatalogObjectMetadata createCatalogObject(Long bucketId, String name, String kind, String commitMessage,
-            String contentType, List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject) {
+            String contentType, List<Metadata> metadataList, byte[] rawObject) {
 
         BucketEntity bucketEntity = bucketRepository.findOne(bucketId);
         if (bucketEntity == null) {
@@ -120,7 +195,7 @@ public class CatalogObjectService {
 
         CatalogObjectRevisionEntity result = buildCatalogObjectRevisionEntity(kind,
                                                                               commitMessage,
-                                                                              keyValueMetadataList,
+                                                                              metadataList,
                                                                               rawObject,
                                                                               catalogObjectEntity);
 
@@ -128,13 +203,13 @@ public class CatalogObjectService {
     }
 
     private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(String kind, String commitMessage,
-            List<KeyValueMetadata> keyValueMetadataList, byte[] rawObject, CatalogObjectEntity catalogObjectEntity) {
+            List<Metadata> metadataList, byte[] rawObject, CatalogObjectEntity catalogObjectEntity) {
 
-        List<KeyValueMetadataEntity> keyValueMetadataEntities = KeyValueMetadataHelper.convertToEntity(keyValueMetadataList);
+        List<KeyValueMetadataEntity> keyValueMetadataEntities = KeyValueMetadataHelper.convertToEntity(metadataList);
 
-        List<KeyValueMetadataEntity> keyValues = CollectionUtils.isEmpty(keyValueMetadataList) ? KeyValueMetadataHelper.extractKeyValuesFromRaw(kind,
-                                                                                                                                                rawObject)
-                                                                                               : keyValueMetadataEntities;
+        List<KeyValueMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? KeyValueMetadataHelper.extractKeyValuesFromRaw(kind,
+                                                                                                                                        rawObject)
+                                                                                       : keyValueMetadataEntities;
 
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)
@@ -161,17 +236,7 @@ public class CatalogObjectService {
     }
 
     private List<CatalogObjectMetadata> buildMetadataWithLink(Long bucketId, List<CatalogObjectRevisionEntity> result) {
-        return result.stream().map(entity -> {
-            CatalogObjectMetadata catalogObjectMetadata = new CatalogObjectMetadata(entity);
-            try {
-                catalogObjectMetadata.add(createLink(bucketId,
-                                                     catalogObjectMetadata.getName(),
-                                                     entity.getCommitTime()));
-            } catch (UnsupportedEncodingException e) {
-                log.error("bucketId : {}, name : {}", bucketId, catalogObjectMetadata.getName(), e);
-            }
-            return catalogObjectMetadata;
-        }).collect(Collectors.toList());
+        return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
     public List<CatalogObjectMetadata> listCatalogObjectsByKind(Long bucketId, String kind) {
@@ -220,7 +285,7 @@ public class CatalogObjectService {
     }
 
     public CatalogObjectMetadata createCatalogObjectRevision(Long bucketId, String name, String commitMessage,
-            List<KeyValueMetadata> keyValueMetadataListParsed, byte[] rawObject) {
+            List<Metadata> metadataListParsed, byte[] rawObject) {
 
         CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketId,
                                                                                                                            name));
@@ -231,7 +296,7 @@ public class CatalogObjectService {
 
         CatalogObjectRevisionEntity revisionEntity = buildCatalogObjectRevisionEntity(catalogObject.getKind(),
                                                                                       commitMessage,
-                                                                                      keyValueMetadataListParsed,
+                                                                                      metadataListParsed,
                                                                                       rawObject,
                                                                                       catalogObject);
 
@@ -243,15 +308,7 @@ public class CatalogObjectService {
         CatalogObjectEntity list = catalogObjectRepository.readCatalogObjectRevisionsById(new CatalogObjectEntity.CatalogObjectEntityKey(bucketId,
                                                                                                                                          name));
 
-        return list.getRevisions().stream().map(entity -> {
-            CatalogObjectMetadata catalogObjectMetadata = new CatalogObjectMetadata(entity);
-            try {
-                catalogObjectMetadata.add(createLink(bucketId, name, entity.getCommitTime()));
-            } catch (UnsupportedEncodingException e) {
-                log.error("bucketId : {}, name : {}", bucketId, name, e);
-            }
-            return catalogObjectMetadata;
-        }).collect(Collectors.toList());
+        return list.getRevisions().stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
     public CatalogObjectMetadata getCatalogObjectRevision(Long bucketId, String name, long commitTime)
@@ -260,11 +317,7 @@ public class CatalogObjectService {
                                                                                                 name,
                                                                                                 commitTime);
 
-        CatalogObjectMetadata objectMetadata = new CatalogObjectMetadata(revisionEntity);
-
-        objectMetadata.add(createLink(bucketId, name, revisionEntity.getCommitTime()));
-
-        return objectMetadata;
+        return new CatalogObjectMetadata(revisionEntity);
     }
 
     public CatalogRawObject getCatalogObjectRevisionRaw(Long bucketId, String name, long commitTime)
@@ -274,11 +327,7 @@ public class CatalogObjectService {
                                                                                                 name,
                                                                                                 commitTime);
 
-        CatalogRawObject object = new CatalogRawObject(revisionEntity);
-
-        object.add(createLink(bucketId, name, revisionEntity.getCommitTime()));
-
-        return object;
+        return new CatalogRawObject(revisionEntity);
 
     }
 
@@ -292,14 +341,6 @@ public class CatalogObjectService {
             throw new RevisionNotFoundException("name : " + name + " commitTime : " + commitTime);
         }
         return revisionEntity;
-    }
-
-    public Link createLink(Long bucketId, String name, long commitTime) throws UnsupportedEncodingException {
-        ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectRevisionController.class).getRaw(bucketId,
-                                                                                                                    name,
-                                                                                                                    commitTime));
-
-        return new Link(controllerLinkBuilder.toString()).withRel("content");
     }
 
 }

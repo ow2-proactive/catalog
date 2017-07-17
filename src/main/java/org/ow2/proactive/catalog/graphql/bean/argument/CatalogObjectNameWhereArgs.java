@@ -23,22 +23,26 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.dto;
+package org.ow2.proactive.catalog.graphql.bean.argument;
 
-import org.junit.Test;
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
-
-import nl.jqno.equalsverifier.EqualsVerifier;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
+ * @since 12/06/2017
  */
-public class KeyValueMetadataMetadataEntityTest {
+@NoArgsConstructor
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class CatalogObjectNameWhereArgs extends StringWhereArgs {
 
-    @Test
-    public void testEqualsContract() {
-        EqualsVerifier.forClass(KeyValueMetadata.class).verify();
+    @Builder
+    public CatalogObjectNameWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String like,
+            String notLike) {
+        super(eq, ne, gt, gte, lt, lte, like, notLike);
     }
-
 }

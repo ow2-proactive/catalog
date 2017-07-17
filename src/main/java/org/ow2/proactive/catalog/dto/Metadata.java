@@ -23,37 +23,63 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.service;
+package org.ow2.proactive.catalog.dto;
 
-import java.io.ByteArrayInputStream;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
-import javax.xml.stream.XMLStreamException;
-
-import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
-import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
- * @since 19/06/2017
  */
-public class KeyValueMetadataHelper {
+@NoArgsConstructor
+@Data
+public class Metadata {
 
-    public static List<KeyValueMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {
-        try {
-            CatalogObjectParserInterface catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
-            return catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
-        } catch (XMLStreamException e) {
-            throw new UnprocessableEntityException(e);
+    private String key;
+
+    private String value;
+
+    private String label;
+
+    public Metadata(String key, String value, String label) {
+        this.key = key;
+        this.value = value;
+        this.label = label;
+    }
+
+    public Metadata(KeyValueMetadataEntity entity) {
+        this.key = entity.getKey();
+        this.value = entity.getValue();
+        this.label = entity.getLabel();
+    }
+
+    @Override
+    public final boolean equals(Object other) {
+        if (this == other) {
+            return true;
         }
+
+        if (!(other instanceof Metadata)) {
+            return false;
+        }
+
+        Metadata that = (Metadata) other;
+
+        if (!Objects.equals(key, that.key)) {
+            return false;
+        }
+
+        return Objects.equals(value, that.value);
     }
 
-    public static List<KeyValueMetadataEntity> convertToEntity(List<Metadata> source) {
-        return source.stream().map(KeyValueMetadataEntity::new).collect(Collectors.toList());
+    @Override
+    public final int hashCode() {
+        return Objects.hash(key, value);
     }
+
 }

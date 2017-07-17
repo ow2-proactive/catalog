@@ -23,17 +23,20 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.common;
+package org.ow2.proactive.catalog.repository.specification.generic;
 
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 
 
@@ -41,20 +44,27 @@ import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntity
  * @author ActiveEon Team
  * @since 05/07/2017
  */
-public class InNotInSpecificatoin<T> extends EqNeSpecification<List<T>> {
+public class CompositeKeyInNotInSpecificatoin<T> extends AbstractSpecification<List<T>> {
 
-    public InNotInSpecificatoin(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            List<T> value) {
-        super(entityMetaModelEnum, operations, value);
+    public CompositeKeyInNotInSpecificatoin(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
+            List<T> value, Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
+            Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadataJoin) {
+        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
     }
 
     @Override
-    public Predicate toPredicate(Root<CatalogObjectEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+    protected Predicate buildPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query,
+            CriteriaBuilder cb) {
         switch (operations) {
             case IN:
-                return root.<T> get(entityMetaModelEnum.getName()).in(value);
+                return catalogObjectJoin.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                        .get(entityMetaModelEnum.getName())
+                                        .in(value);
             case NOT_IN:
-                return root.<T> get(entityMetaModelEnum.getName()).in(value).not();
+                return catalogObjectJoin.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                        .get(entityMetaModelEnum.getName())
+                                        .in(value)
+                                        .not();
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }

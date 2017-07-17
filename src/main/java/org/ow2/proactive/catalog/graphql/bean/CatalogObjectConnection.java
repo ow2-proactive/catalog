@@ -23,34 +23,37 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.graphql.bean;
 
 import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
- * @since 12/06/2017
+ * @since 10/07/2017
  */
 @AllArgsConstructor
 @Builder
 @Data
-public class CatalogObjectWhereArgs {
+@NoArgsConstructor
+public class CatalogObjectConnection {
 
-    private final List<CatalogObjectWhereArgs> andArgs;
+    private List<CatalogObject> edges;
 
-    private final List<CatalogObjectWhereArgs> orArgs;
+    private int page;
 
-    private final CatalogObjectMetadataArgs metadataArgs;
+    private int size;
 
-    private final CatalogObjectBucketIdWhereArgs bucketIdArgs;
+    private boolean hasNext;
 
-    private final CatalogObjectKindWhereArgs kindArgs;
+    private boolean hasPrevious;
 
-    private final CatalogObjectNameWhereArgs nameArgs;
+    private int totalPage;
 
+    private int totalCount;
 }

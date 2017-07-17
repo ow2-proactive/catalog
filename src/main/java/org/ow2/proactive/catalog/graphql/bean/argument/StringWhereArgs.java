@@ -23,42 +23,38 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.dto;
+package org.ow2.proactive.catalog.graphql.bean.argument;
 
-import java.util.List;
-
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-
+import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
- * @since 19/06/2017
+ * @since 04/07/2017
  */
+@NoArgsConstructor
+@Data
 @EqualsAndHashCode(callSuper = true)
-public class CatalogRawObject extends CatalogObjectMetadata {
+public class StringWhereArgs extends WhereArgs<String> {
 
-    private final byte[] rawObject;
+    protected String like;
 
-    public CatalogRawObject(CatalogObjectEntity catalogObject) {
-        super(catalogObject);
-        this.rawObject = catalogObject.getRevisions().first().getRawObject();
+    protected String notLike;
+
+    public StringWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String like,
+            String notLike) {
+        super(eq, ne, gt, gte, lt, lte);
+        this.like = like;
+        this.notLike = notLike;
     }
 
-    public CatalogRawObject(CatalogObjectRevisionEntity catalogObject) {
-        super(catalogObject);
-        this.rawObject = catalogObject.getRawObject();
+    public String getLike() {
+        return like;
     }
 
-    public CatalogRawObject(Long bucketId, String name, String kind, String contentType, long createdAt,
-            String commitMessage, List<Metadata> metadataList, byte[] rawObject) {
-        super(bucketId, name, kind, contentType, createdAt, commitMessage, metadataList);
-        this.rawObject = rawObject;
-    }
-
-    public byte[] getRawObject() {
-        return rawObject;
+    public String getNotLike() {
+        return notLike;
     }
 }

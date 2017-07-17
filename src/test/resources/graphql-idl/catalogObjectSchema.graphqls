@@ -3,12 +3,19 @@ schema {
 }
 
 type Query {
-    allCatalogObjects(where: CatalogObjectWhereArgs, first: Int, last: Int, after: String, before: String): CatalogObjectConnection
+    allCatalogObjects(where: CatalogObjectWhereArgs, orderBy: OrderByEnum, pageInfo: PageInfo): CatalogObjectConnection
+}
+
+enum OrderByEnum {
+    catalogObjectKey_ASC
+    catalogObjectKey_DESC
+    kind_ASC
+    kind_DESC
 }
 
 input CatalogObjectMetadataWhereArgs {
-    key: String
-    value: StringWhereArgs
+    key: String!
+    value: StringWhereArgs!
 }
 
 input StringWhereArgs {
@@ -19,8 +26,8 @@ input StringWhereArgs {
 }
 
 input CatalogObjectBucketIdWhereArgs{
-    in: [Long]
-    notIn: [Long]
+    in: [Long!]
+    notIn: [Long!]
     eq: Long
     ne: Long
     gt: Long
@@ -53,42 +60,33 @@ input CatalogObjectWhereArgs {
 }
 
 type CatalogObjectConnection {
-    edges: [Edge!]!
-    pageInfo: PageInfo
+    edges: [CatalogObject!]
+    page: Int
+    size: Int
+    hasNext: Boolean
+    hasPrevious: Boolean
+    totalPage: Int
     totalCount: Int
 }
 
-type Edge {
-    node: CatalogObject
-    cursor: ConnectionCursor
+input PageInfo {
+    page: Int
+    size: Int
 }
 
-type PageInfo {
-    startCursor: ConnectionCursor
-    endCursor: ConnectionCursor
-    hasPreviousPage: Boolean
-    hasNextPage: Boolean
-}
-
-type ConnectionCursor {
-    value: String
-}
-
-type MetaData {
+type Metadata {
     key: String!
     value: String!
     label: String
 }
 
 type CatalogObject {
-    bucketId: ID!
-    commitDateTime: Long!
+    bucketId: Long!
+    commitDateTime: String!
     commitMessage: String
     contentType: String
-    metaData: [MetaData!]
+    metadata: [Metadata!]
     kind: String!
     link: String
     name: String!
 }
-
-

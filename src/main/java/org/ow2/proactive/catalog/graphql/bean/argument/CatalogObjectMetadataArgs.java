@@ -23,23 +23,23 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser;
+package org.ow2.proactive.catalog.graphql.bean.argument;
 
-import java.io.InputStream;
-import java.util.List;
-
-import javax.xml.stream.XMLStreamException;
-
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 /**
- * CatalogObjectParser is a generic class for objects parsing
- *
  * @author ActiveEon Team
+ * @since 04/07/2017
  */
-public interface CatalogObjectParserInterface {
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class CatalogObjectMetadataArgs {
 
-    List<KeyValueMetadataEntity> parse(InputStream inputStream) throws XMLStreamException;
+    private String key;
 
+    private StringWhereArgs value;
 }

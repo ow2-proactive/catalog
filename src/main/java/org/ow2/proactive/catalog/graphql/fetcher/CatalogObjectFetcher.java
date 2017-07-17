@@ -28,18 +28,30 @@ package org.ow2.proactive.catalog.graphql.fetcher;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.graphql.bean.CatalogObject;
+import org.ow2.proactive.catalog.graphql.bean.CatalogObjectConnection;
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
+import org.ow2.proactive.catalog.graphql.bean.argument.OrderBy;
+import org.ow2.proactive.catalog.graphql.bean.argument.PageInfo;
 import org.ow2.proactive.catalog.graphql.bean.common.Arguments;
-import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
-import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
+import org.ow2.proactive.catalog.repository.specification.catalogobject.DefaultSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
@@ -53,74 +65,94 @@ import graphql.schema.DataFetchingEnvironment;
 @Transactional(readOnly = true)
 public class CatalogObjectFetcher implements DataFetcher {
 
-    @Autowired
-    private List<FilterHandler<CatalogObjectWhereArgs, CatalogObjectEntity>> catalogObjectFilterHandlers;
+    public static final String CATALOG_OBJECT_ID = "catalogObject.id";
 
     @Autowired
-    private CatalogObjectRepository catalogObjectRepository;
+    private List<FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity>> catalogObjectFilterHandlers;
+
+    @Autowired
+    private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public Object get(DataFetchingEnvironment environment) {
-        CatalogObjectWhereArgs argument = environment.getArgument(Arguments.WHERE.getName());
 
-        Optional<Specification<CatalogObjectEntity>> specificationOptional = catalogObjectFilterHandlers.stream()
-                                                                                                        .map(handler -> handler.handle(argument))
-                                                                                                        .filter(spec -> spec.isPresent())
-                                                                                                        .map(optional -> optional.get())
-                                                                                                        .findFirst();
+        Pageable pageable = createPageRequest(environment);
 
-        List<CatalogObjectEntity> catalogObjectEntities = catalogObjectRepository.findAll(specificationOptional.get());
-        return null;
+        CatalogObjectWhereArgs argument = objectMapper.convertValue(environment.getArgument(Arguments.WHERE.getName()),
+                                                                    CatalogObjectWhereArgs.class);
+
+        Optional<Specification<CatalogObjectRevisionEntity>> specificationOptional = argument == null ? Optional.empty()
+                                                                                                      : catalogObjectFilterHandlers.stream()
+                                                                                                                                   .map(handler -> handler.handle(argument))
+                                                                                                                                   .filter(spec -> spec.isPresent())
+                                                                                                                                   .map(optional -> optional.get())
+                                                                                                                                   .findFirst();
+
+        Page<CatalogObjectRevisionEntity> catalogObjectEntitiesPage = specificationOptional.isPresent() ? catalogObjectRevisionRepository.findAll(specificationOptional.get(),
+                                                                                                                                                  pageable)
+                                                                                                        : catalogObjectRevisionRepository.findAll(new DefaultSpecification(),
+                                                                                                                                                  pageable);
+
+        CatalogObjectMapper mapper = new CatalogObjectMapper();
+        return CatalogObjectConnection.builder()
+                                      .edges(mapper.apply(catalogObjectEntitiesPage.getContent().stream())
+                                                   .collect(Collectors.toList()))
+                                      .page(catalogObjectEntitiesPage.getNumber())
+                                      .size(catalogObjectEntitiesPage.getSize())
+                                      .hasNext(catalogObjectEntitiesPage.hasNext())
+                                      .hasPrevious(catalogObjectEntitiesPage.hasPrevious())
+                                      .totalPage(catalogObjectEntitiesPage.getTotalPages())
+                                      .totalCount(Long.valueOf(catalogObjectEntitiesPage.getTotalElements()).intValue())
+                                      .build();
     }
 
-    /**
-     * See https://facebook.github.io/relay/graphql/connections.htm#HasPreviousPage()
-     *
-     * @param nbEntriesBeforeSlicing The number of entries before slicing.
-     * @param last                   the number of last entries requested.
-     * @return {@code true} if entries have been sliced and another page is available, {@code false}
-     * otherwise.
-     */
-    protected boolean hasPreviousPage(int nbEntriesBeforeSlicing, Integer last) {
+    private Pageable createPageRequest(DataFetchingEnvironment environment) {
+        String orderByString = objectMapper.convertValue(environment.getArgument(Arguments.ORDER_BY.getName()),
+                                                         String.class);
 
-        if (last == null) {
-            return false;
+        OrderBy orderBy;
+        if (orderByString == null) {
+            orderBy = OrderBy.CATALOG_OBJECT_KEY_ASC;
+        } else {
+            orderBy = OrderBy.fromValue(orderByString);
         }
 
-        if (nbEntriesBeforeSlicing > last) {
-            return true;
+        PageInfo pageInfo = objectMapper.convertValue(environment.getArgument(Arguments.PAGE_INFO.getName()),
+                                                      PageInfo.class);
+
+        if (pageInfo == null) {
+            pageInfo = new PageInfo(0, 50);
         }
 
-        return false;
-    }
-
-    /**
-     * See https://facebook.github.io/relay/graphql/connections.htm#HasNextPage()
-     *
-     * @param nbEntriesBeforeSlicing The number of entries before slicing.
-     * @param first                  the number of first entries requested.
-     * @return {@code true} if entries have been sliced and another page is available, {@code false}
-     * otherwise.
-     */
-    protected boolean hasNextPage(int nbEntriesBeforeSlicing, Integer first) {
-
-        if (first == null) {
-            return false;
+        switch (orderBy) {
+            case CATALOG_OBJECT_KEY_ASC:
+                return new PageRequest(pageInfo.getPage(), pageInfo.getSize(), Sort.Direction.ASC, CATALOG_OBJECT_ID);
+            case CATALOG_OBJECT_KEY_DESC:
+                return new PageRequest(pageInfo.getPage(), pageInfo.getSize(), Sort.Direction.DESC, CATALOG_OBJECT_ID);
+            case KIND_ASC:
+                return new PageRequest(pageInfo.getPage(),
+                                       pageInfo.getSize(),
+                                       Sort.Direction.ASC,
+                                       CatalogObjectEntityMetaModelEnum.KIND.getName());
+            case KIND_DESC:
+                return new PageRequest(pageInfo.getPage(),
+                                       pageInfo.getSize(),
+                                       Sort.Direction.DESC,
+                                       CatalogObjectEntityMetaModelEnum.KIND.getName());
+            default:
+                throw new IllegalArgumentException(orderBy + " does not exist");
         }
 
-        if (nbEntriesBeforeSlicing > first) {
-            return true;
-        }
-
-        return false;
     }
 
     public static class CatalogObjectMapper
-            implements Function<Stream<CatalogObjectEntity>, Stream<CatalogObjectMetadata>> {
+            implements Function<Stream<CatalogObjectRevisionEntity>, Stream<CatalogObject>> {
 
         @Override
-        public Stream<CatalogObjectMetadata> apply(Stream<CatalogObjectEntity> catalogObjectEntityStream) {
-            return catalogObjectEntityStream.map(CatalogObjectMetadata::new);
+        public Stream<CatalogObject> apply(Stream<CatalogObjectRevisionEntity> catalogObjectEntityStream) {
+            return catalogObjectEntityStream.map(CatalogObject::new);
         }
     }
 }

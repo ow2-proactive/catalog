@@ -23,21 +23,39 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.graphql.bean.argument;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
- * @since 04/07/2017
+ * @since 09/06/2017
  */
-@AllArgsConstructor
+@NoArgsConstructor
 @Data
-public class CatalogObjectMetadataArgs {
+public class WhereArgs<T> {
 
-    private final String key;
+    protected T eq;
 
-    private final StringWhereArgs value;
+    protected T ne;
+
+    protected T gt;
+
+    protected T gte;
+
+    protected T lt;
+
+    protected T lte;
+
+    public WhereArgs(T eq, T ne, T gt, T gte, T lt, T lte) {
+        this.eq = eq;
+        this.ne = ne;
+        this.gt = gt;
+        this.gte = gte;
+        this.lt = lt;
+        this.lte = lte;
+    }
+
 }

@@ -26,36 +26,52 @@
 package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
+import org.ow2.proactive.catalog.repository.specification.generic.AbstractSpecification;
 import org.springframework.data.jpa.domain.Specification;
-
-import lombok.Builder;
-import lombok.Getter;
 
 
 /**
  * @author ActiveEon Team
- * @since 06/07/2017
+ * @since 13/07/2017
  */
-@Getter
-public class OrSpecification extends AndOrSpecification {
+public abstract class AndOrSpecification extends AbstractSpecification {
 
-    @Builder
-    public OrSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations, Object value,
+    protected List<Specification<CatalogObjectRevisionEntity>> fieldSpecifications;
+
+    public AndOrSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations, Object value,
             Join catalogObjectJoin, Join metadataJoin,
             List<Specification<CatalogObjectRevisionEntity>> fieldSpecifications) {
-        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin, fieldSpecifications);
+        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
+        this.fieldSpecifications = fieldSpecifications;
     }
 
     @Override
-    protected Predicate predicate(CriteriaBuilder cb, Predicate[] predicates) {
-        return cb.or(predicates);
+    protected Predicate buildPredicate(Root root, CriteriaQuery query, CriteriaBuilder cb) {
+        initMetadataJoin(root, query, cb);
+        List<Predicate> predicates = fieldSpecifications.stream().map(spec -> {
+            AbstractSpecification abstractSpecification = (AbstractSpecification) spec;
+            abstractSpecification.setCatalogObjectJoin(catalogObjectJoin);
+            abstractSpecification.setMetadataJoin(metadataJoin);
+            return abstractSpecification.toPredicate(root, query, cb);
+        }).collect(Collectors.toList());
+
+        return predicate(cb, predicates.toArray(new Predicate[predicates.size()]));
+    }
+
+    protected abstract Predicate predicate(CriteriaBuilder cb, Predicate[] predicates);
+
+    public List<Specification<CatalogObjectRevisionEntity>> getFieldSpecifications() {
+        return fieldSpecifications;
     }
 }

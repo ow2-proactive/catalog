@@ -23,24 +23,30 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.filter;
+package org.ow2.proactive.catalog.repository.specification.catalogobject;
+
+import javax.persistence.criteria.Join;
+
+import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
+import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyEqNeSpecification;
 
 import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 
 /**
  * @author ActiveEon Team
- * @since 12/06/2017
+ * @since 05/07/2017
  */
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class CatalogObjectNameWhereArgs extends StringWhereArgs {
+public class BucketIdEqNeSpecification extends CompositeKeyEqNeSpecification<Long> {
 
     @Builder
-    public CatalogObjectNameWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte, String like,
-            String notLike) {
-        super(eq, ne, gt, gte, lt, lte, like, notLike);
+    BucketIdEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations, Long value,
+            Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
+            Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadataJoin) {
+        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
     }
 }

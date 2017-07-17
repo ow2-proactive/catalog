@@ -45,11 +45,12 @@ import lombok.Builder;
  * @author ActiveEon Team
  * @since 05/07/2017
  */
-public class StringLikeNotLikeSpecification extends AbstractSpecification<String> {
+public class CatalogNameLikeNotLikeSpecification extends AbstractSpecification<String> {
 
     @Builder
-    public StringLikeNotLikeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            String value, Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
+    public CatalogNameLikeNotLikeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum,
+            Operations operations, String value,
+            Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
             Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadataJoin) {
         super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
     }
@@ -59,9 +60,13 @@ public class StringLikeNotLikeSpecification extends AbstractSpecification<String
             CriteriaBuilder cb) {
         switch (operations) {
             case LIKE:
-                return cb.like(catalogObjectJoin.get(entityMetaModelEnum.getName()), value);
+                return cb.like(catalogObjectJoin.get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                                .get(entityMetaModelEnum.getName()),
+                               value);
             case NOT_LIKE:
-                return cb.notLike(catalogObjectJoin.get(entityMetaModelEnum.getName()), value);
+                return cb.notLike(catalogObjectJoin.get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                                   .get(entityMetaModelEnum.getName()),
+                                  value);
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }

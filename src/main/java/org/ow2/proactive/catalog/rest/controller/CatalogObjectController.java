@@ -36,12 +36,14 @@ import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.util.LinkUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
@@ -87,12 +89,17 @@ public class CatalogObjectController {
             @ApiParam(value = "Commit message") @RequestParam String commitMessage,
             @ApiParam(value = "The content type of CatalogRawObject") @RequestParam String contentType,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        return new CatalogObjectMetadataList(catalogObjectService.createCatalogObject(bucketId,
-                                                                                      name,
-                                                                                      kind,
-                                                                                      commitMessage,
-                                                                                      contentType,
-                                                                                      file.getBytes()));
+        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketId,
+                                                                                       name,
+                                                                                       kind,
+                                                                                       commitMessage,
+                                                                                       contentType,
+                                                                                       file.getBytes());
+        catalogObject.add(LinkUtil.createLink(catalogObject.getBucketId(),
+                                              catalogObject.getName(),
+                                              catalogObject.getCommitDateTime()));
+
+        return new CatalogObjectMetadataList(catalogObject);
     }
 
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
@@ -104,6 +111,7 @@ public class CatalogObjectController {
         String decodedName = URLDecoder.decode(name, "UTF-8");
         try {
             CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketId, decodedName);
+            metadata.add(LinkUtil.createLink(metadata.getBucketId(), metadata.getName(), metadata.getCommitDateTime()));
             return ResponseEntity.ok(metadata);
         } catch (CatalogObjectNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e);
@@ -158,6 +166,12 @@ public class CatalogObjectController {
         } else {
             result = catalogObjectService.listCatalogObjects(bucketId);
         }
+
+        result.stream().map(object -> {
+            object.add(LinkUtil.createLink(object.getBucketId(), object.getName(), object.getCommitDateTime()));
+            return object;
+        }).collect(Collectors.toList());
+
         return result;
     }
 

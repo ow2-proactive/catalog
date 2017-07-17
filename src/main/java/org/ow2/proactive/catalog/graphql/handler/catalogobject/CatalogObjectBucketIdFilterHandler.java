@@ -28,14 +28,14 @@ package org.ow2.proactive.catalog.graphql.handler.catalogobject;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectBucketIdWhereArgs;
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
-import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectBucketIdWhereArgs;
-import org.ow2.proactive.catalog.graphql.bean.filter.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.catalogobject.LongEqNeSpecification;
-import org.ow2.proactive.catalog.repository.specification.catalogobject.LongInNotInSpecification;
+import org.ow2.proactive.catalog.repository.specification.catalogobject.BucketIdEqNeSpecification;
+import org.ow2.proactive.catalog.repository.specification.catalogobject.BucketIdInNotInSpecification;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -45,30 +45,37 @@ import org.springframework.stereotype.Component;
  * @since 12/06/2017
  */
 @Component
-public class CatalogObjectBucketIdFilterHandler implements FilterHandler<CatalogObjectWhereArgs, CatalogObjectEntity> {
+public class CatalogObjectBucketIdFilterHandler
+        implements FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> {
 
     @Override
-    public Optional<Specification<CatalogObjectEntity>> handle(CatalogObjectWhereArgs whereArgs) {
+    public Optional<Specification<CatalogObjectRevisionEntity>> handle(CatalogObjectWhereArgs whereArgs) {
 
-        if (whereArgs.getBucketIdArgs() != null) {
-            CatalogObjectBucketIdWhereArgs bucketIdWhereArgs = whereArgs.getBucketIdArgs();
+        if (whereArgs.getBucketIdArg() != null) {
+            CatalogObjectBucketIdWhereArgs bucketIdWhereArgs = whereArgs.getBucketIdArg();
 
             if (bucketIdWhereArgs.getEq() != null) {
-                return Optional.of(new LongEqNeSpecification(CatalogObjectEntityMetaModelEnum.BUCKET_ID,
-                                                             Operations.EQ,
-                                                             bucketIdWhereArgs.getEq()));
+                return Optional.of(BucketIdEqNeSpecification.builder()
+                                                            .entityMetaModelEnum(CatalogObjectEntityMetaModelEnum.BUCKET_ID)
+                                                            .operations(Operations.EQ)
+                                                            .value(bucketIdWhereArgs.getEq())
+                                                            .build());
             }
 
             if (bucketIdWhereArgs.getNe() != null) {
-                return Optional.of(new LongEqNeSpecification(CatalogObjectEntityMetaModelEnum.BUCKET_ID,
-                                                             Operations.NE,
-                                                             bucketIdWhereArgs.getNe()));
+                return Optional.of(BucketIdEqNeSpecification.builder()
+                                                            .entityMetaModelEnum(CatalogObjectEntityMetaModelEnum.BUCKET_ID)
+                                                            .operations(Operations.NE)
+                                                            .value(bucketIdWhereArgs.getNe())
+                                                            .build());
             }
 
             if (bucketIdWhereArgs.getIn() != null) {
-                return Optional.of(new LongInNotInSpecification(CatalogObjectEntityMetaModelEnum.BUCKET_ID,
-                                                                Operations.IN,
-                                                                Arrays.asList(bucketIdWhereArgs.getIn())));
+                return Optional.of(BucketIdInNotInSpecification.builder()
+                                                               .entityMetaModelEnum(CatalogObjectEntityMetaModelEnum.BUCKET_ID)
+                                                               .operations(Operations.IN)
+                                                               .value(Arrays.asList(bucketIdWhereArgs.getIn()))
+                                                               .build());
             }
         }
         return Optional.empty();

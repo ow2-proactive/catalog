@@ -27,19 +27,28 @@ package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
 import java.util.List;
 
+import javax.persistence.criteria.Join;
+
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.common.InNotInSpecificatoin;
+import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyInNotInSpecificatoin;
+
+import lombok.Builder;
 
 
 /**
  * @author ActiveEon Team
  * @since 05/07/2017
  */
-public class LongInNotInSpecification extends InNotInSpecificatoin<Long> {
+public class CatalogNameInNotInSpecification extends CompositeKeyInNotInSpecificatoin<String> {
 
-    public LongInNotInSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            List<Long> value) {
-        super(entityMetaModelEnum, operations, value);
+    @Builder
+    public CatalogNameInNotInSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
+            List<String> value, Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
+            Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadataJoin) {
+        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
     }
 }
