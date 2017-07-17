@@ -63,7 +63,7 @@ import graphql.schema.DataFetchingEnvironment;
  */
 @Component
 @Transactional(readOnly = true)
-public class CatalogObjectFetcher implements DataFetcher {
+public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection> {
 
     public static final String CATALOG_OBJECT_ID = "catalogObject.id";
 
@@ -76,7 +76,7 @@ public class CatalogObjectFetcher implements DataFetcher {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public Object get(DataFetchingEnvironment environment) {
+    public CatalogObjectConnection get(DataFetchingEnvironment environment) {
 
         Pageable pageable = createPageRequest(environment);
 

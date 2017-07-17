@@ -95,9 +95,7 @@ public class CatalogObjectController {
                                                                                        commitMessage,
                                                                                        contentType,
                                                                                        file.getBytes());
-        catalogObject.add(LinkUtil.createLink(catalogObject.getBucketId(),
-                                              catalogObject.getName(),
-                                              catalogObject.getCommitDateTime()));
+        catalogObject.add(LinkUtil.createLink(catalogObject.getBucketId(), catalogObject.getName()));
 
         return new CatalogObjectMetadataList(catalogObject);
     }
@@ -111,7 +109,7 @@ public class CatalogObjectController {
         String decodedName = URLDecoder.decode(name, "UTF-8");
         try {
             CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketId, decodedName);
-            metadata.add(LinkUtil.createLink(metadata.getBucketId(), metadata.getName(), metadata.getCommitDateTime()));
+            metadata.add(LinkUtil.createLink(metadata.getBucketId(), metadata.getName()));
             return ResponseEntity.ok(metadata);
         } catch (CatalogObjectNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e);
@@ -139,7 +137,8 @@ public class CatalogObjectController {
                 responseBodyBuilder = responseBodyBuilder.contentType(mediaType);
             } catch (org.springframework.http.InvalidMediaTypeException mimeEx) {
                 log.warn("The wrong content type for object: " + name + ", commitTime:" +
-                         rawObject.getCommitDateTime() + ", the contentType: " + rawObject.getContentType(), mimeEx);
+                         rawObject.getCommitDateTime() + ", the contentType: " + rawObject.getContentType(),
+                         mimeEx);
             }
             return responseBodyBuilder.body(new InputStreamResource(new ByteArrayInputStream(bytes)));
         } catch (CatalogObjectNotFoundException e) {
@@ -153,7 +152,8 @@ public class CatalogObjectController {
     @ApiImplicitParams({ @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "Results page you want to retrieve (0..N)"),
                          @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
                          @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
-                                                                                                                                  "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
+                                                                                                                                  "Default sort order is ascending. " +
+                                                                                                                                  "Multiple sort criteria are supported.") })
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
     @RequestMapping(method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -168,7 +168,7 @@ public class CatalogObjectController {
         }
 
         result.stream().map(object -> {
-            object.add(LinkUtil.createLink(object.getBucketId(), object.getName(), object.getCommitDateTime()));
+            object.add(LinkUtil.createLink(object.getBucketId(), object.getName()));
             return object;
         }).collect(Collectors.toList());
 

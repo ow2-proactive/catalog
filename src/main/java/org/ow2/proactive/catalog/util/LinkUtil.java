@@ -33,6 +33,7 @@ import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+import org.ow2.proactive.catalog.rest.controller.CatalogObjectController;
 import org.ow2.proactive.catalog.rest.controller.CatalogObjectRevisionController;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
@@ -54,6 +55,19 @@ public class LinkUtil {
                                                                                                                         URLEncoder.encode(name,
                                                                                                                                           "UTF-8"),
                                                                                                                         epochMilli));
+
+            return new Link(controllerLinkBuilder.toString()).withRel("content");
+        } catch (UnsupportedEncodingException e) {
+            log.error("{} cannot be encoded", name, e);
+        }
+        return null;
+    }
+
+    public static Link createLink(Long bucketId, String name) {
+        try {
+            ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw(bucketId,
+                                                                                                                URLEncoder.encode(name,
+                                                                                                                                  "UTF-8")));
 
             return new Link(controllerLinkBuilder.toString()).withRel("content");
         } catch (UnsupportedEncodingException e) {
