@@ -137,8 +137,7 @@ public class CatalogObjectController {
                 responseBodyBuilder = responseBodyBuilder.contentType(mediaType);
             } catch (org.springframework.http.InvalidMediaTypeException mimeEx) {
                 log.warn("The wrong content type for object: " + name + ", commitTime:" +
-                         rawObject.getCommitDateTime() + ", the contentType: " + rawObject.getContentType(),
-                         mimeEx);
+                         rawObject.getCommitDateTime() + ", the contentType: " + rawObject.getContentType(), mimeEx);
             }
             return responseBodyBuilder.body(new InputStreamResource(new ByteArrayInputStream(bytes)));
         } catch (CatalogObjectNotFoundException e) {
@@ -152,8 +151,7 @@ public class CatalogObjectController {
     @ApiImplicitParams({ @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "Results page you want to retrieve (0..N)"),
                          @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
                          @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
-                                                                                                                                  "Default sort order is ascending. " +
-                                                                                                                                  "Multiple sort criteria are supported.") })
+                                                                                                                                  "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
     @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
     @RequestMapping(method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
