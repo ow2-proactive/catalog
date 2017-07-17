@@ -25,6 +25,8 @@
  */
 package org.ow2.proactive.catalog;
 
+import static org.mockito.Mockito.spy;
+
 import javax.sql.DataSource;
 
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
@@ -116,6 +118,11 @@ public class IntegrationTestConfig {
     @Bean
     public FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> catalogObjectAndOrGroupFilterHandler() {
         return new CatalogObjectAndOrGroupFilterHandler();
+    }
+
+    @Bean
+    public CatalogObjectFetcher.CatalogObjectMapper catalogObjectMapper() {
+        return spy(new CatalogObjectFetcher.CatalogObjectMapper());
     }
 
 }

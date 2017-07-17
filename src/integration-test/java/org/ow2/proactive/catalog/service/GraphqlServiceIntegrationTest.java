@@ -26,6 +26,9 @@
 package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -42,6 +45,7 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.graphql.bean.CatalogObjectConnection;
+import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -69,6 +73,9 @@ public class GraphqlServiceIntegrationTest {
     @Autowired
     private BucketService bucketService;
 
+    @Autowired
+    private CatalogObjectFetcher.CatalogObjectMapper catalogObjectMapper;
+
     private BucketMetadata bucket;
 
     private List<Metadata> keyValues;
@@ -85,6 +92,8 @@ public class GraphqlServiceIntegrationTest {
 
     @Before
     public void setup() throws IOException {
+        doReturn("link").when(catalogObjectMapper).generatLink(anyLong(), anyString());
+
         bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
         keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
 
@@ -432,9 +441,9 @@ public class GraphqlServiceIntegrationTest {
                        "  allCatalogObjects(where:{AND:[{nameArg:{eq:\"catalog1\"}}, {kindArg:{eq:\"object\"}}]}) {\n" +
                        "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
                        "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
-                       "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
-                       "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" +
-                       "}\n";
+                       "      commitMessage\n" + "      commitDateTime\n" + "    link}\n" + "    page\n" +
+                       "    size\n" + "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" +
+                       "  }  \n" + "}\n";
 
         Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
 

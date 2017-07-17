@@ -25,6 +25,11 @@
  */
 package org.ow2.proactive.catalog.graphql.fetcher;
 
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -42,12 +47,15 @@ import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.DefaultSpecification;
+import org.ow2.proactive.catalog.rest.controller.CatalogObjectController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +63,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import lombok.extern.log4j.Log4j2;
 
 
 /**
@@ -63,6 +72,7 @@ import graphql.schema.DataFetchingEnvironment;
  */
 @Component
 @Transactional(readOnly = true)
+@Log4j2
 public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection> {
 
     public static final String CATALOG_OBJECT_ID = "catalogObject.id";
@@ -72,6 +82,9 @@ public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection
 
     @Autowired
     private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
+
+    @Autowired
+    private CatalogObjectMapper catalogObjectMapper;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -95,10 +108,9 @@ public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection
                                                                                                         : catalogObjectRevisionRepository.findAll(new DefaultSpecification(),
                                                                                                                                                   pageable);
 
-        CatalogObjectMapper mapper = new CatalogObjectMapper();
         return CatalogObjectConnection.builder()
-                                      .edges(mapper.apply(catalogObjectEntitiesPage.getContent().stream())
-                                                   .collect(Collectors.toList()))
+                                      .edges(catalogObjectMapper.apply(catalogObjectEntitiesPage.getContent().stream())
+                                                                .collect(Collectors.toList()))
                                       .page(catalogObjectEntitiesPage.getNumber())
                                       .size(catalogObjectEntitiesPage.getSize())
                                       .hasNext(catalogObjectEntitiesPage.hasNext())
@@ -147,12 +159,31 @@ public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection
 
     }
 
+    @Component
     public static class CatalogObjectMapper
             implements Function<Stream<CatalogObjectRevisionEntity>, Stream<CatalogObject>> {
 
         @Override
         public Stream<CatalogObject> apply(Stream<CatalogObjectRevisionEntity> catalogObjectEntityStream) {
-            return catalogObjectEntityStream.map(CatalogObject::new);
+            return catalogObjectEntityStream.map(entity -> {
+                CatalogObject object = new CatalogObject(entity);
+                object.setLink(generatLink(object.getBucketId(), object.getName()));
+                return object;
+            });
+        }
+
+        public String generatLink(Long bucketId, String name) {
+            try {
+                ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw(bucketId,
+                                                                                                                    URLEncoder.encode(name,
+                                                                                                                                      "UTF-8")));
+
+                return new Link(controllerLinkBuilder.toString()).withRel("content").getHref();
+            } catch (UnsupportedEncodingException e) {
+                log.error("{} cannot be encoded", name, e);
+            }
+            return null;
         }
     }
+
 }
