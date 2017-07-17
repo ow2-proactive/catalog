@@ -25,8 +25,7 @@
  */
 package org.ow2.proactive.catalog.graphql.bean.argument;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -41,7 +40,7 @@ public class CatalogObjectRevisionWhereArgs extends WhereArgs<Long> {
 
     private final Boolean isLatest;
 
-    @JsonCreator
+    @Builder
     public CatalogObjectRevisionWhereArgs(Long eq, Long ne, Long gt, Long gte, Long lt, Long lte, Boolean isLatest) {
         super(eq, ne, gt, gte, lt, lte);
         this.isLatest = isLatest;
