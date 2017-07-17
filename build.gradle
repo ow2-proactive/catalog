@@ -142,7 +142,7 @@ dependencies {
 
     providedCompile 'org.springframework.boot:spring-boot-starter-tomcat'
 
-    providedCompile 'org.hsqldb:hsqldb:r5658-f2e27a7'
+    providedRuntime 'org.hsqldb:hsqldb:r5658-f2e27a7'
 
     compile 'io.springfox:springfox-spring-web:2.4.0'
     compile 'io.springfox:springfox-swagger2:2.4.0'
