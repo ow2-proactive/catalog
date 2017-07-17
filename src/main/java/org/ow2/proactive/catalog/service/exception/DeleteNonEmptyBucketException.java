@@ -23,27 +23,28 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser;
+package org.ow2.proactive.catalog.service.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 
 /**
- * CatalogObjectParserFactory return the right Parser for the given type of object
+ * This Exception is thrown when a DELETE request for bucket has been
+ * received but such a Bucket is not empty (name + owner)
+ * The HTTP status is 403, 'Forbidden"
  *
  * @author ActiveEon Team
  */
-public enum CatalogObjectParserFactory {
+@ResponseStatus(value = HttpStatus.FORBIDDEN)
+public class DeleteNonEmptyBucketException extends RuntimeException {
 
-    INSTANCE;
-
-    public static CatalogObjectParserFactory get() {
-        return INSTANCE;
+    public DeleteNonEmptyBucketException() {
+        super("Forbidden to delete the non empty bucket");
     }
 
-    public CatalogObjectParserInterface getParser(String type) {
-        if (SupportedParserKinds.WORKFLOW.toString().equals(type))
-            return new WorkflowParser();
-        if (SupportedParserKinds.PCW_RULE.toString().equals(type))
-            return new PCWRuleParser();
-        return new DefaultCatalogObjectParser();
+    public DeleteNonEmptyBucketException(Throwable cause) {
+        super(cause);
     }
 
 }

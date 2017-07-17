@@ -89,6 +89,10 @@ public class IntegrationTestUtil {
         return new File(IntegrationTestUtil.class.getResource("/workflows/" + filename).getFile());
     }
 
+    public static File getPCWRule(String filename) {
+        return new File(IntegrationTestUtil.class.getResource("/pcw-rules/" + filename).getFile());
+    }
+
     public static File getArchiveFile(String filename) {
         return new File(IntegrationTestUtil.class.getResource("/archives/" + filename).getFile());
     }

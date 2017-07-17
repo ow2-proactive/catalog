@@ -33,6 +33,7 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
+import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -98,6 +99,20 @@ public class BucketService {
 
     public void cleanAll() {
         bucketRepository.deleteAll();
+    }
+
+    public BucketMetadata deleteEmptyBucket(long bucketId) {
+        BucketEntity bucket = bucketRepository.findBucketForUpdate(bucketId);
+
+        if (bucket == null) {
+            throw new BucketNotFoundException();
+        }
+
+        if (!bucket.getCatalogObjects().isEmpty()) {
+            throw new DeleteNonEmptyBucketException();
+        }
+        bucketRepository.delete(bucketId);
+        return new BucketMetadata(bucket);
     }
 
 }

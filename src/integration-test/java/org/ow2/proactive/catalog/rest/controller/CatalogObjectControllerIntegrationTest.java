@@ -153,6 +153,63 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    public void testCreatePCWRuleShouldReturnSavedRule() {
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .queryParam("kind", "pcw-rule")
+               .queryParam("name", "pcw-rule test")
+               .queryParam("commitMessage", "first commit")
+               .queryParam("contentType", "application/json")
+               .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleExample.json"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED)
+               .body("object[0].bucket_id", is(bucket.getMetaDataId().intValue()))
+               .body("object[0].kind", is("pcw-rule"))
+               .body("object[0].name", is("pcw-rule test"))
+
+               .body("object[0].object_key_values", hasSize(6))
+               //check pcw metadata info
+               .body("object[0].object_key_values[0].label", is("General"))
+               .body("object[0].object_key_values[0].key", is("name"))
+               .body("object[0].object_key_values[0].value", is("ruleNodeIsUpMetric"))
+               .body("object[0].object_key_values[1].label", is("PollConfiguration"))
+               .body("object[0].object_key_values[1].key", is("PollType"))
+               .body("object[0].object_key_values[1].value", is("Ping"))
+               .body("object[0].object_key_values[2].label", is("PollConfiguration"))
+               .body("object[0].object_key_values[2].key", is("pollingPeriodInSeconds"))
+               .body("object[0].object_key_values[2].value", is("100"))
+               .body("object[0].object_key_values[3].label", is("PollConfiguration"))
+               .body("object[0].object_key_values[3].key", is("calmPeriodInSeconds"))
+               .body("object[0].object_key_values[3].value", is("50"))
+               .body("object[0].object_key_values[4].label", is("PollConfiguration"))
+               .body("object[0].object_key_values[4].key", is("kpis"))
+               .body("object[0].object_key_values[4].value",
+                     is("[\"upAndRunning\",\"sigar:Type=Cpu Total\",\"sigar:Type=FileSystem,Name=/ Free\"]"))
+               .body("object[0].object_key_values[5].label", is("PollConfiguration"))
+               .body("object[0].object_key_values[5].key", is("NodeUrls"))
+               .body("object[0].object_key_values[5].value",
+                     is("[\"localhost\",\"service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode\"]"))
+               .body("object[0].content_type", is("application/json"));
+    }
+
+    @Test
+    public void testCreateWrongPCWRuleShouldReturnError() {
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .queryParam("kind", "pcw-rule")
+               .queryParam("name", "pcw-rule test")
+               .queryParam("commitMessage", "first commit")
+               .queryParam("contentType", "application/json")
+               .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleWrongToParse.json"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
     public void testCreateWorkflowShouldReturnUnsupportedMediaTypeWithoutBody() {
         given().pathParam("bucketId", bucket.getMetaDataId())
                .when()

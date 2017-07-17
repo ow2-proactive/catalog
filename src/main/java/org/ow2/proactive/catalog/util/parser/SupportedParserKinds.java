@@ -26,24 +26,21 @@
 package org.ow2.proactive.catalog.util.parser;
 
 /**
- * CatalogObjectParserFactory return the right Parser for the given type of object
- *
  * @author ActiveEon Team
+ * @since 7/11/2017
  */
-public enum CatalogObjectParserFactory {
+public enum SupportedParserKinds {
+    WORKFLOW("workflow"),
+    PCW_RULE("pcw-rule");
 
-    INSTANCE;
+    private final String kind;
 
-    public static CatalogObjectParserFactory get() {
-        return INSTANCE;
+    SupportedParserKinds(final String kind) {
+        this.kind = kind;
     }
 
-    public CatalogObjectParserInterface getParser(String type) {
-        if (SupportedParserKinds.WORKFLOW.toString().equals(type))
-            return new WorkflowParser();
-        if (SupportedParserKinds.PCW_RULE.toString().equals(type))
-            return new PCWRuleParser();
-        return new DefaultCatalogObjectParser();
+    @Override
+    public String toString() {
+        return kind;
     }
-
 }

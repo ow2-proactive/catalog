@@ -36,7 +36,9 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,9 +48,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DefaultCatalogObjectsFolderNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DefaultRawCatalogObjectsFolderNotFoundException;
+import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
 
 
 /**
@@ -124,6 +128,42 @@ public class BucketServiceTest {
         BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
         catalogObjectService.populateCatalog(buckets, "/default-objects", "/this-folder-doesnt-exist");
+    }
+
+    @Test
+    public void testDeleteEmptyBucket() {
+        BucketEntity mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
+
+        when(mockedBucket.getCatalogObjects()).thenReturn(new HashSet<>());
+        when(bucketRepository.findBucketForUpdate(anyLong())).thenReturn(mockedBucket);
+        BucketMetadata bucketMetadata = bucketService.deleteEmptyBucket(1L);
+        verify(bucketRepository, times(1)).findBucketForUpdate(1L);
+        verify(bucketRepository, times(1)).delete(1L);
+        assertEquals(bucketMetadata.getName(), mockedBucket.getName());
+    }
+
+    @Test(expected = BucketNotFoundException.class)
+    public void testDeleteInvalidBucket() {
+        when(bucketRepository.findOne(anyLong())).thenReturn(null);
+        bucketService.deleteEmptyBucket(1L);
+    }
+
+    @Test(expected = DeleteNonEmptyBucketException.class)
+    public void testNotEmptyBucket() {
+        BucketEntity mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
+        Set<CatalogObjectEntity> objects = new HashSet<>();
+        CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
+                                                                     .id(new CatalogObjectEntity.CatalogObjectEntityKey(mockedBucket.getId(),
+                                                                                                                        "catalog"))
+                                                                     .kind("object")
+                                                                     .contentType("application/xml")
+                                                                     .bucket(mockedBucket)
+                                                                     .build();
+        objects.add(catalogObjectEntity);
+        when(mockedBucket.getCatalogObjects()).thenReturn(objects);
+        when(bucketRepository.findBucketForUpdate(anyLong())).thenReturn(mockedBucket);
+        bucketService.deleteEmptyBucket(1L);
+        verify(bucketRepository, times(1)).findBucketForUpdate(1L);
     }
 
     private void listBucket(Optional<String> owner, Optional<String> kind) {

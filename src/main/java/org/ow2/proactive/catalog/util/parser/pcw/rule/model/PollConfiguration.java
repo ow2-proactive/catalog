@@ -23,27 +23,31 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser;
+package org.ow2.proactive.catalog.util.parser.pcw.rule.model;
 
-/**
- * CatalogObjectParserFactory return the right Parser for the given type of object
- *
- * @author ActiveEon Team
- */
-public enum CatalogObjectParserFactory {
+import java.util.Set;
 
-    INSTANCE;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.experimental.Wither;
 
-    public static CatalogObjectParserFactory get() {
-        return INSTANCE;
-    }
 
-    public CatalogObjectParserInterface getParser(String type) {
-        if (SupportedParserKinds.WORKFLOW.toString().equals(type))
-            return new WorkflowParser();
-        if (SupportedParserKinds.PCW_RULE.toString().equals(type))
-            return new PCWRuleParser();
-        return new DefaultCatalogObjectParser();
-    }
+@AllArgsConstructor
+@NoArgsConstructor
+@Wither
+@Getter
+@ToString
+public class PollConfiguration {
 
+    private String pollType;
+
+    private Set<NodeInformation> nodeInformations;
+
+    private Set<String> kpis;
+
+    private long pollingPeriodInSeconds;
+
+    private long calmPeriodInSeconds;
 }
