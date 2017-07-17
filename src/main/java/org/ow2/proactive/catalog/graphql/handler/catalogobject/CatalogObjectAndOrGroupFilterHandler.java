@@ -102,25 +102,31 @@ public class CatalogObjectAndOrGroupFilterHandler
             operations = Operations.OR;
         }
 
-        // binary tree postorder traversal, iterative algo
+        // binary tree post-order traversal, iterative algorithm
         if (andOrArgs != null) {
             List<CatalogObjectWhereArgsTreeNode> ret = postOrderTraverseWhereArgsToHaveTreeNodes(andOrArgs, operations);
 
-            Collections.reverse(ret);
             log.debug(ret);
 
+            // remove unnecessary items
             List<CatalogObjectWhereArgsTreeNode> collect = ret.stream()
                                                               .filter(treeNode -> treeNode.getWhereArgs().size() > 1)
                                                               .collect(Collectors.toList());
 
             log.debug(collect);
 
-            Specification<CatalogObjectRevisionEntity> leftChildSpec = buildFinalSpecification(collect);
-            return Optional.of(leftChildSpec);
+            Specification<CatalogObjectRevisionEntity> finalSpecification = buildFinalSpecification(collect);
+            return Optional.of(finalSpecification);
         }
         return Optional.empty();
     }
 
+    /**
+     * build up the final specification from the post-order traverse node result
+     * 
+     * @param collect
+     * @return
+     */
     private Specification<CatalogObjectRevisionEntity>
             buildFinalSpecification(List<CatalogObjectWhereArgsTreeNode> collect) {
         Deque<Specification<CatalogObjectRevisionEntity>> stack = new LinkedList<>();
@@ -163,8 +169,17 @@ public class CatalogObjectAndOrGroupFilterHandler
         return stack.pop();
     }
 
+    /**
+     * /!\ NOTE : do not change this method without good reason and good tests
+     *
+     * @param andOrArgs
+     * @param operations
+     * @return
+     */
     private List<CatalogObjectWhereArgsTreeNode>
             postOrderTraverseWhereArgsToHaveTreeNodes(List<CatalogObjectWhereArgs> andOrArgs, Operations operations) {
+
+        // post-order traverse tree algorithm
         Deque<List<CatalogObjectWhereArgs>> stack = new LinkedList<>();
         stack.push(andOrArgs);
 
@@ -204,6 +219,8 @@ public class CatalogObjectAndOrGroupFilterHandler
                 stack.push(left);
             }
         }
+
+        Collections.reverse(ret);
         return ret;
     }
 

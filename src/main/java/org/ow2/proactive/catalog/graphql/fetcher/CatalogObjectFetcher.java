@@ -65,6 +65,8 @@ import graphql.schema.DataFetchingEnvironment;
 @Transactional(readOnly = true)
 public class CatalogObjectFetcher implements DataFetcher {
 
+    public static final String CATALOG_OBJECT_ID = "catalogObject.id";
+
     @Autowired
     private List<FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity>> catalogObjectFilterHandlers;
 
@@ -76,7 +78,7 @@ public class CatalogObjectFetcher implements DataFetcher {
     @Override
     public Object get(DataFetchingEnvironment environment) {
 
-        Pageable pageable = createPageable(environment);
+        Pageable pageable = createPageRequest(environment);
 
         CatalogObjectWhereArgs argument = objectMapper.convertValue(environment.getArgument(Arguments.WHERE.getName()),
                                                                     CatalogObjectWhereArgs.class);
@@ -106,7 +108,7 @@ public class CatalogObjectFetcher implements DataFetcher {
                                       .build();
     }
 
-    private Pageable createPageable(DataFetchingEnvironment environment) {
+    private Pageable createPageRequest(DataFetchingEnvironment environment) {
         String orderByString = objectMapper.convertValue(environment.getArgument(Arguments.ORDER_BY.getName()),
                                                          String.class);
 
@@ -126,12 +128,9 @@ public class CatalogObjectFetcher implements DataFetcher {
 
         switch (orderBy) {
             case CATALOG_OBJECT_KEY_ASC:
-                return new PageRequest(pageInfo.getPage(), pageInfo.getSize(), Sort.Direction.ASC, "catalogObject.id");
+                return new PageRequest(pageInfo.getPage(), pageInfo.getSize(), Sort.Direction.ASC, CATALOG_OBJECT_ID);
             case CATALOG_OBJECT_KEY_DESC:
-                return new PageRequest(pageInfo.getPage(),
-                                       pageInfo.getSize(),
-                                       Sort.Direction.DESC,
-                                       CatalogObjectEntityMetaModelEnum.ID.getName());
+                return new PageRequest(pageInfo.getPage(), pageInfo.getSize(), Sort.Direction.DESC, CATALOG_OBJECT_ID);
             case KIND_ASC:
                 return new PageRequest(pageInfo.getPage(),
                                        pageInfo.getSize(),
