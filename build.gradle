@@ -140,9 +140,9 @@ dependencies {
 
     compile 'org.eclipse.jetty:jetty-servlets:9.2.14.v20151106'
 
-    compile 'org.springframework.boot:spring-boot-starter-tomcat'
+    providedCompile 'org.springframework.boot:spring-boot-starter-tomcat'
 
-    compile 'org.hsqldb:hsqldb:r5658-f2e27a7'
+    providedCompile 'org.hsqldb:hsqldb:r5658-f2e27a7'
 
     compile 'io.springfox:springfox-spring-web:2.4.0'
     compile 'io.springfox:springfox-swagger2:2.4.0'
@@ -234,7 +234,7 @@ jacocoTestReport {
 
 clean {
     sourceSets.generated.java.srcDirs.each {
-       srcDir -> delete srcDir
+        srcDir -> delete srcDir
     }
 }
 
