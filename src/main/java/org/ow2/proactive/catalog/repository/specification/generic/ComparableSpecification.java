@@ -55,13 +55,13 @@ public class ComparableSpecification<R extends Comparable<R>> extends AbstractSp
             CriteriaBuilder cb) {
         switch (operations) {
             case GT:
-                return cb.equal(catalogObjectJoin.<R> get(entityMetaModelEnum.getName()), value);
+                return cb.greaterThan(catalogObjectJoin.<R> get(entityMetaModelEnum.getName()), value);
             case GTE:
-                return cb.notEqual(catalogObjectJoin.<R> get(entityMetaModelEnum.getName()), value);
+                return cb.greaterThanOrEqualTo(catalogObjectJoin.<R> get(entityMetaModelEnum.getName()), value);
             case LT:
-                return cb.equal(catalogObjectJoin.<R> get(entityMetaModelEnum.getName()), value);
+                return cb.lessThan(catalogObjectJoin.<R> get(entityMetaModelEnum.getName()), value);
             case LTE:
-                return cb.notEqual(catalogObjectJoin.<R> get(entityMetaModelEnum.getName()), value);
+                return cb.lessThanOrEqualTo(catalogObjectJoin.<R> get(entityMetaModelEnum.getName()), value);
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }
