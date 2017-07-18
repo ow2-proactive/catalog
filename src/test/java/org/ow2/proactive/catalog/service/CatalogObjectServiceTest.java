@@ -42,7 +42,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
+import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
@@ -96,7 +96,7 @@ public class CatalogObjectServiceTest {
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(System.currentTimeMillis());
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectEntity);
 
-        List<KeyValueMetadata> keyValues = ImmutableList.of(new KeyValueMetadata("key", "value", null));
+        List<Metadata> keyValues = ImmutableList.of(new Metadata("key", "value", null));
 
         CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(1L,
                                                                                        NAME,
@@ -110,8 +110,8 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObject.getContentType()).isEqualTo(APPLICATION_XML);
         assertThat(catalogObject.getKind()).isEqualTo(OBJECT);
         assertThat(catalogObject.getName()).isEqualTo(NAME);
-        assertThat(catalogObject.getKeyValueMetadataList()).isNotEmpty();
-        assertThat(catalogObject.getKeyValueMetadataList()).hasSize(1);
+        assertThat(catalogObject.getMetadataList()).isNotEmpty();
+        assertThat(catalogObject.getMetadataList()).hasSize(1);
     }
 
     @Test
@@ -195,7 +195,7 @@ public class CatalogObjectServiceTest {
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = newCatalogObjectRevisionEntity(System.currentTimeMillis());
         when(catalogObjectRepository.findOne(any(CatalogObjectEntity.CatalogObjectEntityKey.class))).thenReturn(catalogObjectEntity);
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectRevisionEntity);
-        List<KeyValueMetadata> keyvalues = ImmutableList.of(new KeyValueMetadata("key", "value", null));
+        List<Metadata> keyvalues = ImmutableList.of(new Metadata("key", "value", null));
         CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObjectRevision(1L,
                                                                                                NAME,
                                                                                                COMMIT_MESSAGE,
@@ -206,8 +206,8 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObject.getContentType()).isEqualTo(APPLICATION_XML);
         assertThat(catalogObject.getKind()).isEqualTo(OBJECT);
         assertThat(catalogObject.getName()).isEqualTo(NAME);
-        assertThat(catalogObject.getKeyValueMetadataList()).isNotEmpty();
-        assertThat(catalogObject.getKeyValueMetadataList()).hasSize(1);
+        assertThat(catalogObject.getMetadataList()).isNotEmpty();
+        assertThat(catalogObject.getMetadataList()).hasSize(1);
     }
 
     @Test(expected = RevisionNotFoundException.class)

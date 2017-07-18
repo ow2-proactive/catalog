@@ -67,7 +67,7 @@ public final class PCWRuleParserTest {
     private static void assertKeyValueDataAre(KeyValueMetadataEntity data, String key, String value, String type) {
         assertThat(data.getKey(), is(key));
         assertThat(data.getValue(), is(value));
-        assertThat(data.getType(), is(type));
+        assertThat(data.getLabel(), is(type));
     }
 
     @Test

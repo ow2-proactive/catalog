@@ -42,7 +42,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.GenericGenerator;
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
+import org.ow2.proactive.catalog.dto.Metadata;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -74,23 +74,23 @@ public class KeyValueMetadataEntity implements Serializable {
     @Column(name = "VALUE", nullable = false)
     protected String value;
 
-    @Column(name = "TYPE", nullable = true)
-    protected String type;
+    @Column(name = "LABEL", nullable = true)
+    protected String label;
 
     @ManyToOne
     @JoinColumns({ @JoinColumn(name = "CATALOGOBJECTREVISION", referencedColumnName = "ID") })
     protected CatalogObjectRevisionEntity catalogObjectRevision;
 
-    public KeyValueMetadataEntity(String key, String value, String type) {
+    public KeyValueMetadataEntity(String key, String value, String label) {
         this.key = key;
         this.value = value;
-        this.type = type;
+        this.label = label;
     }
 
-    public KeyValueMetadataEntity(KeyValueMetadata metadata) {
+    public KeyValueMetadataEntity(Metadata metadata) {
         this.key = metadata.getKey();
         this.value = metadata.getValue();
-        this.type = metadata.getLabel();
+        this.label = metadata.getLabel();
     }
 
     @Override
@@ -119,7 +119,7 @@ public class KeyValueMetadataEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "KeyValueMetadataEntity{" + "key='" + key + '\'' + ", value='" + value + '\'' + ", type='" + type +
+        return "KeyValueMetadataEntity{" + "key='" + key + '\'' + ", value='" + value + '\'' + ", type='" + label +
                '\'' + '}';
     }
 }

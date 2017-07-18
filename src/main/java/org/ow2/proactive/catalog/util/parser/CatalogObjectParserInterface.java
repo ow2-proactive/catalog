@@ -40,6 +40,6 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
  */
 public interface CatalogObjectParserInterface {
 
-    public List<KeyValueMetadataEntity> parse(InputStream inputStream) throws XMLStreamException;
+    List<KeyValueMetadataEntity> parse(InputStream inputStream) throws XMLStreamException;
 
 }

@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
+import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
@@ -53,7 +53,7 @@ public class KeyValueMetadataHelper {
         }
     }
 
-    public static List<KeyValueMetadataEntity> convertToEntity(List<KeyValueMetadata> source) {
+    public static List<KeyValueMetadataEntity> convertToEntity(List<Metadata> source) {
         return source.stream().map(KeyValueMetadataEntity::new).collect(Collectors.toList());
     }
 }

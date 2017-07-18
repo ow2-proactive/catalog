@@ -61,6 +61,7 @@ import lombok.Data;
  */
 @AllArgsConstructor
 @Builder
+@BatchSize(size = 10)
 @Data
 @Entity
 @Table(name = "CATALOG_OBJECT_REVISION", uniqueConstraints = @UniqueConstraint(columnNames = { "BUCKET", "NAME",
@@ -136,6 +137,6 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
     @Override
     public String toString() {
         return "CatalogObjectRevisionRepository{" + "commitMessage='" + commitMessage + '\'' + ", commitTime=" +
-               commitTime + ", keyValueMetadataList=" + keyValueMetadataList + '}';
+               commitTime + ", metadataList=" + keyValueMetadataList + '}';
     }
 }

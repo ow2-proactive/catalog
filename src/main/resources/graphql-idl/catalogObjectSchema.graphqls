@@ -1,0 +1,92 @@
+schema {
+    query: Query
+}
+
+type Query {
+    allCatalogObjects(where: CatalogObjectWhereArgs, orderBy: OrderByEnum, pageInfo: PageInfo): CatalogObjectConnection
+}
+
+enum OrderByEnum {
+    catalogObjectKey_ASC
+    catalogObjectKey_DESC
+    kind_ASC
+    kind_DESC
+}
+
+input CatalogObjectMetadataWhereArgs {
+    key: String!
+    value: StringWhereArgs!
+}
+
+input StringWhereArgs {
+    like: String
+    notLike: String
+    eq: String
+    ne: String
+}
+
+input CatalogObjectBucketIdWhereArgs{
+    in: [Long!]
+    notIn: [Long!]
+    eq: Long
+    ne: Long
+    gt: Long
+    gte: Long
+    lt: Long
+    lte: Long
+}
+
+input CatalogObjectKindWhereArgs{
+    like: String
+    notLike: String
+    eq: String
+    ne: String
+}
+
+input CatalogObjectNameWhereArgs{
+    like: String
+    notLike: String
+    eq: String
+    ne: String
+}
+
+input CatalogObjectWhereArgs {
+   AND: [CatalogObjectWhereArgs!]
+   OR: [CatalogObjectWhereArgs!]
+   bucketIdArg: CatalogObjectBucketIdWhereArgs
+   nameArg: CatalogObjectNameWhereArgs
+   kindArg: CatalogObjectKindWhereArgs
+   metadataArg: CatalogObjectMetadataWhereArgs
+}
+
+type CatalogObjectConnection {
+    edges: [CatalogObject!]
+    page: Int
+    size: Int
+    hasNext: Boolean
+    hasPrevious: Boolean
+    totalPage: Int
+    totalCount: Int
+}
+
+input PageInfo {
+    page: Int
+    size: Int
+}
+
+type Metadata {
+    key: String!
+    value: String!
+    label: String
+}
+
+type CatalogObject {
+    bucketId: Long!
+    commitDateTime: String!
+    commitMessage: String
+    contentType: String
+    metadata: [Metadata!]
+    kind: String!
+    link: String
+    name: String!
+}

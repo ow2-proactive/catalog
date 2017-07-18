@@ -26,7 +26,6 @@
 package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -42,13 +41,9 @@ import org.ow2.proactive.catalog.IntegrationTestConfig;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
-import org.ow2.proactive.catalog.dto.KeyValueMetadata;
-import org.ow2.proactive.catalog.repository.BucketRepository;
-import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
-import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
+import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Link;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -69,20 +64,9 @@ public class CatalogObjectServiceIntegrationTest {
     @Autowired
     private BucketService bucketService;
 
-    @Autowired
-    private CatalogObjectRepository catalogObjectRepository;
-
-    @Autowired
-    private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
-
-    @Autowired
-    private BucketRepository bucketRepository;
-
-    private CatalogObjectService mockedCatalogObjectService;
-
     private BucketMetadata bucket;
 
-    private List<KeyValueMetadata> keyValues;
+    private List<Metadata> keyValues;
 
     private byte[] workflowAsByteArray;
 
@@ -95,17 +79,7 @@ public class CatalogObjectServiceIntegrationTest {
     @Before
     public void setup() throws IOException {
         bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
-        keyValues = Collections.singletonList(new KeyValueMetadata("key", "value", "type"));
-
-        mockedCatalogObjectService = new CatalogObjectService(catalogObjectRepository,
-                                                              catalogObjectRevisionRepository,
-
-                                                              bucketRepository) {
-            @Override
-            public Link createLink(Long bucketId, String name, long commitTime) throws UnsupportedEncodingException {
-                return mock(Link.class);
-            }
-        };
+        keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
 
         workflowAsByteArray = IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml");
         workflowAsByteArrayUpdated = IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml");
@@ -169,7 +143,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                     "catalog1");
         assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("commit message 2");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("object");
-        assertThat(catalogObjectMetadata.getKeyValueMetadataList()).hasSize(1);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(1);
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("application/xml");
     }
 
@@ -183,26 +157,26 @@ public class CatalogObjectServiceIntegrationTest {
     @Test
     public void testListCatalogObjectRevisions() {
 
-        List<CatalogObjectMetadata> metadataList = mockedCatalogObjectService.listCatalogObjectRevisions(bucket.getMetaDataId(),
-                                                                                                         "catalog1");
+        List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjectRevisions(bucket.getMetaDataId(),
+                                                                                                   "catalog1");
         assertThat(metadataList).hasSize(2);
     }
 
     @Test
     public void testGetCatalogObjectRevision() throws UnsupportedEncodingException {
 
-        CatalogObjectMetadata metadata = mockedCatalogObjectService.getCatalogObjectRevision(bucket.getMetaDataId(),
-                                                                                             "catalog1",
-                                                                                             firstCommitTime);
+        CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucket.getMetaDataId(),
+                                                                                       "catalog1",
+                                                                                       firstCommitTime);
         assertThat(metadata.getCommitMessage()).isEqualTo("commit message");
     }
 
     @Test
     public void testGetCatalogObjectRevisionRaw() throws UnsupportedEncodingException {
 
-        CatalogRawObject rawObject = mockedCatalogObjectService.getCatalogObjectRevisionRaw(bucket.getMetaDataId(),
-                                                                                            "catalog1",
-                                                                                            firstCommitTime);
+        CatalogRawObject rawObject = catalogObjectService.getCatalogObjectRevisionRaw(bucket.getMetaDataId(),
+                                                                                      "catalog1",
+                                                                                      firstCommitTime);
         assertThat(rawObject.getCommitMessage()).isEqualTo("commit message");
         assertThat(rawObject.getRawObject()).isEqualTo(workflowAsByteArray);
     }

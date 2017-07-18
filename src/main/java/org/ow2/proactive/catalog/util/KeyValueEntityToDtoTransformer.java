@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 
 
@@ -38,12 +39,9 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
  */
 public final class KeyValueEntityToDtoTransformer {
 
-    public static List<org.ow2.proactive.catalog.dto.KeyValueMetadata>
-            to(Collection<? extends KeyValueMetadataEntity> from) {
+    public static List<Metadata> to(Collection<? extends KeyValueMetadataEntity> from) {
         return from.stream()
-                   .map(entity -> new org.ow2.proactive.catalog.dto.KeyValueMetadata(entity.getKey(),
-                                                                                     entity.getValue(),
-                                                                                     entity.getType()))
+                   .map(entity -> new Metadata(entity.getKey(), entity.getValue(), entity.getLabel()))
                    .collect(Collectors.toList());
     }
 }

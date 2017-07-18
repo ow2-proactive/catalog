@@ -70,7 +70,7 @@ public class CatalogObjectMetadata extends ResourceSupport {
     protected final String commitMessage;
 
     @JsonProperty("object_key_values")
-    protected final List<KeyValueMetadata> keyValueMetadataList;
+    protected final List<Metadata> metadataList;
 
     public CatalogObjectMetadata(CatalogObjectEntity catalogObject) {
         this(catalogObject.getId().getBucketId(),
@@ -93,17 +93,17 @@ public class CatalogObjectMetadata extends ResourceSupport {
     }
 
     public CatalogObjectMetadata(Long bucketId, String name, String kind, String contentType, long createdAt,
-            String commitMessage, List<KeyValueMetadata> keyValueMetadataList) {
+            String commitMessage, List<Metadata> metadataList) {
         this.bucketId = bucketId;
         this.name = name;
         this.kind = kind;
         this.contentType = contentType;
         this.commitDateTime = Instant.ofEpochMilli(createdAt).atZone(ZoneId.systemDefault()).toLocalDateTime();
         this.commitMessage = commitMessage;
-        if (keyValueMetadataList == null) {
-            this.keyValueMetadataList = new ArrayList<>();
+        if (metadataList == null) {
+            this.metadataList = new ArrayList<>();
         } else {
-            this.keyValueMetadataList = keyValueMetadataList;
+            this.metadataList = metadataList;
         }
 
     }
