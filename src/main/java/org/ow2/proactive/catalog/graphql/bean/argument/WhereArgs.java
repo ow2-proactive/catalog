@@ -37,16 +37,22 @@ import lombok.NoArgsConstructor;
 @Data
 public class WhereArgs<T> {
 
+    /** equal */
     protected T eq;
 
+    /** not equal */
     protected T ne;
 
+    /** greater than */
     protected T gt;
 
+    /** greater than or equal */
     protected T gte;
 
+    /** less than */
     protected T lt;
 
+    /** less than or equal */
     protected T lte;
 
     public WhereArgs(T eq, T ne, T gt, T gte, T lt, T lte) {

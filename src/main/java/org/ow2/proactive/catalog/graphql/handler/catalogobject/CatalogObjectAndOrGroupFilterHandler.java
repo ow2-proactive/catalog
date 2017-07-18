@@ -172,6 +172,8 @@ public class CatalogObjectAndOrGroupFilterHandler
     /**
      * /!\ NOTE : do not change this method without good reason and good tests
      *
+     * https://discuss.leetcode.com/topic/44777/java-recursive-and-iterative-solutions
+     *
      * @param andOrArgs
      * @param operations
      * @return
