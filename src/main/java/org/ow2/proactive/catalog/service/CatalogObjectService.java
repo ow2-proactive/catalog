@@ -98,9 +98,6 @@ public class CatalogObjectService {
 
     private static final String RAW_OBJECTS_FOLDER = "/raw-objects";
 
-    public CatalogObjectService() {
-    }
-
     @PostConstruct
     public void init() throws Exception {
         boolean isTestProfileEnabled = Arrays.stream(environment.getActiveProfiles()).anyMatch("test"::equals);

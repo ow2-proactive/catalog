@@ -189,35 +189,37 @@ public class CatalogObjectAndOrGroupFilterHandler
 
         while (!stack.isEmpty()) {
             List<CatalogObjectWhereArgs> top = stack.pop();
-            if (top != null) {
-                ret.add(new CatalogObjectWhereArgsTreeNode(operations, top));
+            ret.add(new CatalogObjectWhereArgsTreeNode(operations, top));
 
-                ArrayList<CatalogObjectWhereArgs> argsCopy = new ArrayList<>(top);
+            ArrayList<CatalogObjectWhereArgs> argsCopy = new ArrayList<>(top);
 
-                Iterator<CatalogObjectWhereArgs> iterator = argsCopy.iterator();
-                List<CatalogObjectWhereArgs> left = null;
-                List<CatalogObjectWhereArgs> right = null;
-                while (iterator.hasNext()) {
-                    CatalogObjectWhereArgs next = iterator.next();
-                    if (next.getAndArg() != null) {
-                        operations = Operations.AND;
-                        left = next.getAndArg();
-                        iterator.remove();
-                        if (!argsCopy.isEmpty()) {
-                            right = argsCopy;
-                        }
-                        break;
-                    } else if (next.getOrArg() != null) {
-                        operations = Operations.OR;
-                        left = next.getOrArg();
-                        iterator.remove();
-                        if (!argsCopy.isEmpty()) {
-                            right = argsCopy;
-                        }
-                        break;
+            Iterator<CatalogObjectWhereArgs> iterator = argsCopy.iterator();
+            List<CatalogObjectWhereArgs> left = null;
+            List<CatalogObjectWhereArgs> right = null;
+            while (iterator.hasNext()) {
+                CatalogObjectWhereArgs next = iterator.next();
+                if (next.getAndArg() != null) {
+                    operations = Operations.AND;
+                    left = next.getAndArg();
+                    iterator.remove();
+                    if (!argsCopy.isEmpty()) {
+                        right = argsCopy;
                     }
+                    break;
+                } else if (next.getOrArg() != null) {
+                    operations = Operations.OR;
+                    left = next.getOrArg();
+                    iterator.remove();
+                    if (!argsCopy.isEmpty()) {
+                        right = argsCopy;
+                    }
+                    break;
                 }
+            }
+            if (right != null) {
                 stack.push(right);
+            }
+            if (left != null) {
                 stack.push(left);
             }
         }
