@@ -25,19 +25,12 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
@@ -51,20 +44,14 @@ import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
-import org.ow2.proactive.catalog.service.exception.DefaultCatalogObjectsFolderNotFoundException;
-import org.ow2.proactive.catalog.service.exception.DefaultRawCatalogObjectsFolderNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
-import org.ow2.proactive.catalog.util.CatalogObjectJSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.io.ByteStreams;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -85,82 +72,6 @@ public class CatalogObjectService {
 
     @Autowired
     private BucketRepository bucketRepository;
-
-    @Value("${pa.catalog.default.buckets}")
-    private String[] defaultBucketNames;
-
-    @Autowired
-    private Environment environment;
-
-    private static final String DEFAULT_BUCKET_OWNER = "object-catalog";
-
-    private static final String DEFAULT_OBJECTS_FOLDER = "/default-objects";
-
-    private static final String RAW_OBJECTS_FOLDER = "/raw-objects";
-
-    @PostConstruct
-    public void init() throws Exception {
-        boolean isTestProfileEnabled = Arrays.stream(environment.getActiveProfiles()).anyMatch("test"::equals);
-
-        // We define the initial start by no existing buckets in the Catalog
-        // On initial start, we load the Catalog with predefined objects
-        if (!isTestProfileEnabled && bucketRepository.count() == 0) {
-            populateCatalog(defaultBucketNames, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
-        }
-    }
-
-    /**
-     * The Catalog can be populated with buckets and objects all at once.
-     *
-     * @param bucketNames The array of bucket names to create
-     * @param objectsFolder The folder that contains sub-folders of all objects to inject
-     * @throws SecurityException if the Catalog is not allowed to read or access the file
-     * @throws IOException if the file or folder could not be found or read properly
-     */
-    public void populateCatalog(String[] bucketNames, String objectsFolder, String rawObjectsFolder)
-            throws SecurityException, IOException {
-        for (String bucketName : bucketNames) {
-            final Long bucketId = bucketRepository.save(new BucketEntity(bucketName, DEFAULT_BUCKET_OWNER)).getId();
-            final URL folderResource = getClass().getResource(objectsFolder);
-            if (folderResource == null) {
-                throw new DefaultCatalogObjectsFolderNotFoundException();
-            }
-
-            final URL rawFolderResource = getClass().getResource(rawObjectsFolder);
-            if (rawFolderResource == null) {
-                throw new DefaultRawCatalogObjectsFolderNotFoundException();
-            }
-
-            final File bucketFolder = new File(folderResource.getPath() + File.separator + bucketName);
-            if (bucketFolder.isDirectory()) {
-                String[] wfs = bucketFolder.list();
-                Arrays.sort(wfs);
-                for (String object : wfs) {
-                    FileInputStream fisobject = null;
-                    try {
-                        File catalogObjectFile = new File(bucketFolder.getPath() + File.separator + object);
-                        CatalogObjectJSONParser.CatalogObjectData objectData = CatalogObjectJSONParser.parseJSONFile(catalogObjectFile);
-
-                        File fobject = new File(rawFolderResource.getPath() + File.separator +
-                                                objectData.getObjectFileName());
-                        fisobject = new FileInputStream(fobject);
-                        byte[] bObject = ByteStreams.toByteArray(fisobject);
-                        createCatalogObject(bucketId,
-                                            objectData.getName(),
-                                            objectData.getKind(),
-                                            objectData.getCommitMessage(),
-                                            objectData.getContentType(),
-                                            Collections.emptyList(),
-                                            bObject);
-                    } finally {
-                        if (fisobject != null) {
-                            fisobject.close();
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     public CatalogObjectMetadata createCatalogObject(Long bucketId, String name, String kind, String commitMessage,
             String contentType, byte[] rawObject) {
@@ -188,7 +99,7 @@ public class CatalogObjectService {
                                                                      .id(new CatalogObjectEntity.CatalogObjectEntityKey(bucketId,
                                                                                                                         name))
                                                                      .build();
-        bucketEntity.addCatalogObject(catalogObjectEntity);
+        bucketEntity.getCatalogObjects().add(catalogObjectEntity);
 
         CatalogObjectRevisionEntity result = buildCatalogObjectRevisionEntity(kind,
                                                                               commitMessage,

@@ -85,7 +85,7 @@ public class BucketServiceIntegrationTest {
 
     @Test
     public void testPopulateCatalogEmpty() throws Exception {
-        catalogObjectService.populateCatalog(new String[] {}, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
+        bucketService.populateCatalog(new String[] {}, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
         List<BucketMetadata> bucketMetadataList = bucketService.listBuckets(Optional.empty(), Optional.empty());
         assertThat(bucketMetadataList).hasSize(1);
     }
@@ -98,7 +98,7 @@ public class BucketServiceIntegrationTest {
     public void testPopulateCatalogCheckBucketsCreation() throws Exception {
 
         final String[] buckets = { "Examples", "Cloud-automation", "Toto" };
-        catalogObjectService.populateCatalog(buckets, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
+        bucketService.populateCatalog(buckets, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
 
         // verify that all buckets have been created in the Catalog
         List<BucketMetadata> bucketMetadataList = bucketService.listBuckets(Optional.empty(), Optional.empty());

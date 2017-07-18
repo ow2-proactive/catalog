@@ -119,7 +119,7 @@ public class BucketServiceTest {
         final String[] buckets = { "NonExistentBucket" };
         BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
-        catalogObjectService.populateCatalog(buckets, "/this-folder-doesnt-exist", "/raw-objects");
+        bucketService.populateCatalog(buckets, "/this-folder-doesnt-exist", "/raw-objects");
     }
 
     @Test(expected = DefaultRawCatalogObjectsFolderNotFoundException.class)
@@ -127,7 +127,7 @@ public class BucketServiceTest {
         final String[] buckets = { "NonExistentBucket" };
         BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
-        catalogObjectService.populateCatalog(buckets, "/default-objects", "/this-folder-doesnt-exist");
+        bucketService.populateCatalog(buckets, "/default-objects", "/this-folder-doesnt-exist");
     }
 
     @Test
