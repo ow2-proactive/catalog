@@ -45,14 +45,12 @@ import org.ow2.proactive.catalog.graphql.bean.common.Arguments;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.DefaultSpecification;
 import org.ow2.proactive.catalog.rest.controller.CatalogObjectController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
@@ -138,24 +136,27 @@ public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection
             pageInfo = new PageInfo(0, 50);
         }
 
-        switch (orderBy) {
-            case CATALOG_OBJECT_KEY_ASC:
-                return new PageRequest(pageInfo.getPage(), pageInfo.getSize(), Sort.Direction.ASC, CATALOG_OBJECT_ID);
-            case CATALOG_OBJECT_KEY_DESC:
-                return new PageRequest(pageInfo.getPage(), pageInfo.getSize(), Sort.Direction.DESC, CATALOG_OBJECT_ID);
-            case KIND_ASC:
-                return new PageRequest(pageInfo.getPage(),
-                                       pageInfo.getSize(),
-                                       Sort.Direction.ASC,
-                                       CatalogObjectEntityMetaModelEnum.KIND.getName());
-            case KIND_DESC:
-                return new PageRequest(pageInfo.getPage(),
-                                       pageInfo.getSize(),
-                                       Sort.Direction.DESC,
-                                       CatalogObjectEntityMetaModelEnum.KIND.getName());
-            default:
-                throw new IllegalArgumentException(orderBy + " does not exist");
-        }
+        // remove orderby for now, and will fix it later
+        //        switch (orderBy) {
+        //            case CATALOG_OBJECT_KEY_ASC:
+        //                return new PageRequest(pageInfo.getPage(), pageInfo.getSize(), Sort.Direction.ASC, CATALOG_OBJECT_ID);
+        //            case CATALOG_OBJECT_KEY_DESC:
+        //                return new PageRequest(pageInfo.getPage(), pageInfo.getSize(), Sort.Direction.DESC, CATALOG_OBJECT_ID);
+        //            case KIND_ASC:
+        //                return new PageRequest(pageInfo.getPage(),
+        //                                       pageInfo.getSize(),
+        //                                       Sort.Direction.ASC,
+        //                                       CatalogObjectEntityMetaModelEnum.KIND.getName());
+        //            case KIND_DESC:
+        //                return new PageRequest(pageInfo.getPage(),
+        //                                       pageInfo.getSize(),
+        //                                       Sort.Direction.DESC,
+        //                                       CatalogObjectEntityMetaModelEnum.KIND.getName());
+        //            default:
+        //                throw new IllegalArgumentException(orderBy + " does not exist");
+        //        }
+
+        return new PageRequest(pageInfo.getPage(), pageInfo.getSize());
 
     }
 

@@ -69,6 +69,7 @@ public abstract class AbstractSpecification<T> implements Specification<CatalogO
                                                    catalogObjectJoin.get(CatalogObjectEntityMetaModelEnum.LAST_COMMIT_TIME.getName()));
 
             catalogObjectJoin.on(revisionPredicate);
+            query.distinct(true);
         }
     }
 
