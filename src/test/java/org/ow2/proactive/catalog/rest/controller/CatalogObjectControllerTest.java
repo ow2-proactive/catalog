@@ -90,8 +90,7 @@ public class CatalogObjectControllerTest {
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
         verify(response, times(1)).setContentType("application/zip");
         verify(response, times(1)).addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
-        verify(response, times(1)).addHeader(HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=\"archive.zip\"");
+        verify(response, times(1)).addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
         verify(sos, times(1)).write(Mockito.any());
         verify(sos, times(1)).flush();
     }
@@ -120,8 +119,14 @@ public class CatalogObjectControllerTest {
 
     @Test
     public void testGetRaw() throws Exception {
-        CatalogRawObject rawObject = new CatalogRawObject(1L, "name", "object", "application/xml", 1400343L,
-            "commit message", Collections.emptyList(), new byte[0]);
+        CatalogRawObject rawObject = new CatalogRawObject(1L,
+                                                          "name",
+                                                          "object",
+                                                          "application/xml",
+                                                          1400343L,
+                                                          "commit message",
+                                                          Collections.emptyList(),
+                                                          new byte[0]);
         when(catalogObjectService.getCatalogRawObject(anyLong(), anyString())).thenReturn(rawObject);
         ResponseEntity responseEntity = catalogObjectController.getRaw(1L, "name");
         verify(catalogObjectService, times(1)).getCatalogRawObject(anyLong(), anyString());

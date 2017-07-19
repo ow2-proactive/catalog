@@ -126,6 +126,7 @@ public class IntegrationTestConfig {
         return spy(new CatalogObjectFetcher.CatalogObjectMapper());
     }
 
+    @Bean
     public ArchiveManagerHelper archiveManager() {
         return new ArchiveManagerHelper();
     }

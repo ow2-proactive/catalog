@@ -77,7 +77,7 @@ public class CatalogObjectService {
 
     @Autowired
     private ArchiveManagerHelper archiveManager;
-    
+
     public CatalogObjectMetadata createCatalogObject(Long bucketId, String name, String kind, String commitMessage,
             String contentType, byte[] rawObject) {
         return this.createCatalogObject(bucketId,
