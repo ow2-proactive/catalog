@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.service;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
@@ -73,6 +75,9 @@ public class CatalogObjectService {
     @Autowired
     private BucketRepository bucketRepository;
 
+    @Autowired
+    private ArchiveManagerHelper archiveManager;
+    
     public CatalogObjectMetadata createCatalogObject(Long bucketId, String name, String kind, String commitMessage,
             String contentType, byte[] rawObject) {
         return this.createCatalogObject(bucketId,
@@ -152,6 +157,19 @@ public class CatalogObjectService {
                                                                                                                            kind);
 
         return buildMetadataWithLink(bucketId, result);
+    }
+
+    public byte[] getCatalogObjectsAsZipArchive(Long bucketId, List<String> catalogObjectsNames) {
+        List<CatalogObjectRevisionEntity> revisions = new ArrayList<>();
+
+        for (String name : catalogObjectsNames) {
+            CatalogObjectRevisionEntity catalogObjectRevision = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketId,
+                                                                                                                                       name);
+            if (catalogObjectRevision == null)
+                return null;
+            revisions.add(catalogObjectRevision);
+        }
+        return archiveManager.compressZIP(revisions);
     }
 
     public void delete(Long bucketId, String name) throws CatalogObjectNotFoundException {
