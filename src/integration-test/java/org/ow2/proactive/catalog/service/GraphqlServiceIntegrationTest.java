@@ -460,7 +460,7 @@ public class GraphqlServiceIntegrationTest {
     public void testComplexAndQuery() throws IOException {
         // new bucket
         BucketMetadata bucket2 = bucketService.createBucket("bucket2", "CatalogObjectServiceIntegrationTest");
-        keyValues = Collections.singletonList(new Metadata("key2", "value", "type"));
+        keyValues = Collections.singletonList(new Metadata("key2", "", "type"));
 
         catalogObjectService.createCatalogObject(bucket2.getMetaDataId(),
                                                  "catalog1",
@@ -471,7 +471,7 @@ public class GraphqlServiceIntegrationTest {
                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
 
         String query = "{\n" +
-                       "  allCatalogObjects(where:{OR:[{AND:[{nameArg:{eq:\"catalog1\"}}, {kindArg:{eq:\"object\"}}, {metadataArg:{key:\"key2\", value:{eq:\"value\"}}}]}, {AND:[{kindArg:{eq:\"workflow\"}}, {metadataArg:{key:\"key\",value:{eq:\"value2\"}}}]}]}) {\n" +
+                       "  allCatalogObjects(where:{OR:[{AND:[{nameArg:{eq:\"catalog1\"}}, {kindArg:{eq:\"object\"}}, {metadataArg:{key:\"key2\", value:{like:\"%%\"}}}]}, {AND:[{kindArg:{eq:\"workflow\"}}, {metadataArg:{key:\"key\",value:{eq:\"value2\"}}}]}]}) {\n" +
                        "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
                        "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
                        "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
