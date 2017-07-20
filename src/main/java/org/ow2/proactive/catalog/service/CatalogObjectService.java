@@ -45,6 +45,8 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
@@ -72,6 +74,9 @@ public class CatalogObjectService {
 
     @Autowired
     private BucketRepository bucketRepository;
+
+    @Autowired
+    private ArchiveManagerHelper archiveManager;
 
     public CatalogObjectMetadata createCatalogObject(Long bucketId, String name, String kind, String commitMessage,
             String contentType, byte[] rawObject) {
@@ -152,6 +157,16 @@ public class CatalogObjectService {
                                                                                                                            kind);
 
         return buildMetadataWithLink(bucketId, result);
+    }
+
+    public ZipArchiveContent getCatalogObjectsAsZipArchive(Long bucketId, List<String> catalogObjectsNames) {
+
+        List<CatalogObjectRevisionEntity> revisions = catalogObjectsNames.stream()
+                                                                         .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketId,
+                                                                                                                                                             name))
+                                                                         .collect(Collectors.toList());
+
+        return archiveManager.compressZIP(revisions);
     }
 
     public void delete(Long bucketId, String name) throws CatalogObjectNotFoundException {

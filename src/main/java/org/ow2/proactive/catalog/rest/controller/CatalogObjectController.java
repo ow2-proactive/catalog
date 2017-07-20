@@ -38,14 +38,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -77,6 +81,8 @@ public class CatalogObjectController {
 
     @Autowired
     private CatalogObjectService catalogObjectService;
+
+    private static final String ZIP_CONTENT_TYPE = "application/zip";
 
     @ApiOperation(value = "Creates a new catalog object")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
@@ -152,25 +158,57 @@ public class CatalogObjectController {
                          @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
                          @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
                                                                                                                                   "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
-    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
-    @RequestMapping(method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
+                            @ApiResponse(code = 206, message = "Missing object") })
+    @RequestMapping(method = GET)
     @ResponseBody
-    public List<CatalogObjectMetadata> list(@PathVariable Long bucketId,
-            @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind) {
-        List<CatalogObjectMetadata> result;
+    public ResponseEntity<?> list(@PathVariable Long bucketId,
+            @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
+            @ApiParam(value = "Get given list in an archive") @RequestParam(value = "name", required = false) Optional<List<String>> names,
+            HttpServletResponse response) throws UnsupportedEncodingException {
 
-        if (kind.isPresent()) {
-            result = catalogObjectService.listCatalogObjectsByKind(bucketId, kind.get());
+        if (names.isPresent()) {
+            List<String> decodedNames = names.get().stream().map(name -> {
+                try {
+                    return URLDecoder.decode(name, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    return name;
+                }
+            }).collect(Collectors.toList());
+
+            ZipArchiveContent zipArchiveContent = catalogObjectService.getCatalogObjectsAsZipArchive(bucketId,
+                                                                                                     decodedNames);
+
+            HttpStatus status;
+            if (zipArchiveContent.isPartial()) {
+                status = HttpStatus.PARTIAL_CONTENT;
+                response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+            } else {
+                status = HttpStatus.OK;
+                response.setStatus(HttpServletResponse.SC_OK);
+            }
+
+            response.setContentType(ZIP_CONTENT_TYPE);
+            response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
+            response.addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
+            try {
+                response.getOutputStream().write(zipArchiveContent.getContent());
+                response.getOutputStream().flush();
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe);
+            }
+            return ResponseEntity.status(status).build();
         } else {
-            result = catalogObjectService.listCatalogObjects(bucketId);
+            List<CatalogObjectMetadata> metadataList;
+            if (kind.isPresent()) {
+                metadataList = catalogObjectService.listCatalogObjectsByKind(bucketId, kind.get());
+            } else {
+                metadataList = catalogObjectService.listCatalogObjects(bucketId);
+            }
+            metadataList.stream()
+                        .forEach(object -> object.add(LinkUtil.createLink(object.getBucketId(), object.getName())));
+            return ResponseEntity.ok(metadataList);
         }
-
-        result.stream().map(object -> {
-            object.add(LinkUtil.createLink(object.getBucketId(), object.getName()));
-            return object;
-        }).collect(Collectors.toList());
-
-        return result;
     }
 
     @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogRawObject's metadata")

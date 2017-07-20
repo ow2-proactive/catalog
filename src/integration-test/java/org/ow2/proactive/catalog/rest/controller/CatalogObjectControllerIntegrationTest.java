@@ -45,6 +45,7 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -70,7 +71,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     private static final String BUCKETS_RESOURCE = "/buckets";
 
-    private static final String contentType = "application/xml";
+    private static final String ZIP_CONTENT_TYPE = "application/zip";
 
     private BucketMetadata bucket;
 
@@ -96,7 +97,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .queryParam("kind", "workflow")
                .queryParam("name", "workflowname")
                .queryParam("commitMessage", "commit message")
-               .queryParam("contentType", contentType)
+               .queryParam("contentType", MediaType.APPLICATION_XML.toString())
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
@@ -116,7 +117,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .queryParam("kind", "workflow")
                .queryParam("name", "workflow_test")
                .queryParam("commitMessage", "first commit")
-               .queryParam("contentType", contentType)
+               .queryParam("contentType", MediaType.APPLICATION_XML.toString())
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
@@ -149,7 +150,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].object_key_values[5].label", is("generic_information"))
                .body("object[0].object_key_values[5].key", is("genericInfo2"))
                .body("object[0].object_key_values[5].value", is("genericInfo2Value"))
-               .body("object[0].content_type", is(contentType));
+               .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 
     @Test
@@ -225,7 +226,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .queryParam("kind", "workflow")
                .queryParam("name", "workflow_test")
                .queryParam("commitMessage", "first commit")
-               .queryParam("contentType", contentType)
+               .queryParam("contentType", MediaType.APPLICATION_XML.toString())
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
@@ -292,7 +293,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                 .body("object_key_values[5].label", is("variable"))
                 .body("object_key_values[5].key", is("var2"))
                 .body("object_key_values[5].value", is("var2Value"))
-                .body("content_type", is(contentType));
+                .body("content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 
     @Test
@@ -305,7 +306,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         Arrays.equals(ByteStreams.toByteArray(response.asInputStream()),
                       IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
 
-        response.then().assertThat().statusCode(HttpStatus.SC_OK).contentType(contentType);
+        response.then().assertThat().statusCode(HttpStatus.SC_OK).contentType(MediaType.APPLICATION_XML.toString());
     }
 
     @Test
@@ -404,6 +405,41 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void testGetCatalogObjectsAsArchive() {
+
+        // Add an second object of kind "workflow" into first bucket
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .queryParam("kind", "workflow")
+               .queryParam("name", "workflowname2")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("contentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,workflowname2")
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .contentType(ZIP_CONTENT_TYPE);
+    }
+
+    @Test
+    public void testGetCatalogObjectsAsArchiveWithNotExistingWorkflow() {
+
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,workflownamenonexistent")
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_PARTIAL_CONTENT);
     }
 
 }

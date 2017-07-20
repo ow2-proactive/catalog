@@ -41,6 +41,7 @@ import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.GraphqlService;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -123,6 +124,11 @@ public class IntegrationTestConfig {
     @Bean
     public CatalogObjectFetcher.CatalogObjectMapper catalogObjectMapper() {
         return spy(new CatalogObjectFetcher.CatalogObjectMapper());
+    }
+
+    @Bean
+    public ArchiveManagerHelper archiveManager() {
+        return new ArchiveManagerHelper();
     }
 
 }
