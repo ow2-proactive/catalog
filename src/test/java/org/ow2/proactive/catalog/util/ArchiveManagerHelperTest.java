@@ -48,6 +48,7 @@ import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity.CatalogObjectEntityKey;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 
 
 public class ArchiveManagerHelperTest {
@@ -89,7 +90,6 @@ public class ArchiveManagerHelperTest {
     public void testCompressZip() throws IOException {
 
         assertNull(archiveManager.compressZIP(null));
-        assertNull(archiveManager.compressZIP(new ArrayList<>()));
 
         byte[] workflowByteArray0 = convertFromURIToByteArray(XML_FILE_0);
         byte[] workflowByteArray1 = convertFromURIToByteArray(XML_FILE_1);
@@ -97,9 +97,9 @@ public class ArchiveManagerHelperTest {
         expectedFiles.add(getCatalogObjectRevisionEntity("workflow_0", workflowByteArray0));
         expectedFiles.add(getCatalogObjectRevisionEntity("workflow_1", workflowByteArray1));
         //Compress
-        byte[] archive = archiveManager.compressZIP(expectedFiles);
+        ZipArchiveContent archive = archiveManager.compressZIP(expectedFiles);
         //Then extract
-        List<byte[]> actualFiles = archiveManager.extractZIP(archive);
+        List<byte[]> actualFiles = archiveManager.extractZIP(archive.getContent());
         assertEquals(2, actualFiles.size());
 
         compare(workflowByteArray0, actualFiles.get(0));

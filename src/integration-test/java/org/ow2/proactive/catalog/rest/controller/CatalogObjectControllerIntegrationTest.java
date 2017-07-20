@@ -77,19 +77,32 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Before
     public void setup() throws IOException {
-        HashMap<String, Object> result = given()
-                .parameters("name", "myBucket", "owner", "BucketControllerIntegrationTestUser").when()
-                .post(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_CREATED).extract().path("");
+        HashMap<String, Object> result = given().parameters("name",
+                                                            "myBucket",
+                                                            "owner",
+                                                            "BucketControllerIntegrationTestUser")
+                                                .when()
+                                                .post(BUCKETS_RESOURCE)
+                                                .then()
+                                                .statusCode(HttpStatus.SC_CREATED)
+                                                .extract()
+                                                .path("");
 
-        bucket = new BucketMetadata(((Integer) result.get("id")).longValue(), (String) result.get("name"),
-            (String) result.get("owner"));
+        bucket = new BucketMetadata(((Integer) result.get("id")).longValue(),
+                                    (String) result.get("name"),
+                                    (String) result.get("owner"));
 
         // Add an object of kind "workflow" into first bucket
-        given().pathParam("bucketId", bucket.getMetaDataId()).queryParam("kind", "workflow")
-                .queryParam("name", "workflowname").queryParam("commitMessage", "commit message")
-                .queryParam("contentType", MediaType.APPLICATION_XML)
-                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml")).when()
-                .post(CATALOG_OBJECTS_RESOURCE).then().statusCode(HttpStatus.SC_CREATED);
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .queryParam("kind", "workflow")
+               .queryParam("name", "workflowname")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("contentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
 
     }
 
@@ -100,116 +113,158 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testCreateWorkflowShouldReturnSavedWorkflow() {
-        given().pathParam("bucketId", bucket.getMetaDataId()).queryParam("kind", "workflow")
-                .queryParam("name", "workflow_test").queryParam("commitMessage", "first commit")
-                .queryParam("contentType", MediaType.APPLICATION_XML)
-                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml")).when()
-                .post(CATALOG_OBJECTS_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_CREATED)
-                .body("object[0].bucket_id", is(bucket.getMetaDataId().intValue()))
-                .body("object[0].kind", is("workflow")).body("object[0].name", is("workflow_test"))
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .queryParam("kind", "workflow")
+               .queryParam("name", "workflow_test")
+               .queryParam("commitMessage", "first commit")
+               .queryParam("contentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED)
+               .body("object[0].bucket_id", is(bucket.getMetaDataId().intValue()))
+               .body("object[0].kind", is("workflow"))
+               .body("object[0].name", is("workflow_test"))
 
-                .body("object[0].object_key_values", hasSize(6))
-                //check job info
-                .body("object[0].object_key_values[0].label", is("job_information"))
-                .body("object[0].object_key_values[0].key", is("project_name"))
-                .body("object[0].object_key_values[0].value", is("Project Name"))
-                .body("object[0].object_key_values[1].label", is("job_information"))
-                .body("object[0].object_key_values[1].key", is("name"))
-                .body("object[0].object_key_values[1].value", is("Valid Workflow"))
-                //check variables label
-                .body("object[0].object_key_values[2].label", is("variable"))
-                .body("object[0].object_key_values[2].key", is("var1"))
-                .body("object[0].object_key_values[2].value", is("var1Value"))
-                .body("object[0].object_key_values[3].label", is("variable"))
-                .body("object[0].object_key_values[3].key", is("var2"))
-                .body("object[0].object_key_values[3].value", is("var2Value"))
-                //check generic_information label
-                .body("object[0].object_key_values[4].label", is("generic_information"))
-                .body("object[0].object_key_values[4].key", is("genericInfo1"))
-                .body("object[0].object_key_values[4].value", is("genericInfo1Value"))
-                .body("object[0].object_key_values[5].label", is("generic_information"))
-                .body("object[0].object_key_values[5].key", is("genericInfo2"))
-                .body("object[0].object_key_values[5].value", is("genericInfo2Value"))
-                .body("object[0].content_type", is(MediaType.APPLICATION_XML));
+               .body("object[0].object_key_values", hasSize(6))
+               //check job info
+               .body("object[0].object_key_values[0].label", is("job_information"))
+               .body("object[0].object_key_values[0].key", is("project_name"))
+               .body("object[0].object_key_values[0].value", is("Project Name"))
+               .body("object[0].object_key_values[1].label", is("job_information"))
+               .body("object[0].object_key_values[1].key", is("name"))
+               .body("object[0].object_key_values[1].value", is("Valid Workflow"))
+               //check variables label
+               .body("object[0].object_key_values[2].label", is("variable"))
+               .body("object[0].object_key_values[2].key", is("var1"))
+               .body("object[0].object_key_values[2].value", is("var1Value"))
+               .body("object[0].object_key_values[3].label", is("variable"))
+               .body("object[0].object_key_values[3].key", is("var2"))
+               .body("object[0].object_key_values[3].value", is("var2Value"))
+               //check generic_information label
+               .body("object[0].object_key_values[4].label", is("generic_information"))
+               .body("object[0].object_key_values[4].key", is("genericInfo1"))
+               .body("object[0].object_key_values[4].value", is("genericInfo1Value"))
+               .body("object[0].object_key_values[5].label", is("generic_information"))
+               .body("object[0].object_key_values[5].key", is("genericInfo2"))
+               .body("object[0].object_key_values[5].value", is("genericInfo2Value"))
+               .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 
     @Test
     public void testCreatePCWRuleShouldReturnSavedRule() {
-        given().pathParam("bucketId", bucket.getMetaDataId()).queryParam("kind", "pcw-rule")
-                .queryParam("name", "pcw-rule test").queryParam("commitMessage", "first commit")
-                .queryParam("contentType", "application/json")
-                .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleExample.json")).when()
-                .post(CATALOG_OBJECTS_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_CREATED)
-                .body("object[0].bucket_id", is(bucket.getMetaDataId().intValue()))
-                .body("object[0].kind", is("pcw-rule")).body("object[0].name", is("pcw-rule test"))
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .queryParam("kind", "pcw-rule")
+               .queryParam("name", "pcw-rule test")
+               .queryParam("commitMessage", "first commit")
+               .queryParam("contentType", "application/json")
+               .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleExample.json"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED)
+               .body("object[0].bucket_id", is(bucket.getMetaDataId().intValue()))
+               .body("object[0].kind", is("pcw-rule"))
+               .body("object[0].name", is("pcw-rule test"))
 
-                .body("object[0].object_key_values", hasSize(6))
-                //check pcw metadata info
-                .body("object[0].object_key_values[0].label", is("General"))
-                .body("object[0].object_key_values[0].key", is("name"))
-                .body("object[0].object_key_values[0].value", is("ruleNodeIsUpMetric"))
-                .body("object[0].object_key_values[1].label", is("PollConfiguration"))
-                .body("object[0].object_key_values[1].key", is("PollType"))
-                .body("object[0].object_key_values[1].value", is("Ping"))
-                .body("object[0].object_key_values[2].label", is("PollConfiguration"))
-                .body("object[0].object_key_values[2].key", is("pollingPeriodInSeconds"))
-                .body("object[0].object_key_values[2].value", is("100"))
-                .body("object[0].object_key_values[3].label", is("PollConfiguration"))
-                .body("object[0].object_key_values[3].key", is("calmPeriodInSeconds"))
-                .body("object[0].object_key_values[3].value", is("50"))
-                .body("object[0].object_key_values[4].label", is("PollConfiguration"))
-                .body("object[0].object_key_values[4].key", is("kpis"))
-                .body("object[0].object_key_values[4].value",
-                        is("[\"upAndRunning\",\"sigar:Type=Cpu Total\",\"sigar:Type=FileSystem,Name=/ Free\"]"))
-                .body("object[0].object_key_values[5].label", is("PollConfiguration"))
-                .body("object[0].object_key_values[5].key", is("NodeUrls"))
-                .body("object[0].object_key_values[5].value",
-                        is("[\"localhost\",\"service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode\"]"))
-                .body("object[0].content_type", is("application/json"));
+               .body("object[0].object_key_values", hasSize(6))
+               //check pcw metadata info
+               .body("object[0].object_key_values[0].label", is("General"))
+               .body("object[0].object_key_values[0].key", is("name"))
+               .body("object[0].object_key_values[0].value", is("ruleNodeIsUpMetric"))
+               .body("object[0].object_key_values[1].label", is("PollConfiguration"))
+               .body("object[0].object_key_values[1].key", is("PollType"))
+               .body("object[0].object_key_values[1].value", is("Ping"))
+               .body("object[0].object_key_values[2].label", is("PollConfiguration"))
+               .body("object[0].object_key_values[2].key", is("pollingPeriodInSeconds"))
+               .body("object[0].object_key_values[2].value", is("100"))
+               .body("object[0].object_key_values[3].label", is("PollConfiguration"))
+               .body("object[0].object_key_values[3].key", is("calmPeriodInSeconds"))
+               .body("object[0].object_key_values[3].value", is("50"))
+               .body("object[0].object_key_values[4].label", is("PollConfiguration"))
+               .body("object[0].object_key_values[4].key", is("kpis"))
+               .body("object[0].object_key_values[4].value",
+                     is("[\"upAndRunning\",\"sigar:Type=Cpu Total\",\"sigar:Type=FileSystem,Name=/ Free\"]"))
+               .body("object[0].object_key_values[5].label", is("PollConfiguration"))
+               .body("object[0].object_key_values[5].key", is("NodeUrls"))
+               .body("object[0].object_key_values[5].value",
+                     is("[\"localhost\",\"service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode\"]"))
+               .body("object[0].content_type", is("application/json"));
     }
 
     @Test
     public void testCreateWrongPCWRuleShouldReturnError() {
-        given().pathParam("bucketId", bucket.getMetaDataId()).queryParam("kind", "pcw-rule")
-                .queryParam("name", "pcw-rule test").queryParam("commitMessage", "first commit")
-                .queryParam("contentType", "application/json")
-                .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleWrongToParse.json")).when()
-                .post(CATALOG_OBJECTS_RESOURCE).then().assertThat()
-                .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .queryParam("kind", "pcw-rule")
+               .queryParam("name", "pcw-rule test")
+               .queryParam("commitMessage", "first commit")
+               .queryParam("contentType", "application/json")
+               .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleWrongToParse.json"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
     @Test
     public void testCreateWorkflowShouldReturnUnsupportedMediaTypeWithoutBody() {
-        given().pathParam("bucketId", bucket.getMetaDataId()).when().post(CATALOG_OBJECTS_RESOURCE).then()
-                .assertThat().statusCode(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE);
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE);
     }
 
     @Test
     public void testCreateWorkflowShouldReturnNotFoundIfNonExistingBucketId() {
-        given().pathParam("bucketId", 42).queryParam("kind", "workflow").queryParam("name", "workflow_test")
-                .queryParam("commitMessage", "first commit")
-                .queryParam("contentType", MediaType.APPLICATION_XML)
-                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml")).when()
-                .post(CATALOG_OBJECTS_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
+        given().pathParam("bucketId", 42)
+               .queryParam("kind", "workflow")
+               .queryParam("name", "workflow_test")
+               .queryParam("commitMessage", "first commit")
+               .queryParam("contentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
     public void testGetWorkflowShouldReturnLatestSavedWorkflowRevision() throws IOException {
 
-        given().pathParam("bucketId", bucket.getMetaDataId()).pathParam("name", "workflowname")
-                .queryParam("commitMessage", "commit message2")
-                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml")).when()
-                .post(CATALOG_OBJECT_REVISIONS_RESOURCE).then().statusCode(HttpStatus.SC_CREATED);
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .pathParam("name", "workflowname")
+               .queryParam("commitMessage", "commit message2")
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
 
         HashMap<String, Object> thirdWFRevision = given().pathParam("bucketId", bucket.getMetaDataId())
-                .pathParam("name", "workflowname").queryParam("commitMessage", "commit message3")
-                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml")).when()
-                .post(CATALOG_OBJECT_REVISIONS_RESOURCE).then().statusCode(HttpStatus.SC_CREATED).extract()
-                .path("");
+                                                         .pathParam("name", "workflowname")
+                                                         .queryParam("commitMessage", "commit message3")
+                                                         .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+                                                         .when()
+                                                         .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
+                                                         .then()
+                                                         .statusCode(HttpStatus.SC_CREATED)
+                                                         .extract()
+                                                         .path("");
 
         ValidatableResponse response = given().pathParam("bucketId", bucket.getMetaDataId())
-                .pathParam("name", "workflowname").when().get(CATALOG_OBJECT_RESOURCE).then().assertThat()
-                .statusCode(HttpStatus.SC_OK);
+                                              .pathParam("name", "workflowname")
+                                              .when()
+                                              .get(CATALOG_OBJECT_RESOURCE)
+                                              .then()
+                                              .assertThat()
+                                              .statusCode(HttpStatus.SC_OK);
 
         String responseString = response.extract().response().asString();
 
@@ -238,94 +293,153 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                 .body("object_key_values[5].label", is("variable"))
                 .body("object_key_values[5].key", is("var2"))
                 .body("object_key_values[5].value", is("var2Value"))
-                .body("content_type", is(MediaType.APPLICATION_XML));
+                .body("content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 
     @Test
     public void testGetRawWorkflowShouldReturnSavedRawObject() throws IOException {
         Response response = given().pathParam("bucketId", bucket.getMetaDataId())
-                .pathParam("name", "workflowname").when().get(CATALOG_OBJECT_RESOURCE + "/raw");
+                                   .pathParam("name", "workflowname")
+                                   .when()
+                                   .get(CATALOG_OBJECT_RESOURCE + "/raw");
 
         Arrays.equals(ByteStreams.toByteArray(response.asInputStream()),
-                IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+                      IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
 
-        response.then().assertThat().statusCode(HttpStatus.SC_OK).contentType(MediaType.APPLICATION_XML.);
+        response.then().assertThat().statusCode(HttpStatus.SC_OK).contentType(MediaType.APPLICATION_XML.toString());
     }
 
     @Test
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingBucketId() {
-        given().pathParam("bucketId", 42).pathParam("name", "23").when().get(CATALOG_OBJECT_RESOURCE).then()
-                .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
+        given().pathParam("bucketId", 42)
+               .pathParam("name", "23")
+               .when()
+               .get(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingBucketId() {
-        given().pathParam("bucketId", 42).pathParam("name", "42").when().get(CATALOG_OBJECT_RESOURCE + "/raw")
-                .then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
+        given().pathParam("bucketId", 42)
+               .pathParam("name", "42")
+               .when()
+               .get(CATALOG_OBJECT_RESOURCE + "/raw")
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingObjectId() {
-        given().pathParam("bucketId", 1).pathParam("name", "42").when().get(CATALOG_OBJECT_RESOURCE).then()
-                .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
+        given().pathParam("bucketId", 1)
+               .pathParam("name", "42")
+               .when()
+               .get(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingObjectId() {
-        given().pathParam("bucketId", 1).pathParam("name", "42").when().get(CATALOG_OBJECT_RESOURCE + "/raw")
-                .then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
+        given().pathParam("bucketId", 1)
+               .pathParam("name", "42")
+               .when()
+               .get(CATALOG_OBJECT_RESOURCE + "/raw")
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
     public void testListWorkflowsShouldReturnSavedWorkflows() {
-        given().pathParam("bucketId", bucket.getMetaDataId()).when().get(CATALOG_OBJECTS_RESOURCE).then()
-                .assertThat().statusCode(HttpStatus.SC_OK);
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK);
     }
 
     @Test
     public void testListWorkflowsShouldReturnNotFoundIfNonExistingBucketId() {
-        List<?> response = given().pathParam("bucketId", 42).when().get(CATALOG_OBJECTS_RESOURCE).then()
-                .assertThat().statusCode(HttpStatus.SC_OK).extract().path("");
+        List<?> response = given().pathParam("bucketId", 42)
+                                  .when()
+                                  .get(CATALOG_OBJECTS_RESOURCE)
+                                  .then()
+                                  .assertThat()
+                                  .statusCode(HttpStatus.SC_OK)
+                                  .extract()
+                                  .path("");
         assertThat(response).isEmpty();
     }
 
     @Test
     public void testDeleteExistingObject() {
-        given().pathParam("bucketId", bucket.getMetaDataId()).pathParam("name", "workflowname").when()
-                .delete(CATALOG_OBJECT_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_OK);
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .pathParam("name", "workflowname")
+               .when()
+               .delete(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK);
 
         // check that the object is really gone
-        given().pathParam("bucketId", bucket.getMetaDataId()).pathParam("name", "workflowname").when()
-                .get(CATALOG_OBJECT_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .pathParam("name", "workflowname")
+               .when()
+               .get(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
     public void testDeleteNonExistingWorkflow() {
-        given().pathParam("bucketId", bucket.getMetaDataId()).pathParam("name", "42").when()
-                .delete(CATALOG_OBJECT_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .pathParam("name", "42")
+               .when()
+               .delete(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
     public void testGetCatalogObjectsAsArchive() {
 
         // Add an second object of kind "workflow" into first bucket
-        given().pathParam("bucketId", bucket.getMetaDataId()).queryParam("kind", "workflow")
-                .queryParam("name", "workflowname2").queryParam("commitMessage", "commit message")
-                .queryParam("contentType", MediaType.APPLICATION_XML)
-                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml")).when()
-                .post(CATALOG_OBJECTS_RESOURCE).then().statusCode(HttpStatus.SC_CREATED);
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .queryParam("kind", "workflow")
+               .queryParam("name", "workflowname2")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("contentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
 
-        given().pathParam("bucketId", bucket.getMetaDataId()).when()
-                .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,workflowname2").then().assertThat()
-                .statusCode(HttpStatus.SC_OK).contentType(ZIP_CONTENT_TYPE);
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,workflowname2")
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .contentType(ZIP_CONTENT_TYPE);
     }
 
     @Test
     public void testGetCatalogObjectsAsArchiveWithNotExistingWorkflow() {
 
-        given().pathParam("bucketId", bucket.getMetaDataId()).when()
-                .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,workflownamenonexistent").then()
-                .assertThat().statusCode(HttpStatus.SC_NOT_FOUND);
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,workflownamenonexistent")
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_PARTIAL_CONTENT);
     }
 
 }

@@ -45,6 +45,7 @@ import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -85,7 +86,7 @@ public class CatalogObjectController {
 
     @ApiOperation(value = "Creates a new catalog object")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
-            @ApiResponse(code = 422, message = "Invalid file content supplied") })
+                            @ApiResponse(code = 422, message = "Invalid file content supplied") })
     @RequestMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public CatalogObjectMetadataList create(@PathVariable Long bucketId,
@@ -94,8 +95,12 @@ public class CatalogObjectController {
             @ApiParam(value = "Commit message") @RequestParam String commitMessage,
             @ApiParam(value = "The content type of CatalogRawObject") @RequestParam String contentType,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketId, name, kind,
-                commitMessage, contentType, file.getBytes());
+        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketId,
+                                                                                       name,
+                                                                                       kind,
+                                                                                       commitMessage,
+                                                                                       contentType,
+                                                                                       file.getBytes());
         catalogObject.add(LinkUtil.createLink(catalogObject.getBucketId(), catalogObject.getName()));
 
         return new CatalogObjectMetadataList(catalogObject);
@@ -109,8 +114,7 @@ public class CatalogObjectController {
 
         String decodedName = URLDecoder.decode(name, "UTF-8");
         try {
-            CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketId,
-                    decodedName);
+            CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketId, decodedName);
             metadata.add(LinkUtil.createLink(metadata.getBucketId(), metadata.getName()));
             return ResponseEntity.ok(metadata);
         } catch (CatalogObjectNotFoundException e) {
@@ -139,8 +143,7 @@ public class CatalogObjectController {
                 responseBodyBuilder = responseBodyBuilder.contentType(mediaType);
             } catch (org.springframework.http.InvalidMediaTypeException mimeEx) {
                 log.warn("The wrong content type for object: " + name + ", commitTime:" +
-                    rawObject.getCommitDateTime() + ", the contentType: " + rawObject.getContentType(),
-                        mimeEx);
+                         rawObject.getCommitDateTime() + ", the contentType: " + rawObject.getContentType(), mimeEx);
             }
             return responseBodyBuilder.body(new InputStreamResource(new ByteArrayInputStream(bytes)));
         } catch (CatalogObjectNotFoundException e) {
@@ -151,12 +154,12 @@ public class CatalogObjectController {
     }
 
     @ApiOperation(value = "Lists catalog objects metadata", notes = "Returns catalog objects metadata associated to the latest revision.")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "Results page you want to retrieve (0..N)"),
-            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
-            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
-                "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
-    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found or one of the catalog objects not found"))
+    @ApiImplicitParams({ @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "Results page you want to retrieve (0..N)"),
+                         @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
+                         @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
+                                                                                                                                  "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
+    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
+                            @ApiResponse(code = 206, message = "Missing object") })
     @RequestMapping(method = GET)
     @ResponseBody
     public ResponseEntity<?> list(@PathVariable Long bucketId,
@@ -172,23 +175,29 @@ public class CatalogObjectController {
                     return name;
                 }
             }).collect(Collectors.toList());
-            byte[] zip = catalogObjectService.getCatalogObjectsAsZipArchive(bucketId, decodedNames);
 
-            if (zip == null) {
-                return ResponseEntity.notFound().build();
+            ZipArchiveContent zipArchiveContent = catalogObjectService.getCatalogObjectsAsZipArchive(bucketId,
+                                                                                                     decodedNames);
+
+            HttpStatus status;
+            if (zipArchiveContent.isPartial()) {
+                status = HttpStatus.PARTIAL_CONTENT;
+                response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
             } else {
+                status = HttpStatus.OK;
                 response.setStatus(HttpServletResponse.SC_OK);
-                response.setContentType(ZIP_CONTENT_TYPE);
-                response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
-                response.addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
-                try {
-                    response.getOutputStream().write(zip);
-                    response.getOutputStream().flush();
-                } catch (IOException ioe) {
-                    throw new RuntimeException(ioe);
-                }
-                return ResponseEntity.ok().build();
             }
+
+            response.setContentType(ZIP_CONTENT_TYPE);
+            response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
+            response.addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
+            try {
+                response.getOutputStream().write(zipArchiveContent.getContent());
+                response.getOutputStream().flush();
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe);
+            }
+            return ResponseEntity.status(status).build();
         } else {
             List<CatalogObjectMetadata> metadataList;
             if (kind.isPresent()) {
@@ -196,8 +205,8 @@ public class CatalogObjectController {
             } else {
                 metadataList = catalogObjectService.listCatalogObjects(bucketId);
             }
-            metadataList.stream().forEach(
-                    object -> object.add(LinkUtil.createLink(object.getBucketId(), object.getName())));
+            metadataList.stream()
+                        .forEach(object -> object.add(LinkUtil.createLink(object.getBucketId(), object.getName())));
             return ResponseEntity.ok(metadataList);
         }
     }

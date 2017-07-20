@@ -44,28 +44,62 @@ import org.zeroturnaround.zip.ZipUtil;
 @Component
 public class ArchiveManagerHelper {
 
+    public static class ZipArchiveContent {
+
+        private byte[] content;
+
+        private boolean partial;
+
+        public ZipArchiveContent() {
+            content = null;
+            partial = false;
+        }
+
+        public byte[] getContent() {
+            return content;
+        }
+
+        public void setContent(byte[] content) {
+            this.content = content;
+        }
+
+        public boolean isPartial() {
+            return partial;
+        }
+
+        public void setPartial(boolean partial) {
+            this.partial = partial;
+        }
+
+    }
+
     /**
      * Compress a list of CatalogObjectRevision files into a ZIP archive
      * @param catalogObjectList the list of catalogObjects to compress
      * @return a byte array corresponding to the archive containing the files
      */
-    public byte[] compressZIP(List<CatalogObjectRevisionEntity> catalogObjectList) {
+    public ZipArchiveContent compressZIP(List<CatalogObjectRevisionEntity> catalogObjectList) {
 
-        if (catalogObjectList == null || catalogObjectList.size() == 0) {
+        if (catalogObjectList == null) {
             return null;
         }
 
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
 
-            Stream<ZipEntrySource> streamSources = catalogObjectList.stream()
-                                                                    .map(catalogObjectRevision -> new ByteSource(catalogObjectRevision.getCatalogObject()
-                                                                                                                                      .getId()
-                                                                                                                                      .getName(),
-                                                                                                                 catalogObjectRevision.getRawObject()));
+            ZipArchiveContent zipContent = new ZipArchiveContent();
+
+            Stream<ZipEntrySource> streamSources = catalogObjectList.stream().filter(catalogObjectRevision -> {
+                if (catalogObjectRevision == null) {
+                    zipContent.setPartial(true);
+                }
+                return catalogObjectRevision != null;
+            }).map(catalogObjectRevision -> new ByteSource(catalogObjectRevision.getCatalogObject().getId().getName(),
+                                                           catalogObjectRevision.getRawObject()));
             ZipEntrySource[] sources = streamSources.toArray(size -> new ZipEntrySource[size]);
             ZipUtil.pack(sources, byteArrayOutputStream);
 
-            return byteArrayOutputStream.toByteArray();
+            zipContent.setContent(byteArrayOutputStream.toByteArray());
+            return zipContent;
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }

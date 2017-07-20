@@ -55,6 +55,7 @@ import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
@@ -84,7 +85,9 @@ public class CatalogObjectControllerTest {
         when(response.getOutputStream()).thenReturn(sos);
         List<String> nameList = new ArrayList<>();
         nameList.add("workflowname");
-        when(catalogObjectService.getCatalogObjectsAsZipArchive(1L, nameList)).thenReturn(new byte[0]);
+        ZipArchiveContent content = new ZipArchiveContent();
+        content.setContent(new byte[0]);
+        when(catalogObjectService.getCatalogObjectsAsZipArchive(1L, nameList)).thenReturn(content);
         catalogObjectController.list(1L, Optional.empty(), Optional.of(nameList), response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive(1L, nameList);
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
@@ -98,9 +101,14 @@ public class CatalogObjectControllerTest {
     @Test
     public void testGetCatalogObjectsAsArchiveWithMissingObject() throws IOException {
         HttpServletResponse response = mock(HttpServletResponse.class);
+        ServletOutputStream sos = mock(ServletOutputStream.class);
+        when(response.getOutputStream()).thenReturn(sos);
         List<String> nameList = new ArrayList<>();
         nameList.add("workflowname");
-        when(catalogObjectService.getCatalogObjectsAsZipArchive(1L, nameList)).thenReturn(null);
+        ZipArchiveContent content = new ZipArchiveContent();
+        content.setContent(new byte[0]);
+        content.setPartial(true);
+        when(catalogObjectService.getCatalogObjectsAsZipArchive(1L, nameList)).thenReturn(content);
         catalogObjectController.list(1L, Optional.empty(), Optional.of(nameList), response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive(1L, nameList);
         verify(response, never()).setStatus(HttpServletResponse.SC_OK);

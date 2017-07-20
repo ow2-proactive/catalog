@@ -28,7 +28,6 @@ package org.ow2.proactive.catalog.service;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,6 +46,7 @@ import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
@@ -159,16 +159,13 @@ public class CatalogObjectService {
         return buildMetadataWithLink(bucketId, result);
     }
 
-    public byte[] getCatalogObjectsAsZipArchive(Long bucketId, List<String> catalogObjectsNames) {
-        List<CatalogObjectRevisionEntity> revisions = new ArrayList<>();
+    public ZipArchiveContent getCatalogObjectsAsZipArchive(Long bucketId, List<String> catalogObjectsNames) {
 
-        for (String name : catalogObjectsNames) {
-            CatalogObjectRevisionEntity catalogObjectRevision = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketId,
-                                                                                                                                       name);
-            if (catalogObjectRevision == null)
-                return null;
-            revisions.add(catalogObjectRevision);
-        }
+        List<CatalogObjectRevisionEntity> revisions = catalogObjectsNames.stream()
+                                                                         .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketId,
+                                                                                                                                                             name))
+                                                                         .collect(Collectors.toList());
+
         return archiveManager.compressZIP(revisions);
     }
 
