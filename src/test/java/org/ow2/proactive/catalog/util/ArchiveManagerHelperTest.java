@@ -48,6 +48,7 @@ import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity.CatalogObjectEntityKey;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 
 
@@ -99,21 +100,21 @@ public class ArchiveManagerHelperTest {
         //Compress
         ZipArchiveContent archive = archiveManager.compressZIP(expectedFiles);
         //Then extract
-        List<byte[]> actualFiles = archiveManager.extractZIP(archive.getContent());
+        List<FileNameAndContent> actualFiles = archiveManager.extractZIP(archive.getContent());
         assertEquals(2, actualFiles.size());
 
-        compare(workflowByteArray0, actualFiles.get(0));
-        compare(workflowByteArray1, actualFiles.get(1));
+        compare(workflowByteArray0, actualFiles.get(0).getContent());
+        compare(workflowByteArray1, actualFiles.get(1).getContent());
     }
 
     @Test
     public void testExtractZip() throws IOException {
         assertTrue(archiveManager.extractZIP(null).isEmpty());
-        List<byte[]> files = archiveManager.extractZIP(convertFromURIToByteArray(ZIP_FILE));
+        List<FileNameAndContent> files = archiveManager.extractZIP(convertFromURIToByteArray(ZIP_FILE));
         assertEquals(2, files.size());
 
-        compare(convertFromURIToByteArray(XML_FILE_0), files.get(0));
-        compare(convertFromURIToByteArray(XML_FILE_1), files.get(1));
+        compare(convertFromURIToByteArray(XML_FILE_0), files.get(0).getContent());
+        compare(convertFromURIToByteArray(XML_FILE_1), files.get(1).getContent());
     }
 
     /**

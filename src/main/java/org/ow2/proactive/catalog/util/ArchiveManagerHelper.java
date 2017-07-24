@@ -73,6 +73,35 @@ public class ArchiveManagerHelper {
 
     }
 
+    public static class FileNameAndContent {
+
+        private byte[] content;
+
+        private String name;
+
+        public FileNameAndContent() {
+            content = null;
+            name = null;
+        }
+
+        public byte[] getContent() {
+            return content;
+        }
+
+        public void setContent(byte[] content) {
+            this.content = content;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+    }
+
     /**
      * Compress a list of CatalogObjectRevision files into a ZIP archive
      * @param catalogObjectList the list of catalogObjects to compress
@@ -111,15 +140,15 @@ public class ArchiveManagerHelper {
      * @param byteArrayArchive the archive as byte array
      * @return the list of catalogObjects byte arrays
      */
-    public List<byte[]> extractZIP(byte[] byteArrayArchive) {
+    public List<FileNameAndContent> extractZIP(byte[] byteArrayArchive) {
 
-        List<byte[]> filesList = new ArrayList<>();
+        List<FileNameAndContent> filesList = new ArrayList<>();
         if (byteArrayArchive == null) {
             return filesList;
         }
 
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayArchive)) {
-            ZipUtil.iterate(byteArrayInputStream, (in, zipEntry) -> process(in, zipEntry, filesList));
+            ZipUtil.iterate(byteArrayInputStream, (in, zipEntry) -> filesList.add(process(in, zipEntry)));
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
@@ -133,15 +162,27 @@ public class ArchiveManagerHelper {
      * @param zipEntry entry
      * @param filesList list of files
      */
-    private void process(InputStream in, ZipEntry zipEntry, List<byte[]> filesList) {
+    private FileNameAndContent process(InputStream in, ZipEntry entry) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            FileNameAndContent file = new FileNameAndContent();
+            file.setName(getFileNameWithoutExtension(entry.getName()));
+
             int data = 0;
             while ((data = in.read()) != -1) {
                 outputStream.write(data);
             }
-            filesList.add(outputStream.toByteArray());
+            file.setContent(outputStream.toByteArray());
+            return file;
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
+    }
+
+    private String getFileNameWithoutExtension(String fileName) {
+        int lastDotIndex = fileName.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            return fileName.substring(0, lastDotIndex);
+        }
+        return fileName;
     }
 }

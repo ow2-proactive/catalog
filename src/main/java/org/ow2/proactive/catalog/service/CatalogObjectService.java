@@ -45,7 +45,9 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
+import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -87,6 +89,32 @@ public class CatalogObjectService {
                                         contentType,
                                         Collections.emptyList(),
                                         rawObject);
+    }
+
+    public List<CatalogObjectMetadata> createCatalogObjects(Long bucketId, String kind, String commitMessage,
+            String contentType, byte[] zipArchive) {
+
+        List<FileNameAndContent> filesContainedInArchive = archiveManager.extractZIP(zipArchive);
+
+        if (filesContainedInArchive.isEmpty()) {
+            throw new UnprocessableEntityException("Malformed archive");
+        }
+
+        return filesContainedInArchive.stream().map(file -> {
+            CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketId,
+                                                                                                                               file.getName()));
+            if (catalogObject == null) {
+                return this.createCatalogObject(bucketId,
+                                                file.getName(),
+                                                kind,
+                                                commitMessage,
+                                                contentType,
+                                                Collections.emptyList(),
+                                                file.getContent());
+            } else {
+                return this.createCatalogObjectRevision(bucketId, file.getName(), commitMessage, file.getContent());
+            }
+        }).collect(Collectors.toList());
     }
 
     public CatalogObjectMetadata createCatalogObject(Long bucketId, String name, String kind, String commitMessage,

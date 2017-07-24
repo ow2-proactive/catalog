@@ -90,20 +90,33 @@ public class CatalogObjectController {
     @RequestMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public CatalogObjectMetadataList create(@PathVariable Long bucketId,
-            @ApiParam(value = "Name of the object") @RequestParam String name,
+            @ApiParam(value = "Name of the object ; if no name is provided, then the file should be a ZIP archive containing objects to create into the catalog") @RequestParam(required = false) Optional<String> name,
             @ApiParam(value = "Kind of the new object") @RequestParam String kind,
             @ApiParam(value = "Commit message") @RequestParam String commitMessage,
             @ApiParam(value = "The content type of CatalogRawObject") @RequestParam String contentType,
             @RequestPart(value = "file") MultipartFile file) throws IOException {
-        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketId,
-                                                                                       name,
-                                                                                       kind,
-                                                                                       commitMessage,
-                                                                                       contentType,
-                                                                                       file.getBytes());
-        catalogObject.add(LinkUtil.createLink(catalogObject.getBucketId(), catalogObject.getName()));
+        if (name.isPresent()) {
+            CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketId,
+                                                                                           name.get(),
+                                                                                           kind,
+                                                                                           commitMessage,
+                                                                                           contentType,
+                                                                                           file.getBytes());
+            catalogObject.add(LinkUtil.createLink(catalogObject.getBucketId(), catalogObject.getName()));
 
-        return new CatalogObjectMetadataList(catalogObject);
+            return new CatalogObjectMetadataList(catalogObject);
+        } else {
+            List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketId,
+                                                                                                   kind,
+                                                                                                   commitMessage,
+                                                                                                   contentType,
+                                                                                                   file.getBytes());
+            catalogObjects.stream()
+                          .forEach(catalogObject -> catalogObject.add(LinkUtil.createLink(catalogObject.getBucketId(),
+                                                                                          catalogObject.getName())));
+
+            return new CatalogObjectMetadataList(catalogObjects);
+        }
     }
 
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
@@ -145,6 +158,7 @@ public class CatalogObjectController {
                 log.warn("The wrong content type for object: " + name + ", commitTime:" +
                          rawObject.getCommitDateTime() + ", the contentType: " + rawObject.getContentType(), mimeEx);
             }
+
             return responseBodyBuilder.body(new InputStreamResource(new ByteArrayInputStream(bytes)));
         } catch (CatalogObjectNotFoundException e) {
             log.error("CatalogObject not found ", e);
