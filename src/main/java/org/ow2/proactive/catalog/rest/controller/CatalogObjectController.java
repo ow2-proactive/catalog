@@ -90,7 +90,7 @@ public class CatalogObjectController {
     @RequestMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public CatalogObjectMetadataList create(@PathVariable Long bucketId,
-            @ApiParam(value = "Name of the object ; if no name is provided, then the file should be a ZIP archive containing objects to create into the catalog") @RequestParam(required = false) Optional<String> name,
+            @ApiParam(value = "Name of the object or empty when a ZIP archive is uploaded (All objects inside the archive are stored inside the catalog).") @RequestParam(required = false) Optional<String> name,
             @ApiParam(value = "Kind of the new object") @RequestParam String kind,
             @ApiParam(value = "Commit message") @RequestParam String commitMessage,
             @ApiParam(value = "The content type of CatalogRawObject") @RequestParam String contentType,

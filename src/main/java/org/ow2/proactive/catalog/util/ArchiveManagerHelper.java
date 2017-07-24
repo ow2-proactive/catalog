@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
+import org.apache.commons.io.FilenameUtils;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.springframework.stereotype.Component;
 import org.zeroturnaround.zip.ByteSource;
@@ -165,7 +166,7 @@ public class ArchiveManagerHelper {
     private FileNameAndContent process(InputStream in, ZipEntry entry) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             FileNameAndContent file = new FileNameAndContent();
-            file.setName(getFileNameWithoutExtension(entry.getName()));
+            file.setName(FilenameUtils.getBaseName(entry.getName()));
 
             int data = 0;
             while ((data = in.read()) != -1) {
@@ -176,13 +177,5 @@ public class ArchiveManagerHelper {
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
-    }
-
-    private String getFileNameWithoutExtension(String fileName) {
-        int lastDotIndex = fileName.lastIndexOf('.');
-        if (lastDotIndex > 0) {
-            return fileName.substring(0, lastDotIndex);
-        }
-        return fileName;
     }
 }
