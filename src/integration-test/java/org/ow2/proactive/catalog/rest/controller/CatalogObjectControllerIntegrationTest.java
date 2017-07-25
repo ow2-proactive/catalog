@@ -450,7 +450,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         //Create a workflow with the name of a workflow of the archive
         given().pathParam("bucketId", bucket.getMetaDataId())
                .queryParam("kind", "workflow")
-               .queryParam("name", "workflow_0")
+               .queryParam("name", "workflow_existing")
                .queryParam("commitMessage", firstCommitMessage)
                .queryParam("contentType", MediaType.APPLICATION_XML.toString())
                .multiPart(IntegrationTestUtil.getArchiveFile("workflow_0.xml"))
@@ -460,15 +460,24 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED);
 
-        //Check that workflow_0 has a a first revision
+        //Check that workflow_exinsting has a a first revision
         given().pathParam("bucketId", bucket.getMetaDataId())
-               .pathParam("name", "workflow_0")
+               .pathParam("name", "workflow_existing")
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("commit_message", is(firstCommitMessage));
+
+        //Check that workflow_new has no revisions
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .pathParam("name", "workflow_new")
+               .when()
+               .get(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
 
         //Create workflows from the archive
         given().pathParam("bucketId", bucket.getMetaDataId())
@@ -482,9 +491,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED);
 
-        //Check that workflow_0 has a new revision
+        //Check that workflow_existing has a new revision
         given().pathParam("bucketId", bucket.getMetaDataId())
-               .pathParam("name", "workflow_0")
+               .pathParam("name", "workflow_existing")
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -492,9 +501,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_OK)
                .body("commit_message", is(archiveCommitMessage));
 
-        //Check that workflow_1 was created
+        //Check that workflow_new was created
         given().pathParam("bucketId", bucket.getMetaDataId())
-               .pathParam("name", "workflow_1")
+               .pathParam("name", "workflow_new")
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
