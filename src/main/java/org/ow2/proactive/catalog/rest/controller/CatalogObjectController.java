@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.rest.controller;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -45,6 +46,7 @@ import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -237,6 +239,22 @@ public class CatalogObjectController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "Restore a catalog object revision")
+    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket, object or revision not found"))
+    @RequestMapping(value = "/{name}", method = PUT)
+    public ResponseEntity<?> restore(@PathVariable Long bucketId, @PathVariable String name,
+            @RequestParam(required = true) Long commitTime) throws UnsupportedEncodingException {
+        String decodedName = URLDecoder.decode(name, "UTF-8");
+        try {
+            CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.restore(bucketId,
+                                                                                       decodedName,
+                                                                                       commitTime);
+            return ResponseEntity.ok(catalogObjectMetadata);
+        } catch (RevisionNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }

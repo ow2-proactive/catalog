@@ -50,6 +50,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class CatalogObjectMetadata extends ResourceSupport {
 
+    @JsonProperty("commit_time_raw")
+    protected final String commitTimeRaw;
+
     @JsonProperty("kind")
     protected final String kind;
 
@@ -92,13 +95,14 @@ public class CatalogObjectMetadata extends ResourceSupport {
              KeyValueEntityToDtoTransformer.to(catalogObject.getKeyValueMetadataList()));
     }
 
-    public CatalogObjectMetadata(Long bucketId, String name, String kind, String contentType, long createdAt,
+    public CatalogObjectMetadata(Long bucketId, String name, String kind, String contentType, long commitTime,
             String commitMessage, List<Metadata> metadataList) {
         this.bucketId = bucketId;
         this.name = name;
         this.kind = kind;
         this.contentType = contentType;
-        this.commitDateTime = Instant.ofEpochMilli(createdAt).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        this.commitTimeRaw = String.valueOf(commitTime);
+        this.commitDateTime = Instant.ofEpochMilli(commitTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
         this.commitMessage = commitMessage;
         if (metadataList == null) {
             this.metadataList = new ArrayList<>();
