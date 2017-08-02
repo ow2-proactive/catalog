@@ -129,6 +129,7 @@ public class CatalogObjectController {
         try {
             CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketId, decodedName);
             metadata.add(LinkUtil.createLink(metadata.getBucketId(), metadata.getName()));
+            metadata.add(LinkUtil.createRelativeLink(metadata.getBucketId(), metadata.getName()));
             return ResponseEntity.ok(metadata);
         } catch (CatalogObjectNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e);
@@ -219,8 +220,10 @@ public class CatalogObjectController {
             } else {
                 metadataList = catalogObjectService.listCatalogObjects(bucketId);
             }
-            metadataList.stream()
-                        .forEach(object -> object.add(LinkUtil.createLink(object.getBucketId(), object.getName())));
+            metadataList.stream().forEach(object -> {
+                object.add(LinkUtil.createLink(object.getBucketId(), object.getName()));
+                object.add(LinkUtil.createRelativeLink(object.getBucketId(), object.getName()));
+            });
             return ResponseEntity.ok(metadataList);
         }
     }
