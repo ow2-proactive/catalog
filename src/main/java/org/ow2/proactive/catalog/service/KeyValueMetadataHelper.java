@@ -56,4 +56,8 @@ public class KeyValueMetadataHelper {
     public static List<KeyValueMetadataEntity> convertToEntity(List<Metadata> source) {
         return source.stream().map(KeyValueMetadataEntity::new).collect(Collectors.toList());
     }
+
+    public static List<Metadata> convertFromEntity(List<KeyValueMetadataEntity> source) {
+        return source.stream().map(Metadata::new).collect(Collectors.toList());
+    }
 }

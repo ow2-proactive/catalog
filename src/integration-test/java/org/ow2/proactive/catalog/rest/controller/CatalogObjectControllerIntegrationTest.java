@@ -266,8 +266,6 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                                               .assertThat()
                                               .statusCode(HttpStatus.SC_OK);
 
-        String responseString = response.extract().response().asString();
-
         response.body("bucket_id", is(thirdWFRevision.get("bucket_id")))
                 .body("name", is(thirdWFRevision.get("name")))
                 .body("commit_time", is(thirdWFRevision.get("commit_time")))
@@ -524,6 +522,116 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+    }
+
+    @Test
+    public void testRestoreVersion() {
+        String firstCommitMessage = "First commit message";
+        // Create a new object in the bucket
+        Response response = given().pathParam("bucketId", bucket.getMetaDataId())
+                                   .queryParam("kind", "workflow")
+                                   .queryParam("name", "restoredworkflow")
+                                   .queryParam("commitMessage", firstCommitMessage)
+                                   .queryParam("contentType", MediaType.APPLICATION_XML.toString())
+                                   .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+                                   .when()
+                                   .post(CATALOG_OBJECTS_RESOURCE)
+                                   .then()
+                                   .statusCode(HttpStatus.SC_CREATED)
+                                   .extract()
+                                   .response();
+
+        String commitTime = response.path("object[0].commit_time_raw");
+
+        //Add a new revision to the created object
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .pathParam("name", "restoredworkflow")
+               .queryParam("commitMessage", "Second commit message")
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        //Restore the first version
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .pathParam("name", "restoredworkflow")
+               .queryParam("commitTime", commitTime)
+               .when()
+               .put(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("commit_message", is(firstCommitMessage));
+
+        //Check that last revision is the restored one
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .pathParam("name", "restoredworkflow")
+               .when()
+               .get(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("commit_message", is(firstCommitMessage));
+    }
+
+    @Test
+    public void testRestoreVersionWithWrongParam() {
+        // Create a new object in the bucket
+        Response response = given().pathParam("bucketId", bucket.getMetaDataId())
+                                   .queryParam("kind", "workflow")
+                                   .queryParam("name", "restoredworkflow")
+                                   .queryParam("commitMessage", "First commit")
+                                   .queryParam("contentType", MediaType.APPLICATION_XML.toString())
+                                   .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+                                   .when()
+                                   .post(CATALOG_OBJECTS_RESOURCE)
+                                   .then()
+                                   .statusCode(HttpStatus.SC_CREATED)
+                                   .extract()
+                                   .response();
+
+        String commitTime = response.path("object[0].commit_time_raw");
+
+        //Add a new revision to the created object
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .pathParam("name", "restoredworkflow")
+               .queryParam("commitMessage", "Second commit message")
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        //Check wrong bucket
+        given().pathParam("bucketId", bucket.getMetaDataId() + 1)
+               .pathParam("name", "restoredworkflow")
+               .queryParam("commitTime", 0)
+               .when()
+               .put(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
+
+        //Check wrong name
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .pathParam("name", "wrongrestoredworkflow")
+               .queryParam("commitTime", commitTime)
+               .when()
+               .put(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
+
+        //Check wrong time
+        given().pathParam("bucketId", bucket.getMetaDataId())
+               .pathParam("name", "restoredworkflow")
+               .queryParam("commitTime", commitTime + 1)
+               .when()
+               .put(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
 }

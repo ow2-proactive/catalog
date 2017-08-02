@@ -134,8 +134,7 @@ public class CatalogObjectService {
                                                                      .build();
         bucketEntity.getCatalogObjects().add(catalogObjectEntity);
 
-        CatalogObjectRevisionEntity result = buildCatalogObjectRevisionEntity(kind,
-                                                                              commitMessage,
+        CatalogObjectRevisionEntity result = buildCatalogObjectRevisionEntity(commitMessage,
                                                                               metadataList,
                                                                               rawObject,
                                                                               catalogObjectEntity);
@@ -143,12 +142,12 @@ public class CatalogObjectService {
         return new CatalogObjectMetadata(result);
     }
 
-    private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(String kind, String commitMessage,
+    private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(String commitMessage,
             List<Metadata> metadataList, byte[] rawObject, CatalogObjectEntity catalogObjectEntity) {
 
         List<KeyValueMetadataEntity> keyValueMetadataEntities = KeyValueMetadataHelper.convertToEntity(metadataList);
 
-        List<KeyValueMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? KeyValueMetadataHelper.extractKeyValuesFromRaw(kind,
+        List<KeyValueMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? KeyValueMetadataHelper.extractKeyValuesFromRaw(catalogObjectEntity.getKind(),
                                                                                                                                         rawObject)
                                                                                        : keyValueMetadataEntities;
 
@@ -245,8 +244,7 @@ public class CatalogObjectService {
             throw new CatalogObjectNotFoundException("bucketid : " + bucketId + " name : " + name);
         }
 
-        CatalogObjectRevisionEntity revisionEntity = buildCatalogObjectRevisionEntity(catalogObject.getKind(),
-                                                                                      commitMessage,
+        CatalogObjectRevisionEntity revisionEntity = buildCatalogObjectRevisionEntity(commitMessage,
                                                                                       metadataListParsed,
                                                                                       rawObject,
                                                                                       catalogObject);
@@ -280,6 +278,24 @@ public class CatalogObjectService {
 
         return new CatalogRawObject(revisionEntity);
 
+    }
+
+    public CatalogObjectMetadata restore(Long bucketId, String name, Long commitTime) {
+        CatalogObjectRevisionEntity catalogObjectRevision = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(bucketId,
+                                                                                                                                  name,
+                                                                                                                                  commitTime);
+
+        if (catalogObjectRevision == null) {
+            throw new RevisionNotFoundException("bucketid: " + bucketId + " name: " + name + " revision: " +
+                                                commitTime);
+        }
+
+        CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(catalogObjectRevision.getCommitMessage(),
+                                                                                        KeyValueMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
+                                                                                        catalogObjectRevision.getRawObject(),
+                                                                                        catalogObjectRevision.getCatalogObject());
+
+        return new CatalogObjectMetadata(restoredRevision);
     }
 
     @VisibleForTesting
