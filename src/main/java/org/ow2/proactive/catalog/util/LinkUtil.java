@@ -48,6 +48,14 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class LinkUtil {
 
+    /**
+     * This is used to generate the absolute URL of the given object revision based on the service domain.
+     *
+     * @param bucketId The id of the bucket holding this object
+     * @param name The name of the object which is the identifier of the object
+     * @param commitTime The commit time of the object which is also the identifier of this revision
+     * @return a <code>Link</code> referencing the given object's revision raw content
+     */
     public static Link createLink(Long bucketId, String name, LocalDateTime commitTime) {
         try {
             long epochMilli = commitTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -63,6 +71,13 @@ public class LinkUtil {
         return null;
     }
 
+    /**
+     * This is used to generate the absolute URL of the given object based on the service domain.
+     *
+     * @param bucketId The id of the bucket holding this object
+     * @param name The name of the object which is the identifier of the object
+     * @return a <code>Link</code> referencing the given object's raw content
+     */
     public static Link createLink(Long bucketId, String name) {
         try {
             ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw(bucketId,
@@ -74,5 +89,47 @@ public class LinkUtil {
             log.error("{} cannot be encoded", name, e);
         }
         return null;
+    }
+
+    /**
+     * This is used to generate the relative URL of the given object revision.
+     * The URL will only contain the path <code>buckets/../resources/../revisions/../raw</code>.
+     *
+     * @param bucketId The id of the bucket holding this object
+     * @param objectName The name of the object which is the identifier of the object
+     * @param commitTime The commit time of the object which is also the identifier of this revision
+     * @return a <code>Link</code> referencing the given object's revision raw content
+     */
+    public static Link createRelativeLink(Long bucketId, String objectName, LocalDateTime commitTime) {
+        Link link = null;
+        try {
+            long epochMilli = commitTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+            link = new Link("buckets/" + bucketId + "/resources/" + URLEncoder.encode(objectName, "UTF-8") +
+                            "/revisions/" + epochMilli).withRel("relative");
+
+        } catch (UnsupportedEncodingException e) {
+            log.error("{} cannot be encoded", objectName, e);
+        }
+        return link;
+    }
+
+    /**
+     * This is used to generate the relative URL of the given object.
+     * The URL will only contain the path <code>buckets/../resources/../raw</code>.
+     *
+     * @param bucketId The id of the bucket holding this object
+     * @param objectName The name of the object which is the identifier of the object
+     * @return a <code>Link</code> referencing the given object's raw content
+     */
+    public static Link createRelativeLink(Long bucketId, String objectName) {
+        Link link = null;
+        try {
+            link = new Link("buckets/" + bucketId + "/resources/" +
+                            URLEncoder.encode(objectName, "UTF-8")).withRel("relative");
+
+        } catch (UnsupportedEncodingException e) {
+            log.error("{} cannot be encoded", objectName, e);
+        }
+        return link;
     }
 }
