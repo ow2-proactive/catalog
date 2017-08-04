@@ -62,7 +62,7 @@ public class CatalogObjectRevisionControllerTest {
 
     @Test
     public void testList() throws Exception {
-        catalogObjectRevisionController.list(BUCKET_ID, "name");
+        catalogObjectRevisionController.list("", BUCKET_ID, "name");
         verify(catalogObjectService, times(1)).listCatalogObjectRevisions(BUCKET_ID, "name");
     }
 
@@ -78,7 +78,8 @@ public class CatalogObjectRevisionControllerTest {
                                                           new byte[0]);
 
         when(catalogObjectService.getCatalogObjectRevisionRaw(anyLong(), anyString(), anyLong())).thenReturn(rawObject);
-        ResponseEntity responseEntity = catalogObjectRevisionController.getRaw(BUCKET_ID,
+        ResponseEntity responseEntity = catalogObjectRevisionController.getRaw("",
+                                                                               BUCKET_ID,
                                                                                "name",
                                                                                System.currentTimeMillis());
         verify(catalogObjectService, times(1)).getCatalogObjectRevisionRaw(anyLong(), anyString(), anyLong());

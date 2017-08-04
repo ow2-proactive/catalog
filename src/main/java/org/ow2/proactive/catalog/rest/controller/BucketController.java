@@ -30,16 +30,21 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.BucketService;
+import org.ow2.proactive.catalog.service.RestApiAccessService;
+import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
+import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
+import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -61,11 +66,27 @@ public class BucketController {
     @Autowired
     private BucketService bucketService;
 
+    @Autowired
+    private RestApiAccessService restApiAccessService;
+
+    @Value("${pa.catalog.security.required.sessionid}")
+    private boolean sessionIdRequired;
+
     @ApiOperation(value = "Creates a new bucket")
+    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(method = POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public BucketMetadata create(@RequestParam(value = "name", required = true) String bucketName,
-            @ApiParam(value = "The name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String ownerName) {
+    public BucketMetadata create(
+            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @RequestParam(value = "name", required = true) String bucketName,
+            @ApiParam(value = "The name of the user that will own the Bucket", defaultValue = "GROUP:" +
+                                                                                              BucketService.DEFAULT_BUCKET_OWNER) @RequestParam(value = "owner", required = false, defaultValue = "GROUP:" +
+                                                                                                                                                                                                  BucketService.DEFAULT_BUCKET_OWNER) String ownerName)
+            throws NotAuthenticatedException, AccessDeniedException {
+        if (sessionIdRequired) {
+            restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined(sessionId, ownerName);
+        }
         try {
             return bucketService.createBucket(bucketName, ownerName);
         } catch (DataIntegrityViolationException exception) {
@@ -75,18 +96,38 @@ public class BucketController {
     }
 
     @ApiOperation(value = "Gets a bucket's metadata by ID")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
+    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
+                            @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketId}", method = GET)
-    public BucketMetadata getMetadata(@PathVariable long bucketId) {
+    public BucketMetadata getMetadata(
+            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @PathVariable long bucketId) throws NotAuthenticatedException, AccessDeniedException {
+        if (sessionIdRequired) {
+            restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined(sessionId, bucketId);
+        }
         return bucketService.getBucketMetadata(bucketId);
     }
 
     @ApiOperation(value = "Lists the buckets")
+    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(method = GET)
     public List<BucketMetadata> list(
-            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) Optional<String> ownerName,
-            @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind) {
-        return bucketService.listBuckets(ownerName, kind);
+            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
+            @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) String kind)
+            throws NotAuthenticatedException, AccessDeniedException {
+        if (sessionIdRequired) {
+            RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined(sessionId,
+                                                                                                                        ownerName);
+            List<String> groupsAndUsername = restApiAccessResponse.getAuthenticatedUser().getGroups();
+
+            return bucketService.listBuckets(groupsAndUsername, kind);
+
+        } else {
+            return bucketService.listBuckets(ownerName, kind);
+        }
     }
 
     @ApiOperation(value = "Delete the empty buckets")
@@ -96,10 +137,17 @@ public class BucketController {
     }
 
     @ApiOperation(value = "Delete an empty bucket", notes = "It's forbidden to delete a non-empty bucket. You need to delete manually all workflows in the bucket before.")
-    @ApiResponses(value = @ApiResponse(code = 404, message = "Bucket not found"))
+    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
+                            @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketId}", method = DELETE)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseEntity<?> delete(@PathVariable Long bucketId) {
+    public ResponseEntity<?> delete(
+            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @PathVariable Long bucketId) throws NotAuthenticatedException, AccessDeniedException {
+        if (sessionIdRequired) {
+            restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined(sessionId, bucketId);
+        }
         BucketMetadata deletedBucketMetadata = bucketService.deleteEmptyBucket(bucketId);
         return ResponseEntity.ok(deletedBucketMetadata);
     }

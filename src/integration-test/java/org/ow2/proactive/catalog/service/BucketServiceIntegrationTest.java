@@ -30,7 +30,6 @@ import static com.google.common.truth.Truth.assertThat;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.After;
 import org.junit.Before;
@@ -84,9 +83,15 @@ public class BucketServiceIntegrationTest {
     }
 
     @Test
+    public void testThatEmptyOwnerListReturnsAndEmptyListAndDoesNotReturnAnException() {
+        List emptyResult = bucketService.listBuckets(Collections.emptyList(), null);
+        assertThat(emptyResult).isEmpty();
+    }
+
+    @Test
     public void testPopulateCatalogEmpty() throws Exception {
         bucketService.populateCatalog(new String[] {}, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
-        List<BucketMetadata> bucketMetadataList = bucketService.listBuckets(Optional.empty(), Optional.empty());
+        List<BucketMetadata> bucketMetadataList = bucketService.listBuckets((String) null, null);
         assertThat(bucketMetadataList).hasSize(1);
     }
 
@@ -101,9 +106,9 @@ public class BucketServiceIntegrationTest {
         bucketService.populateCatalog(buckets, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
 
         // verify that all buckets have been created in the Catalog
-        List<BucketMetadata> bucketMetadataList = bucketService.listBuckets(Optional.empty(), Optional.empty());
+        List<BucketMetadata> bucketMetadataList = bucketService.listBuckets((String) null, null);
 
-        bucketMetadataList.stream().forEach(bucket -> {
+        bucketMetadataList.forEach(bucket -> {
             String name = bucket.getName();
             Long id = bucket.getMetaDataId();
             int nbWorkflows = 0;
@@ -133,20 +138,18 @@ public class BucketServiceIntegrationTest {
 
         BucketMetadata emptyBucket = bucketService.createBucket("bucketempty", "emptyBucketTest");
 
-        List<BucketMetadata> emptyBucketTest = bucketService.listBuckets(Optional.of("emptyBucketTest"),
-                                                                         Optional.empty());
+        List<BucketMetadata> emptyBucketTest = bucketService.listBuckets("emptyBucketTest", null);
         assertThat(emptyBucketTest).hasSize(2);
 
         bucketService.cleanAllEmptyBuckets();
-        emptyBucketTest = bucketService.listBuckets(Optional.of("emptyBucketTest"), Optional.empty());
+        emptyBucketTest = bucketService.listBuckets("emptyBucketTest", null);
         assertThat(emptyBucketTest).hasSize(1);
         assertThat(emptyBucketTest.get(0).getName()).isEqualTo("bucketnotempty");
     }
 
     @Test
     public void testGetBucket() {
-        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets(Optional.of("BucketServiceIntegrationTest"),
-                                                                         Optional.empty());
+        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("BucketServiceIntegrationTest", null);
         assertThat(bucketMetadatas).hasSize(1);
         BucketMetadata bucketMetadata = bucketService.getBucketMetadata(bucket.getMetaDataId());
         assertThat(bucketMetadata).isNotNull();
@@ -165,13 +168,12 @@ public class BucketServiceIntegrationTest {
                                                  keyValues,
                                                  null);
 
-        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets(Optional.of("bucket2"), Optional.empty());
+        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("bucket2", null);
         assertThat(bucketMetadatas).hasSize(1);
         assertThat(bucketMetadatas.get(0).getOwner()).isEqualTo(bucket.getOwner());
         assertThat(bucketMetadatas.get(0).getMetaDataId()).isEqualTo(bucket.getMetaDataId());
 
-        //count also empty buckets
-        bucketMetadatas = bucketService.listBuckets(Optional.empty(), Optional.of("workflow"));
+        bucketMetadatas = bucketService.listBuckets((String) null, "workflow");
         assertThat(bucketMetadatas).hasSize(2);
         assertThat(bucketMetadatas.get(1).getMetaDataId()).isEqualTo(bucket.getMetaDataId());
     }

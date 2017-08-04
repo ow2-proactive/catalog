@@ -28,8 +28,6 @@ package org.ow2.proactive.catalog.rest.controller;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.util.Optional;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -57,20 +55,20 @@ public class BucketControllerTest {
     @Test
     public void testCreate() throws Exception {
         final String bucketTestUser = "BucketControllerTestUser";
-        bucketController.create("DUMMY", bucketTestUser);
+        bucketController.create("", "DUMMY", bucketTestUser);
         verify(bucketService, times(1)).createBucket("DUMMY", bucketTestUser);
     }
 
     @Test
     public void testGetMetadata() throws Exception {
-        bucketController.getMetadata(1L);
+        bucketController.getMetadata("", 1L);
         verify(bucketService, times(1)).getBucketMetadata(1L);
     }
 
     @Test
     public void testList() throws Exception {
-        bucketController.list(Optional.empty(), Optional.empty());
-        verify(bucketService, times(1)).listBuckets(Optional.empty(), Optional.empty());
+        bucketController.list(null, null, null);
+        verify(bucketService, times(1)).listBuckets((String) null, null);
     }
 
     @Test
