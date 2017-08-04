@@ -100,6 +100,9 @@ public class CatalogObjectRevisionController {
                                                                                            decodedName,
                                                                                            commitTime);
             metadata.add(LinkUtil.createLink(metadata.getBucketId(), metadata.getName(), metadata.getCommitDateTime()));
+            metadata.add(LinkUtil.createRelativeLink(metadata.getBucketId(),
+                                                     metadata.getName(),
+                                                     metadata.getCommitDateTime()));
             return ResponseEntity.ok(metadata);
         } catch (RevisionNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -143,6 +146,7 @@ public class CatalogObjectRevisionController {
 
         return catalogObjectMetadataList.stream().map(object -> {
             object.add(LinkUtil.createLink(object.getBucketId(), object.getName(), object.getCommitDateTime()));
+            object.add(LinkUtil.createRelativeLink(object.getBucketId(), object.getName(), object.getCommitDateTime()));
             return object;
         }).collect(Collectors.toList());
     }
