@@ -1,0 +1,7 @@
+{
+	"kind": "workflow",
+	"name": "TensorFlow_Demo_Parallel_Prediction",
+	"commitMessage": "First commit",
+	"objectFileName": "TensorFlow_Demo_Parallel_Prediction.xml",
+	"contentType": "application/xml"
+}
