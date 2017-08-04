@@ -25,21 +25,25 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
+import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -61,6 +65,8 @@ import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException
 @RunWith(MockitoJUnitRunner.class)
 public class BucketServiceTest {
 
+    private static final String DEFAULT_BUCKET_NAME = "BucketServiceTest";
+
     @InjectMocks
     private BucketService bucketService;
 
@@ -70,7 +76,25 @@ public class BucketServiceTest {
     @Mock
     private BucketRepository bucketRepository;
 
-    private static final String DEFAULT_BUCKET_NAME = "BucketServiceTest";
+    @Test
+    public void testThatListBucketsAddsDefaultBucketOwner() {
+        bucketService.listBuckets(new ArrayList<>(), null);
+        verify(bucketRepository).findByOwnerIn(eq(Collections.singletonList(BucketService.DEFAULT_BUCKET_OWNER)));
+    }
+
+    @Test
+    public void testThatListBucketsAddsDefaultBucketOwnerWithKind() {
+        bucketService.listBuckets(new ArrayList<>(), "specialKind");
+        verify(bucketRepository).findByOwnerIsInContainingKind(eq(Collections.singletonList(BucketService.DEFAULT_BUCKET_OWNER)),
+                                                               eq("specialKind"));
+    }
+
+    @Test
+    public void testThatEmptyListIsReturnedIfListAndKindAreNull() {
+        assertThat(bucketService.listBuckets((List<String>) null, null)).isEmpty();
+        verify(bucketRepository, times(0)).findByOwnerIsInContainingKind(any(), any());
+        verify(bucketRepository, times(0)).findByOwnerIn(any());
+    }
 
     @Test
     public void testCreateBucket() throws Exception {
@@ -101,17 +125,17 @@ public class BucketServiceTest {
 
     @Test
     public void testListBucketsNoOwner() throws Exception {
-        listBucket(Optional.empty(), Optional.empty());
+        listBucket(null, null);
     }
 
     @Test
     public void testListBucketsWithOwner() throws Exception {
-        listBucket(Optional.of("toto"), Optional.empty());
+        listBucket("toto", null);
     }
 
     @Test
     public void testListBucketsNoOwnerWithKind() throws Exception {
-        listBucket(Optional.empty(), Optional.of("workflow"));
+        listBucket(null, "workflow");
     }
 
     @Test(expected = DefaultCatalogObjectsFolderNotFoundException.class)
@@ -166,12 +190,12 @@ public class BucketServiceTest {
         verify(bucketRepository, times(1)).findBucketForUpdate(1L);
     }
 
-    private void listBucket(Optional<String> owner, Optional<String> kind) {
-        when(bucketRepository.findAll()).thenReturn(Collections.EMPTY_LIST);
+    private void listBucket(String owner, String kind) {
+        when(bucketRepository.findAll()).thenReturn(Collections.emptyList());
         bucketService.listBuckets(owner, kind);
-        if (owner.isPresent()) {
+        if (!StringUtils.isEmpty(owner)) {
             verify(bucketRepository, times(1)).findByOwner(anyString());
-        } else if (kind.isPresent()) {
+        } else if (!StringUtils.isEmpty(kind)) {
             verify(bucketRepository, times(1)).findContainingKind(anyString());
         } else {
             verify(bucketRepository, times(1)).findAll();

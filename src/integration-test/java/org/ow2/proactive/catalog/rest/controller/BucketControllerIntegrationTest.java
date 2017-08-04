@@ -133,11 +133,12 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                   .when()
                                                   .post(BUCKETS_RESOURCE));
 
-        when().get(BUCKETS_RESOURCE)
-              .then()
-              .assertThat()
-              .statusCode(HttpStatus.SC_OK)
-              .body("", hasSize(25 + existingBucketsList.size()));
+        given().parameter("owner", "BucketResourceAssemblerTestUser")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(25 + existingBucketsList.size()));
     }
 
     @Test

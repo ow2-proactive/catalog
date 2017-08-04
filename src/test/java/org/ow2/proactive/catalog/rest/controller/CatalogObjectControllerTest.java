@@ -54,6 +54,8 @@ import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
+import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
+import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.springframework.http.HttpHeaders;
@@ -79,7 +81,7 @@ public class CatalogObjectControllerTest {
     private ArchiveManagerHelper archiveManagerHelper;
 
     @Test
-    public void testGetCatalogObjectsAsArchive() throws IOException {
+    public void testGetCatalogObjectsAsArchive() throws IOException, NotAuthenticatedException, AccessDeniedException {
         HttpServletResponse response = mock(HttpServletResponse.class);
         ServletOutputStream sos = mock(ServletOutputStream.class);
         when(response.getOutputStream()).thenReturn(sos);
@@ -88,7 +90,7 @@ public class CatalogObjectControllerTest {
         ZipArchiveContent content = new ZipArchiveContent();
         content.setContent(new byte[0]);
         when(catalogObjectService.getCatalogObjectsAsZipArchive(1L, nameList)).thenReturn(content);
-        catalogObjectController.list(1L, Optional.empty(), Optional.of(nameList), response);
+        catalogObjectController.list("", 1L, Optional.empty(), Optional.of(nameList), response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive(1L, nameList);
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
         verify(response, times(1)).setContentType("application/zip");
@@ -99,7 +101,8 @@ public class CatalogObjectControllerTest {
     }
 
     @Test
-    public void testGetCatalogObjectsAsArchiveWithMissingObject() throws IOException {
+    public void testGetCatalogObjectsAsArchiveWithMissingObject()
+            throws IOException, NotAuthenticatedException, AccessDeniedException {
         HttpServletResponse response = mock(HttpServletResponse.class);
         ServletOutputStream sos = mock(ServletOutputStream.class);
         when(response.getOutputStream()).thenReturn(sos);
@@ -109,7 +112,7 @@ public class CatalogObjectControllerTest {
         content.setContent(new byte[0]);
         content.setPartial(true);
         when(catalogObjectService.getCatalogObjectsAsZipArchive(1L, nameList)).thenReturn(content);
-        catalogObjectController.list(1L, Optional.empty(), Optional.of(nameList), response);
+        catalogObjectController.list("", 1L, Optional.empty(), Optional.of(nameList), response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive(1L, nameList);
         verify(response, never()).setStatus(HttpServletResponse.SC_OK);
     }
@@ -121,7 +124,7 @@ public class CatalogObjectControllerTest {
         when(response.getOutputStream()).thenReturn(sos);
         BucketEntity bucket = mock(BucketEntity.class);
         when(bucketRepository.findOne(1L)).thenReturn(bucket);
-        catalogObjectController.list(1L, Optional.empty(), Optional.empty(), response);
+        catalogObjectController.list("", 1L, Optional.empty(), Optional.empty(), response);
         verify(catalogObjectService, times(1)).listCatalogObjects(anyLong());
     }
 
@@ -136,7 +139,7 @@ public class CatalogObjectControllerTest {
                                                           Collections.emptyList(),
                                                           new byte[0]);
         when(catalogObjectService.getCatalogRawObject(anyLong(), anyString())).thenReturn(rawObject);
-        ResponseEntity responseEntity = catalogObjectController.getRaw(1L, "name");
+        ResponseEntity responseEntity = catalogObjectController.getRaw("", 1L, "name");
         verify(catalogObjectService, times(1)).getCatalogRawObject(anyLong(), anyString());
         assertThat(responseEntity).isNotNull();
     }
@@ -144,7 +147,7 @@ public class CatalogObjectControllerTest {
     @Test
     public void testDelete() throws Exception {
         doNothing().when(catalogObjectService).delete(anyLong(), anyString());
-        catalogObjectController.delete(1L, "name");
+        catalogObjectController.delete("", 1L, "name");
         verify(catalogObjectService, times(1)).delete(anyLong(), anyString());
     }
 }

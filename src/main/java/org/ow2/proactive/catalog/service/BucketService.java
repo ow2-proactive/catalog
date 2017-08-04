@@ -29,14 +29,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.StringUtils;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
@@ -66,6 +67,12 @@ import lombok.extern.log4j.Log4j2;
 @Transactional
 public class BucketService {
 
+    public static final String DEFAULT_BUCKET_OWNER = "public-objects";
+
+    private static final String DEFAULT_OBJECTS_FOLDER = "/default-objects";
+
+    private static final String RAW_OBJECTS_FOLDER = "/raw-objects";
+
     @Autowired
     private BucketRepository bucketRepository;
 
@@ -77,12 +84,6 @@ public class BucketService {
 
     @Autowired
     private Environment environment;
-
-    private static final String DEFAULT_BUCKET_OWNER = "object-catalog";
-
-    private static final String DEFAULT_OBJECTS_FOLDER = "/default-objects";
-
-    private static final String RAW_OBJECTS_FOLDER = "/raw-objects";
 
     @PostConstruct
     public void init() throws Exception {
@@ -154,6 +155,7 @@ public class BucketService {
 
     public BucketMetadata createBucket(String name, String owner) throws DataIntegrityViolationException {
         BucketEntity bucket = new BucketEntity(name, owner);
+
         bucket = bucketRepository.save(bucket);
         return new BucketMetadata(bucket);
     }
@@ -168,21 +170,38 @@ public class BucketService {
         return new BucketMetadata(bucket);
     }
 
-    public List<BucketMetadata> listBuckets(Optional<String> ownerName, Optional<String> kind) {
+    public List<BucketMetadata> listBuckets(List<String> owners, String kind) {
+        if (owners == null) {
+            return Collections.emptyList();
+        }
+
+        List<String> ownersAndDefaultOwner = new ArrayList<>(owners);
+        ownersAndDefaultOwner.add(DEFAULT_BUCKET_OWNER);
+
+        List<BucketEntity> entities;
+        if (!StringUtils.isEmpty(kind)) {
+            entities = bucketRepository.findByOwnerIsInContainingKind(ownersAndDefaultOwner, kind);
+        } else {
+            entities = bucketRepository.findByOwnerIn(ownersAndDefaultOwner);
+        }
+
+        log.info("Buckets size {}", entities.size());
+        return entities.stream().map(BucketMetadata::new).collect(Collectors.toList());
+    }
+
+    public List<BucketMetadata> listBuckets(String ownerName, String kind) {
         List<BucketEntity> entities;
 
-        if (ownerName.isPresent()) {
-            entities = bucketRepository.findByOwner(ownerName.get());
-        } else if (kind.isPresent()) {
-            entities = bucketRepository.findContainingKind(kind.get());
+        if (!StringUtils.isEmpty(ownerName)) {
+            entities = bucketRepository.findByOwner(ownerName);
+        } else if (!StringUtils.isEmpty(kind)) {
+            entities = bucketRepository.findContainingKind(kind);
         } else {
             entities = bucketRepository.findAll();
         }
 
         log.info("Buckets size {}", entities.size());
-        List<BucketMetadata> result = entities.stream().map(BucketMetadata::new).collect(Collectors.toList());
-
-        return result;
+        return entities.stream().map(BucketMetadata::new).collect(Collectors.toList());
     }
 
     public void cleanAllEmptyBuckets() {

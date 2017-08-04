@@ -47,6 +47,8 @@ import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.DefaultSpecification;
 import org.ow2.proactive.catalog.rest.controller.CatalogObjectController;
+import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
+import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -175,12 +177,13 @@ public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection
 
         public String generatLink(Long bucketId, String name) {
             try {
-                ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw(bucketId,
+                ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw("dummy",
+                                                                                                                    bucketId,
                                                                                                                     URLEncoder.encode(name,
                                                                                                                                       "UTF-8")));
 
                 return new Link(controllerLinkBuilder.toString()).withRel("content").getHref();
-            } catch (UnsupportedEncodingException e) {
+            } catch (UnsupportedEncodingException | NotAuthenticatedException | AccessDeniedException e) {
                 log.error("{} cannot be encoded", name, e);
             }
             return null;

@@ -35,6 +35,8 @@ import java.time.ZoneId;
 
 import org.ow2.proactive.catalog.rest.controller.CatalogObjectController;
 import org.ow2.proactive.catalog.rest.controller.CatalogObjectRevisionController;
+import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
+import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 
@@ -56,10 +58,12 @@ public class LinkUtil {
      * @param commitTime The commit time of the object which is also the identifier of this revision
      * @return a <code>Link</code> referencing the given object's revision raw content
      */
-    public static Link createLink(Long bucketId, String name, LocalDateTime commitTime) {
+    public static Link createLink(Long bucketId, String name, LocalDateTime commitTime)
+            throws NotAuthenticatedException, AccessDeniedException {
         try {
             long epochMilli = commitTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-            ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectRevisionController.class).getRaw(bucketId,
+            ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectRevisionController.class).getRaw(null,
+                                                                                                                        bucketId,
                                                                                                                         URLEncoder.encode(name,
                                                                                                                                           "UTF-8"),
                                                                                                                         epochMilli));
@@ -78,9 +82,10 @@ public class LinkUtil {
      * @param name The name of the object which is the identifier of the object
      * @return a <code>Link</code> referencing the given object's raw content
      */
-    public static Link createLink(Long bucketId, String name) {
+    public static Link createLink(Long bucketId, String name) throws NotAuthenticatedException, AccessDeniedException {
         try {
-            ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw(bucketId,
+            ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw(null,
+                                                                                                                bucketId,
                                                                                                                 URLEncoder.encode(name,
                                                                                                                                   "UTF-8")));
 

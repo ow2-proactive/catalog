@@ -48,17 +48,22 @@ public interface BucketRepository extends JpaRepository<BucketEntity, Long>, Jpa
 
     List<BucketEntity> findByOwner(@Param("owner") String owner);
 
+    List<BucketEntity> findByOwnerIn(List<String> owners);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
-    @Query(value = "select bk from BucketEntity bk where size(bk.catalogObjects) = 0")
+    @Query(value = "SELECT bk FROM BucketEntity bk WHERE SIZE(bk.catalogObjects) = 0")
     List<BucketEntity> findEmptyBucketsForUpdate();
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
-    @Query(value = "select bk from BucketEntity bk where bk.id = ?1")
+    @Query(value = "SELECT bk FROM BucketEntity bk WHERE bk.id = ?1")
     BucketEntity findBucketForUpdate(Long bucketId);
 
     @Query(value = "SELECT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos WHERE cos.kind = ?1 OR bk.catalogObjects IS EMPTY GROUP BY bk")
     List<BucketEntity> findContainingKind(String kind);
+
+    @Query(value = "SELECT bk FROM BucketEntity bk INNER JOIN bk.catalogObjects cos WHERE bk.owner in ?1 AND cos.kind = ?2 GROUP BY bk")
+    List<BucketEntity> findByOwnerIsInContainingKind(List<String> owners, String kind);
 
 }
