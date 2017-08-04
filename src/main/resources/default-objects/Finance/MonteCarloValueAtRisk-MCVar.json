@@ -1,0 +1,7 @@
+{
+	"kind": "workflow",
+	"name": "MonteCarloValueAtRisk-MCVar",
+	"commitMessage": "First commit",
+	"objectFileName": "MonteCarloValueAtRisk-MCVar.xml",
+	"contentType": "application/xml"
+}

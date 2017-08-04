@@ -1,7 +1,7 @@
 {
 	"kind": "workflow",
-	"name": "Hadoop",
+	"name": "Gantt chart",
 	"commitMessage": "First commit",
-	"objectFileName": "hadoop.xml",
+	"objectFileName": "Gantt_chart.xml",
 	"contentType": "application/xml"
 }

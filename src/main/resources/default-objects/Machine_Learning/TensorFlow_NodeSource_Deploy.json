@@ -1,0 +1,7 @@
+{
+	"kind": "workflow",
+	"name": "TensorFlow_NodeSource_Deploy",
+	"commitMessage": "First commit",
+	"objectFileName": "TensorFlow_NodeSource_Deploy.xml",
+	"contentType": "application/xml"
+}

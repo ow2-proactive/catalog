@@ -1,0 +1,7 @@
+{
+	"kind": "workflow",
+	"name": "TensorFlow_Demo_Image_Classification",
+	"commitMessage": "First commit",
+	"objectFileName": "TensorFlow_Demo_Image_Classification.xml",
+	"contentType": "application/xml"
+}

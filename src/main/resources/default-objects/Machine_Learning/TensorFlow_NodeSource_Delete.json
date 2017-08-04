@@ -1,0 +1,7 @@
+{
+	"kind": "workflow",
+	"name": "TensorFlow_NodeSource_Delete",
+	"commitMessage": "First commit",
+	"objectFileName": "TensorFlow_NodeSource_Delete.xml",
+	"contentType": "application/xml"
+}

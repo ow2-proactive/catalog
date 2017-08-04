@@ -1,7 +1,7 @@
 {
 	"kind": "workflow",
-	"name": "Spark",
+	"name": "Write read HDFS",
 	"commitMessage": "First commit",
-	"objectFileName": "spark.xml",
+	"objectFileName": "write_read_hdfs.xml",
 	"contentType": "application/xml"
 }
