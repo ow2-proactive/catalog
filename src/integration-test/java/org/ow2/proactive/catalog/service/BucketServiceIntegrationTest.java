@@ -170,9 +170,10 @@ public class BucketServiceIntegrationTest {
         assertThat(bucketMetadatas.get(0).getOwner()).isEqualTo(bucket.getOwner());
         assertThat(bucketMetadatas.get(0).getMetaDataId()).isEqualTo(bucket.getMetaDataId());
 
+        //count also empty buckets
         bucketMetadatas = bucketService.listBuckets(Optional.empty(), Optional.of("workflow"));
-        assertThat(bucketMetadatas).hasSize(1);
-        assertThat(bucketMetadatas.get(0).getMetaDataId()).isEqualTo(bucket.getMetaDataId());
+        assertThat(bucketMetadatas).hasSize(2);
+        assertThat(bucketMetadatas.get(1).getMetaDataId()).isEqualTo(bucket.getMetaDataId());
     }
 
 }

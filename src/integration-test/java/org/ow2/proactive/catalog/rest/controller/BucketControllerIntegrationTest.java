@@ -178,9 +178,10 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     }
 
     @Test
-    public void testListBucketsGivenKind() throws UnsupportedEncodingException {
-        final String bucketName1 = "BucketWithObject";
+    public void testListBucketsGivenKindAndEmptyBucket() throws UnsupportedEncodingException {
+        final String bucketName1 = "BucketWithObjectWorkflow";
         final String bucketName2 = "EmptyBucket";
+        final String bucketNameWithSomeObjects = "BucketWithSomeObjects";
         // Get bucket ID from response to create an object in it
         Integer bucket1Id = given().parameters("name", bucketName1, "owner", "owner")
                                    .when()
@@ -191,9 +192,26 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
         given().parameters("name", bucketName2, "owner", "owner ").when().post(BUCKETS_RESOURCE);
 
-        // Add an object of kind "workflow" into first bucket
+        // Add an object of kind "myobjectkind" into first bucket
         given().pathParam("bucketId", bucket1Id)
                .queryParam("kind", "myobjectkind")
+               .queryParam("name", "myobjectname")
+               .queryParam("commitMessage", "first commit")
+               .queryParam("contentType", "application/xml")
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE);
+
+        Integer bucketWithSomeObjectsId = given().parameters("name", bucketNameWithSomeObjects, "owner", "owner")
+                                                 .when()
+                                                 .post(BUCKETS_RESOURCE)
+                                                 .then()
+                                                 .extract()
+                                                 .path("id");
+
+        // Add an object of kind "differentkind" into third bucket
+        given().pathParam("bucketId", bucketWithSomeObjectsId)
+               .queryParam("kind", "differentkind")
                .queryParam("name", "myobjectname")
                .queryParam("commitMessage", "first commit")
                .queryParam("contentType", "application/xml")
@@ -207,7 +225,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(1));
+               .body("", hasSize(2));
     }
 
     @Test
