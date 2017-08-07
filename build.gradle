@@ -157,7 +157,6 @@ dependencies {
 
 //  Using the Scheduler Rest client as authentication service
     providedCompile "org.ow2.proactive_grid_cloud_portal:rest-client:$version"
-    providedCompile "org.ow2.proactive:common-client:$version"
 
     testCompile 'com.google.truth:truth:0.28'
     testCompile 'junit:junit:4.12'
