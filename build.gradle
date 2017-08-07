@@ -37,7 +37,6 @@ apply plugin: 'com.github.kt3k.coveralls'
 apply from: "$rootDir/gradle/ext/coding-format.gradle"
 
 group = 'org.ow2.proactive'
-version = version
 
 bootRepackage {
     enabled = true
