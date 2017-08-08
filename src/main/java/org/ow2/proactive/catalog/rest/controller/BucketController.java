@@ -29,10 +29,12 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.BucketService;
+import org.ow2.proactive.catalog.service.GroupsWithPrefixRetriever;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
@@ -69,6 +71,9 @@ public class BucketController {
     @Autowired
     private RestApiAccessService restApiAccessService;
 
+    @Autowired
+    private GroupsWithPrefixRetriever groupsWithPrefixRetriever;
+
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
@@ -80,9 +85,7 @@ public class BucketController {
     public BucketMetadata create(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @RequestParam(value = "name", required = true) String bucketName,
-            @ApiParam(value = "The name of the user that will own the Bucket", defaultValue = "GROUP:" +
-                                                                                              BucketService.DEFAULT_BUCKET_OWNER) @RequestParam(value = "owner", required = false, defaultValue = "GROUP:" +
-                                                                                                                                                                                                  BucketService.DEFAULT_BUCKET_OWNER) String ownerName)
+            @ApiParam(value = "The name of the user that will own the Bucket", defaultValue = BucketService.DEFAULT_BUCKET_OWNER) @RequestParam(value = "owner", required = false, defaultValue = BucketService.DEFAULT_BUCKET_OWNER) String ownerName)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
             restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined(sessionId, ownerName);
@@ -121,9 +124,15 @@ public class BucketController {
         if (sessionIdRequired) {
             RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined(sessionId,
                                                                                                                         ownerName);
-            List<String> groupsAndUsername = restApiAccessResponse.getAuthenticatedUser().getGroups();
+            List<String> groups;
+            if (ownerName == null) {
+                groups = groupsWithPrefixRetriever.getGroupsWithPrefixFromGroupList(restApiAccessResponse.getAuthenticatedUser()
+                                                                                                         .getGroups());
+            } else {
+                groups = Collections.singletonList(ownerName);
+            }
 
-            return bucketService.listBuckets(groupsAndUsername, kind);
+            return bucketService.listBuckets(groups, kind);
 
         } else {
             return bucketService.listBuckets(ownerName, kind);

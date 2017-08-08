@@ -25,36 +25,28 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Component;
 
 
 /**
  * @author ActiveEon Team
- * @since 27/07/2017
+ * @since 07/08/2017
  */
 @Component
-public class AuthorizationService {
+public class GroupsWithPrefixRetriever {
 
-    public static final String GROUP_PREFIX = "GROUP:";
-
-    public boolean askUserAuthorizationByBucketOwner(AuthenticatedUser authenticatedUser, String bucketOwnerOrGroup) {
-        if (authenticatedUser == null) {
-            return false;
-        }
-        if (bucketOwnerOrGroup == null || bucketOwnerOrGroup == BucketService.DEFAULT_BUCKET_OWNER) {
-            return true;
-        }
-
-        String groupName = extractGroupFromBucketOwnerOrGroupString(bucketOwnerOrGroup);
-        return authenticatedUser.getGroups().contains(groupName) ||
-               BucketService.DEFAULT_BUCKET_OWNER.equals(groupName);
+    public List<String> getGroupsWithPrefixFromGroupList(List<String> groups) {
+        return groups.stream().map(this::addGroupPrefix).collect(Collectors.toList());
     }
 
-    private String extractGroupFromBucketOwnerOrGroupString(String bucketOwnerOrGroup) {
-        if (bucketOwnerOrGroup.startsWith(GROUP_PREFIX)) {
-            return bucketOwnerOrGroup.replace(GROUP_PREFIX, "");
-        }
-        return bucketOwnerOrGroup;
+    private String addGroupPrefix(String groupWithoutPrefix) {
+        return this.getGroupPrefix() + groupWithoutPrefix;
+    }
+
+    protected String getGroupPrefix() {
+        return AuthorizationService.GROUP_PREFIX;
     }
 }
