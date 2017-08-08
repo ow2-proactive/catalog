@@ -88,13 +88,13 @@ public class AuthorizationServiceTest {
     }
 
     @Test
-    public void testAgainstOwnerNullReturnsFalse() {
+    public void testAgainstOwnerNullReturnsTrueBecauseNoSpecificAccessRequired() {
         AuthenticatedUser authenticatedUser = AuthenticatedUser.builder()
                                                                .name("C3PO")
                                                                .groups(Arrays.asList("secret stuff", "robots"))
                                                                .build();
 
-        assertThat(authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser, null)).isFalse();
+        assertThat(authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser, null)).isTrue();
     }
 
     @Test
