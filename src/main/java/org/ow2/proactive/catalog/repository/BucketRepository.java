@@ -63,7 +63,7 @@ public interface BucketRepository extends JpaRepository<BucketEntity, Long>, Jpa
     @Query(value = "SELECT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos WHERE cos.kind = ?1 OR bk.catalogObjects IS EMPTY GROUP BY bk")
     List<BucketEntity> findContainingKind(String kind);
 
-    @Query(value = "SELECT bk FROM BucketEntity bk INNER JOIN bk.catalogObjects cos WHERE bk.owner in ?1 AND cos.kind = ?2 GROUP BY bk")
+    @Query(value = "SELECT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos WHERE bk.owner in ?1 AND (cos.kind = ?2 OR bk.catalogObjects IS EMPTY) GROUP BY bk")
     List<BucketEntity> findByOwnerIsInContainingKind(List<String> owners, String kind);
 
 }
