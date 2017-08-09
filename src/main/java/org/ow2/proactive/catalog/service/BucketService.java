@@ -67,7 +67,9 @@ import lombok.extern.log4j.Log4j2;
 @Transactional
 public class BucketService {
 
-    public static final String DEFAULT_BUCKET_OWNER = AuthorizationService.GROUP_PREFIX + "public-objects";
+    public static final String GROUP_PREFIX = "GROUP:";
+
+    public static final String DEFAULT_BUCKET_OWNER = GROUP_PREFIX + "public-objects";
 
     private static final String DEFAULT_OBJECTS_FOLDER = "/default-objects";
 
