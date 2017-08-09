@@ -36,13 +36,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuthorizationService {
 
-    public static final String GROUP_PREFIX = "GROUP:";
-
     public boolean askUserAuthorizationByBucketOwner(AuthenticatedUser authenticatedUser, String bucketOwnerOrGroup) {
         if (authenticatedUser == null) {
             return false;
         }
-        if (bucketOwnerOrGroup == null || bucketOwnerOrGroup == BucketService.DEFAULT_BUCKET_OWNER) {
+        if (bucketOwnerOrGroup == null || bucketOwnerOrGroup.equals(BucketService.DEFAULT_BUCKET_OWNER)) {
             return true;
         }
 
@@ -52,8 +50,8 @@ public class AuthorizationService {
     }
 
     private String extractGroupFromBucketOwnerOrGroupString(String bucketOwnerOrGroup) {
-        if (bucketOwnerOrGroup.startsWith(GROUP_PREFIX)) {
-            return bucketOwnerOrGroup.replace(GROUP_PREFIX, "");
+        if (bucketOwnerOrGroup.startsWith(BucketService.GROUP_PREFIX)) {
+            return bucketOwnerOrGroup.replace(BucketService.GROUP_PREFIX, "");
         }
         return bucketOwnerOrGroup;
     }

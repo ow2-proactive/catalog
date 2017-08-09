@@ -47,6 +47,6 @@ public class GroupsWithPrefixRetriever {
     }
 
     protected String getGroupPrefix() {
-        return AuthorizationService.GROUP_PREFIX;
+        return BucketService.GROUP_PREFIX;
     }
 }
