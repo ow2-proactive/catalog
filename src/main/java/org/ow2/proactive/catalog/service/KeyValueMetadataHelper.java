@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamException;
 
 import org.ow2.proactive.catalog.dto.Metadata;
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
@@ -44,7 +44,7 @@ import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
  */
 public class KeyValueMetadataHelper {
 
-    public static List<KeyValueMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {
+    public static List<KeyValueLabelMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {
         try {
             CatalogObjectParserInterface catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
             return catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
@@ -53,11 +53,11 @@ public class KeyValueMetadataHelper {
         }
     }
 
-    public static List<KeyValueMetadataEntity> convertToEntity(List<Metadata> source) {
-        return source.stream().map(KeyValueMetadataEntity::new).collect(Collectors.toList());
+    public static List<KeyValueLabelMetadataEntity> convertToEntity(List<Metadata> source) {
+        return source.stream().map(KeyValueLabelMetadataEntity::new).collect(Collectors.toList());
     }
 
-    public static List<Metadata> convertFromEntity(List<KeyValueMetadataEntity> source) {
+    public static List<Metadata> convertFromEntity(List<KeyValueLabelMetadataEntity> source) {
         return source.stream().map(Metadata::new).collect(Collectors.toList());
     }
 }

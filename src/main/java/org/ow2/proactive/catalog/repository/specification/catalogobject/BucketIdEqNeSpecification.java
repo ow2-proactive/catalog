@@ -30,7 +30,7 @@ import javax.persistence.criteria.Join;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyEqNeSpecification;
 
@@ -46,7 +46,7 @@ public class BucketIdEqNeSpecification extends CompositeKeyEqNeSpecification<Lon
     @Builder
     BucketIdEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations, Long value,
             Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
-            Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadataJoin) {
+            Join<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadataJoin) {
         super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
     }
 }

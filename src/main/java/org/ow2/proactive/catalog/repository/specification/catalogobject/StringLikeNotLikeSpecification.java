@@ -34,7 +34,7 @@ import javax.persistence.criteria.Root;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.ow2.proactive.catalog.repository.specification.generic.AbstractSpecification;
 
@@ -50,7 +50,7 @@ public class StringLikeNotLikeSpecification extends AbstractSpecification<String
     @Builder
     public StringLikeNotLikeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
             String value, Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
-            Join<CatalogObjectRevisionEntity, KeyValueMetadataEntity> metadataJoin) {
+            Join<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadataJoin) {
         super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
     }
 

@@ -49,7 +49,7 @@ import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
@@ -145,7 +145,9 @@ public class CatalogObjectServiceTest {
                                                                      .contentType("application/xml")
                                                                      .lastCommitTime(now)
                                                                      .build();
-        List<KeyValueMetadataEntity> keyvalues = ImmutableList.of(new KeyValueMetadataEntity("key", "value", null));
+        List<KeyValueLabelMetadataEntity> keyvalues = ImmutableList.of(new KeyValueLabelMetadataEntity("key",
+                                                                                                       "value",
+                                                                                                       null));
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(COMMIT_MESSAGE)
                                                                                              .commitTime(now)
@@ -164,7 +166,9 @@ public class CatalogObjectServiceTest {
                                                                      .contentType("application/xml")
                                                                      .lastCommitTime(now)
                                                                      .build();
-        List<KeyValueMetadataEntity> keyvalues = ImmutableList.of(new KeyValueMetadataEntity("key", "value", null));
+        List<KeyValueLabelMetadataEntity> keyvalues = ImmutableList.of(new KeyValueLabelMetadataEntity("key",
+                                                                                                       "value",
+                                                                                                       null));
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(COMMIT_MESSAGE)
                                                                                              .commitTime(now)
@@ -185,7 +189,9 @@ public class CatalogObjectServiceTest {
     @Test(expected = CatalogObjectNotFoundException.class)
     public void testCreateCatalogObjectRevisionNotFound() {
         when(catalogObjectRepository.findOne(any(CatalogObjectEntity.CatalogObjectEntityKey.class))).thenReturn(null);
-        List<KeyValueMetadataEntity> keyvalues = ImmutableList.of(new KeyValueMetadataEntity("key", "value", null));
+        List<KeyValueLabelMetadataEntity> keyvalues = ImmutableList.of(new KeyValueLabelMetadataEntity("key",
+                                                                                                       "value",
+                                                                                                       null));
         catalogObjectService.createCatalogObjectRevision(1L, NAME, COMMIT_MESSAGE, null);
     }
 
