@@ -30,7 +30,7 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 
 
 /**
@@ -40,6 +40,6 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
  */
 public interface CatalogObjectParserInterface {
 
-    List<KeyValueMetadataEntity> parse(InputStream inputStream) throws XMLStreamException;
+    List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException;
 
 }

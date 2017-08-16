@@ -33,7 +33,7 @@ import java.util.List;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
@@ -48,7 +48,7 @@ public class ProActiveCatalogObjectParserTest {
 
     @Test
     public void testParseWorkflow() throws Exception {
-        List<KeyValueMetadataEntity> result = parseWorkflow("workflow.xml");
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow.xml");
 
         assertThat(result).hasSize(6);
         assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
@@ -60,13 +60,14 @@ public class ProActiveCatalogObjectParserTest {
 
     }
 
-    private static void assertKeyValueDataAre(KeyValueMetadataEntity data, String key, String value, String label) {
+    private static void assertKeyValueDataAre(KeyValueLabelMetadataEntity data, String key, String value,
+            String label) {
         assertTrue(data.getKey().equals(key) && data.getValue().equals(value) && data.getLabel().equals(label));
     }
 
     @Test
     public void testParseWorkflowContainingNoName() throws Exception {
-        List<KeyValueMetadataEntity> result = parseWorkflow("workflow-no-name.xml");
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-name.xml");
 
         assertThat(result).hasSize(5);
         assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
@@ -78,7 +79,7 @@ public class ProActiveCatalogObjectParserTest {
 
     @Test
     public void testParseWorkflowContainingNoProjectName() throws Exception {
-        List<KeyValueMetadataEntity> result = parseWorkflow("workflow-no-project-name.xml");
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-project-name.xml");
 
         assertThat(result).hasSize(5);
         assertKeyValueDataAre(result.get(0), "name", "Valid Workflow", "job_information");
@@ -90,14 +91,14 @@ public class ProActiveCatalogObjectParserTest {
 
     @Test
     public void testParseWorkflowContainingNoGenericInformationAndNoVariable() throws Exception {
-        List<KeyValueMetadataEntity> result = parseWorkflow("workflow-no-generic-information-no-variable.xml");
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-generic-information-no-variable.xml");
 
         assertThat(result).hasSize(2);
         assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
         assertKeyValueDataAre(result.get(1), "name", "Valid Workflow", "job_information");
     }
 
-    private List<KeyValueMetadataEntity> parseWorkflow(String xmlFilename) throws XMLStreamException {
+    private List<KeyValueLabelMetadataEntity> parseWorkflow(String xmlFilename) throws XMLStreamException {
         CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("workflow");
 
         return parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/workflows/" + xmlFilename));

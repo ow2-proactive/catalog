@@ -33,7 +33,7 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.util.parser.pcw.rule.model.PollConfiguration;
 import org.ow2.proactive.catalog.util.parser.pcw.rule.model.Rule;
 
@@ -57,31 +57,33 @@ public final class PCWRuleParser implements CatalogObjectParserInterface {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public List<KeyValueMetadataEntity> parse(InputStream inputStream) throws XMLStreamException {
+    public List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException {
         Rule pcwRule = parseToPCWRuleContent(inputStream);
 
-        List<KeyValueMetadataEntity> keyValueMetadataEntities = new ArrayList<>();
+        List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = new ArrayList<>();
 
         PollConfiguration pollConfiguration = checkAndGetPollConfiguration(pcwRule);
 
         String pcwRuleName = ((pcwRule.getName() == null) ? "" : pcwRule.getName());
-        keyValueMetadataEntities.add(new KeyValueMetadataEntity("name", pcwRuleName, GENERAL_LABEL));
+        keyValueMetadataEntities.add(new KeyValueLabelMetadataEntity("name", pcwRuleName, GENERAL_LABEL));
 
         String pcwPollType = ((pollConfiguration.getPollType() == null) ? "" : pollConfiguration.getPollType());
-        keyValueMetadataEntities.add(new KeyValueMetadataEntity("PollType", pcwPollType, POLL_CONFIGURATION_LABEL));
-        keyValueMetadataEntities.add(new KeyValueMetadataEntity("pollingPeriodInSeconds",
-                                                                String.valueOf(pollConfiguration.getPollingPeriodInSeconds()),
-                                                                POLL_CONFIGURATION_LABEL));
-        keyValueMetadataEntities.add(new KeyValueMetadataEntity("calmPeriodInSeconds",
-                                                                String.valueOf(pollConfiguration.getCalmPeriodInSeconds()),
-                                                                POLL_CONFIGURATION_LABEL));
+        keyValueMetadataEntities.add(new KeyValueLabelMetadataEntity("PollType",
+                                                                     pcwPollType,
+                                                                     POLL_CONFIGURATION_LABEL));
+        keyValueMetadataEntities.add(new KeyValueLabelMetadataEntity("pollingPeriodInSeconds",
+                                                                     String.valueOf(pollConfiguration.getPollingPeriodInSeconds()),
+                                                                     POLL_CONFIGURATION_LABEL));
+        keyValueMetadataEntities.add(new KeyValueLabelMetadataEntity("calmPeriodInSeconds",
+                                                                     String.valueOf(pollConfiguration.getCalmPeriodInSeconds()),
+                                                                     POLL_CONFIGURATION_LABEL));
 
         String nodeUrlsListAsJson = getNodeUrlsAsJsonListToString(pollConfiguration);
         String kpisListAsJson = getKpisAsJsonListToString(pollConfiguration);
-        keyValueMetadataEntities.add(new KeyValueMetadataEntity("kpis", kpisListAsJson, POLL_CONFIGURATION_LABEL));
-        keyValueMetadataEntities.add(new KeyValueMetadataEntity("NodeUrls",
-                                                                nodeUrlsListAsJson,
-                                                                POLL_CONFIGURATION_LABEL));
+        keyValueMetadataEntities.add(new KeyValueLabelMetadataEntity("kpis", kpisListAsJson, POLL_CONFIGURATION_LABEL));
+        keyValueMetadataEntities.add(new KeyValueLabelMetadataEntity("NodeUrls",
+                                                                     nodeUrlsListAsJson,
+                                                                     POLL_CONFIGURATION_LABEL));
 
         return keyValueMetadataEntities;
     }

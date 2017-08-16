@@ -33,7 +33,7 @@ import java.util.List;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
 
@@ -46,7 +46,7 @@ import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
 public final class PCWRuleParserTest {
     @Test
     public void testParseCpuRule() throws XMLStreamException {
-        List<KeyValueMetadataEntity> result = parseRule("pcwRuleExample.json");
+        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRuleExample.json");
 
         assertThat(result.size(), is(6));
         assertKeyValueDataAre(result.get(0), "name", "ruleNodeIsUpMetric", "General");
@@ -64,7 +64,7 @@ public final class PCWRuleParserTest {
 
     }
 
-    private static void assertKeyValueDataAre(KeyValueMetadataEntity data, String key, String value, String type) {
+    private static void assertKeyValueDataAre(KeyValueLabelMetadataEntity data, String key, String value, String type) {
         assertThat(data.getKey(), is(key));
         assertThat(data.getValue(), is(value));
         assertThat(data.getLabel(), is(type));
@@ -72,7 +72,7 @@ public final class PCWRuleParserTest {
 
     @Test
     public void testParseRuleContainingNoName() throws Exception {
-        List<KeyValueMetadataEntity> result = parseRule("pcwRuleNoName.json");
+        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRuleNoName.json");
 
         assertThat(result.size(), is(6));
         assertKeyValueDataAre(result.get(0), "name", "", "General");
@@ -91,7 +91,7 @@ public final class PCWRuleParserTest {
 
     @Test
     public void testParseRuleContainingNoType() throws Exception {
-        List<KeyValueMetadataEntity> result = parseRule("pcwRuleNoType.json");
+        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRuleNoType.json");
 
         assertThat(result.size(), is(6));
         assertKeyValueDataAre(result.get(0), "name", "ruleNodeIsUpMetric", "General");
@@ -110,7 +110,7 @@ public final class PCWRuleParserTest {
 
     @Test
     public void testParseRuleContainingNoPollingPeriod() throws Exception {
-        List<KeyValueMetadataEntity> result = parseRule("pcwRuleNoPollingPeriod.json");
+        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRuleNoPollingPeriod.json");
 
         assertThat(result.size(), is(6));
         assertKeyValueDataAre(result.get(0), "name", "ruleNodeIsUpMetric", "General");
@@ -129,7 +129,7 @@ public final class PCWRuleParserTest {
 
     @Test
     public void testParseRuleContainingNoUrl() throws Exception {
-        List<KeyValueMetadataEntity> result = parseRule("pcwRuleNoNodeUrl.json");
+        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRuleNoNodeUrl.json");
 
         assertThat(result.size(), is(6));
         assertKeyValueDataAre(result.get(0), "name", "ruleNodeIsUpMetric", "General");
@@ -145,7 +145,7 @@ public final class PCWRuleParserTest {
 
     @Test(expected = RuntimeException.class)
     public void testParseRuleContainingNoPollingConfiguration() throws Exception {
-        List<KeyValueMetadataEntity> result = parseRule("pcwRuleNoPollingConfiguration.json");
+        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRuleNoPollingConfiguration.json");
     }
 
     @Test(expected = RuntimeException.class)
@@ -153,7 +153,7 @@ public final class PCWRuleParserTest {
         parseRule("pcwRuleWrongToParse.json");
     }
 
-    private List<KeyValueMetadataEntity> parseRule(String filename) throws XMLStreamException {
+    private List<KeyValueLabelMetadataEntity> parseRule(String filename) throws XMLStreamException {
         CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("pcw-rule");
 
         return parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/pcw-rules/" + filename));

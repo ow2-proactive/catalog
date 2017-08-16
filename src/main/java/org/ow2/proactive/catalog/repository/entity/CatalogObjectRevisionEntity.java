@@ -89,7 +89,7 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 10)
     @Builder.Default
-    private List<KeyValueMetadataEntity> keyValueMetadataList = new ArrayList<>();
+    private List<KeyValueLabelMetadataEntity> keyValueMetadataList = new ArrayList<>();
 
     @Lob
     @Column(name = "RAW_OBJECT", length = Integer.MAX_VALUE)
@@ -104,12 +104,12 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
         keyValueMetadataList = new ArrayList<>();
     }
 
-    public void addKeyValue(KeyValueMetadataEntity keyValueMetadata) {
+    public void addKeyValue(KeyValueLabelMetadataEntity keyValueMetadata) {
         this.keyValueMetadataList.add(keyValueMetadata);
         keyValueMetadata.setCatalogObjectRevision(this);
     }
 
-    public void addKeyValueList(Collection<KeyValueMetadataEntity> keyValueMetadataList) {
+    public void addKeyValueList(Collection<KeyValueLabelMetadataEntity> keyValueMetadataList) {
         keyValueMetadataList.forEach(kv -> addKeyValue(kv));
     }
 

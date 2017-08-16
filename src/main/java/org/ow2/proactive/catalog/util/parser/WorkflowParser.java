@@ -34,7 +34,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
 
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 
 import com.google.common.collect.ImmutableList;
 
@@ -98,7 +98,7 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
 
     /* Below are instance variables containing values which are extracted */
 
-    private ImmutableList<KeyValueMetadataEntity> keyValueMap;
+    private ImmutableList<KeyValueLabelMetadataEntity> keyValueMap;
 
     private static final class XmlInputFactoryLazyHolder {
 
@@ -109,12 +109,12 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
     public WorkflowParser() {
     }
 
-    public List<KeyValueMetadataEntity> parse(InputStream inputStream) throws XMLStreamException {
+    public List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException {
 
         XMLStreamReader xmlStreamReader = XmlInputFactoryLazyHolder.INSTANCE.createXMLStreamReader(inputStream);
         int eventType;
 
-        ImmutableList.Builder<KeyValueMetadataEntity> keyValueMapBuilder = ImmutableList.builder();
+        ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableList.builder();
         boolean isTaskFlow = false;
         try {
             while (xmlStreamReader.hasNext() && !allElementHandled()) {
@@ -176,7 +176,7 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
         }
     }
 
-    private void handleGenericInformationElement(ImmutableList.Builder<KeyValueMetadataEntity> keyValueMapBuilder,
+    private void handleGenericInformationElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
             XMLStreamReader xmlStreamReader) {
         handleElementWithMultipleValues(keyValueMapBuilder,
                                         ATTRIBUTE_GENERIC_INFORMATION_LABEL,
@@ -185,21 +185,23 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
                                         xmlStreamReader);
     }
 
-    private void handleJobElement(ImmutableList.Builder<KeyValueMetadataEntity> keyValueMapBuilder,
+    private void handleJobElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
             XMLStreamReader xmlStreamReader) {
         iterateOverAttributes((attributeName, attributeValue) -> {
             if (attributeName.equals(ATTRIBUTE_JOB_NAME)) {
-                keyValueMapBuilder.add(new KeyValueMetadataEntity(JOB_NAME_KEY, attributeValue, JOB_AND_PROJECT_LABEL));
+                keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY,
+                                                                       attributeValue,
+                                                                       JOB_AND_PROJECT_LABEL));
             } else if (attributeName.equals(ATTRIBUTE_JOB_PROJECT_NAME)) {
-                keyValueMapBuilder.add(new KeyValueMetadataEntity(PROJECT_NAME_KEY,
-                                                                  attributeValue,
-                                                                  JOB_AND_PROJECT_LABEL));
+                keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(PROJECT_NAME_KEY,
+                                                                       attributeValue,
+                                                                       JOB_AND_PROJECT_LABEL));
             }
         }, xmlStreamReader);
         jobHandled = true;
     }
 
-    private void handleVariableElement(ImmutableList.Builder<KeyValueMetadataEntity> keyValueMapBuilder,
+    private void handleVariableElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
             XMLStreamReader xmlStreamReader) {
         handleElementWithMultipleValues(keyValueMapBuilder,
                                         ATTRIBUTE_VARIABLE_LABEL,
@@ -208,7 +210,7 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
                                         xmlStreamReader);
     }
 
-    private void handleElementWithMultipleValues(ImmutableList.Builder<KeyValueMetadataEntity> keyValueMapBuilder,
+    private void handleElementWithMultipleValues(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
             String attributeLabel, String attributeNameForKey, String attributeNameForValue,
             XMLStreamReader xmlStreamReader) {
         String[] key = new String[1];
@@ -222,7 +224,7 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
             }
         }, xmlStreamReader);
 
-        keyValueMapBuilder.add(new KeyValueMetadataEntity(key[0], value[0], attributeLabel));
+        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(key[0], value[0], attributeLabel));
     }
 
     private void iterateOverAttributes(BiConsumer<String, String> attribute, XMLStreamReader xmlStreamReader) {
@@ -238,7 +240,7 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
         return this.jobHandled && this.genericInformationHandled && this.variablesHandled;
     }
 
-    private ImmutableList<KeyValueMetadataEntity> getKeyValueMap() {
+    private ImmutableList<KeyValueLabelMetadataEntity> getKeyValueMap() {
         return keyValueMap;
     }
 

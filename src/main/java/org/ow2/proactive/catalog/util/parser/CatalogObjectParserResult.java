@@ -27,7 +27,7 @@ package org.ow2.proactive.catalog.util.parser;
 
 import java.util.Objects;
 
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 
 import com.google.common.collect.ImmutableList;
 
@@ -46,10 +46,10 @@ public final class CatalogObjectParserResult {
 
     private final String name;
 
-    private final ImmutableList<KeyValueMetadataEntity> keyValueList;
+    private final ImmutableList<KeyValueLabelMetadataEntity> keyValueList;
 
     public CatalogObjectParserResult(String kind, String projectName, String name,
-            ImmutableList<KeyValueMetadataEntity> keyValueMap) {
+            ImmutableList<KeyValueLabelMetadataEntity> keyValueMap) {
         Objects.requireNonNull(keyValueMap);
 
         this.kind = kind;
@@ -70,7 +70,7 @@ public final class CatalogObjectParserResult {
         return name;
     }
 
-    public ImmutableList<KeyValueMetadataEntity> getKeyValueList() {
+    public ImmutableList<KeyValueLabelMetadataEntity> getKeyValueList() {
         return keyValueList;
     }
 

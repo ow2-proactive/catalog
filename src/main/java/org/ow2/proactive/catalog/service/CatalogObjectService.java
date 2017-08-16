@@ -41,7 +41,7 @@ import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
@@ -145,11 +145,11 @@ public class CatalogObjectService {
     private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(String commitMessage,
             List<Metadata> metadataList, byte[] rawObject, CatalogObjectEntity catalogObjectEntity) {
 
-        List<KeyValueMetadataEntity> keyValueMetadataEntities = KeyValueMetadataHelper.convertToEntity(metadataList);
+        List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = KeyValueMetadataHelper.convertToEntity(metadataList);
 
-        List<KeyValueMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? KeyValueMetadataHelper.extractKeyValuesFromRaw(catalogObjectEntity.getKind(),
-                                                                                                                                        rawObject)
-                                                                                       : keyValueMetadataEntities;
+        List<KeyValueLabelMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? KeyValueMetadataHelper.extractKeyValuesFromRaw(catalogObjectEntity.getKind(),
+                                                                                                                                             rawObject)
+                                                                                            : keyValueMetadataEntities;
 
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)

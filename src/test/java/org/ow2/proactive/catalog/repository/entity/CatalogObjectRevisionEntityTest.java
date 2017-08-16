@@ -41,13 +41,13 @@ public class CatalogObjectRevisionEntityTest {
         CatalogObjectRevisionEntity catalogObjectRevision = createCatalogObjectRevision();
         assertThat(catalogObjectRevision.getKeyValueMetadataList()).hasSize(1);
 
-        catalogObjectRevision.addKeyValue(Mockito.mock(KeyValueMetadataEntity.class));
+        catalogObjectRevision.addKeyValue(Mockito.mock(KeyValueLabelMetadataEntity.class));
 
         assertThat(catalogObjectRevision.getKeyValueMetadataList()).hasSize(2);
     }
 
     private CatalogObjectRevisionEntity createCatalogObjectRevision() {
-        KeyValueMetadataEntity variableMock = Mockito.mock(KeyValueMetadataEntity.class);
+        KeyValueLabelMetadataEntity variableMock = Mockito.mock(KeyValueLabelMetadataEntity.class);
 
         CatalogObjectRevisionEntity catalogObjectRevision = new CatalogObjectRevisionEntity();
         catalogObjectRevision.addKeyValue(variableMock);

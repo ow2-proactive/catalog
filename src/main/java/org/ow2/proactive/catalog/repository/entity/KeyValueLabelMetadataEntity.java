@@ -61,7 +61,7 @@ import lombok.NoArgsConstructor;
                                                                                           "LABEL" }), indexes = { @Index(columnList = "KEY"),
                                                                                                                   @Index(columnList = "VALUE") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public class KeyValueMetadataEntity implements Serializable {
+public class KeyValueLabelMetadataEntity implements Serializable {
 
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
@@ -82,13 +82,13 @@ public class KeyValueMetadataEntity implements Serializable {
     @JoinColumns({ @JoinColumn(name = "CATALOGOBJECTREVISION", referencedColumnName = "ID") })
     protected CatalogObjectRevisionEntity catalogObjectRevision;
 
-    public KeyValueMetadataEntity(String key, String value, String label) {
+    public KeyValueLabelMetadataEntity(String key, String value, String label) {
         this.key = key;
         this.value = value;
         this.label = label;
     }
 
-    public KeyValueMetadataEntity(Metadata metadata) {
+    public KeyValueLabelMetadataEntity(Metadata metadata) {
         this.key = metadata.getKey();
         this.value = metadata.getValue();
         this.label = metadata.getLabel();
@@ -103,7 +103,7 @@ public class KeyValueMetadataEntity implements Serializable {
         if (!super.equals(o))
             return false;
 
-        KeyValueMetadataEntity that = (KeyValueMetadataEntity) o;
+        KeyValueLabelMetadataEntity that = (KeyValueLabelMetadataEntity) o;
 
         if (!key.equals(that.key))
             return false;
@@ -120,7 +120,7 @@ public class KeyValueMetadataEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "KeyValueMetadataEntity{" + "key='" + key + '\'' + ", value='" + value + '\'' + ", type='" + label +
+        return "KeyValueLabelMetadataEntity{" + "key='" + key + '\'' + ", value='" + value + '\'' + ", type='" + label +
                '\'' + '}';
     }
 }

@@ -30,7 +30,7 @@ import static com.google.common.truth.Truth.assertThat;
 import java.util.List;
 
 import org.junit.Test;
-import org.ow2.proactive.catalog.repository.entity.KeyValueMetadataEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
 import org.ow2.proactive.catalog.util.parser.DefaultCatalogObjectParser;
@@ -47,7 +47,7 @@ public class DefaultCatalogObjectParserTest {
     public void testParseDefaultObject() throws Exception {
         CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("default object");
 
-        List<KeyValueMetadataEntity> result = parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/objects/workflow.json"));
+        List<KeyValueLabelMetadataEntity> result = parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/objects/workflow.json"));
 
         assertThat(result).hasSize(0);
     }
