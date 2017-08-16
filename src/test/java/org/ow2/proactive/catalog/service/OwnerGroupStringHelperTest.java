@@ -27,41 +27,42 @@ package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 
 /**
  * @author ActiveEon Team
- * @since 08/08/2017
+ * @since 16/08/2017
  */
 @RunWith(MockitoJUnitRunner.class)
-public class GroupsWithPrefixRetrieverTest {
+public class OwnerGroupStringHelperTest {
 
-    @InjectMocks
     @Spy
     private OwnerGroupStringHelper ownerGroupStringHelper;
 
-    @Test(expected = NullPointerException.class)
-    public void testThatNullThrowsNullPointerException() {
-        ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(null);
+    @Test
+    public void testThatGroupPrefixIsRemovedFromString() {
+
+        assertThat(ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString(OwnerGroupStringHelper.GROUP_PREFIX +
+                                                                                   "thisIsTheGroup")).isEqualTo("thisIsTheGroup");
     }
 
     @Test
-    public void testThatEmptyListReturnsEmptyList() {
-        assertThat(ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(Collections.emptyList())).isEmpty();
+    public void testThatPrefixIsAddedToEveryListEntry() {
+        List<String> groupsWithPrefixList = ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(Arrays.asList("first",
+                                                                                                                  "second"));
+
+        groupsWithPrefixList.forEach(this::checkThatStringHasPrefix);
     }
 
-    @Test
-    public void testThatGroupPrefixIsAdded() {
-        List<String> result = ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(Collections.singletonList("test"));
-        assertThat(result).contains(OwnerGroupStringHelper.GROUP_PREFIX + "test");
+    private void checkThatStringHasPrefix(String stringWithPrefix) {
+        assertThat(stringWithPrefix).startsWith(OwnerGroupStringHelper.GROUP_PREFIX);
     }
 
 }

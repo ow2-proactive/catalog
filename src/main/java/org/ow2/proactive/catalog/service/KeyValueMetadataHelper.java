@@ -26,6 +26,9 @@
 package org.ow2.proactive.catalog.service;
 
 import java.io.ByteArrayInputStream;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,17 +37,35 @@ import javax.xml.stream.XMLStreamException;
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
+import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
+import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 
 /**
  * @author ActiveEon Team
  * @since 19/06/2017
  */
+@Component
 public class KeyValueMetadataHelper {
 
-    public static List<KeyValueLabelMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {
+    @SuppressWarnings("FieldCanBeLocal")
+    private static final String GROUP_KEY = "group";
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private static final String BUCKET_NAME_KEY = "bucketName";
+
+    private final OwnerGroupStringHelper ownerGroupStringHelper;
+
+    @Autowired
+    public KeyValueMetadataHelper(OwnerGroupStringHelper ownerGroupStringHelper) {
+        this.ownerGroupStringHelper = ownerGroupStringHelper;
+    }
+
+    public List<KeyValueLabelMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {
         try {
             CatalogObjectParserInterface catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
             return catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
@@ -57,7 +78,61 @@ public class KeyValueMetadataHelper {
         return source.stream().map(KeyValueLabelMetadataEntity::new).collect(Collectors.toList());
     }
 
-    public static List<Metadata> convertFromEntity(List<KeyValueLabelMetadataEntity> source) {
+    public List<Metadata> convertFromEntity(List<KeyValueLabelMetadataEntity> source) {
         return source.stream().map(Metadata::new).collect(Collectors.toList());
+    }
+
+    public List<AbstractMap.SimpleImmutableEntry<String, String>>
+            toKeyValueEntry(final List<KeyValueLabelMetadataEntity> workflowKeyValueMetadataEntities) {
+        return workflowKeyValueMetadataEntities.stream()
+                                               .map(this::createSimpleImmutableEntry)
+                                               .collect(Collectors.toList());
+    }
+
+    public List<KeyValueLabelMetadataEntity> replaceMetadataRelatedGenericInfoAndKeepOthers(
+            final List<KeyValueLabelMetadataEntity> workflowMetadataEntities,
+            final GenericInfoBucketData genericInfoBucketData) {
+        if (workflowMetadataEntities == null) {
+            return Collections.emptyList();
+        }
+        if (genericInfoBucketData == null) {
+            return new ArrayList<>(workflowMetadataEntities);
+        }
+
+        List<KeyValueLabelMetadataEntity> metadataListWithGroup = replaceOrAddGenericInfoKey(workflowMetadataEntities,
+                                                                                             GROUP_KEY,
+                                                                                             ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString(genericInfoBucketData.getGroup()));
+
+        List<KeyValueLabelMetadataEntity> metadataListWithGroupBucket = replaceOrAddGenericInfoKey(metadataListWithGroup,
+                                                                                                   BUCKET_NAME_KEY,
+                                                                                                   genericInfoBucketData.getBucketName());
+
+        return new ArrayList<>(metadataListWithGroupBucket);
+    }
+
+    private List<KeyValueLabelMetadataEntity> replaceOrAddGenericInfoKey(
+            final List<KeyValueLabelMetadataEntity> initialList, final String key, final String value) {
+        if (key == null || value == null) {
+            return initialList;
+        }
+
+        List<KeyValueLabelMetadataEntity> resultList = initialList.stream()
+                                                                  .filter(item -> !item.getKey().equals(key))
+                                                                  .collect(Collectors.toList());
+
+        resultList.add(createKeyValueLabelMetadataEntity(key, value));
+
+        return resultList;
+    }
+
+    private KeyValueLabelMetadataEntity createKeyValueLabelMetadataEntity(String key, String value) {
+        return new KeyValueLabelMetadataEntity(key, value, WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
+    }
+
+    private AbstractMap.SimpleImmutableEntry<String, String>
+            createSimpleImmutableEntry(final KeyValueLabelMetadataEntity KeyValueLabelMetadataEntity) {
+        return new AbstractMap.SimpleImmutableEntry<>(KeyValueLabelMetadataEntity.getKey(),
+                                                      KeyValueLabelMetadataEntity.getValue());
+
     }
 }

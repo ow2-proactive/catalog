@@ -34,6 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
@@ -83,6 +84,12 @@ public class CatalogObjectServiceTest {
     @Mock
     private BucketRepository bucketRepository;
 
+    @Mock
+    private KeyValueMetadataHelper keyValueMetadataHelper;
+
+    @Mock
+    private GenericInformationAdder genericInformationAdder;
+
     @Test(expected = BucketNotFoundException.class)
     public void testCreateCatalogObjectWithInvalidBucket() {
         when(bucketRepository.findOne(anyLong())).thenReturn(null);
@@ -95,7 +102,9 @@ public class CatalogObjectServiceTest {
         when(bucketRepository.findOne(anyLong())).thenReturn(bucketEntity);
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(System.currentTimeMillis());
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectEntity);
-
+        when(genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(any(),
+                                                                                any(),
+                                                                                any())).thenReturn(new byte[] {});
         List<Metadata> keyValues = ImmutableList.of(new Metadata("key", "value", null));
 
         CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(1L,
@@ -202,6 +211,8 @@ public class CatalogObjectServiceTest {
         when(catalogObjectRepository.findOne(any(CatalogObjectEntity.CatalogObjectEntityKey.class))).thenReturn(catalogObjectEntity);
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectRevisionEntity);
         List<Metadata> keyvalues = ImmutableList.of(new Metadata("key", "value", null));
+        when(keyValueMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(any(),
+                                                                                   any())).thenReturn(Collections.emptyList());
         CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObjectRevision(1L,
                                                                                                NAME,
                                                                                                COMMIT_MESSAGE,

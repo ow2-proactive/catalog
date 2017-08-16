@@ -46,6 +46,7 @@ import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
+import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
@@ -79,6 +80,12 @@ public class CatalogObjectService {
 
     @Autowired
     private ArchiveManagerHelper archiveManager;
+
+    @Autowired
+    private KeyValueMetadataHelper keyValueMetadataHelper;
+
+    @Autowired
+    private GenericInformationAdder genericInformationAdder;
 
     public CatalogObjectMetadata createCatalogObject(Long bucketId, String name, String kind, String commitMessage,
             String contentType, byte[] rawObject) {
@@ -142,14 +149,21 @@ public class CatalogObjectService {
         return new CatalogObjectMetadata(result);
     }
 
-    private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(String commitMessage,
-            List<Metadata> metadataList, byte[] rawObject, CatalogObjectEntity catalogObjectEntity) {
+    private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(final String commitMessage,
+            final List<Metadata> metadataList, final byte[] rawObject, final CatalogObjectEntity catalogObjectEntity) {
 
         List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = KeyValueMetadataHelper.convertToEntity(metadataList);
 
-        List<KeyValueLabelMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? KeyValueMetadataHelper.extractKeyValuesFromRaw(catalogObjectEntity.getKind(),
+        List<KeyValueLabelMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? keyValueMetadataHelper.extractKeyValuesFromRaw(catalogObjectEntity.getKind(),
                                                                                                                                              rawObject)
                                                                                             : keyValueMetadataEntities;
+
+        GenericInfoBucketData genericInfoBucketData = createGenericInfoBucketData(catalogObjectEntity.getBucket());
+        List<KeyValueLabelMetadataEntity> genericInformationWithBucketDataList = keyValueMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(keyValues,
+                                                                                                                                                       genericInfoBucketData);
+        byte[] workflowWithReplacedGenericInfo = genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(rawObject,
+                                                                                                                    catalogObjectEntity.getKind(),
+                                                                                                                    keyValueMetadataHelper.toKeyValueEntry(genericInformationWithBucketDataList));
 
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)
@@ -157,16 +171,23 @@ public class CatalogObjectService {
                                                                                                                       .atZone(ZoneId.systemDefault())
                                                                                                                       .toInstant()
                                                                                                                       .toEpochMilli())
-                                                                                             .keyValueMetadataList(keyValues)
-                                                                                             .rawObject(rawObject)
+                                                                                             .keyValueMetadataList(genericInformationWithBucketDataList)
+                                                                                             .rawObject(workflowWithReplacedGenericInfo)
                                                                                              .catalogObject(catalogObjectEntity)
                                                                                              .build();
 
-        keyValues.stream().forEach(keyValue -> keyValue.setCatalogObjectRevision(catalogObjectRevisionEntity));
+        genericInformationWithBucketDataList.forEach(keyValue -> keyValue.setCatalogObjectRevision(catalogObjectRevisionEntity));
 
         catalogObjectEntity.addRevision(catalogObjectRevisionEntity);
 
         return catalogObjectRevisionRepository.save(catalogObjectRevisionEntity);
+    }
+
+    private GenericInfoBucketData createGenericInfoBucketData(BucketEntity bucket) {
+        if (bucket == null) {
+            return GenericInfoBucketData.EMPTY;
+        }
+        return GenericInfoBucketData.builder().bucketName(bucket.getName()).group(bucket.getOwner()).build();
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(Long bucketId) {
@@ -291,7 +312,7 @@ public class CatalogObjectService {
         }
 
         CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(catalogObjectRevision.getCommitMessage(),
-                                                                                        KeyValueMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
+                                                                                        keyValueMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
                                                                                         catalogObjectRevision.getRawObject(),
                                                                                         catalogObjectRevision.getCatalogObject());
 

@@ -23,36 +23,24 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.service;
+package org.ow2.proactive.catalog.service.model;
 
-import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import lombok.Builder;
+import lombok.Data;
 
 
 /**
  * @author ActiveEon Team
- * @since 27/07/2017
+ * @since 09/08/2017
  */
-@Component
-public class AuthorizationService {
+@Data
+@Builder
+public class GenericInfoBucketData {
 
-    private final OwnerGroupStringHelper ownerGroupStringHelper;
+    public static final GenericInfoBucketData EMPTY = GenericInfoBucketData.builder().build();
 
-    @Autowired
-    public AuthorizationService(OwnerGroupStringHelper ownerGroupStringHelper) {
-        this.ownerGroupStringHelper = ownerGroupStringHelper;
-    }
+    private String group;
 
-    public boolean askUserAuthorizationByBucketOwner(AuthenticatedUser authenticatedUser, String bucketOwnerOrGroup) {
-        if (authenticatedUser == null) {
-            return false;
-        }
-        if (bucketOwnerOrGroup == null || bucketOwnerOrGroup.equals(BucketService.DEFAULT_BUCKET_OWNER)) {
-            return true;
-        }
+    private String bucketName;
 
-        String groupName = ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString(bucketOwnerOrGroup);
-        return authenticatedUser.getGroups().contains(groupName);
-    }
 }

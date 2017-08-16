@@ -34,7 +34,7 @@ import java.util.List;
 
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.BucketService;
-import org.ow2.proactive.catalog.service.GroupsWithPrefixRetriever;
+import org.ow2.proactive.catalog.service.OwnerGroupStringHelper;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
@@ -72,11 +72,12 @@ public class BucketController {
     private RestApiAccessService restApiAccessService;
 
     @Autowired
-    private GroupsWithPrefixRetriever groupsWithPrefixRetriever;
+    private OwnerGroupStringHelper ownerGroupStringHelper;
 
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
+    @SuppressWarnings("DefaultAnnotationParam")
     @ApiOperation(value = "Creates a new bucket")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
@@ -104,7 +105,7 @@ public class BucketController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketId}", method = GET)
     public BucketMetadata getMetadata(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @SuppressWarnings("DefaultAnnotationParam") @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable long bucketId) throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
             restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined(sessionId, bucketId);
@@ -126,8 +127,8 @@ public class BucketController {
                                                                                                                         ownerName);
             List<String> groups;
             if (ownerName == null) {
-                groups = groupsWithPrefixRetriever.getGroupsWithPrefixFromGroupList(restApiAccessResponse.getAuthenticatedUser()
-                                                                                                         .getGroups());
+                groups = ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(restApiAccessResponse.getAuthenticatedUser()
+                                                                                                      .getGroups());
             } else {
                 groups = Collections.singletonList(ownerName);
             }
@@ -145,6 +146,7 @@ public class BucketController {
         bucketService.cleanAllEmptyBuckets();
     }
 
+    @SuppressWarnings("DefaultAnnotationParam")
     @ApiOperation(value = "Delete an empty bucket", notes = "It's forbidden to delete a non-empty bucket. You need to delete manually all workflows in the bucket before.")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
