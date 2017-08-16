@@ -57,8 +57,9 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @Table(name = "METADATA_KEY_VALUE", uniqueConstraints = @UniqueConstraint(columnNames = { "CATALOGOBJECTREVISION",
-                                                                                          "KEY" }), indexes = { @Index(columnList = "KEY"),
-                                                                                                                @Index(columnList = "VALUE") })
+                                                                                          "KEY",
+                                                                                          "LABEL" }), indexes = { @Index(columnList = "KEY"),
+                                                                                                                  @Index(columnList = "VALUE") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class KeyValueMetadataEntity implements Serializable {
 
