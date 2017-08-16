@@ -349,16 +349,6 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.getEdges()).hasSize(2);
         assertThat(connection.getTotalCount()).isEqualTo(2);
         assertThat(connection.getTotalPage()).isEqualTo(1);
-        assertThat(connection.getEdges()
-                             .stream()
-                             .filter(e -> e.getMetadata()
-                                           .stream()
-                                           .filter(m -> !m.getKey().equals("key") ||
-                                                        !m.getValue().equals("value"))
-                                           .findAny()
-                                           .isPresent())
-                             .findAny()
-                             .isPresent()).isFalse();
 
         query = "{\n" + "  allCatalogObjects(where:{metadataArg:{key:\"key\", value:{ne:\"value\"}}}) {\n" +
                 "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
@@ -377,12 +367,6 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.getTotalPage()).isEqualTo(1);
         assertThat(connection.isHasNext()).isFalse();
         assertThat(connection.isHasPrevious()).isFalse();
-        assertThat(connection.getEdges().stream().anyMatch(e -> e.getMetadata()
-                                                                 .stream()
-                                                                 .filter(m -> !m.getKey().equals("key") ||
-                                                                              m.getValue().equals("value"))
-                                                                 .findAny()
-                                                                 .isPresent())).isFalse();
 
         query = "{\n" + "  allCatalogObjects(where:{metadataArg:{key:\"key\", value:{like:\"value%\"}}}) {\n" +
                 "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
@@ -401,12 +385,6 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.getTotalPage()).isEqualTo(1);
         assertThat(connection.isHasNext()).isFalse();
         assertThat(connection.isHasPrevious()).isFalse();
-        assertThat(connection.getEdges().stream().anyMatch(e -> e.getMetadata()
-                                                                 .stream()
-                                                                 .filter(m -> !m.getKey().equals("key") ||
-                                                                              !m.getValue().startsWith("value"))
-                                                                 .findAny()
-                                                                 .isPresent())).isFalse();
     }
 
     @Test

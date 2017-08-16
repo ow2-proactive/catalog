@@ -29,6 +29,7 @@ import static org.mockito.Mockito.spy;
 
 import javax.sql.DataSource;
 
+import org.junit.Before;
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
@@ -40,7 +41,11 @@ import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectName
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
+import org.ow2.proactive.catalog.service.GenericInformationAdder;
 import org.ow2.proactive.catalog.service.GraphqlService;
+import org.ow2.proactive.catalog.service.KeyValueMetadataHelper;
+import org.ow2.proactive.catalog.service.OwnerGroupStringHelper;
+import org.ow2.proactive.catalog.service.WorkflowXmlManipulator;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
@@ -129,6 +134,21 @@ public class IntegrationTestConfig {
     @Bean
     public ArchiveManagerHelper archiveManager() {
         return new ArchiveManagerHelper();
+    }
+
+    @Bean
+    public KeyValueMetadataHelper keyValueMetadataHelper() {
+        return new KeyValueMetadataHelper(new OwnerGroupStringHelper());
+    }
+
+    @Bean
+    public GenericInformationAdder genericInformationAdder() {
+        return new GenericInformationAdder();
+    }
+
+    @Bean
+    public WorkflowXmlManipulator workflowXmlManipulator() {
+        return new WorkflowXmlManipulator();
     }
 
 }

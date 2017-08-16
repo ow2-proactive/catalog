@@ -240,28 +240,35 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                            .body("bucket_id", is(secondCatalogObjectRevision.get("bucket_id")))
                            .body("name", is(secondCatalogObjectRevision.get("name")))
                            .body("commit_time", is(secondCatalogObjectRevision.get("commit_time")))
-                           .body("object_key_values", hasSize(6))
+                           .body("object_key_values", hasSize(8))
                            //check generic_information label
                            .body("object_key_values[0].label", is("generic_information"))
-                           .body("object_key_values[0].key", is("genericInfo1"))
-                           .body("object_key_values[0].value", is("genericInfo1ValueUpdated"))
+                           .body("object_key_values[0].key", is("bucketName"))
+                           .body("object_key_values[0].value", is("bucket"))
                            .body("object_key_values[1].label", is("generic_information"))
-                           .body("object_key_values[1].key", is("genericInfo2"))
-                           .body("object_key_values[1].value", is("genericInfo2ValueUpdated"))
+                           .body("object_key_values[1].key", is("genericInfo1"))
+                           .body("object_key_values[1].value", is("genericInfo1ValueUpdated"))
+                           .body("object_key_values[2].label", is("generic_information"))
+                           .body("object_key_values[2].key", is("genericInfo2"))
+                           .body("object_key_values[2].value", is("genericInfo2ValueUpdated"))
+                           .body("object_key_values[3].label", is("generic_information"))
+                           .body("object_key_values[3].key", is("group"))
+                           .body("object_key_values[3].value", is("WorkflowRevisionControllerIntegrationTestUser"))
+
                            //check job info
-                           .body("object_key_values[2].label", is("job_information"))
-                           .body("object_key_values[2].key", is("name"))
-                           .body("object_key_values[2].value", is("Valid Workflow Updated"))
-                           .body("object_key_values[3].label", is("job_information"))
-                           .body("object_key_values[3].key", is("project_name"))
-                           .body("object_key_values[3].value", is("Project Name Updated"))
+                           .body("object_key_values[4].label", is("job_information"))
+                           .body("object_key_values[4].key", is("name"))
+                           .body("object_key_values[4].value", is("Valid Workflow Updated"))
+                           .body("object_key_values[5].label", is("job_information"))
+                           .body("object_key_values[5].key", is("project_name"))
+                           .body("object_key_values[5].value", is("Project Name Updated"))
                            //check variables label
-                           .body("object_key_values[4].label", is("variable"))
-                           .body("object_key_values[4].key", is("var1"))
-                           .body("object_key_values[4].value", is("var1ValueUpdated"))
-                           .body("object_key_values[5].label", is("variable"))
-                           .body("object_key_values[5].key", is("var2"))
-                           .body("object_key_values[5].value", is("var2ValueUpdated"));
+                           .body("object_key_values[6].label", is("variable"))
+                           .body("object_key_values[6].key", is("var1"))
+                           .body("object_key_values[6].value", is("var1ValueUpdated"))
+                           .body("object_key_values[7].label", is("variable"))
+                           .body("object_key_values[7].key", is("var2"))
+                           .body("object_key_values[7].value", is("var2ValueUpdated"));
     }
 
     @Test

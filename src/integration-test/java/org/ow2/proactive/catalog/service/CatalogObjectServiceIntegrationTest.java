@@ -143,7 +143,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                     "catalog1");
         assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("commit message 2");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("object");
-        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(1);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(3);
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("application/xml");
     }
 

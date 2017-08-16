@@ -33,20 +33,26 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author ActiveEon Team
- * @since 07/08/2017
+ * @since 11/08/2017
  */
 @Component
-public class GroupsWithPrefixRetriever {
+public class OwnerGroupStringHelper {
+
+    public static final String GROUP_PREFIX = "GROUP:";
+
+    public String extractGroupFromBucketOwnerOrGroupString(String bucketOwnerOrGroup) {
+        if (bucketOwnerOrGroup.startsWith(GROUP_PREFIX)) {
+            return bucketOwnerOrGroup.replace(GROUP_PREFIX, "");
+        }
+        return bucketOwnerOrGroup;
+    }
 
     public List<String> getGroupsWithPrefixFromGroupList(List<String> groups) {
         return groups.stream().map(this::addGroupPrefix).collect(Collectors.toList());
     }
 
     private String addGroupPrefix(String groupWithoutPrefix) {
-        return this.getGroupPrefix() + groupWithoutPrefix;
+        return GROUP_PREFIX + groupWithoutPrefix;
     }
 
-    protected String getGroupPrefix() {
-        return BucketService.GROUP_PREFIX;
-    }
 }

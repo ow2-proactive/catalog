@@ -25,34 +25,34 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import java.util.AbstractMap;
+import java.util.List;
+
+import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 
 /**
  * @author ActiveEon Team
- * @since 27/07/2017
+ * @since 11/08/2017
  */
+@SuppressWarnings("WeakerAccess")
 @Component
-public class AuthorizationService {
-
-    private final OwnerGroupStringHelper ownerGroupStringHelper;
+public class GenericInformationAdder {
 
     @Autowired
-    public AuthorizationService(OwnerGroupStringHelper ownerGroupStringHelper) {
-        this.ownerGroupStringHelper = ownerGroupStringHelper;
+    private WorkflowXmlManipulator workflowXmlManipulator;
+
+    public byte[] addGenericInformationToRawObjectIfWorkflow(final byte[] rawObject,
+            final String catalogObjectEntityKind,
+            List<AbstractMap.SimpleImmutableEntry<String, String>> genericInformationMapEntry) {
+        byte[] workflowWithReplacedGenericInfo = rawObject;
+        if (catalogObjectEntityKind.equals(SupportedParserKinds.WORKFLOW.toString())) {
+            workflowWithReplacedGenericInfo = workflowXmlManipulator.replaceGenericInformation(rawObject,
+                                                                                               genericInformationMapEntry);
+        }
+        return workflowWithReplacedGenericInfo;
     }
 
-    public boolean askUserAuthorizationByBucketOwner(AuthenticatedUser authenticatedUser, String bucketOwnerOrGroup) {
-        if (authenticatedUser == null) {
-            return false;
-        }
-        if (bucketOwnerOrGroup == null || bucketOwnerOrGroup.equals(BucketService.DEFAULT_BUCKET_OWNER)) {
-            return true;
-        }
-
-        String groupName = ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString(bucketOwnerOrGroup);
-        return authenticatedUser.getGroups().contains(groupName);
-    }
 }

@@ -75,6 +75,7 @@ public class KeyValueLabelMetadataEntity implements Serializable {
     @Column(name = "VALUE", nullable = false)
     protected String value;
 
+    @SuppressWarnings("DefaultAnnotationParam")
     @Column(name = "LABEL", nullable = true)
     protected String label;
 
@@ -114,7 +115,7 @@ public class KeyValueLabelMetadataEntity implements Serializable {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + key.hashCode();
-        result = 31 * result + catalogObjectRevision.hashCode();
+        result = 31 * result + ((catalogObjectRevision == null) ? 0 : catalogObjectRevision.hashCode());
         return result;
     }
 

@@ -61,7 +61,7 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
 
     private static final String ATTRIBUTE_JOB_PROJECT_NAME = "projectName";
 
-    private static final String ATTRIBUTE_GENERIC_INFORMATION_LABEL = "generic_information";
+    public static final String ATTRIBUTE_GENERIC_INFORMATION_LABEL = "generic_information";
 
     private static final String ATTRIBUTE_GENERIC_INFORMATION_NAME = "name";
 

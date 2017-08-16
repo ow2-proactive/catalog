@@ -26,11 +26,14 @@
 package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
@@ -44,7 +47,11 @@ import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 public class AuthorizationServiceTest {
 
     @Spy
+    @InjectMocks
     private AuthorizationService authorizationService;
+
+    @Mock
+    private OwnerGroupStringHelper ownerGroupStringHelper;
 
     @Test
     public void testUserNameIsNotMatchedAgainstGroup() {
@@ -57,24 +64,18 @@ public class AuthorizationServiceTest {
     }
 
     @Test
-    public void testThatOwnerMustBePartOfAuthenticatedGroup() {
-        AuthenticatedUser authenticatedUser = AuthenticatedUser.builder()
-                                                               .name("C3PO")
-                                                               .groups(Arrays.asList("secret stuff", "robots"))
-                                                               .build();
-
-        assertThat(authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser, "secret stuff")).isTrue();
-    }
-
-    @Test
     public void testThatGroupPrefixIsCorrectlyRemoved() {
         AuthenticatedUser authenticatedUser = AuthenticatedUser.builder()
                                                                .name("C3PO")
                                                                .groups(Arrays.asList("secret stuff", "robots"))
                                                                .build();
 
+        when(ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString(OwnerGroupStringHelper.GROUP_PREFIX +
+                                                                             "secret stuff")).thenReturn("secret stuff");
+
         assertThat(authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser,
-                                                                          "GROUP:secret stuff")).isTrue();
+                                                                          OwnerGroupStringHelper.GROUP_PREFIX +
+                                                                                             "secret stuff")).isTrue();
     }
 
     @Test
@@ -83,6 +84,8 @@ public class AuthorizationServiceTest {
                                                                .name("C3PO")
                                                                .groups(Arrays.asList("secret stuff", "robots"))
                                                                .build();
+
+        when(ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString("not exist")).thenReturn("not exist");
 
         assertThat(authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser, "not exist")).isFalse();
     }
@@ -93,6 +96,8 @@ public class AuthorizationServiceTest {
                                                                .name("C3PO")
                                                                .groups(Arrays.asList("secret stuff", "robots"))
                                                                .build();
+
+        when(ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString(null)).thenReturn(null);
 
         assertThat(authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser, null)).isTrue();
     }
@@ -109,6 +114,8 @@ public class AuthorizationServiceTest {
                                                                .groups(Arrays.asList("secret stuff", "robots"))
                                                                .build();
 
+        when(ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString(null)).thenReturn(null);
+
         assertThat(authorizationService.askUserAuthorizationByBucketOwner(null, null)).isFalse();
     }
 
@@ -118,6 +125,8 @@ public class AuthorizationServiceTest {
                                                                .name("C3PO")
                                                                .groups(Arrays.asList("secret stuff", "robots"))
                                                                .build();
+
+        when(ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString(BucketService.DEFAULT_BUCKET_OWNER)).thenReturn("public-objects");
 
         assertThat(authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser,
                                                                           BucketService.DEFAULT_BUCKET_OWNER)).isTrue();

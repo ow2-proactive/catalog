@@ -25,43 +25,49 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.util.Collections;
-import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Spy;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
 
 
 /**
  * @author ActiveEon Team
- * @since 08/08/2017
+ * @since 14/08/2017
  */
 @RunWith(MockitoJUnitRunner.class)
-public class GroupsWithPrefixRetrieverTest {
+public class GenericInformationAdderTest {
 
     @InjectMocks
-    @Spy
-    private OwnerGroupStringHelper ownerGroupStringHelper;
+    private GenericInformationAdder genericInformationAdder;
 
-    @Test(expected = NullPointerException.class)
-    public void testThatNullThrowsNullPointerException() {
-        ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(null);
+    @Mock
+    private WorkflowXmlManipulator workflowXmlManipulator;
+
+    @Test
+    public void testThatWorkflowParserKindTriggersXmlManipulation() {
+        genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(new byte[] {},
+                                                                           SupportedParserKinds.WORKFLOW.toString(),
+                                                                           Collections.emptyList());
+
+        verify(workflowXmlManipulator).replaceGenericInformation(Mockito.any(), Mockito.any());
     }
 
     @Test
-    public void testThatEmptyListReturnsEmptyList() {
-        assertThat(ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(Collections.emptyList())).isEmpty();
-    }
+    public void testThatOtherKindNotTriggersXmlManipulation() {
+        genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(new byte[] {},
+                                                                           SupportedParserKinds.PCW_RULE.toString(),
+                                                                           Collections.emptyList());
 
-    @Test
-    public void testThatGroupPrefixIsAdded() {
-        List<String> result = ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(Collections.singletonList("test"));
-        assertThat(result).contains(OwnerGroupStringHelper.GROUP_PREFIX + "test");
+        verify(workflowXmlManipulator, times(0)).replaceGenericInformation(Mockito.any(), Mockito.any());
     }
 
 }
