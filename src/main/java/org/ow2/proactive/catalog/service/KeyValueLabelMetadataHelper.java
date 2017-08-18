@@ -30,6 +30,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
@@ -50,7 +51,7 @@ import org.springframework.stereotype.Component;
  * @since 19/06/2017
  */
 @Component
-public class KeyValueMetadataHelper {
+public class KeyValueLabelMetadataHelper {
 
     @SuppressWarnings("FieldCanBeLocal")
     private static final String GROUP_KEY = "group";
@@ -61,8 +62,21 @@ public class KeyValueMetadataHelper {
     private final OwnerGroupStringHelper ownerGroupStringHelper;
 
     @Autowired
-    public KeyValueMetadataHelper(OwnerGroupStringHelper ownerGroupStringHelper) {
+    public KeyValueLabelMetadataHelper(OwnerGroupStringHelper ownerGroupStringHelper) {
         this.ownerGroupStringHelper = ownerGroupStringHelper;
+    }
+
+    public static List<KeyValueLabelMetadataEntity> convertToEntity(List<Metadata> source) {
+        return source.stream().map(KeyValueLabelMetadataEntity::new).collect(Collectors.toList());
+    }
+
+    public List<KeyValueLabelMetadataEntity>
+            getOnlyGenericInformation(List<KeyValueLabelMetadataEntity> keyValueLabelMetadataEntities) {
+        return keyValueLabelMetadataEntities.stream().filter(this::isGenericInformation).collect(Collectors.toList());
+    }
+
+    private boolean isGenericInformation(KeyValueLabelMetadataEntity keyValueLabelMetadataEntity) {
+        return keyValueLabelMetadataEntity.getLabel().equals(WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
     }
 
     public List<KeyValueLabelMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {
@@ -74,19 +88,16 @@ public class KeyValueMetadataHelper {
         }
     }
 
-    public static List<KeyValueLabelMetadataEntity> convertToEntity(List<Metadata> source) {
-        return source.stream().map(KeyValueLabelMetadataEntity::new).collect(Collectors.toList());
-    }
-
     public List<Metadata> convertFromEntity(List<KeyValueLabelMetadataEntity> source) {
         return source.stream().map(Metadata::new).collect(Collectors.toList());
     }
 
-    public List<AbstractMap.SimpleImmutableEntry<String, String>>
-            toKeyValueEntry(final List<KeyValueLabelMetadataEntity> workflowKeyValueMetadataEntities) {
+    public Map<String, String> toMap(final List<KeyValueLabelMetadataEntity> workflowKeyValueMetadataEntities) {
         return workflowKeyValueMetadataEntities.stream()
                                                .map(this::createSimpleImmutableEntry)
-                                               .collect(Collectors.toList());
+                                               .collect(Collectors.toMap(AbstractMap.SimpleImmutableEntry::getKey,
+                                                                         AbstractMap.SimpleImmutableEntry::getValue,
+                                                                         (duplicate1, duplicate2) -> duplicate2));
     }
 
     public List<KeyValueLabelMetadataEntity> replaceMetadataRelatedGenericInfoAndKeepOthers(

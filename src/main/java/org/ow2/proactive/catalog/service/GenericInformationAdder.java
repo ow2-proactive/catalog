@@ -25,8 +25,7 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import java.util.AbstractMap;
-import java.util.List;
+import java.util.Map;
 
 import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,12 +44,11 @@ public class GenericInformationAdder {
     private WorkflowXmlManipulator workflowXmlManipulator;
 
     public byte[] addGenericInformationToRawObjectIfWorkflow(final byte[] rawObject,
-            final String catalogObjectEntityKind,
-            List<AbstractMap.SimpleImmutableEntry<String, String>> genericInformationMapEntry) {
+            final String catalogObjectEntityKind, Map<String, String> genericInformationMap) {
         byte[] workflowWithReplacedGenericInfo = rawObject;
         if (catalogObjectEntityKind.equals(SupportedParserKinds.WORKFLOW.toString())) {
             workflowWithReplacedGenericInfo = workflowXmlManipulator.replaceGenericInformation(rawObject,
-                                                                                               genericInformationMapEntry);
+                                                                                               genericInformationMap);
         }
         return workflowWithReplacedGenericInfo;
     }

@@ -29,7 +29,6 @@ import static org.mockito.Mockito.spy;
 
 import javax.sql.DataSource;
 
-import org.junit.Before;
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
@@ -43,7 +42,7 @@ import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.GenericInformationAdder;
 import org.ow2.proactive.catalog.service.GraphqlService;
-import org.ow2.proactive.catalog.service.KeyValueMetadataHelper;
+import org.ow2.proactive.catalog.service.KeyValueLabelMetadataHelper;
 import org.ow2.proactive.catalog.service.OwnerGroupStringHelper;
 import org.ow2.proactive.catalog.service.WorkflowXmlManipulator;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
@@ -137,8 +136,8 @@ public class IntegrationTestConfig {
     }
 
     @Bean
-    public KeyValueMetadataHelper keyValueMetadataHelper() {
-        return new KeyValueMetadataHelper(new OwnerGroupStringHelper());
+    public KeyValueLabelMetadataHelper keyValueMetadataHelper() {
+        return new KeyValueLabelMetadataHelper(new OwnerGroupStringHelper());
     }
 
     @Bean

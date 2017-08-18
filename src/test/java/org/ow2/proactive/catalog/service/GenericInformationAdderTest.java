@@ -56,7 +56,7 @@ public class GenericInformationAdderTest {
     public void testThatWorkflowParserKindTriggersXmlManipulation() {
         genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(new byte[] {},
                                                                            SupportedParserKinds.WORKFLOW.toString(),
-                                                                           Collections.emptyList());
+                                                                           Collections.emptyMap());
 
         verify(workflowXmlManipulator).replaceGenericInformation(Mockito.any(), Mockito.any());
     }
@@ -65,7 +65,7 @@ public class GenericInformationAdderTest {
     public void testThatOtherKindNotTriggersXmlManipulation() {
         genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(new byte[] {},
                                                                            SupportedParserKinds.PCW_RULE.toString(),
-                                                                           Collections.emptyList());
+                                                                           Collections.emptyMap());
 
         verify(workflowXmlManipulator, times(0)).replaceGenericInformation(Mockito.any(), Mockito.any());
     }
