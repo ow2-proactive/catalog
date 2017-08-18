@@ -27,10 +27,9 @@ package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -89,7 +88,7 @@ public class WorkflowXmlManipulatorTest {
     @Test
     public void testThatWorkflowHasGenericInfoTagAdded() {
         String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformation(simpleWorkflowWithoutGenericInfo,
-                                                                                              Collections.emptyList()));
+                                                                                              Collections.emptyMap()));
         assertThat(emptyGenericInfo).contains("<genericInformation>");
         assertThat(emptyGenericInfo).contains("</genericInformation>");
         assertThat(emptyGenericInfo).doesNotContain("<info name="); // Generic Info has no Entry
@@ -98,7 +97,7 @@ public class WorkflowXmlManipulatorTest {
     @Test
     public void testThatWorkflowHasGenericInfoRemovedIfAlreadyThere() {
         String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformation(simpleWorkflowWithGenericInfo,
-                                                                                              Collections.emptyList()));
+                                                                                              Collections.emptyMap()));
         assertThat(emptyGenericInfo).contains("<genericInformation>");
         assertThat(emptyGenericInfo).contains("</genericInformation>");
         assertThat(emptyGenericInfo).doesNotContain("<info name="); // Generic Info has no Entry
@@ -136,7 +135,7 @@ public class WorkflowXmlManipulatorTest {
 
     @Test
     public void testThatEmptyByteArrayIsReturnedIfXmlWorkflowIsNull() {
-        byte[] nullByteArray = workflowXmlManipulator.replaceGenericInformation(null, Collections.emptyList());
+        byte[] nullByteArray = workflowXmlManipulator.replaceGenericInformation(null, Collections.emptyMap());
         assertThat(nullByteArray.length).isEqualTo(0);
     }
 
@@ -146,11 +145,11 @@ public class WorkflowXmlManipulatorTest {
         assertThat(nullByteArray.length).isEqualTo(0);
     }
 
-    private List<AbstractMap.SimpleImmutableEntry<String, String>> getTwoSimpleEntries() {
-        List<AbstractMap.SimpleImmutableEntry<String, String>> returnList = new ArrayList<>();
+    private Map<String, String> getTwoSimpleEntries() {
+        Map<String, String> returnList = new HashMap<>();
 
-        returnList.add(new AbstractMap.SimpleImmutableEntry<>("firstTestKey", "firstTestValue"));
-        returnList.add(new AbstractMap.SimpleImmutableEntry<>("secondTestKey", "secondTestValue"));
+        returnList.put("firstTestKey", "firstTestValue");
+        returnList.put("secondTestKey", "secondTestValue");
 
         return returnList;
     }

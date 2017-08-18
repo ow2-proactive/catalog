@@ -25,8 +25,7 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import java.util.AbstractMap;
-import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -70,24 +69,26 @@ public class WorkflowXmlManipulator {
         return genericInfoMatcher.replaceAll("").getBytes();
     }
 
-    public byte[] replaceGenericInformation(final byte[] xmlWorkflow,
-            List<AbstractMap.SimpleImmutableEntry<String, String>> genericInfoEntries) {
-        if (xmlWorkflow == null || genericInfoEntries == null) {
+    public byte[] replaceGenericInformation(final byte[] xmlWorkflow, Map<String, String> genericInfoMap) {
+        if (xmlWorkflow == null) {
             return new byte[] {};
+        }
+        if (genericInfoMap == null) {
+            return xmlWorkflow;
         }
 
         String workflowWithoutGenericInfo = new String(removeGenericInformation(xmlWorkflow));
 
         return taskFlowStartTagPattern.matcher(workflowWithoutGenericInfo)
                                       .replaceFirst(ONE_INTEND + GENERIC_INFORMATION_START_TAG + NEW_LINE +
-                                                    createGenericInfoString(genericInfoEntries) + ONE_INTEND +
+                                                    createGenericInfoString(genericInfoMap) + ONE_INTEND +
                                                     GENERIC_INFORMATION_END_TAG + NEW_LINE + TASK_FLOW_START_TAG)
                                       .getBytes();
     }
 
-    private String
-            createGenericInfoString(List<AbstractMap.SimpleImmutableEntry<String, String>> keyValueMetadataEntities) {
-        return keyValueMetadataEntities.stream()
+    private String createGenericInfoString(Map<String, String> keyValueMetadataEntities) {
+        return keyValueMetadataEntities.entrySet()
+                                       .stream()
                                        .map(entry -> String.format(GENERIC_INFORMATION_ENTRY_FORMAT_STRING,
                                                                    entry.getKey(),
                                                                    entry.getValue()))

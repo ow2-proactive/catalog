@@ -85,7 +85,7 @@ public class CatalogObjectServiceTest {
     private BucketRepository bucketRepository;
 
     @Mock
-    private KeyValueMetadataHelper keyValueMetadataHelper;
+    private KeyValueLabelMetadataHelper keyValueLabelMetadataHelper;
 
     @Mock
     private GenericInformationAdder genericInformationAdder;
@@ -211,8 +211,8 @@ public class CatalogObjectServiceTest {
         when(catalogObjectRepository.findOne(any(CatalogObjectEntity.CatalogObjectEntityKey.class))).thenReturn(catalogObjectEntity);
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectRevisionEntity);
         List<Metadata> keyvalues = ImmutableList.of(new Metadata("key", "value", null));
-        when(keyValueMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(any(),
-                                                                                   any())).thenReturn(Collections.emptyList());
+        when(keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(any(),
+                                                                                        any())).thenReturn(Collections.emptyList());
         CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObjectRevision(1L,
                                                                                                NAME,
                                                                                                COMMIT_MESSAGE,

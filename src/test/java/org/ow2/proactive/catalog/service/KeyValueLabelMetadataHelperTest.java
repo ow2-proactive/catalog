@@ -29,10 +29,10 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static org.mockito.Mockito.when;
 
-import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,10 +50,10 @@ import org.ow2.proactive.catalog.util.parser.WorkflowParser;
  * @since 16/08/2017
  */
 @RunWith(MockitoJUnitRunner.class)
-public class KeyValueMetadataHelperTest {
+public class KeyValueLabelMetadataHelperTest {
 
     @InjectMocks
-    private KeyValueMetadataHelper keyValueMetadataHelper;
+    private KeyValueLabelMetadataHelper keyValueLabelMetadataHelper;
 
     @Mock
     private OwnerGroupStringHelper ownerGroupStringHelper;
@@ -63,7 +63,7 @@ public class KeyValueMetadataHelperTest {
         KeyValueLabelMetadataEntity entityToConvert = new KeyValueLabelMetadataEntity("key",
                                                                                       "value",
                                                                                       WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
-        List<Metadata> convertedMetadata = keyValueMetadataHelper.convertFromEntity(Collections.singletonList(entityToConvert));
+        List<Metadata> convertedMetadata = keyValueLabelMetadataHelper.convertFromEntity(Collections.singletonList(entityToConvert));
         assertThat(convertedMetadata.get(0).getKey()).isEqualTo("key");
         assertThat(convertedMetadata.get(0).getValue()).isEqualTo("value");
         assertThat(convertedMetadata.get(0).getLabel()).isEqualTo(WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
@@ -74,9 +74,37 @@ public class KeyValueMetadataHelperTest {
         KeyValueLabelMetadataEntity entityToConvert = new KeyValueLabelMetadataEntity("key",
                                                                                       "value",
                                                                                       WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
-        List<AbstractMap.SimpleImmutableEntry<String, String>> convertedMetadata = keyValueMetadataHelper.toKeyValueEntry(Collections.singletonList(entityToConvert));
-        assertThat(convertedMetadata.get(0).getKey()).isEqualTo("key");
-        assertThat(convertedMetadata.get(0).getValue()).isEqualTo("value");
+        Map<String, String> convertedMetadata = keyValueLabelMetadataHelper.toMap(Collections.singletonList(entityToConvert));
+        assertThat(convertedMetadata.containsKey("key")).isTrue();
+        assertThat(convertedMetadata.containsValue("value")).isTrue();
+    }
+
+    @Test
+    public void testThatGetOnlyGenericInformationIsOnlyReturningGenericInformation() {
+        KeyValueLabelMetadataEntity keyValueLabelMetadataEntityGenericInfo = new KeyValueLabelMetadataEntity("key",
+                                                                                                             "valye",
+                                                                                                             WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
+        KeyValueLabelMetadataEntity keyValueLabelMetadataEntityAnythingElse = new KeyValueLabelMetadataEntity("key",
+                                                                                                              "valye",
+                                                                                                              "chat");
+
+        List<KeyValueLabelMetadataEntity> onlyGenericInformation = keyValueLabelMetadataHelper.getOnlyGenericInformation(Arrays.asList(keyValueLabelMetadataEntityGenericInfo,
+                                                                                                                                       keyValueLabelMetadataEntityAnythingElse));
+        assertThat(onlyGenericInformation.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void testThatGetOnlyGenericInformationIsReturningEmptyListIfNoGenericInfo() {
+        KeyValueLabelMetadataEntity keyValueLabelMetadataEntityAnythingElse1 = new KeyValueLabelMetadataEntity("key",
+                                                                                                               "valye",
+                                                                                                               "dogs");
+        KeyValueLabelMetadataEntity keyValueLabelMetadataEntityAnythingElse2 = new KeyValueLabelMetadataEntity("key",
+                                                                                                               "valye",
+                                                                                                               "something");
+
+        List<KeyValueLabelMetadataEntity> onlyGenericInformation = keyValueLabelMetadataHelper.getOnlyGenericInformation(Arrays.asList(keyValueLabelMetadataEntityAnythingElse1,
+                                                                                                                                       keyValueLabelMetadataEntityAnythingElse2));
+        assertThat(onlyGenericInformation.size()).isEqualTo(0);
     }
 
     @Test
@@ -91,9 +119,26 @@ public class KeyValueMetadataHelperTest {
                                                                            .build();
 
         when(ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString("GROUP:coolGroup")).thenReturn("coolGroup");
-        List<KeyValueLabelMetadataEntity> replacedMetadata = keyValueMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(metadataEntities,
-                                                                                                                                   genericInfoBucketData);
+        List<KeyValueLabelMetadataEntity> replacedMetadata = keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(metadataEntities,
+                                                                                                                                        genericInfoBucketData);
         KeyValueLabelMetadataEntityListHasEntry(replacedMetadata, "group", "coolGroup");
+    }
+
+    @Test
+    public void testThatToMapTakesAlwaysTheLastKeyDuplicateInList() {
+        KeyValueLabelMetadataEntity keyValueLabelMetadataEntity1 = new KeyValueLabelMetadataEntity("key",
+                                                                                                   "thisShouldBeOverwritten",
+                                                                                                   WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
+        KeyValueLabelMetadataEntity keyValueLabelMetadataEntity2 = new KeyValueLabelMetadataEntity("key",
+                                                                                                   "hello",
+                                                                                                   "chat");
+
+        Map<String, String> shouldContainOnlyOne = keyValueLabelMetadataHelper.toMap(Arrays.asList(keyValueLabelMetadataEntity1,
+                                                                                                   keyValueLabelMetadataEntity2));
+
+        assertThat(shouldContainOnlyOne.size()).isEqualTo(1);
+        assertThat(shouldContainOnlyOne.containsValue("hello")).isTrue();
+        assertThat(shouldContainOnlyOne.containsValue("thisShouldBeOverwritten")).isFalse();
     }
 
     @Test
@@ -111,24 +156,24 @@ public class KeyValueMetadataHelperTest {
                                                                            .build();
 
         when(ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString("GROUP:coolGroup")).thenReturn("coolGroup");
-        List<KeyValueLabelMetadataEntity> replacedMetadata = keyValueMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(metadataEntities,
-                                                                                                                                   genericInfoBucketData);
+        List<KeyValueLabelMetadataEntity> replacedMetadata = keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(metadataEntities,
+                                                                                                                                        genericInfoBucketData);
         KeyValueLabelMetadataEntityListHasEntry(replacedMetadata, "group", "coolGroup");
         KeyValueLabelMetadataEntityListHasEntry(replacedMetadata, "houses", "3");
     }
 
     @Test
     public void testNullReturnsEmptyList() {
-        List<KeyValueLabelMetadataEntity> replacedMetadata = keyValueMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(null,
-                                                                                                                                   null);
+        List<KeyValueLabelMetadataEntity> replacedMetadata = keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(null,
+                                                                                                                                        null);
         assertThat(replacedMetadata).isEmpty();
         assertThat(replacedMetadata).isNotNull();
     }
 
     @Test
     public void testEmptyListAndNullReturnsEmptyList() {
-        List<KeyValueLabelMetadataEntity> replacedMetadata = keyValueMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(Collections.emptyList(),
-                                                                                                                                   null);
+        List<KeyValueLabelMetadataEntity> replacedMetadata = keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(Collections.emptyList(),
+                                                                                                                                        null);
         assertThat(replacedMetadata).isEmpty();
         assertThat(replacedMetadata).isNotNull();
     }
@@ -144,8 +189,8 @@ public class KeyValueMetadataHelperTest {
                                                                                                            "3",
                                                                                                            WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL));
 
-        List<KeyValueLabelMetadataEntity> replacedMetadata = keyValueMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(metadataEntities,
-                                                                                                                                   emptyGenericInfoBucketData);
+        List<KeyValueLabelMetadataEntity> replacedMetadata = keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(metadataEntities,
+                                                                                                                                        emptyGenericInfoBucketData);
         KeyValueLabelMetadataEntityListHasEntry(replacedMetadata, "group", "value");
         KeyValueLabelMetadataEntityListHasEntry(replacedMetadata, "houses", "3");
     }
