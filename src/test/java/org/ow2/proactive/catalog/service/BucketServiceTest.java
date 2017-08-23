@@ -77,19 +77,6 @@ public class BucketServiceTest {
     private BucketRepository bucketRepository;
 
     @Test
-    public void testThatListBucketsAddsDefaultBucketOwner() {
-        bucketService.listBuckets(new ArrayList<>(), null);
-        verify(bucketRepository).findByOwnerIn(eq(Collections.singletonList(BucketService.DEFAULT_BUCKET_OWNER)));
-    }
-
-    @Test
-    public void testThatListBucketsAddsDefaultBucketOwnerWithKind() {
-        bucketService.listBuckets(new ArrayList<>(), "specialKind");
-        verify(bucketRepository).findByOwnerIsInContainingKind(eq(Collections.singletonList(BucketService.DEFAULT_BUCKET_OWNER)),
-                                                               eq("specialKind"));
-    }
-
-    @Test
     public void testThatEmptyListIsReturnedIfListAndKindAreNull() {
         assertThat(bucketService.listBuckets((List<String>) null, null)).isEmpty();
         verify(bucketRepository, times(0)).findByOwnerIsInContainingKind(any(), any());

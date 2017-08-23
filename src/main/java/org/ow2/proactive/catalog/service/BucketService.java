@@ -175,14 +175,11 @@ public class BucketService {
             return Collections.emptyList();
         }
 
-        List<String> ownersAndDefaultOwner = new ArrayList<>(owners);
-        ownersAndDefaultOwner.add(DEFAULT_BUCKET_OWNER);
-
         List<BucketEntity> entities;
         if (!StringUtils.isEmpty(kind)) {
-            entities = bucketRepository.findByOwnerIsInContainingKind(ownersAndDefaultOwner, kind);
+            entities = bucketRepository.findByOwnerIsInContainingKind(owners, kind);
         } else {
-            entities = bucketRepository.findByOwnerIn(ownersAndDefaultOwner);
+            entities = bucketRepository.findByOwnerIn(owners);
         }
 
         log.info("Buckets size {}", entities.size());
