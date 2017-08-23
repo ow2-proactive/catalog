@@ -86,6 +86,13 @@ public class SchedulerUserAuthenticationServiceTest {
         schedulerUserAuthenticationService.authenticateBySessionId("any");
     }
 
+    @Test(expected = NotAuthenticatedException.class)
+    public void testAnyExceptionFromSchedulerRestClientThrowsNotAuthenticatedException()
+            throws NotAuthenticatedException {
+        when(schedulerRestInterfaceMock.getUserDataFromSessionId(any())).thenThrow(NullPointerException.class);
+        schedulerUserAuthenticationService.authenticateBySessionId("any");
+    }
+
     @Test
     public void testThatCorrectUsernameAndGroupAreInsideReturnObject() throws NotAuthenticatedException {
         AuthenticatedUser authenticatedUser = schedulerUserAuthenticationService.authenticateBySessionId("any");

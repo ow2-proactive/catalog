@@ -50,9 +50,15 @@ public class SchedulerUserAuthenticationService {
     }
 
     public AuthenticatedUser authenticateBySessionId(String sessionId) throws NotAuthenticatedException {
-        UserData userData = this.schedulerRestClientCreator.getNewClientInitializedWithSchedulerRestUrl()
-                                                           .getScheduler()
-                                                           .getUserDataFromSessionId(sessionId);
+        UserData userData;
+        try {
+            userData = this.schedulerRestClientCreator.getNewClientInitializedWithSchedulerRestUrl()
+                                                      .getScheduler()
+                                                      .getUserDataFromSessionId(sessionId);
+        } catch (Exception exception) {
+            throw new NotAuthenticatedException("Could not validate sessionId, validation returned: " +
+                                                exception.getMessage());
+        }
 
         if (userData == null || StringUtils.isEmpty(userData.getUserName())) {
             throw new NotAuthenticatedException("SessionId is invalid");
