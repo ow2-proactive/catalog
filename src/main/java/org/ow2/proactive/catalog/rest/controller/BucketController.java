@@ -129,6 +129,7 @@ public class BucketController {
             if (ownerName == null) {
                 groups = ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(restApiAccessResponse.getAuthenticatedUser()
                                                                                                       .getGroups());
+                groups.add(BucketService.DEFAULT_BUCKET_OWNER);
             } else {
                 groups = Collections.singletonList(ownerName);
             }
