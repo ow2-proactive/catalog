@@ -29,7 +29,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -188,8 +187,11 @@ public class BucketService {
 
     public List<BucketMetadata> listBuckets(String ownerName, String kind) {
         List<BucketEntity> entities;
+        List<String> owners = Collections.singletonList(ownerName);
 
-        if (!StringUtils.isEmpty(ownerName)) {
+        if (!StringUtils.isEmpty(ownerName) && !StringUtils.isEmpty(kind)) {
+            entities = bucketRepository.findByOwnerIsInContainingKind(owners, kind);
+        } else if (!StringUtils.isEmpty(ownerName)) {
             entities = bucketRepository.findByOwner(ownerName);
         } else if (!StringUtils.isEmpty(kind)) {
             entities = bucketRepository.findContainingKind(kind);
