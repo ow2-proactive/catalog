@@ -184,41 +184,26 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String bucketName2 = "EmptyBucket";
         final String bucketNameWithSomeObjects = "BucketWithSomeObjects";
         // Get bucket ID from response to create an object in it
-        Integer bucket1Id = given().parameters("name", bucketName1, "owner", "owner")
-                                   .when()
-                                   .post(BUCKETS_RESOURCE)
-                                   .then()
-                                   .extract()
-                                   .path("id");
+        Integer bucket1Id = IntegrationTestUtil.createBucket(bucketName1, "owner");
 
-        given().parameters("name", bucketName2, "owner", "owner ").when().post(BUCKETS_RESOURCE);
+        IntegrationTestUtil.createBucket(bucketName2, "owner");
 
         // Add an object of kind "myobjectkind" into first bucket
-        given().pathParam("bucketId", bucket1Id)
-               .queryParam("kind", "myobjectkind")
-               .queryParam("name", "myobjectname")
-               .queryParam("commitMessage", "first commit")
-               .queryParam("contentType", "application/xml")
-               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
-               .when()
-               .post(CATALOG_OBJECTS_RESOURCE);
+        IntegrationTestUtil.postObjectToBucket(bucket1Id,
+                                               "myobjectkind",
+                                               "myobjectname",
+                                               "first commit",
+                                               "application/xml",
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
-        Integer bucketWithSomeObjectsId = given().parameters("name", bucketNameWithSomeObjects, "owner", "owner")
-                                                 .when()
-                                                 .post(BUCKETS_RESOURCE)
-                                                 .then()
-                                                 .extract()
-                                                 .path("id");
+        Integer bucketWithSomeObjectsId = IntegrationTestUtil.createBucket(bucketNameWithSomeObjects, "owner");
 
-        // Add an object of kind "differentkind" into third bucket
-        given().pathParam("bucketId", bucketWithSomeObjectsId)
-               .queryParam("kind", "differentkind")
-               .queryParam("name", "myobjectname")
-               .queryParam("commitMessage", "first commit")
-               .queryParam("contentType", "application/xml")
-               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
-               .when()
-               .post(CATALOG_OBJECTS_RESOURCE);
+        IntegrationTestUtil.postObjectToBucket(bucketWithSomeObjectsId,
+                                               "differentkind",
+                                               "myobjectname",
+                                               "first commit",
+                                               "application/xml",
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         // list workflow -> should return one only
         given().param("kind", "myobjectkind")
@@ -227,6 +212,69 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("", hasSize(2));
+    }
+
+    @Test
+    public void testListBucketsByOwnerIsInContainingKindAndEmptyBucket() throws UnsupportedEncodingException {
+        final String BucketAdminOwnerWorkflowKind = "BucketAdminOwnerWorkflowKind";
+        final String BucketAdminOwnerEmptyBucket = "BucketAdminOwnerEmptyBucket";
+        final String BucketAdminOwnerOtherKind = "BucketAdminOwnerOtherKind";
+        final String BucketAdminOwnerMixedKind = "BucketAdminOwnerMixedKind";
+        final String BucketUserOwnerWorkflowKind = "BucketUserOwnerWorkflowKind";
+
+        final String adminOwner = "admin";
+        final String userOwner = "user";
+
+        Integer bucketAdminOwnerWorkflowKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerWorkflowKind,
+                                                                                  adminOwner);
+        IntegrationTestUtil.createBucket(BucketAdminOwnerEmptyBucket, adminOwner);
+        Integer BucketAdminOwnerOtherKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerOtherKind, adminOwner);
+        Integer BucketAdminOwnerMixedKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerMixedKind, adminOwner);
+        Integer BucketUserOwnerWorkflowKindId = IntegrationTestUtil.createBucket(BucketUserOwnerWorkflowKind,
+                                                                                 userOwner);
+
+        IntegrationTestUtil.postDefaultWorkflowToBucket(bucketAdminOwnerWorkflowKindId);
+        IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerOtherKindId,
+                                               "other kind",
+                                               "my workflow",
+                                               "first commit",
+                                               "application/xml",
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postDefaultWorkflowToBucket(BucketAdminOwnerMixedKindId);
+        IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
+                                               "other kind",
+                                               "other object",
+                                               "first commit",
+                                               "application/xml",
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postDefaultWorkflowToBucket(BucketUserOwnerWorkflowKindId);
+
+        // list bucket with the given owner -> should return one only
+        given().param("owner", adminOwner)
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(4));
+
+        // list bucket with the given kind -> should return the specified buckets and empty buckets
+        given().param("kind", "workflow")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(4));
+
+        // list bucket with the given owner and kind of objects inside bucket -> should return the specified buckets
+        given().param("kind", "workflow")
+               .param("owner", adminOwner)
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(3));
     }
 
     @Test

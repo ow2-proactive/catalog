@@ -97,4 +97,52 @@ public class IntegrationTestUtil {
         return new File(IntegrationTestUtil.class.getResource("/archives/" + filename).getFile());
     }
 
+    /**
+     *
+     * @param bucketName
+     * @param bucketOwner
+     * @return Get bucket ID from response to create an object in it
+     */
+    public static Integer createBucket(String bucketName, String bucketOwner) {
+        return given().parameters("name", bucketName, "owner", bucketOwner)
+                      .when()
+                      .post(BUCKETS_RESOURCE)
+                      .then()
+                      .extract()
+                      .path("id");
+    }
+
+    /**
+     *
+     * @param bucketId
+     * @param kind
+     * @param name
+     * @param commitMessage
+     * @param contentType
+     * @param file
+     */
+    public static void postObjectToBucket(Integer bucketId, String kind, String name, String commitMessage,
+            String contentType, File file) {
+        given().pathParam("bucketId", bucketId)
+               .queryParam("kind", kind)
+               .queryParam("name", name)
+               .queryParam("commitMessage", commitMessage)
+               .queryParam("contentType", contentType)
+               .multiPart(file)
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE);
+    }
+
+    /**
+     *
+     * @param bucketId
+     */
+    public static void postDefaultWorkflowToBucket(Integer bucketId) {
+        postObjectToBucket(bucketId,
+                           "workflow",
+                           "my workflow",
+                           "first commit",
+                           "application/xml",
+                           IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+    }
 }
