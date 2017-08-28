@@ -26,11 +26,11 @@
 package org.ow2.proactive.catalog.repository.entity;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Inheritance;
@@ -42,6 +42,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 import org.ow2.proactive.catalog.dto.Metadata;
 
 import lombok.AllArgsConstructor;
@@ -63,11 +64,13 @@ import lombok.NoArgsConstructor;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class KeyValueLabelMetadataEntity implements Serializable {
 
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(name = "ID", columnDefinition = "BINARY(16)")
     @Id
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "METADATA_KEY_VALUE_SEQUENCE")
+    @GenericGenerator(name = "METADATA_KEY_VALUE_SEQUENCE", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator", parameters = { @Parameter(name = "sequence_name", value = "METADATA_KEY_VALUE_SEQUENCE"),
+                                                                                                                                          @Parameter(name = "initial_value", value = "1"),
+                                                                                                                                          @Parameter(name = "increment_size", value = "1") })
+    @Column(name = "ID")
+    protected Long id;
 
     @Column(name = "KEY", nullable = false)
     protected String key;

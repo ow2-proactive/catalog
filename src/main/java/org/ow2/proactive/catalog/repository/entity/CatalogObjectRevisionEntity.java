@@ -29,13 +29,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -50,6 +50,7 @@ import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -68,11 +69,13 @@ import lombok.Data;
                                                                                                "COMMIT_TIME" }), indexes = { @Index(name = "REVISION_INDEX", columnList = "BUCKET,NAME,COMMIT_TIME") })
 public class CatalogObjectRevisionEntity implements Comparable, Serializable {
 
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(name = "ID", columnDefinition = "BINARY(16)")
     @Id
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "CATALOG_OBJECT_REVISION_SEQUENCE")
+    @GenericGenerator(name = "CATALOG_OBJECT_REVISION_SEQUENCE", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator", parameters = { @Parameter(name = "sequence_name", value = "CATALOG_OBJECT_REVISION_SEQUENCE"),
+                                                                                                                                               @Parameter(name = "initial_value", value = "1"),
+                                                                                                                                               @Parameter(name = "increment_size", value = "1") })
+    @Column(name = "ID")
+    protected Long id;
 
     @Column(name = "COMMIT_MESSAGE")
     private String commitMessage;
