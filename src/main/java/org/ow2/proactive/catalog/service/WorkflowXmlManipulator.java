@@ -30,6 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.stereotype.Component;
 
 
@@ -91,7 +92,7 @@ public class WorkflowXmlManipulator {
                                        .stream()
                                        .map(entry -> String.format(GENERIC_INFORMATION_ENTRY_FORMAT_STRING,
                                                                    entry.getKey(),
-                                                                   entry.getValue()))
+                                                                   StringEscapeUtils.escapeXml10(entry.getValue())))
                                        .collect(Collectors.joining());
     }
 
