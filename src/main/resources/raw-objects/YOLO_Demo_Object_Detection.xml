@@ -10,11 +10,14 @@
   <variables>
     <variable name="INPUT_IMAGE" value="data/dog.jpg" />
     <variable name="OUTPUT_IMAGE" value="output/dog.jpg" />
-    <variable name="CONTAINER_NAME" value="tf" />
+    <variable name="CONTAINER_NAME" value="ml" />
   </variables>
   <description>
     <![CDATA[ Finding instances of real-world objects of a given image ]]>
   </description>
+  <genericInformation>
+    <info name="Documentation" value="http://activeeon.com/resources/automated-machine-learning-activeeon.pdf"/>
+  </genericInformation>
   <taskFlow>
     <task name="Obj_Detection">
       <description>
@@ -31,15 +34,20 @@
           <code language="bash">
             <![CDATA[
 # docker exec tf /bin/bash -c "./darknet detect cfg/yolo.cfg yolo.weights data/dog.jpg"
+echo docker exec $variables_CONTAINER_NAME /bin/bash -c "cd /root/darknet && ./darknet detect cfg/yolo.cfg yolo.weights $variables_INPUT_IMAGE"
 docker exec $variables_CONTAINER_NAME /bin/bash -c "cd /root/darknet && ./darknet detect cfg/yolo.cfg yolo.weights $variables_INPUT_IMAGE"
 
-rm -r /tmp/output
-mkdir /tmp/output
+#rm -r /tmp/output
+echo mkdir -p /tmp/output
+mkdir -p /tmp/output
+
+echo docker cp $variables_CONTAINER_NAME:/root/darknet/predictions.png /tmp/$variables_OUTPUT_IMAGE
 docker cp $variables_CONTAINER_NAME:/root/darknet/predictions.png /tmp/$variables_OUTPUT_IMAGE
 ]]>
           </code>
         </script>
       </scriptExecutable>
+      <controlFlow block="none"></controlFlow>
     </task>
     <task name="Preview_Input">
       <description>
@@ -128,12 +136,16 @@ resultMetadata.put("content.type", "image/jpg")
           <code language="bash">
             <![CDATA[
 #rm -r /tmp/data
-#mkdir /tmp/data
+echo mkdir -p /tmp/data
+mkdir -p /tmp/data
+
+echo docker cp $variables_CONTAINER_NAME:/root/darknet/$variables_INPUT_IMAGE /tmp/$variables_INPUT_IMAGE
 docker cp $variables_CONTAINER_NAME:/root/darknet/$variables_INPUT_IMAGE /tmp/$variables_INPUT_IMAGE
 ]]>
           </code>
         </script>
       </scriptExecutable>
+      <controlFlow block="none"></controlFlow>
     </task>
   </taskFlow>
 </job>
