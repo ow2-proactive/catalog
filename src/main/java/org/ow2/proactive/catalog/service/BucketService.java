@@ -25,11 +25,6 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,17 +34,11 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
-import org.ow2.proactive.catalog.service.exception.DefaultCatalogObjectsFolderNotFoundException;
-import org.ow2.proactive.catalog.service.exception.DefaultRawCatalogObjectsFolderNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
-import org.ow2.proactive.catalog.util.CatalogObjectJSONParser;
-import org.ow2.proactive.catalog.util.CatalogObjectJSONParser.CatalogObjectData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.io.ByteStreams;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -69,59 +58,6 @@ public class BucketService {
 
     @Autowired
     private CatalogObjectService catalogObjectService;
-
-    /**
-     * The Catalog can be populated with buckets and objects all at once.
-     *
-     * @param bucketNames The array of bucket names to create
-     * @param objectsFolder The folder that contains sub-folders of all objects to inject
-     * @throws SecurityException if the Catalog is not allowed to read or access the file
-     * @throws IOException if the file or folder could not be found or read properly
-     */
-    public void populateCatalog(String[] bucketNames, String objectsFolder, String rawObjectsFolder)
-            throws SecurityException, IOException {
-        for (String bucketName : bucketNames) {
-            final Long bucketId = bucketRepository.save(new BucketEntity(bucketName, DEFAULT_BUCKET_OWNER)).getId();
-            final URL folderResource = getClass().getResource(objectsFolder);
-            if (folderResource == null) {
-                throw new DefaultCatalogObjectsFolderNotFoundException();
-            }
-
-            final URL rawFolderResource = getClass().getResource(rawObjectsFolder);
-            if (rawFolderResource == null) {
-                throw new DefaultRawCatalogObjectsFolderNotFoundException();
-            }
-
-            final File bucketFolder = new File(folderResource.getPath() + File.separator + bucketName);
-            if (bucketFolder.isDirectory()) {
-                String[] wfs = bucketFolder.list();
-                Arrays.sort(wfs);
-                for (String object : wfs) {
-                    FileInputStream fisobject = null;
-                    try {
-                        File catalogObjectFile = new File(bucketFolder.getPath() + File.separator + object);
-                        CatalogObjectData objectData = CatalogObjectJSONParser.parseJSONFile(catalogObjectFile);
-
-                        File fobject = new File(rawFolderResource.getPath() + File.separator +
-                                                objectData.getObjectFileName());
-                        fisobject = new FileInputStream(fobject);
-                        byte[] bObject = ByteStreams.toByteArray(fisobject);
-                        catalogObjectService.createCatalogObject(bucketId,
-                                                                 objectData.getName(),
-                                                                 objectData.getKind(),
-                                                                 objectData.getCommitMessage(),
-                                                                 objectData.getContentType(),
-                                                                 Collections.emptyList(),
-                                                                 bObject);
-                    } finally {
-                        if (fisobject != null) {
-                            fisobject.close();
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     public BucketMetadata createBucket(String name) {
         return createBucket(name, DEFAULT_BUCKET_OWNER);

@@ -27,7 +27,6 @@ package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,10 +34,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.IntegrationTestConfig;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
-import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -86,43 +83,6 @@ public class BucketServiceIntegrationTest {
     public void testThatEmptyOwnerListReturnsAndEmptyListAndDoesNotReturnAnException() {
         List emptyResult = bucketService.listBuckets(Collections.emptyList(), null);
         assertThat(emptyResult).isEmpty();
-    }
-
-    @Test
-    public void testPopulateCatalogEmpty() throws Exception {
-        bucketService.populateCatalog(new String[] {}, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
-        List<BucketMetadata> bucketMetadataList = bucketService.listBuckets((String) null, null);
-        assertThat(bucketMetadataList).hasSize(1);
-    }
-
-    /*
-     * Create 3 buckets, check that the buckets exists
-     * 1 bucket is empty
-     */
-    @Test
-    public void testPopulateCatalogCheckBucketsCreation() throws Exception {
-
-        final String[] buckets = { "Examples-Test", "Cloud-automation-Test", "Toto" };
-        bucketService.populateCatalog(buckets, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
-
-        // verify that all buckets have been created in the Catalog
-        List<BucketMetadata> bucketMetadataList = bucketService.listBuckets((String) null, null);
-
-        bucketMetadataList.forEach(bucket -> {
-            String name = bucket.getName();
-            Long id = bucket.getMetaDataId();
-            int nbWorkflows = 0;
-            String[] workflows = new File(Application.class.getResource(DEFAULT_OBJECTS_FOLDER).getPath() +
-                                          File.separator + name).list();
-            if (workflows != null) {
-                nbWorkflows = workflows.length;
-            }
-
-            List<CatalogObjectMetadata> catalogObjectMetadataList = catalogObjectService.listCatalogObjects(id);
-
-            assertThat(catalogObjectMetadataList).hasSize(nbWorkflows);
-        });
-
     }
 
     @Test
