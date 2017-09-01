@@ -1,7 +1,0 @@
-{
-	"kind": "workflow",
-	"name": "ResultMetadata Worflow",
-	"commitMessage": "First commit",
-	"objectFileName": "resultMetadata_workflow.xml",
-	"contentType": "application/xml"
-}

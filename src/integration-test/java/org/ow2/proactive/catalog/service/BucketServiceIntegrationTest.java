@@ -102,7 +102,7 @@ public class BucketServiceIntegrationTest {
     @Test
     public void testPopulateCatalogCheckBucketsCreation() throws Exception {
 
-        final String[] buckets = { "Examples", "Cloud-automation", "Toto" };
+        final String[] buckets = { "Examples-Test", "Cloud-automation-Test", "Toto" };
         bucketService.populateCatalog(buckets, DEFAULT_OBJECTS_FOLDER, RAW_OBJECTS_FOLDER);
 
         // verify that all buckets have been created in the Catalog

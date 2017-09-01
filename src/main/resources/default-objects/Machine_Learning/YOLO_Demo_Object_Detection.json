@@ -1,7 +1,0 @@
-{
-	"kind": "workflow",
-	"name": "YOLO_Demo_Object_Detection",
-	"commitMessage": "First commit",
-	"objectFileName": "YOLO_Demo_Object_Detection.xml",
-	"contentType": "application/xml"
-}

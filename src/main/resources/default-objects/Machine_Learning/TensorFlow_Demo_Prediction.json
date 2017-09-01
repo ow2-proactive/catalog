@@ -1,7 +1,0 @@
-{
-	"kind": "workflow",
-	"name": "TensorFlow_Demo_Prediction",
-	"commitMessage": "First commit",
-	"objectFileName": "TensorFlow_Demo_Prediction.xml",
-	"contentType": "application/xml"
-}

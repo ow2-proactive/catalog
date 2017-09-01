@@ -1,7 +1,0 @@
-{
-	"kind": "workflow",
-	"name": "Anomaly_Detection_Demo_NoAnomaly",
-	"commitMessage": "First commit",
-	"objectFileName": "Anomaly_Detection_Demo_NoAnomaly.xml",
-	"contentType": "application/xml"
-}

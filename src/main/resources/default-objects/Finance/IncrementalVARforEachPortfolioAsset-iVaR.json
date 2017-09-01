@@ -1,7 +1,0 @@
-{
-	"kind": "workflow",
-	"name": "IncrementalVARforEachPortfolioAsset-iVaR",
-	"commitMessage": "First commit",
-	"objectFileName": "IncrementalVARforEachPortfolioAsset-iVaR.xml",
-	"contentType": "application/xml"
-}
