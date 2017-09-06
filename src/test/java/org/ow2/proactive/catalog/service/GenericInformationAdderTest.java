@@ -58,7 +58,7 @@ public class GenericInformationAdderTest {
                                                                            SupportedParserKinds.WORKFLOW.toString(),
                                                                            Collections.emptyMap());
 
-        verify(workflowXmlManipulator).replaceGenericInformation(Mockito.any(), Mockito.any());
+        verify(workflowXmlManipulator).replaceGenericInformationJobLevel(Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -67,7 +67,7 @@ public class GenericInformationAdderTest {
                                                                            SupportedParserKinds.PCW_RULE.toString(),
                                                                            Collections.emptyMap());
 
-        verify(workflowXmlManipulator, times(0)).replaceGenericInformation(Mockito.any(), Mockito.any());
+        verify(workflowXmlManipulator, times(0)).replaceGenericInformationJobLevel(Mockito.any(), Mockito.any());
     }
 
 }
