@@ -1,7 +1,0 @@
-{
-	"kind": "workflow",
-	"name": "ProActive",
-	"commitMessage": "First commit",
-	"objectFileName": "ProActive_create.xml",
-	"contentType": "application/xml"
-}

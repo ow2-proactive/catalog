@@ -1,7 +1,0 @@
-{
-	"kind": "workflow",
-	"name": "Write read HDFS",
-	"commitMessage": "First commit",
-	"objectFileName": "write_read_hdfs.xml",
-	"contentType": "application/xml"
-}

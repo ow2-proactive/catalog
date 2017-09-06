@@ -1,7 +1,0 @@
-{
-	"kind": "workflow",
-	"name": "Gantt chart",
-	"commitMessage": "First commit",
-	"objectFileName": "Gantt_chart.xml",
-	"contentType": "application/xml"
-}
