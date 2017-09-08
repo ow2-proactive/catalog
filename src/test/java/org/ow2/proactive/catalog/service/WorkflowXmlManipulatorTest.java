@@ -30,6 +30,8 @@ import static com.google.common.truth.Truth.assertThat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -82,13 +84,88 @@ public class WorkflowXmlManipulatorTest {
                                                           "      </scriptExecutable>\n" + "    </task>\n" +
                                                           "  </taskFlow>\n" + "</job>").getBytes();
 
+    private final byte[] workflowWithGenericInfoAtJobAndTaskLevel_BeforeTaskFlow = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                                                    "<job\n" +
+                                                                                    "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+                                                                                    "  xmlns=\"urn:proactive:jobdescriptor:3.8\"\n" +
+                                                                                    "     xsi:schemaLocation=\"urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd\"\n" +
+                                                                                    "    name=\"TestGenericInfo\" \n" +
+                                                                                    "    priority=\"normal\"\n" +
+                                                                                    "    onTaskError=\"continueJobExecution\"\n" +
+                                                                                    "     maxNumberOfExecution=\"2\"\n" +
+                                                                                    ">\n" + "    <genericInformation>" +
+                                                                                    "      <info name=\"first\" value=\"value1\"/>\n" +
+                                                                                    "      <info name=\"second\" value=\"value2\"/>\n" +
+                                                                                    "    </genericInformation>\n" +
+                                                                                    "     <description>\n" +
+                                                                                    "        <![CDATA[ Perform anomaly detection of an input image (only pedestrians are supposed to be present) ]]>\n" +
+                                                                                    "     </description>\n" +
+                                                                                    "    <taskFlow>\n" +
+                                                                                    "    <task name=\"Task1\">\n" +
+                                                                                    "      <genericInformation>\n" +
+                                                                                    "         <info name=\"insideTaskGenInfo\" value=\"TaskGenInfoValue\"/>\n" +
+                                                                                    "       </genericInformation>\n" +
+                                                                                    "      <scriptExecutable>\n" +
+                                                                                    "        <script>\n" +
+                                                                                    "          <code language=\"javascript\">\n" +
+                                                                                    "            <![CDATA[\n" +
+                                                                                    "print(java.lang.System.getProperty('pas.task.name'))\n" +
+                                                                                    "]]>\n" + "          </code>\n" +
+                                                                                    "        </script>\n" +
+                                                                                    "      </scriptExecutable>\n" +
+                                                                                    "    </task>\n" +
+                                                                                    "  </taskFlow>\n" +
+                                                                                    "</job>").getBytes();
+
+    private final byte[] workflowWithGenericInfoAtJobAndTaskLevel_AfterTaskFlow = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                                                                                   "<job\n" +
+                                                                                   "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+                                                                                   "  xmlns=\"urn:proactive:jobdescriptor:3.8\"\n" +
+                                                                                   "     xsi:schemaLocation=\"urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd\"\n" +
+                                                                                   "    name=\"TestGenericInfo\" \n" +
+                                                                                   "    priority=\"normal\"\n" +
+                                                                                   "    onTaskError=\"continueJobExecution\"\n" +
+                                                                                   "     maxNumberOfExecution=\"2\"\n" +
+                                                                                   ">\n" + "    <taskFlow>\n" +
+                                                                                   "    <task name=\"Task1\">\n" +
+                                                                                   "      <genericInformation>\n" +
+                                                                                   "         <info name=\"insideTaskGenInfo\" value=\"TaskGenInfoValue\"/>\n" +
+                                                                                   "       </genericInformation>\n" +
+                                                                                   "      <scriptExecutable>\n" +
+                                                                                   "        <script>\n" +
+                                                                                   "          <code language=\"javascript\">\n" +
+                                                                                   "            <![CDATA[\n" +
+                                                                                   "print(java.lang.System.getProperty('pas.task.name'))\n" +
+                                                                                   "]]>\n" + "          </code>\n" +
+                                                                                   "        </script>\n" +
+                                                                                   "      </scriptExecutable>\n" +
+                                                                                   "    </task>\n" + "  </taskFlow>\n" +
+                                                                                   "     <description>\n" +
+                                                                                   "        <![CDATA[ Perform anomaly detection of an input image (only pedestrians are supposed to be present) ]]>\n" +
+                                                                                   "     </description>\n" +
+                                                                                   "    <genericInformation>" +
+                                                                                   "      <info name=\"first\" value=\"value1\"/>\n" +
+                                                                                   "      <info name=\"second\" value=\"value2\"/>\n" +
+                                                                                   "    </genericInformation>\n" +
+                                                                                   "</job>").getBytes();
+
     @Spy
     private WorkflowXmlManipulator workflowXmlManipulator;
 
+    private final static Pattern genericInformationPatternInsideTaskFlow = Pattern.compile(WorkflowXmlManipulator.ANY_CHARACTER_OR_NEW_LINE +
+                                                                                           WorkflowXmlManipulator.TASK_FLOW_START_TAG +
+                                                                                           WorkflowXmlManipulator.ANY_CHARACTER_OR_NEW_LINE +
+                                                                                           "(" +
+                                                                                           WorkflowXmlManipulator.GENERIC_INFO_TAG_ENTITY +
+                                                                                           ")" +
+                                                                                           WorkflowXmlManipulator.ANY_CHARACTER_OR_NEW_LINE +
+                                                                                           WorkflowXmlManipulator.TASK_FLOW_END_TAG +
+                                                                                           WorkflowXmlManipulator.ANY_CHARACTER_OR_NEW_LINE);
+
     @Test
     public void testThatWorkflowHasGenericInfoTagAdded() {
-        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformation(simpleWorkflowWithoutGenericInfo,
-                                                                                              Collections.emptyMap()));
+        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationJobLevel(simpleWorkflowWithoutGenericInfo,
+                                                                                                      Collections.emptyMap()));
         assertThat(emptyGenericInfo).contains("<genericInformation>");
         assertThat(emptyGenericInfo).contains("</genericInformation>");
         assertThat(emptyGenericInfo).doesNotContain("<info name="); // Generic Info has no Entry
@@ -96,8 +173,8 @@ public class WorkflowXmlManipulatorTest {
 
     @Test
     public void testThatWorkflowHasGenericInfoRemovedIfAlreadyThere() {
-        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformation(simpleWorkflowWithGenericInfo,
-                                                                                              Collections.emptyMap()));
+        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                      Collections.emptyMap()));
         assertThat(emptyGenericInfo).contains("<genericInformation>");
         assertThat(emptyGenericInfo).contains("</genericInformation>");
         assertThat(emptyGenericInfo).doesNotContain("<info name="); // Generic Info has no Entry
@@ -105,8 +182,8 @@ public class WorkflowXmlManipulatorTest {
 
     @Test
     public void testThatWorkflowHasGenericInfoReplacedIfAlreadyThere() {
-        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformation(simpleWorkflowWithGenericInfo,
-                                                                                              this.getTwoSimpleEntries()));
+        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                      this.getTwoSimpleEntries()));
         assertThat(emptyGenericInfo).contains("<genericInformation>");
         assertThat(emptyGenericInfo).contains("</genericInformation>");
         assertThat(emptyGenericInfo).contains("<info name=\"firstTestKey\"");
@@ -116,9 +193,65 @@ public class WorkflowXmlManipulatorTest {
     }
 
     @Test
+    public void testThatWorkflowHasGenericInfoReplacedOnlyOnJobLevelBeforeTaskFlowButNotInTask() {
+        String genericInfoAdded = new String(workflowXmlManipulator.replaceGenericInformationJobLevel(workflowWithGenericInfoAtJobAndTaskLevel_BeforeTaskFlow,
+                                                                                                      this.getTwoSimpleEntries()));
+
+        Matcher matcherGenericInfoInsideTask = genericInformationPatternInsideTaskFlow.matcher(genericInfoAdded);
+        String genericInfoInTaskFlow = null;
+
+        boolean matcherGenericInfoInsideTaskFound = matcherGenericInfoInsideTask.find();
+        if (matcherGenericInfoInsideTaskFound) {
+            genericInfoInTaskFlow = matcherGenericInfoInsideTask.group(1);
+        }
+
+        assertThat(genericInfoAdded).contains("<genericInformation>");
+        assertThat(genericInfoAdded).contains("</genericInformation>");
+        assertThat(genericInfoAdded).contains("<info name=\"firstTestKey\"");
+        assertThat(genericInfoAdded).contains("value=\"firstTestValue\"");
+        assertThat(genericInfoAdded).contains("<info name=\"secondTestKey\"");
+        assertThat(genericInfoAdded).contains("value=\"secondTestValue\"");
+
+        //check that genericInfo are not modified inside on task level
+        assertThat(matcherGenericInfoInsideTaskFound).isTrue();
+        assertThat(genericInfoInTaskFlow).contains("<info name=\"insideTaskGenInfo\"");
+        assertThat(genericInfoInTaskFlow).contains("value=\"TaskGenInfoValue\"");
+        assertThat(genericInfoInTaskFlow).doesNotContain("value=\"firstTestValue\"");
+        assertThat(genericInfoInTaskFlow).doesNotContain("value=\"secondTestValue\"");
+    }
+
+    @Test
+    public void testThatWorkflowHasGenericInfoReplacedOnlyOnJobLevelAfterTaskFlowButNotInTask() {
+        String genericInfoAdded = new String(workflowXmlManipulator.replaceGenericInformationJobLevel(workflowWithGenericInfoAtJobAndTaskLevel_AfterTaskFlow,
+                                                                                                      this.getTwoSimpleEntries()));
+
+        Matcher matcherGenericInfoInsideTask = genericInformationPatternInsideTaskFlow.matcher(genericInfoAdded);
+        String genericInfoInTaskFlow = null;
+
+        boolean matcherGenericInfoInsideTaskFound = matcherGenericInfoInsideTask.find();
+        if (matcherGenericInfoInsideTaskFound) {
+            genericInfoInTaskFlow = matcherGenericInfoInsideTask.group(1);
+        }
+
+        assertThat(genericInfoAdded).contains("<genericInformation>");
+        assertThat(genericInfoAdded).contains("</genericInformation>");
+        assertThat(genericInfoAdded).contains("<info name=\"firstTestKey\"");
+        assertThat(genericInfoAdded).contains("value=\"firstTestValue\"");
+        assertThat(genericInfoAdded).contains("<info name=\"secondTestKey\"");
+        assertThat(genericInfoAdded).contains("value=\"secondTestValue\"");
+
+        assertThat(matcherGenericInfoInsideTaskFound).isTrue();
+        assertThat(genericInfoInTaskFlow).contains("<info name=\"insideTaskGenInfo\"");
+        assertThat(genericInfoInTaskFlow).contains("value=\"TaskGenInfoValue\"");
+
+        assertThat(genericInfoInTaskFlow).doesNotContain("value=\"firstTestValue\"");
+        assertThat(genericInfoInTaskFlow).doesNotContain("value=\"secondTestValue\"");
+    }
+
+    @Test
     public void testThatWorkflowHasGenericAllGenericInfoAddedIfItWasNotThereBefore() {
-        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformation(simpleWorkflowWithoutGenericInfo,
-                                                                                              this.getTwoSimpleEntries()));
+        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationJobLevel(simpleWorkflowWithoutGenericInfo,
+                                                                                                      this.getTwoSimpleEntries()));
         assertThat(emptyGenericInfo).contains("<genericInformation>");
         assertThat(emptyGenericInfo).contains("</genericInformation>");
         assertThat(emptyGenericInfo).contains("<info name=\"firstTestKey\"");
@@ -129,19 +262,19 @@ public class WorkflowXmlManipulatorTest {
 
     @Test
     public void testThatEmptyByteArrayIsReturnedIfAnyParameterIsNull() {
-        byte[] nullByteArray = workflowXmlManipulator.replaceGenericInformation(null, null);
+        byte[] nullByteArray = workflowXmlManipulator.replaceGenericInformationJobLevel(null, null);
         assertThat(nullByteArray.length).isEqualTo(0);
     }
 
     @Test
     public void testThatEmptyByteArrayIsReturnedIfXmlWorkflowIsNull() {
-        byte[] nullByteArray = workflowXmlManipulator.replaceGenericInformation(null, Collections.emptyMap());
+        byte[] nullByteArray = workflowXmlManipulator.replaceGenericInformationJobLevel(null, Collections.emptyMap());
         assertThat(nullByteArray.length).isEqualTo(0);
     }
 
     @Test
     public void testThatEmptyByteArrayIsReturnedIfGenericInfoIsEntriesNull() {
-        byte[] nullByteArray = workflowXmlManipulator.replaceGenericInformation(new byte[] {}, null);
+        byte[] nullByteArray = workflowXmlManipulator.replaceGenericInformationJobLevel(new byte[] {}, null);
         assertThat(nullByteArray.length).isEqualTo(0);
     }
 

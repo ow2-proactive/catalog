@@ -47,8 +47,8 @@ public class GenericInformationAdder {
             final String catalogObjectEntityKind, Map<String, String> genericInformationMap) {
         byte[] workflowWithReplacedGenericInfo = rawObject;
         if (catalogObjectEntityKind.equals(SupportedParserKinds.WORKFLOW.toString())) {
-            workflowWithReplacedGenericInfo = workflowXmlManipulator.replaceGenericInformation(rawObject,
-                                                                                               genericInformationMap);
+            workflowWithReplacedGenericInfo = workflowXmlManipulator.replaceGenericInformationJobLevel(rawObject,
+                                                                                                       genericInformationMap);
         }
         return workflowWithReplacedGenericInfo;
     }
