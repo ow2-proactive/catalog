@@ -72,7 +72,7 @@ public class KeyValueMetadataEntity implements Serializable {
     @Column(name = "PA_KEY", nullable = false)
     protected String key;
 
-    @Column(name = "PA_VALUE", nullable = false)
+    @Column(name = "PA_VALUE", nullable = false, length = 10000)
     protected String value;
 
     @Column(name = "LABEL", nullable = true)
