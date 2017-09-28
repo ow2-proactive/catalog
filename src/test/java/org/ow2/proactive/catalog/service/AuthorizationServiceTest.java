@@ -132,4 +132,14 @@ public class AuthorizationServiceTest {
                                                                           BucketService.DEFAULT_BUCKET_OWNER)).isTrue();
     }
 
+    @Test
+    public void testPublicAccessOnlyAllowingPublicObjects() {
+
+        assertThat(authorizationService.isPublicAccess(BucketService.DEFAULT_BUCKET_OWNER)).isTrue();
+        assertThat(authorizationService.isPublicAccess("GROUP:public-objects")).isTrue();
+
+        assertThat(authorizationService.isPublicAccess("public-objects")).isFalse();
+        assertThat(authorizationService.isPublicAccess("GROUP:")).isFalse();
+    }
+
 }

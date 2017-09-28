@@ -50,6 +50,7 @@ public class RestApiAccessService {
     @Autowired
     public RestApiAccessService(BucketService bucketService, AuthorizationService authorizationService,
             SchedulerUserAuthenticationService schedulerUserAuthenticationService) {
+
         this.bucketService = bucketService;
         this.authorizationService = authorizationService;
         this.schedulerUserAuthenticationService = schedulerUserAuthenticationService;
@@ -57,8 +58,10 @@ public class RestApiAccessService {
 
     public RestApiAccessResponse checkAccessBySessionIdAndThrowIfDeclined(String sessionId, long bucketId)
             throws NotAuthenticatedException, AccessDeniedException {
+
         RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionIdToOwnerOrGroup(sessionId, bucketId);
         if (!restApiAccessResponse.isAuthorized()) {
+
             throw new AccessDeniedException("SessionId: " + sessionId + " is not allowed to access buckets with id " +
                                             bucketId);
         }
@@ -67,6 +70,7 @@ public class RestApiAccessService {
 
     public RestApiAccessResponse checkAccessBySessionIdAndThrowIfDeclined(String sessionId, String ownerOrGroup)
             throws NotAuthenticatedException, AccessDeniedException {
+
         RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionIdToOwnerOrGroup(sessionId,
                                                                                                 ownerOrGroup);
         if (!restApiAccessResponse.isAuthorized()) {
@@ -78,13 +82,23 @@ public class RestApiAccessService {
 
     private RestApiAccessResponse checkAccessBySessionIdToOwnerOrGroup(String sessionId, long bucketId)
             throws NotAuthenticatedException {
+
         return checkAccessBySessionIdToOwnerOrGroup(sessionId, bucketService.getBucketMetadata(bucketId).getOwner());
+
     }
 
     private RestApiAccessResponse checkAccessBySessionIdToOwnerOrGroup(String sessionId, String ownerOrGroup)
             throws NotAuthenticatedException {
-        AuthenticatedUser authenticatedUser = schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
-        boolean authorized = authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser, ownerOrGroup);
-        return RestApiAccessResponse.builder().authorized(authorized).authenticatedUser(authenticatedUser).build();
+
+        if (authorizationService.isPublicAccess(ownerOrGroup)) {
+
+            return RestApiAccessResponse.builder().authorized(true).build();
+        } else {
+
+            AuthenticatedUser authenticatedUser = schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
+            boolean authorized = authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser,
+                                                                                        ownerOrGroup);
+            return RestApiAccessResponse.builder().authorized(authorized).authenticatedUser(authenticatedUser).build();
+        }
     }
 }
