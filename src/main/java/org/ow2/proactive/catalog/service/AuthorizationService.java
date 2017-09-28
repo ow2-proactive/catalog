@@ -55,4 +55,8 @@ public class AuthorizationService {
         String groupName = ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString(bucketOwnerOrGroup);
         return authenticatedUser.getGroups().contains(groupName);
     }
+
+    public boolean isPublicAccess(String bucketOwnerOrGroup) {
+        return bucketOwnerOrGroup.equals(BucketService.DEFAULT_BUCKET_OWNER);
+    }
 }

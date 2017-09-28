@@ -173,4 +173,24 @@ public class RestApiAccessServiceTest {
         assertThat(response.getAuthenticatedUser().getName()).isEqualTo("Pb is lead");
     }
 
+    @Test
+    public void testThatPublicObjectsAreAccessibleWithInvalidSessionId()
+            throws NotAuthenticatedException, AccessDeniedException {
+
+        when(authorizationService.isPublicAccess(any())).thenCallRealMethod();
+        RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined("invalid",
+                                                                                                                    BucketService.DEFAULT_BUCKET_OWNER);
+        assertThat(restApiAccessResponse.isAuthorized()).isTrue();
+    }
+
+    @Test
+    public void testThatPublicObjectsAreAccessibleWithNullSessionId()
+            throws NotAuthenticatedException, AccessDeniedException {
+
+        when(authorizationService.isPublicAccess(any())).thenCallRealMethod();
+        RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined(null,
+                                                                                                                    BucketService.DEFAULT_BUCKET_OWNER);
+        assertThat(restApiAccessResponse.isAuthorized()).isTrue();
+    }
+
 }
