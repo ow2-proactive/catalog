@@ -30,6 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.stereotype.Component;
 
 
@@ -41,35 +42,62 @@ import org.springframework.stereotype.Component;
 @Component
 public class WorkflowXmlManipulator {
 
-    private final static String TASK_FLOW_START_TAG = "<taskFlow>";
+    protected final static String TASK_FLOW_START_TAG = "<taskFlow>";
 
-    private final static String GENERIC_INFORMATION_START_TAG = "<genericInformation>";
+    protected final static String TASK_FLOW_END_TAG = "<\\/taskFlow>";
 
-    private final static String GENERIC_INFORMATION_END_TAG = "<\\/genericInformation>";
+    protected final static String GENERIC_INFORMATION_START_TAG = "<genericInformation>";
 
-    private final static String ONE_INTEND = " ";
+    protected final static String GENERIC_INFORMATION_END_TAG = "<\\/genericInformation>";
+
+    protected final static String ONE_INTEND = "  ";
 
     private final static String TWO_INTEND = ONE_INTEND + ONE_INTEND;
 
     private final static String NEW_LINE = "\n";
 
+    protected final static String ANY_CHARACTER_OR_NEW_LINE = "[\\S\\s]*";
+
     private final static String GENERIC_INFORMATION_ENTRY_FORMAT_STRING = TWO_INTEND +
                                                                           "<info name=\"%s\" value=\"%s\"/>" + NEW_LINE;
 
-    private final static Pattern genericInformationPattern = Pattern.compile(GENERIC_INFORMATION_START_TAG +
-                                                                             "[\\D\\d]*" + GENERIC_INFORMATION_END_TAG +
-                                                                             "[\\r\\n]");
+    protected final static String GENERIC_INFO_TAG_ENTITY = GENERIC_INFORMATION_START_TAG + "[\\D\\d]*?" +
+                                                            GENERIC_INFORMATION_END_TAG + "[\\r\\n]";
 
     private final static Pattern taskFlowStartTagPattern = Pattern.compile(TASK_FLOW_START_TAG);
 
-    private byte[] removeGenericInformation(final byte[] xmlWorkflow) {
+    private final static Pattern genericInformationPatternBeforeTaskFlow = Pattern.compile(ANY_CHARACTER_OR_NEW_LINE +
+                                                                                           "(" +
+                                                                                           GENERIC_INFO_TAG_ENTITY +
+                                                                                           ")" +
+                                                                                           ANY_CHARACTER_OR_NEW_LINE +
+                                                                                           TASK_FLOW_START_TAG +
+                                                                                           ANY_CHARACTER_OR_NEW_LINE);
+
+    private final static Pattern genericInformationPatternAfterTaskFlow = Pattern.compile(ANY_CHARACTER_OR_NEW_LINE +
+                                                                                          TASK_FLOW_END_TAG +
+                                                                                          ANY_CHARACTER_OR_NEW_LINE +
+                                                                                          "(" +
+                                                                                          GENERIC_INFO_TAG_ENTITY +
+                                                                                          ")" +
+                                                                                          ANY_CHARACTER_OR_NEW_LINE);
+
+    private byte[] removeGenericInformationJobLevel(final byte[] xmlWorkflow) {
         String workflow = new String(xmlWorkflow);
 
-        Matcher genericInfoMatcher = genericInformationPattern.matcher(workflow);
-        return genericInfoMatcher.replaceAll("").getBytes();
+        Matcher matcherBeforeTask = genericInformationPatternBeforeTaskFlow.matcher(workflow);
+        Matcher matcherAfterTask = genericInformationPatternAfterTaskFlow.matcher(workflow);
+
+        //from the definition workflow xsd schema: generic information's block can not be separated in several tags
+        if (matcherBeforeTask.matches()) {
+            workflow = workflow.replaceFirst(Pattern.quote(matcherBeforeTask.group(1)), "");
+        } else if (matcherAfterTask.matches()) {
+            workflow = workflow.replaceFirst(Pattern.quote(matcherAfterTask.group(1)), "");
+        }
+        return workflow.getBytes();
     }
 
-    public byte[] replaceGenericInformation(final byte[] xmlWorkflow, Map<String, String> genericInfoMap) {
+    public byte[] replaceGenericInformationJobLevel(final byte[] xmlWorkflow, Map<String, String> genericInfoMap) {
         if (xmlWorkflow == null) {
             return new byte[] {};
         }
@@ -77,12 +105,13 @@ public class WorkflowXmlManipulator {
             return xmlWorkflow;
         }
 
-        String workflowWithoutGenericInfo = new String(removeGenericInformation(xmlWorkflow));
+        String workflowWithoutGenericInfo = new String(removeGenericInformationJobLevel(xmlWorkflow));
 
         return taskFlowStartTagPattern.matcher(workflowWithoutGenericInfo)
-                                      .replaceFirst(ONE_INTEND + GENERIC_INFORMATION_START_TAG + NEW_LINE +
+                                      .replaceFirst(GENERIC_INFORMATION_START_TAG + NEW_LINE +
                                                     createGenericInfoString(genericInfoMap) + ONE_INTEND +
-                                                    GENERIC_INFORMATION_END_TAG + NEW_LINE + TASK_FLOW_START_TAG)
+                                                    GENERIC_INFORMATION_END_TAG + NEW_LINE + ONE_INTEND +
+                                                    TASK_FLOW_START_TAG)
                                       .getBytes();
     }
 
@@ -91,7 +120,7 @@ public class WorkflowXmlManipulator {
                                        .stream()
                                        .map(entry -> String.format(GENERIC_INFORMATION_ENTRY_FORMAT_STRING,
                                                                    entry.getKey(),
-                                                                   entry.getValue()))
+                                                                   StringEscapeUtils.escapeXml10(entry.getValue())))
                                        .collect(Collectors.joining());
     }
 

@@ -30,14 +30,12 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -54,8 +52,6 @@ import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
-import org.ow2.proactive.catalog.service.exception.DefaultCatalogObjectsFolderNotFoundException;
-import org.ow2.proactive.catalog.service.exception.DefaultRawCatalogObjectsFolderNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
 
 
@@ -123,22 +119,6 @@ public class BucketServiceTest {
     @Test
     public void testListBucketsNoOwnerWithKind() throws Exception {
         listBucket(null, "workflow");
-    }
-
-    @Test(expected = DefaultCatalogObjectsFolderNotFoundException.class)
-    public void testPopulateCatalogFromInvalidFolder() throws Exception {
-        final String[] buckets = { "NonExistentBucket" };
-        BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
-        when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
-        bucketService.populateCatalog(buckets, "/this-folder-doesnt-exist", "/raw-objects");
-    }
-
-    @Test(expected = DefaultRawCatalogObjectsFolderNotFoundException.class)
-    public void testPopulateCatalogFromInvalidRawFolder() throws Exception {
-        final String[] buckets = { "NonExistentBucket" };
-        BucketEntity mockedBucket = newMockedBucket(1L, "mockedBucket", null);
-        when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
-        bucketService.populateCatalog(buckets, "/default-objects", "/this-folder-doesnt-exist");
     }
 
     @Test
