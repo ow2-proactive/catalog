@@ -57,7 +57,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Data
 @Entity
-@Table(name = "BUCKET", uniqueConstraints = @UniqueConstraint(columnNames = { "NAME", "OWNER" }))
+@Table(name = "BUCKET", uniqueConstraints = @UniqueConstraint(columnNames = { "NAME" }))
 @ToString(exclude = "catalogObjects")
 public class BucketEntity implements Serializable {
 

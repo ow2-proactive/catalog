@@ -111,6 +111,25 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     }
 
     @Test
+    public void testCreateDuplicatedBucketNameDifferentUser() {
+        final String ownerKey = "owner";
+        final String bucketNameKey = "name";
+        final String ownerValue1 = "newowner1";
+        final String ownerValue2 = "newowner2";
+        final String bucketNameValue = "newbucket";
+        given().parameters(ownerKey, ownerValue1, bucketNameKey, bucketNameValue)
+               .post(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED);
+        given().parameters(ownerKey, ownerValue2, bucketNameKey, bucketNameValue)
+               .post(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CONFLICT);
+    }
+
+    @Test
     public void testGetBucketShouldBeNotFoundIfNonExistingId() {
         given().pathParam("bucketId", 42L).get(BUCKET_RESOURCE).then().statusCode(HttpStatus.SC_NOT_FOUND);
     }
@@ -154,28 +173,20 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     }
 
     @Test
-    public void testListOneBucketNameTwoOwners() {
-        final String bucketName = "TheBucketOfLove";
+    public void testListOneOwnerTwoBuckets() {
+        final String bucketName1 = "TheBucketOfLove";
+        final String bucketName2 = "TheBucketOfPain";
         final String userAlice = "Alice";
-        final String userBob = "Bob";
-        given().parameters("name", bucketName, "owner", userAlice).when().post(BUCKETS_RESOURCE);
-        given().parameters("name", bucketName, "owner", userBob).when().post(BUCKETS_RESOURCE);
+        given().parameters("name", bucketName1, "owner", userAlice).when().post(BUCKETS_RESOURCE);
+        given().parameters("name", bucketName2, "owner", userAlice).when().post(BUCKETS_RESOURCE);
 
-        // list alice -> should return one only
+        // list alice buckets -> should return buckets
         given().param("owner", userAlice)
                .get(BUCKETS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(1));
-
-        // list bob -> should return one only
-        given().param("owner", userBob)
-               .get(BUCKETS_RESOURCE)
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(1));
+               .body("", hasSize(2));
     }
 
     @Test
