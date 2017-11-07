@@ -41,15 +41,15 @@ import org.springframework.data.jpa.repository.Query;
 public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogObjectRevisionEntity, UUID>,
         JpaSpecificationExecutor<CatalogObjectRevisionEntity> {
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.id.bucketId = ?1 AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsInBucket(Long bucketId);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsInBucket(String bucketName);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.id.bucketId = ?1 AND cor.catalogObject.kind = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindInBucket(Long bucketId, String kind);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.kind = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindInBucket(String bucketName, String kind);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.id.bucketId = ?1 AND cor.catalogObject.id.name = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    CatalogObjectRevisionEntity findDefaultCatalogObjectByNameInBucket(Long bucketId, String name);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.id.name = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    CatalogObjectRevisionEntity findDefaultCatalogObjectByNameInBucket(String bucketName, String name);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.id.bucketId = ?1 AND cor.catalogObject.id.name = ?2 AND cor.commitTime = ?3")
-    CatalogObjectRevisionEntity findCatalogObjectRevisionByCommitTime(Long bucketId, String name, long commitTime);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.id.name = ?2 AND cor.commitTime = ?3")
+    CatalogObjectRevisionEntity findCatalogObjectRevisionByCommitTime(String bucketName, String name, long commitTime);
 }

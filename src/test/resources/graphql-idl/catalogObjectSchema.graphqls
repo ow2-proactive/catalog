@@ -88,5 +88,5 @@ type CatalogObject {
     metadata: [Metadata!]
     kind: String!
     link: String
-    name: String!
+    bucketName: String!
 }

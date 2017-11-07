@@ -71,7 +71,7 @@ public class BucketServiceIntegrationTest {
         keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
         assertThat(bucket).isNotNull();
         assertThat(bucket.getOwner()).isEqualTo("BucketServiceIntegrationTest");
-        assertThat(bucket.getMetaDataId()).isNotNull();
+        assertThat(bucket.getName()).isNotNull();
     }
 
     @After
@@ -88,7 +88,7 @@ public class BucketServiceIntegrationTest {
     @Test
     public void testDeleteEmptyBucket() {
         bucket = bucketService.createBucket("bucketnotempty", "emptyBucketTest");
-        catalogObjectService.createCatalogObject(bucket.getMetaDataId(),
+        catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
                                                  "object",
                                                  "commit message",
@@ -111,16 +111,16 @@ public class BucketServiceIntegrationTest {
     public void testGetBucket() {
         List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("BucketServiceIntegrationTest", null);
         assertThat(bucketMetadatas).hasSize(1);
-        BucketMetadata bucketMetadata = bucketService.getBucketMetadata(bucket.getMetaDataId());
+        BucketMetadata bucketMetadata = bucketService.getBucketMetadata(bucket.getName());
         assertThat(bucketMetadata).isNotNull();
         assertThat(bucketMetadata.getOwner()).isEqualTo(bucket.getOwner());
-        assertThat(bucketMetadata.getMetaDataId()).isEqualTo(bucket.getMetaDataId());
+        assertThat(bucketMetadata.getName()).isEqualTo(bucket.getName());
     }
 
     @Test
     public void testListBucket() {
         bucket = bucketService.createBucket("owner", "bucket2");
-        catalogObjectService.createCatalogObject(bucket.getMetaDataId(),
+        catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
                                                  "workflow",
                                                  "commit message",
@@ -131,11 +131,11 @@ public class BucketServiceIntegrationTest {
         List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("bucket2", null);
         assertThat(bucketMetadatas).hasSize(1);
         assertThat(bucketMetadatas.get(0).getOwner()).isEqualTo(bucket.getOwner());
-        assertThat(bucketMetadatas.get(0).getMetaDataId()).isEqualTo(bucket.getMetaDataId());
+        assertThat(bucketMetadatas.get(0).getName()).isEqualTo(bucket.getName());
 
         bucketMetadatas = bucketService.listBuckets((String) null, "workflow");
         assertThat(bucketMetadatas).hasSize(2);
-        assertThat(bucketMetadatas.get(1).getMetaDataId()).isEqualTo(bucket.getMetaDataId());
+        assertThat(bucketMetadatas.get(1).getName()).isEqualTo(bucket.getName());
     }
 
 }

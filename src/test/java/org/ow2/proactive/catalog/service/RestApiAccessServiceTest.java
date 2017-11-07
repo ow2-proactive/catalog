@@ -70,7 +70,7 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined("testSessionId", "test");
+        restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined("testSessionId", "test");
 
         verify(schedulerUserAuthenticationService).authenticateBySessionId("testSessionId");
 
@@ -84,7 +84,7 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined("testSessionId", null);
+        restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined("testSessionId", null);
 
         verify(schedulerUserAuthenticationService).authenticateBySessionId("testSessionId");
 
@@ -98,7 +98,7 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(false);
 
-        restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined("testSessionId", "test");
+        restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined("testSessionId", "test");
     }
 
     @Test
@@ -108,11 +108,13 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        when(bucketService.getBucketMetadata(1L)).thenReturn(new BucketMetadata(1L, "testName", "owner"));
+        when(bucketService.getBucketMetadata("bucket-bucketName")).thenReturn(new BucketMetadata(1L,
+                                                                                                 "bucket-bucketName",
+                                                                                                 "owner"));
 
-        restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined("testSessionId", 1L);
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-bucketName");
 
-        verify(bucketService).getBucketMetadata(1L);
+        verify(bucketService).getBucketMetadata("bucket-bucketName");
 
     }
 
@@ -124,11 +126,13 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        when(bucketService.getBucketMetadata(1L)).thenReturn(new BucketMetadata(1L, "testName", "owner"));
+        when(bucketService.getBucketMetadata("bucket-bucketName")).thenReturn(new BucketMetadata(1L,
+                                                                                                 "bucket-bucketName",
+                                                                                                 "owner"));
 
-        restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined("testSessionId", 1L);
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-bucketName");
 
-        verify(bucketService).getBucketMetadata(1L);
+        verify(bucketService).getBucketMetadata("bucket-bucketName");
 
         verify(authorizationService).askUserAuthorizationByBucketOwner(AuthenticatedUser.EMPTY, "owner");
 
@@ -142,9 +146,11 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(false);
 
-        when(bucketService.getBucketMetadata(1L)).thenReturn(new BucketMetadata(1L, "testName", "owner"));
+        when(bucketService.getBucketMetadata("bucket-bucketName")).thenReturn(new BucketMetadata(1L,
+                                                                                                 "bucket-bucketName",
+                                                                                                 "owner"));
 
-        restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined("testSessionId", 1L);
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-bucketName");
 
     }
 
@@ -161,10 +167,12 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        when(bucketService.getBucketMetadata(1L)).thenReturn(new BucketMetadata(1L, "testName", "owner"));
+        when(bucketService.getBucketMetadata("bucket-bucketName")).thenReturn(new BucketMetadata(1L,
+                                                                                                 "bucket-bucketName",
+                                                                                                 "owner"));
 
-        RestApiAccessResponse response = restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined("testSessionId",
-                                                                                                       1L);
+        RestApiAccessResponse response = restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId",
+                                                                                                                "bucket-bucketName");
 
         assertThat(response.isAuthorized()).isTrue();
         assertThat(response.getAuthenticatedUser().getGroups()).containsAllIn(Arrays.asList("admin",

@@ -41,7 +41,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * ProActiveWorkflowParser aims to parse a ProActive XML workflow (whatever the schema version is)
- * in order to extract some specific values (job name, project name, generic
+ * in order to extract some specific values (job bucketName, project bucketName, generic
  * information and variables).
  * <p>
  * No validation is applied for now. Besides parsing stop once required information have

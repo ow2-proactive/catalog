@@ -23,7 +23,7 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.generic;
+package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -32,22 +32,28 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
+import org.ow2.proactive.catalog.repository.specification.AbstractSpecification;
+
+import lombok.Builder;
 
 
 /**
  * @author ActiveEon Team
  * @since 05/07/2017
  */
-public class CompositeKeyEqNeSpecification<T> extends AbstractSpecification<T> {
+public class CatalogNameSpecification extends AbstractSpecification<String> {
 
-    public CompositeKeyEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            T value, Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
-            Join<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadataJoin) {
-        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
+    @Builder
+    public CatalogNameSpecification(Operations operations, String value,
+            Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
+            Join<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadataJoin,
+            Join<Join, BucketEntity> bucketEntityJoin) {
+        super(operations, value, catalogObjectJoin, metadataJoin, bucketEntityJoin);
     }
 
     @Override
@@ -55,13 +61,21 @@ public class CompositeKeyEqNeSpecification<T> extends AbstractSpecification<T> {
             CriteriaBuilder cb) {
         switch (operations) {
             case EQ:
-                return cb.equal(catalogObjectJoin.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
-                                                 .get(entityMetaModelEnum.getName()),
+                return cb.equal(catalogObjectJoin.get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                                 .get(CatalogObjectEntityMetaModelEnum.NAME.getName()),
                                 value);
             case NE:
-                return cb.notEqual(catalogObjectJoin.<T> get(CatalogObjectEntityMetaModelEnum.ID.getName())
-                                                    .get(entityMetaModelEnum.getName()),
+                return cb.notEqual(catalogObjectJoin.get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                                    .get(CatalogObjectEntityMetaModelEnum.NAME.getName()),
                                    value);
+            case LIKE:
+                return cb.like(catalogObjectJoin.get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                                .get(CatalogObjectEntityMetaModelEnum.NAME.getName()),
+                               value);
+            case NOT_LIKE:
+                return cb.notLike(catalogObjectJoin.get(CatalogObjectEntityMetaModelEnum.ID.getName())
+                                                   .get(CatalogObjectEntityMetaModelEnum.NAME.getName()),
+                                  value);
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }

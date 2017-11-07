@@ -56,7 +56,7 @@ public class CatalogObjectRevisionControllerTest {
     @Mock
     private CatalogObjectService catalogObjectService;
 
-    private static final Long BUCKET_ID = 1L;
+    private static final String BUCKET_ID = "bucket-name";
 
     private static final long COMMIT_TIME = System.currentTimeMillis();
 
@@ -68,7 +68,7 @@ public class CatalogObjectRevisionControllerTest {
 
     @Test
     public void testGetRevisionRaw() throws Exception {
-        CatalogRawObject rawObject = new CatalogRawObject(1L,
+        CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           "name",
                                                           "object",
                                                           "application/xml",
@@ -77,12 +77,14 @@ public class CatalogObjectRevisionControllerTest {
                                                           Collections.emptyList(),
                                                           new byte[0]);
 
-        when(catalogObjectService.getCatalogObjectRevisionRaw(anyLong(), anyString(), anyLong())).thenReturn(rawObject);
+        when(catalogObjectService.getCatalogObjectRevisionRaw(anyString(),
+                                                              anyString(),
+                                                              anyLong())).thenReturn(rawObject);
         ResponseEntity responseEntity = catalogObjectRevisionController.getRaw("",
                                                                                BUCKET_ID,
                                                                                "name",
                                                                                System.currentTimeMillis());
-        verify(catalogObjectService, times(1)).getCatalogObjectRevisionRaw(anyLong(), anyString(), anyLong());
+        verify(catalogObjectService, times(1)).getCatalogObjectRevisionRaw(anyString(), anyString(), anyLong());
         assertThat(responseEntity).isNotNull();
     }
 }

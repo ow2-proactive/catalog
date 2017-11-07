@@ -39,7 +39,7 @@ public class BucketMetadata extends NamedMetadata {
     private final String owner;
 
     public BucketMetadata(BucketEntity bucket) {
-        super(bucket.getId(), bucket.getName());
+        super(bucket.getId(), bucket.getBucketName());
         this.owner = bucket.getOwner();
     }
 

@@ -26,7 +26,6 @@
 package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
@@ -94,14 +93,14 @@ public class GraphqlServiceIntegrationTest {
 
     @Before
     public void setup() throws IOException, NotAuthenticatedException, AccessDeniedException {
-        doReturn("link").when(catalogObjectMapper).generatLink(anyLong(), anyString());
+        doReturn("link").when(catalogObjectMapper).generatLink(anyString(), anyString());
 
         bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
         keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
 
         workflowAsByteArray = IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml");
         workflowAsByteArrayUpdated = IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml");
-        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucket.getMetaDataId(),
+        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucket.getName(),
                                                                                        "catalog1",
                                                                                        "object",
                                                                                        "commit message",
@@ -110,14 +109,14 @@ public class GraphqlServiceIntegrationTest {
                                                                                        workflowAsByteArray);
         firstCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-        catalogObject = catalogObjectService.createCatalogObjectRevision(bucket.getMetaDataId(),
+        catalogObject = catalogObjectService.createCatalogObjectRevision(bucket.getName(),
                                                                          "catalog1",
                                                                          "commit message 2",
                                                                          keyValues,
                                                                          workflowAsByteArrayUpdated);
         secondCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-        catalogObjectService.createCatalogObject(bucket.getMetaDataId(),
+        catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog2",
                                                  "object",
                                                  "commit message",
@@ -127,7 +126,7 @@ public class GraphqlServiceIntegrationTest {
 
         keyValues = Collections.singletonList(new Metadata("key", "value2", "type"));
 
-        catalogObjectService.createCatalogObject(bucket.getMetaDataId(),
+        catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog3",
                                                  "workflow",
                                                  "commit message",
@@ -135,7 +134,7 @@ public class GraphqlServiceIntegrationTest {
                                                  keyValues,
                                                  workflowAsByteArray);
 
-        catalogObjectService.createCatalogObject(bucket.getMetaDataId(),
+        catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog4",
                                                  "workflow",
                                                  "commit message",
@@ -152,7 +151,7 @@ public class GraphqlServiceIntegrationTest {
 
     @Test
     public void testGetAllCatalogObjects() {
-        String query = "{\n" + "  allCatalogObjects {\n" + "    edges {\n" + "      bucketId\n" + "      name\n" +
+        String query = "{\n" + "  allCatalogObjects {\n" + "    edges {\n" + "      bucketName\n" + "      name\n" +
                        "      kind\n" + "      contentType\n" + "      metadata {\n" + "        key\n" +
                        "        value\n" + "        label\n" + "      }\n" + "      commitMessage\n" +
                        "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
@@ -177,7 +176,7 @@ public class GraphqlServiceIntegrationTest {
     @Test
     public void testPageInfoQuery() {
         String query = "{\n" + "  allCatalogObjects(pageInfo:{page:1, size:2}) {\n" + "    edges {\n" +
-                       "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                       "      bucketName\n" + "      name\n" + "      kind\n" + "      contentType\n" +
                        "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
                        "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                        "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
@@ -200,7 +199,7 @@ public class GraphqlServiceIntegrationTest {
     @Test
     public void testNameQuery() {
         String query = "{\n" + "  allCatalogObjects(where:{nameArg:{eq:\"catalog2\"}}) {\n" + "    edges {\n" +
-                       "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                       "      bucketName\n" + "      name\n" + "      kind\n" + "      contentType\n" +
                        "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
                        "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                        "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
@@ -219,7 +218,7 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.getEdges().stream().anyMatch(e -> !e.getName().equals("catalog2"))).isFalse();
 
         query = "{\n" + "  allCatalogObjects(where:{nameArg:{like:\"%log2\"}}) {\n" + "    edges {\n" +
-                "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" + "      metadata {\n" +
+                "      bucketName\n" + "      name\n" + "      kind\n" + "      contentType\n" + "      metadata {\n" +
                 "        key\n" + "        value\n" + "        label\n" + "      }\n" + "      commitMessage\n" +
                 "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
                 "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
@@ -240,11 +239,12 @@ public class GraphqlServiceIntegrationTest {
 
     @Test
     public void testBucketIdQuery() {
-        String query = "{\n" + "  allCatalogObjects(where:{bucketIdArg:{eq:" + bucket.getMetaDataId() + "}}) {\n" +
-                       "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
-                       "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
-                       "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
-                       "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+        String query = "{\n" + "  allCatalogObjects(where:{bucketIdArg:{eq:\"" + bucket.getName() + "\"}}) {\n" +
+                       "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" +
+                       "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
+                       "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" +
+                       "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
+                       "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
         Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
 
@@ -256,8 +256,8 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.getTotalCount()).isEqualTo(4);
         assertThat(connection.getTotalPage()).isEqualTo(1);
 
-        query = "{\n" + "  allCatalogObjects(where:{bucketIdArg:{in:[" + bucket.getMetaDataId() + "]}}) {\n" +
-                "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+        query = "{\n" + "  allCatalogObjects(where:{bucketIdArg:{eq:\"" + bucket.getName() + "\"}}) {\n" +
+                "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" + "      contentType\n" +
                 "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
                 "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                 "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
@@ -274,9 +274,29 @@ public class GraphqlServiceIntegrationTest {
     }
 
     @Test
+    public void testBucketNameLikeQuery() {
+        String query = "{\n" + "  allCatalogObjects(where:{bucketIdArg:{like:\"" + bucket.getName() + "\"}}) {\n" +
+                "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" +
+                "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
+                "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" +
+                "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
+                "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(4);
+        assertThat(connection.getTotalCount()).isEqualTo(4);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+    }
+
+    @Test
     public void testKindQuery() {
         String query = "{\n" + "  allCatalogObjects(where:{kindArg:{eq:\"object\"}}) {\n" + "    edges {\n" +
-                       "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                       "      bucketName\n" + "      name\n" + "      kind\n" + "      contentType\n" +
                        "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
                        "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                        "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
@@ -293,7 +313,7 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.getEdges().stream().anyMatch(e -> !e.getKind().equals("object"))).isFalse();
 
         query = "{\n" + "  allCatalogObjects(where:{kindArg:{ne:\"object\"}}) {\n" + "    edges {\n" +
-                "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" + "      metadata {\n" +
+                "      bucketName\n" + "      name\n" + "      kind\n" + "      contentType\n" + "      metadata {\n" +
                 "        key\n" + "        value\n" + "        label\n" + "      }\n" + "      commitMessage\n" +
                 "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
                 "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
@@ -312,7 +332,7 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.getEdges().stream().anyMatch(e -> e.getKind().equals("object"))).isFalse();
 
         query = "{\n" + "  allCatalogObjects(where:{kindArg:{like:\"%work%\"}}) {\n" + "    edges {\n" +
-                "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" + "      metadata {\n" +
+                "      bucketName\n" + "      name\n" + "      kind\n" + "      contentType\n" + "      metadata {\n" +
                 "        key\n" + "        value\n" + "        label\n" + "      }\n" + "      commitMessage\n" +
                 "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
                 "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
@@ -334,11 +354,11 @@ public class GraphqlServiceIntegrationTest {
     @Test
     public void testMetadataQuery() {
         String query = "{\n" + "  allCatalogObjects(where:{metadataArg:{key:\"key\", value:{eq:\"value\"}}}) {\n" +
-                       "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
-                       "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
-                       "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
-                       "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" +
-                       "}\n";
+                       "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" +
+                       "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
+                       "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" +
+                       "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
+                       "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
 
         Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
 
@@ -351,7 +371,7 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.getTotalPage()).isEqualTo(1);
 
         query = "{\n" + "  allCatalogObjects(where:{metadataArg:{key:\"key\", value:{ne:\"value\"}}}) {\n" +
-                "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" + "      contentType\n" +
                 "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
                 "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                 "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
@@ -369,7 +389,7 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.isHasPrevious()).isFalse();
 
         query = "{\n" + "  allCatalogObjects(where:{metadataArg:{key:\"key\", value:{like:\"value%\"}}}) {\n" +
-                "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" + "      contentType\n" +
                 "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
                 "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                 "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
@@ -391,11 +411,11 @@ public class GraphqlServiceIntegrationTest {
     public void testSimpleAndQuery() throws IOException {
         String query = "{\n" +
                        "  allCatalogObjects(where:{AND:[{nameArg:{eq:\"catalog1\"}}, {kindArg:{eq:\"object\"}}]}) {\n" +
-                       "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
-                       "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
-                       "      commitMessage\n" + "      commitDateTime\n" + "    link}\n" + "    page\n" +
-                       "    size\n" + "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" +
-                       "  }  \n" + "}\n";
+                       "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" +
+                       "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
+                       "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" +
+                       "    link}\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
+                       "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
 
         Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
 
@@ -414,7 +434,7 @@ public class GraphqlServiceIntegrationTest {
         BucketMetadata bucket2 = bucketService.createBucket("bucket2", "CatalogObjectServiceIntegrationTest");
         keyValues = Collections.singletonList(new Metadata("key2", "", "type"));
 
-        catalogObjectService.createCatalogObject(bucket2.getMetaDataId(),
+        catalogObjectService.createCatalogObject(bucket2.getName(),
                                                  "catalog1",
                                                  "object",
                                                  "commit message",
@@ -424,11 +444,11 @@ public class GraphqlServiceIntegrationTest {
 
         String query = "{\n" +
                        "  allCatalogObjects(where:{OR:[{AND:[{nameArg:{eq:\"catalog1\"}}, {kindArg:{eq:\"object\"}}, {metadataArg:{key:\"key2\", value:{like:\"%%\"}}}]}, {AND:[{kindArg:{eq:\"workflow\"}}, {metadataArg:{key:\"key\",value:{eq:\"value2\"}}}]}]}) {\n" +
-                       "    edges {\n" + "      bucketId\n" + "      name\n" + "      kind\n" + "      contentType\n" +
-                       "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
-                       "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
-                       "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" +
-                       "}\n";
+                       "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" +
+                       "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
+                       "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" +
+                       "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
+                       "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
 
         Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
 
@@ -441,9 +461,9 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.getTotalPage()).isEqualTo(1);
 
         query = "{\n" +
-                "  allCatalogObjects(where:{OR:[{AND:[{OR:[{nameArg:{eq:\"catalog1\"}},{nameArg:{eq:\"catalog2\"}}]}, {bucketIdArg:{eq:" +
-                bucket.getMetaDataId() + "}}]}, {AND:[{nameArg:{eq:\"catalog1\"}}, {bucketIdArg:{eq:" +
-                bucket2.getMetaDataId() + "}}]}]}) {\n" + "    edges {\n" + "      bucketId\n" + "      name\n" +
+                "  allCatalogObjects(where:{OR:[{AND:[{OR:[{nameArg:{eq:\"catalog1\"}},{nameArg:{eq:\"catalog2\"}}]}, {bucketIdArg:{eq:\"" +
+                bucket.getName() + "\"}}]}, {AND:[{nameArg:{eq:\"catalog1\"}}, {bucketIdArg:{eq:\"" +
+                bucket2.getName() + "\"}}]}]}) {\n" + "    edges {\n" + "      bucketName\n" + "      name\n" +
                 "      kind\n" + "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
                 "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" + "    }\n" +
                 "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" + "    hasNext\n" +

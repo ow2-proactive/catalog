@@ -38,26 +38,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CatalogObjectBucketIdWhereArgs extends WhereArgs<Long> {
-
-    protected Long[] in;
-
-    protected Long[] notIn;
+public class CatalogObjectBucketIdWhereArgs extends StringWhereArgs {
 
     @Builder
-    public CatalogObjectBucketIdWhereArgs(Long eq, Long ne, Long gt, Long gte, Long lt, Long lte, Long[] in,
-            Long[] notIn) {
-        super(eq, ne, gt, gte, lt, lte);
-        this.in = in;
-        this.notIn = notIn;
+    public CatalogObjectBucketIdWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte,
+            String like, String notLike) {
+        super(eq, ne, gt, gte, lt, lte, like, notLike);
     }
-
-    public Long[] getIn() {
-        return in;
-    }
-
-    public Long[] getNotIn() {
-        return notIn;
-    }
-
 }

@@ -26,14 +26,10 @@ input StringWhereArgs {
 }
 
 input CatalogObjectBucketIdWhereArgs{
-    in: [Long!]
-    notIn: [Long!]
-    eq: Long
-    ne: Long
-    gt: Long
-    gte: Long
-    lt: Long
-    lte: Long
+     like: String
+     notLike: String
+     eq: String
+     ne: String
 }
 
 input CatalogObjectKindWhereArgs{
@@ -81,12 +77,12 @@ type Metadata {
 }
 
 type CatalogObject {
-    bucketId: Long!
     commitDateTime: String!
     commitMessage: String
     contentType: String
     metadata: [Metadata!]
     kind: String!
     link: String
+    bucketName: String!
     name: String!
 }

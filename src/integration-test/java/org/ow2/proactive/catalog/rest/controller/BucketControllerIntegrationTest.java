@@ -62,11 +62,11 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private static final String BUCKETS_RESOURCE = "/buckets";
 
-    private static final String BUCKET_RESOURCE = "/buckets/{bucketId}";
+    private static final String BUCKET_RESOURCE = "/buckets/{bucketName}";
 
-    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketId}/resources";
+    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketName}/resources";
 
-    private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketId}/resources/{name}";
+    private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketName}/resources/{name}";
 
     @After
     public void cleanup() {
@@ -131,7 +131,10 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testGetBucketShouldBeNotFoundIfNonExistingId() {
-        given().pathParam("bucketId", 42L).get(BUCKET_RESOURCE).then().statusCode(HttpStatus.SC_NOT_FOUND);
+        given().pathParam("bucketName", "non-existing-bucket")
+               .get(BUCKET_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
@@ -148,9 +151,10 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                                               "BucketResourceAssemblerTestUser"))
                                               .collect(Collectors.toList());
 
-        buckets.stream().forEach(bucket -> given().parameters("name", bucket.getName(), "owner", bucket.getOwner())
-                                                  .when()
-                                                  .post(BUCKETS_RESOURCE));
+        buckets.stream()
+               .forEach(bucket -> given().parameters("name", bucket.getBucketName(), "owner", bucket.getOwner())
+                                         .when()
+                                         .post(BUCKETS_RESOURCE));
 
         given().parameter("owner", "BucketResourceAssemblerTestUser")
                .get(BUCKETS_RESOURCE)
@@ -195,7 +199,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String bucketName2 = "EmptyBucket";
         final String bucketNameWithSomeObjects = "BucketWithSomeObjects";
         // Get bucket ID from response to create an object in it
-        Integer bucket1Id = IntegrationTestUtil.createBucket(bucketName1, "owner");
+        String bucket1Id = IntegrationTestUtil.createBucket(bucketName1, "owner");
 
         IntegrationTestUtil.createBucket(bucketName2, "owner");
 
@@ -207,7 +211,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                "application/xml",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
-        Integer bucketWithSomeObjectsId = IntegrationTestUtil.createBucket(bucketNameWithSomeObjects, "owner");
+        String bucketWithSomeObjectsId = IntegrationTestUtil.createBucket(bucketNameWithSomeObjects, "owner");
 
         IntegrationTestUtil.postObjectToBucket(bucketWithSomeObjectsId,
                                                "differentkind",
@@ -236,13 +240,12 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String adminOwner = "admin";
         final String userOwner = "user";
 
-        Integer bucketAdminOwnerWorkflowKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerWorkflowKind,
-                                                                                  adminOwner);
+        String bucketAdminOwnerWorkflowKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerWorkflowKind,
+                                                                                 adminOwner);
         IntegrationTestUtil.createBucket(BucketAdminOwnerEmptyBucket, adminOwner);
-        Integer BucketAdminOwnerOtherKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerOtherKind, adminOwner);
-        Integer BucketAdminOwnerMixedKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerMixedKind, adminOwner);
-        Integer BucketUserOwnerWorkflowKindId = IntegrationTestUtil.createBucket(BucketUserOwnerWorkflowKind,
-                                                                                 userOwner);
+        String BucketAdminOwnerOtherKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerOtherKind, adminOwner);
+        String BucketAdminOwnerMixedKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerMixedKind, adminOwner);
+        String BucketUserOwnerWorkflowKindId = IntegrationTestUtil.createBucket(BucketUserOwnerWorkflowKind, userOwner);
 
         IntegrationTestUtil.postDefaultWorkflowToBucket(bucketAdminOwnerWorkflowKindId);
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerOtherKindId,
@@ -291,14 +294,14 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     @Test
     public void testDeleteEmptyBucket() {
         // Get bucket ID from response to create an object in it
-        Integer bucketId = given().parameters("name", "bucketName", "owner", "owner")
-                                  .when()
-                                  .post(BUCKETS_RESOURCE)
-                                  .then()
-                                  .extract()
-                                  .path("id");
+        String bucketId = given().parameters("name", "bucketName", "owner", "owner")
+                                 .when()
+                                 .post(BUCKETS_RESOURCE)
+                                 .then()
+                                 .extract()
+                                 .path("name");
 
-        given().pathParam("bucketId", bucketId)
+        given().pathParam("bucketName", bucketId)
                .when()
                .delete(BUCKET_RESOURCE)
                .then()
@@ -306,7 +309,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .statusCode(HttpStatus.SC_OK);
 
         // check that the bucket is really gone
-        given().pathParam("bucketId", bucketId)
+        given().pathParam("bucketName", bucketId)
                .when()
                .get(BUCKET_RESOURCE)
                .then()
@@ -319,15 +322,15 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String bucketName = "BucketWithObject";
 
         // Get bucket ID from response to create an object in it
-        Integer bucketId = given().parameters("name", bucketName, "owner", "owner")
-                                  .when()
-                                  .post(BUCKETS_RESOURCE)
-                                  .then()
-                                  .extract()
-                                  .path("id");
+        String bucketId = given().parameters("name", bucketName, "owner", "owner")
+                                 .when()
+                                 .post(BUCKETS_RESOURCE)
+                                 .then()
+                                 .extract()
+                                 .path("name");
 
         // Add an object of kind "workflow" into first bucket
-        given().pathParam("bucketId", bucketId)
+        given().pathParam("bucketName", bucketId)
                .queryParam("kind", "myobjectkind")
                .queryParam("name", "myTestName")
                .queryParam("commitMessage", "first commit")
@@ -336,7 +339,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .when()
                .post(CATALOG_OBJECTS_RESOURCE);
 
-        given().pathParam("bucketId", bucketId)
+        given().pathParam("bucketName", bucketId)
                .when()
                .delete(BUCKET_RESOURCE)
                .then()
@@ -344,7 +347,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .statusCode(HttpStatus.SC_FORBIDDEN);
 
         // check that the bucket is still there
-        given().pathParam("bucketId", bucketId)
+        given().pathParam("bucketName", bucketId)
                .when()
                .get(BUCKET_RESOURCE)
                .then()
@@ -354,7 +357,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testDeleteNonExistingBucket() {
-        given().pathParam("bucketId", 35434247)
+        given().pathParam("bucketName", "some-bucket")
                .when()
                .delete(BUCKET_RESOURCE)
                .then()

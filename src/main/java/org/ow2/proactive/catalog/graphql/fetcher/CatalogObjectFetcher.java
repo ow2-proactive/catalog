@@ -148,12 +148,12 @@ public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection
         //                return new PageRequest(pageInfo.getPage(),
         //                                       pageInfo.getSize(),
         //                                       Sort.Direction.ASC,
-        //                                       CatalogObjectEntityMetaModelEnum.KIND.getName());
+        //                                       CatalogObjectEntityMetaModelEnum.KIND.getBucketName());
         //            case KIND_DESC:
         //                return new PageRequest(pageInfo.getPage(),
         //                                       pageInfo.getSize(),
         //                                       Sort.Direction.DESC,
-        //                                       CatalogObjectEntityMetaModelEnum.KIND.getName());
+        //                                       CatalogObjectEntityMetaModelEnum.KIND.getBucketName());
         //            default:
         //                throw new IllegalArgumentException(orderBy + " does not exist");
         //        }
@@ -170,12 +170,12 @@ public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection
         public Stream<CatalogObject> apply(Stream<CatalogObjectRevisionEntity> catalogObjectEntityStream) {
             return catalogObjectEntityStream.map(entity -> {
                 CatalogObject object = new CatalogObject(entity);
-                object.setLink(generatLink(object.getBucketId(), object.getName()));
+                object.setLink(generatLink(object.getBucketName(), object.getName()));
                 return object;
             });
         }
 
-        public String generatLink(Long bucketId, String name) {
+        public String generatLink(String bucketId, String name) {
             try {
                 ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw("dummy",
                                                                                                                     bucketId,

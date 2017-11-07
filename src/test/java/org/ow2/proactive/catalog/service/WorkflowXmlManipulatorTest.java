@@ -50,15 +50,15 @@ public class WorkflowXmlManipulatorTest {
                                                              "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
                                                              "  xmlns=\"urn:proactive:jobdescriptor:3.8\"\n" +
                                                              "     xsi:schemaLocation=\"urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd\"\n" +
-                                                             "    name=\"TestGenericInfo\" \n" +
+                                                             "    bucketName=\"TestGenericInfo\" \n" +
                                                              "    priority=\"normal\"\n" +
                                                              "    onTaskError=\"continueJobExecution\"\n" +
                                                              "     maxNumberOfExecution=\"2\"\n" + ">\n" +
-                                                             "  <taskFlow>\n" + "    <task name=\"Task1\">\n" +
+                                                             "  <taskFlow>\n" + "    <task bucketName=\"Task1\">\n" +
                                                              "      <scriptExecutable>\n" + "        <script>\n" +
                                                              "          <code language=\"javascript\">\n" +
                                                              "            <![CDATA[\n" +
-                                                             "print(java.lang.System.getProperty('pas.task.name'))\n" +
+                                                             "print(java.lang.System.getProperty('pas.task.bucketName'))\n" +
                                                              "]]>\n" + "          </code>\n" + "        </script>\n" +
                                                              "      </scriptExecutable>\n" + "    </task>\n" +
                                                              "  </taskFlow>\n" + "</job>").getBytes();
@@ -67,19 +67,19 @@ public class WorkflowXmlManipulatorTest {
                                                           "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
                                                           "  xmlns=\"urn:proactive:jobdescriptor:3.8\"\n" +
                                                           "     xsi:schemaLocation=\"urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd\"\n" +
-                                                          "    name=\"TestGenericInfo\" \n" +
+                                                          "    bucketName=\"TestGenericInfo\" \n" +
                                                           "    priority=\"normal\"\n" +
                                                           "    onTaskError=\"continueJobExecution\"\n" +
                                                           "     maxNumberOfExecution=\"2\"\n" + ">\n" +
                                                           "  <genericInformation>\n" +
-                                                          "    <info name=\"first\" value=\"value1\"/>\n" +
-                                                          "    <info name=\"second\" value=\"value2\"/>\n" +
+                                                          "    <info bucketName=\"first\" value=\"value1\"/>\n" +
+                                                          "    <info bucketName=\"second\" value=\"value2\"/>\n" +
                                                           "  </genericInformation>\n" + "  <taskFlow>\n" +
-                                                          "    <task name=\"Task1\">\n" + "      <scriptExecutable>\n" +
-                                                          "        <script>\n" +
+                                                          "    <task bucketName=\"Task1\">\n" +
+                                                          "      <scriptExecutable>\n" + "        <script>\n" +
                                                           "          <code language=\"javascript\">\n" +
                                                           "            <![CDATA[\n" +
-                                                          "print(java.lang.System.getProperty('pas.task.name'))\n" +
+                                                          "print(java.lang.System.getProperty('pas.task.bucketName'))\n" +
                                                           "]]>\n" + "          </code>\n" + "        </script>\n" +
                                                           "      </scriptExecutable>\n" + "    </task>\n" +
                                                           "  </taskFlow>\n" + "</job>").getBytes();
@@ -89,27 +89,27 @@ public class WorkflowXmlManipulatorTest {
                                                                                     "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
                                                                                     "  xmlns=\"urn:proactive:jobdescriptor:3.8\"\n" +
                                                                                     "     xsi:schemaLocation=\"urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd\"\n" +
-                                                                                    "    name=\"TestGenericInfo\" \n" +
+                                                                                    "    bucketName=\"TestGenericInfo\" \n" +
                                                                                     "    priority=\"normal\"\n" +
                                                                                     "    onTaskError=\"continueJobExecution\"\n" +
                                                                                     "     maxNumberOfExecution=\"2\"\n" +
                                                                                     ">\n" + "    <genericInformation>" +
-                                                                                    "      <info name=\"first\" value=\"value1\"/>\n" +
-                                                                                    "      <info name=\"second\" value=\"value2\"/>\n" +
+                                                                                    "      <info bucketName=\"first\" value=\"value1\"/>\n" +
+                                                                                    "      <info bucketName=\"second\" value=\"value2\"/>\n" +
                                                                                     "    </genericInformation>\n" +
                                                                                     "     <description>\n" +
                                                                                     "        <![CDATA[ Perform anomaly detection of an input image (only pedestrians are supposed to be present) ]]>\n" +
                                                                                     "     </description>\n" +
                                                                                     "    <taskFlow>\n" +
-                                                                                    "    <task name=\"Task1\">\n" +
+                                                                                    "    <task bucketName=\"Task1\">\n" +
                                                                                     "      <genericInformation>\n" +
-                                                                                    "         <info name=\"insideTaskGenInfo\" value=\"TaskGenInfoValue\"/>\n" +
+                                                                                    "         <info bucketName=\"insideTaskGenInfo\" value=\"TaskGenInfoValue\"/>\n" +
                                                                                     "       </genericInformation>\n" +
                                                                                     "      <scriptExecutable>\n" +
                                                                                     "        <script>\n" +
                                                                                     "          <code language=\"javascript\">\n" +
                                                                                     "            <![CDATA[\n" +
-                                                                                    "print(java.lang.System.getProperty('pas.task.name'))\n" +
+                                                                                    "print(java.lang.System.getProperty('pas.task.bucketName'))\n" +
                                                                                     "]]>\n" + "          </code>\n" +
                                                                                     "        </script>\n" +
                                                                                     "      </scriptExecutable>\n" +
@@ -122,20 +122,20 @@ public class WorkflowXmlManipulatorTest {
                                                                                    "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
                                                                                    "  xmlns=\"urn:proactive:jobdescriptor:3.8\"\n" +
                                                                                    "     xsi:schemaLocation=\"urn:proactive:jobdescriptor:3.8 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.8/schedulerjob.xsd\"\n" +
-                                                                                   "    name=\"TestGenericInfo\" \n" +
+                                                                                   "    bucketName=\"TestGenericInfo\" \n" +
                                                                                    "    priority=\"normal\"\n" +
                                                                                    "    onTaskError=\"continueJobExecution\"\n" +
                                                                                    "     maxNumberOfExecution=\"2\"\n" +
                                                                                    ">\n" + "    <taskFlow>\n" +
-                                                                                   "    <task name=\"Task1\">\n" +
+                                                                                   "    <task bucketName=\"Task1\">\n" +
                                                                                    "      <genericInformation>\n" +
-                                                                                   "         <info name=\"insideTaskGenInfo\" value=\"TaskGenInfoValue\"/>\n" +
+                                                                                   "         <info bucketName=\"insideTaskGenInfo\" value=\"TaskGenInfoValue\"/>\n" +
                                                                                    "       </genericInformation>\n" +
                                                                                    "      <scriptExecutable>\n" +
                                                                                    "        <script>\n" +
                                                                                    "          <code language=\"javascript\">\n" +
                                                                                    "            <![CDATA[\n" +
-                                                                                   "print(java.lang.System.getProperty('pas.task.name'))\n" +
+                                                                                   "print(java.lang.System.getProperty('pas.task.bucketName'))\n" +
                                                                                    "]]>\n" + "          </code>\n" +
                                                                                    "        </script>\n" +
                                                                                    "      </scriptExecutable>\n" +
@@ -144,8 +144,8 @@ public class WorkflowXmlManipulatorTest {
                                                                                    "        <![CDATA[ Perform anomaly detection of an input image (only pedestrians are supposed to be present) ]]>\n" +
                                                                                    "     </description>\n" +
                                                                                    "    <genericInformation>" +
-                                                                                   "      <info name=\"first\" value=\"value1\"/>\n" +
-                                                                                   "      <info name=\"second\" value=\"value2\"/>\n" +
+                                                                                   "      <info bucketName=\"first\" value=\"value1\"/>\n" +
+                                                                                   "      <info bucketName=\"second\" value=\"value2\"/>\n" +
                                                                                    "    </genericInformation>\n" +
                                                                                    "</job>").getBytes();
 
@@ -168,7 +168,7 @@ public class WorkflowXmlManipulatorTest {
                                                                                                       Collections.emptyMap()));
         assertThat(emptyGenericInfo).contains("<genericInformation>");
         assertThat(emptyGenericInfo).contains("</genericInformation>");
-        assertThat(emptyGenericInfo).doesNotContain("<info name="); // Generic Info has no Entry
+        assertThat(emptyGenericInfo).doesNotContain("<info bucketName="); // Generic Info has no Entry
     }
 
     @Test
@@ -177,7 +177,7 @@ public class WorkflowXmlManipulatorTest {
                                                                                                       Collections.emptyMap()));
         assertThat(emptyGenericInfo).contains("<genericInformation>");
         assertThat(emptyGenericInfo).contains("</genericInformation>");
-        assertThat(emptyGenericInfo).doesNotContain("<info name="); // Generic Info has no Entry
+        assertThat(emptyGenericInfo).doesNotContain("<info bucketName="); // Generic Info has no Entry
     }
 
     @Test
@@ -186,9 +186,9 @@ public class WorkflowXmlManipulatorTest {
                                                                                                       this.getTwoSimpleEntries()));
         assertThat(emptyGenericInfo).contains("<genericInformation>");
         assertThat(emptyGenericInfo).contains("</genericInformation>");
-        assertThat(emptyGenericInfo).contains("<info name=\"firstTestKey\"");
+        assertThat(emptyGenericInfo).contains("<info bucketName=\"firstTestKey\"");
         assertThat(emptyGenericInfo).contains("value=\"firstTestValue\"");
-        assertThat(emptyGenericInfo).contains("<info name=\"secondTestKey\"");
+        assertThat(emptyGenericInfo).contains("<info bucketName=\"secondTestKey\"");
         assertThat(emptyGenericInfo).contains("value=\"secondTestValue\"");
     }
 
@@ -207,14 +207,14 @@ public class WorkflowXmlManipulatorTest {
 
         assertThat(genericInfoAdded).contains("<genericInformation>");
         assertThat(genericInfoAdded).contains("</genericInformation>");
-        assertThat(genericInfoAdded).contains("<info name=\"firstTestKey\"");
+        assertThat(genericInfoAdded).contains("<info bucketName=\"firstTestKey\"");
         assertThat(genericInfoAdded).contains("value=\"firstTestValue\"");
-        assertThat(genericInfoAdded).contains("<info name=\"secondTestKey\"");
+        assertThat(genericInfoAdded).contains("<info bucketName=\"secondTestKey\"");
         assertThat(genericInfoAdded).contains("value=\"secondTestValue\"");
 
         //check that genericInfo are not modified inside on task level
         assertThat(matcherGenericInfoInsideTaskFound).isTrue();
-        assertThat(genericInfoInTaskFlow).contains("<info name=\"insideTaskGenInfo\"");
+        assertThat(genericInfoInTaskFlow).contains("<info bucketName=\"insideTaskGenInfo\"");
         assertThat(genericInfoInTaskFlow).contains("value=\"TaskGenInfoValue\"");
         assertThat(genericInfoInTaskFlow).doesNotContain("value=\"firstTestValue\"");
         assertThat(genericInfoInTaskFlow).doesNotContain("value=\"secondTestValue\"");
@@ -235,13 +235,13 @@ public class WorkflowXmlManipulatorTest {
 
         assertThat(genericInfoAdded).contains("<genericInformation>");
         assertThat(genericInfoAdded).contains("</genericInformation>");
-        assertThat(genericInfoAdded).contains("<info name=\"firstTestKey\"");
+        assertThat(genericInfoAdded).contains("<info bucketName=\"firstTestKey\"");
         assertThat(genericInfoAdded).contains("value=\"firstTestValue\"");
-        assertThat(genericInfoAdded).contains("<info name=\"secondTestKey\"");
+        assertThat(genericInfoAdded).contains("<info bucketName=\"secondTestKey\"");
         assertThat(genericInfoAdded).contains("value=\"secondTestValue\"");
 
         assertThat(matcherGenericInfoInsideTaskFound).isTrue();
-        assertThat(genericInfoInTaskFlow).contains("<info name=\"insideTaskGenInfo\"");
+        assertThat(genericInfoInTaskFlow).contains("<info bucketName=\"insideTaskGenInfo\"");
         assertThat(genericInfoInTaskFlow).contains("value=\"TaskGenInfoValue\"");
 
         assertThat(genericInfoInTaskFlow).doesNotContain("value=\"firstTestValue\"");
@@ -254,9 +254,9 @@ public class WorkflowXmlManipulatorTest {
                                                                                                       this.getTwoSimpleEntries()));
         assertThat(emptyGenericInfo).contains("<genericInformation>");
         assertThat(emptyGenericInfo).contains("</genericInformation>");
-        assertThat(emptyGenericInfo).contains("<info name=\"firstTestKey\"");
+        assertThat(emptyGenericInfo).contains("<info bucketName=\"firstTestKey\"");
         assertThat(emptyGenericInfo).contains("value=\"firstTestValue\"");
-        assertThat(emptyGenericInfo).contains("<info name=\"secondTestKey\"");
+        assertThat(emptyGenericInfo).contains("<info bucketName=\"secondTestKey\"");
         assertThat(emptyGenericInfo).contains("value=\"secondTestValue\"");
     }
 

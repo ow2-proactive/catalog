@@ -66,8 +66,8 @@ public class BucketEntityTest {
     @Test
     public void testSetName() {
         final String expectedName = "EXPECTED_BUCKET_NAME";
-        bucket.setName(expectedName);
-        assertEquals(expectedName, bucket.name);
+        bucket.setBucketName(expectedName);
+        assertEquals(expectedName, bucket.bucketName);
     }
 
     @Test
@@ -86,7 +86,7 @@ public class BucketEntityTest {
 
     @Test
     public void testGetName() throws Exception {
-        assertEquals(DEFAULT_BUCKET_NAME, bucket.getName());
+        assertEquals(DEFAULT_BUCKET_NAME, bucket.getBucketName());
     }
 
     @Test

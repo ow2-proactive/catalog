@@ -70,14 +70,12 @@ public class BucketService {
         return new BucketMetadata(bucket);
     }
 
-    public BucketMetadata getBucketMetadata(long id) {
-        BucketEntity bucket = bucketRepository.findOne(id);
-
-        if (bucket == null) {
-            throw new BucketNotFoundException();
+    public BucketMetadata getBucketMetadata(String bucketName) {
+        BucketEntity bucketEntity = bucketRepository.findFirstByBucketName(bucketName);
+        if (bucketEntity == null) {
+            throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
         }
-
-        return new BucketMetadata(bucket);
+        return new BucketMetadata(bucketEntity);
     }
 
     public List<BucketMetadata> listBuckets(List<String> owners, String kind) {
@@ -123,8 +121,8 @@ public class BucketService {
         bucketRepository.deleteAll();
     }
 
-    public BucketMetadata deleteEmptyBucket(long bucketId) {
-        BucketEntity bucket = bucketRepository.findBucketForUpdate(bucketId);
+    public BucketMetadata deleteEmptyBucket(String bucketName) {
+        BucketEntity bucket = bucketRepository.findBucketForUpdate(bucketName);
 
         if (bucket == null) {
             throw new BucketNotFoundException();
@@ -133,8 +131,15 @@ public class BucketService {
         if (!bucket.getCatalogObjects().isEmpty()) {
             throw new DeleteNonEmptyBucketException();
         }
-        bucketRepository.delete(bucketId);
+        bucketRepository.delete(bucket.getId());
         return new BucketMetadata(bucket);
     }
 
+    private BucketEntity findBucketByNameAndCheck(String bucketName) {
+        BucketEntity bucketEntity = bucketRepository.findFirstByBucketName(bucketName);
+        if (bucketEntity == null) {
+            throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
+        }
+        return bucketEntity;
+    }
 }

@@ -53,17 +53,17 @@ public class LinkUtil {
     /**
      * This is used to generate the absolute URL of the given object revision based on the service domain.
      *
-     * @param bucketId The id of the bucket holding this object
-     * @param name The name of the object which is the identifier of the object
+     * @param bucketName The id of the bucket holding this object
+     * @param name The bucketName of the object which is the identifier of the object
      * @param commitTime The commit time of the object which is also the identifier of this revision
      * @return a <code>Link</code> referencing the given object's revision raw content
      */
-    public static Link createLink(Long bucketId, String name, LocalDateTime commitTime)
+    public static Link createLink(String bucketName, String name, LocalDateTime commitTime)
             throws NotAuthenticatedException, AccessDeniedException {
         try {
             long epochMilli = commitTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
             ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectRevisionController.class).getRaw(null,
-                                                                                                                        bucketId,
+                                                                                                                        bucketName,
                                                                                                                         URLEncoder.encode(name,
                                                                                                                                           "UTF-8"),
                                                                                                                         epochMilli));
@@ -78,14 +78,15 @@ public class LinkUtil {
     /**
      * This is used to generate the absolute URL of the given object based on the service domain.
      *
-     * @param bucketId The id of the bucket holding this object
-     * @param name The name of the object which is the identifier of the object
+     * @param bucketName The id of the bucket holding this object
+     * @param name The bucketName of the object which is the identifier of the object
      * @return a <code>Link</code> referencing the given object's raw content
      */
-    public static Link createLink(Long bucketId, String name) throws NotAuthenticatedException, AccessDeniedException {
+    public static Link createLink(String bucketName, String name)
+            throws NotAuthenticatedException, AccessDeniedException {
         try {
             ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw(null,
-                                                                                                                bucketId,
+                                                                                                                bucketName,
                                                                                                                 URLEncoder.encode(name,
                                                                                                                                   "UTF-8")));
 
@@ -100,16 +101,16 @@ public class LinkUtil {
      * This is used to generate the relative URL of the given object revision.
      * The URL will only contain the path <code>buckets/../resources/../revisions/../raw</code>.
      *
-     * @param bucketId The id of the bucket holding this object
-     * @param objectName The name of the object which is the identifier of the object
+     * @param bucketName The id of the bucket holding this object
+     * @param objectName The bucketName of the object which is the identifier of the object
      * @param commitTime The commit time of the object which is also the identifier of this revision
      * @return a <code>Link</code> referencing the given object's revision raw content
      */
-    public static Link createRelativeLink(Long bucketId, String objectName, LocalDateTime commitTime) {
+    public static Link createRelativeLink(String bucketName, String objectName, LocalDateTime commitTime) {
         Link link = null;
         try {
             long epochMilli = commitTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-            link = new Link("buckets/" + bucketId + "/resources/" + URLEncoder.encode(objectName, "UTF-8") +
+            link = new Link("buckets/" + bucketName + "/resources/" + URLEncoder.encode(objectName, "UTF-8") +
                             "/revisions/" + epochMilli).withRel("relative");
 
         } catch (UnsupportedEncodingException e) {
@@ -122,14 +123,14 @@ public class LinkUtil {
      * This is used to generate the relative URL of the given object.
      * The URL will only contain the path <code>buckets/../resources/../raw</code>.
      *
-     * @param bucketId The id of the bucket holding this object
-     * @param objectName The name of the object which is the identifier of the object
+     * @param bucketName The id of the bucket holding this object
+     * @param objectName The bucketName of the object which is the identifier of the object
      * @return a <code>Link</code> referencing the given object's raw content
      */
-    public static Link createRelativeLink(Long bucketId, String objectName) {
+    public static Link createRelativeLink(String bucketName, String objectName) {
         Link link = null;
         try {
-            link = new Link("buckets/" + bucketId + "/resources/" +
+            link = new Link("buckets/" + bucketName + "/resources/" +
                             URLEncoder.encode(objectName, "UTF-8")).withRel("relative");
 
         } catch (UnsupportedEncodingException e) {

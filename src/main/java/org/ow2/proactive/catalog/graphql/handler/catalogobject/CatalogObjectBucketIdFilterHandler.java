@@ -25,7 +25,6 @@
  */
 package org.ow2.proactive.catalog.graphql.handler.catalogobject;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectBucketIdWhereArgs;
@@ -33,9 +32,7 @@ import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.catalogobject.BucketIdEqNeSpecification;
-import org.ow2.proactive.catalog.repository.specification.catalogobject.BucketIdInNotInSpecification;
+import org.ow2.proactive.catalog.repository.specification.catalogobject.BucketNameSpecification;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -52,30 +49,35 @@ public class CatalogObjectBucketIdFilterHandler
     public Optional<Specification<CatalogObjectRevisionEntity>> handle(CatalogObjectWhereArgs whereArgs) {
 
         if (whereArgs.getBucketIdArg() != null) {
+
             CatalogObjectBucketIdWhereArgs bucketIdWhereArgs = whereArgs.getBucketIdArg();
 
             if (bucketIdWhereArgs.getEq() != null) {
-                return Optional.of(BucketIdEqNeSpecification.builder()
-                                                            .entityMetaModelEnum(CatalogObjectEntityMetaModelEnum.BUCKET_ID)
-                                                            .operations(Operations.EQ)
-                                                            .value(bucketIdWhereArgs.getEq())
-                                                            .build());
+                return Optional.of(BucketNameSpecification.builder()
+                                                          .operations(Operations.EQ)
+                                                          .value(bucketIdWhereArgs.getEq())
+                                                          .build());
             }
 
             if (bucketIdWhereArgs.getNe() != null) {
-                return Optional.of(BucketIdEqNeSpecification.builder()
-                                                            .entityMetaModelEnum(CatalogObjectEntityMetaModelEnum.BUCKET_ID)
-                                                            .operations(Operations.NE)
-                                                            .value(bucketIdWhereArgs.getNe())
-                                                            .build());
+                return Optional.of(BucketNameSpecification.builder()
+                                                          .operations(Operations.NE)
+                                                          .value(bucketIdWhereArgs.getNe())
+                                                          .build());
             }
 
-            if (bucketIdWhereArgs.getIn() != null) {
-                return Optional.of(BucketIdInNotInSpecification.builder()
-                                                               .entityMetaModelEnum(CatalogObjectEntityMetaModelEnum.BUCKET_ID)
-                                                               .operations(Operations.IN)
-                                                               .value(Arrays.asList(bucketIdWhereArgs.getIn()))
-                                                               .build());
+            if (bucketIdWhereArgs.getLike() != null) {
+                return Optional.of(BucketNameSpecification.builder()
+                                                          .operations(Operations.LIKE)
+                                                          .value(bucketIdWhereArgs.getLike())
+                                                          .build());
+            }
+
+            if (bucketIdWhereArgs.getNotLike() != null) {
+                return Optional.of(BucketNameSpecification.builder()
+                                                          .operations(Operations.NOT_LIKE)
+                                                          .value(bucketIdWhereArgs.getLike())
+                                                          .build());
             }
         }
         return Optional.empty();

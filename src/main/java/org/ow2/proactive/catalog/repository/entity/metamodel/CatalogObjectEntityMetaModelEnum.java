@@ -45,6 +45,7 @@ public enum CatalogObjectEntityMetaModelEnum {
     KIND,
     LAST_COMMIT_TIME,
     NAME,
+    BUCKET_NAME,
     VALUE;
 
     public String getName() {

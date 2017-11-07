@@ -33,7 +33,6 @@ import javax.persistence.criteria.Predicate;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
 import org.springframework.data.jpa.domain.Specification;
 
 import lombok.Builder;
@@ -48,10 +47,9 @@ import lombok.Getter;
 public class OrSpecification extends AndOrSpecification {
 
     @Builder
-    public OrSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations, Object value,
-            Join catalogObjectJoin, Join metadataJoin,
-            List<Specification<CatalogObjectRevisionEntity>> fieldSpecifications) {
-        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin, fieldSpecifications);
+    public OrSpecification(Operations operations, Object value, Join catalogObjectJoin, Join metadataJoin,
+            Join bucketJoin, List<Specification<CatalogObjectRevisionEntity>> fieldSpecifications) {
+        super(operations, value, catalogObjectJoin, metadataJoin, bucketJoin, fieldSpecifications);
     }
 
     @Override

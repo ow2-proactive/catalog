@@ -23,16 +23,20 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.generic;
+package org.ow2.proactive.catalog.repository.specification;
+
+import java.util.Optional;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.From;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
@@ -51,8 +55,6 @@ import lombok.Data;
 @Data
 public abstract class AbstractSpecification<T> implements Specification<CatalogObjectRevisionEntity> {
 
-    protected CatalogObjectEntityMetaModelEnum entityMetaModelEnum;
-
     protected Operations operations;
 
     protected T value;
@@ -61,10 +63,12 @@ public abstract class AbstractSpecification<T> implements Specification<CatalogO
 
     protected Join<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadataJoin;
 
+    protected Join<Join, BucketEntity> bucketEntityJoin;
+
     protected void initCatalogObjectJoin(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query,
             CriteriaBuilder cb) {
         if (root.getJoins().size() == 0) {
-            catalogObjectJoin = root.join(CatalogObjectEntityMetaModelEnum.CATALOG_OBJECT.getName(), JoinType.INNER);
+            catalogObjectJoin = getOrCreateJoin(root, "catalogObject");
             Predicate revisionPredicate = cb.equal(root.get(CatalogObjectEntityMetaModelEnum.COMMIT_TIME.getName()),
                                                    catalogObjectJoin.get(CatalogObjectEntityMetaModelEnum.LAST_COMMIT_TIME.getName()));
 
@@ -75,9 +79,26 @@ public abstract class AbstractSpecification<T> implements Specification<CatalogO
 
     protected void initMetadataJoin(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query,
             CriteriaBuilder cb) {
-        if (root.getJoins().size() == 1) {
-            metadataJoin = root.join("keyValueMetadataList", JoinType.INNER);
+        catalogObjectJoin = getOrCreateJoin(root, "catalogObject");
+        metadataJoin = getOrCreateJoin(root, "keyValueMetadataList");
+    }
+
+    protected void initBucketJoin(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+        catalogObjectJoin = getOrCreateJoin(root, "catalogObject");
+        bucketEntityJoin = getOrCreateJoin(catalogObjectJoin, "bucket");
+    }
+
+    private Join getOrCreateJoin(From from, String joinName) {
+        Optional<Join<CatalogObjectRevisionEntity, ?>> joinOptional = from.getJoins()
+                                                                          .stream()
+                                                                          .filter(join -> ((Join) join).getAttribute()
+                                                                                                       .getName()
+                                                                                                       .equals(joinName))
+                                                                          .findFirst();
+        if (joinOptional.isPresent()) {
+            return joinOptional.get();
         }
+        return from.join(joinName, JoinType.INNER);
     }
 
     @Override

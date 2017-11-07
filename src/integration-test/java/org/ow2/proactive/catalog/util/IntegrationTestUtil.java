@@ -48,9 +48,9 @@ public class IntegrationTestUtil {
 
     private static final String BUCKETS_RESOURCE = "/buckets";
 
-    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketId}/resources";
+    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketName}/resources";
 
-    private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketId}/resources/{name}";
+    private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketName}/resources/{name}";
 
     public static void cleanup() {
         List<HashMap<String, String>> bucketMetadataList = given().get(BUCKETS_RESOURCE)
@@ -60,8 +60,8 @@ public class IntegrationTestUtil {
                                                                   .path("");
 
         bucketMetadataList.stream().forEach(bucketMetadata -> {
-            List<HashMap<String, String>> catalogObjectMetadataList = given().pathParam("bucketId",
-                                                                                        bucketMetadata.get("id"))
+            List<HashMap<String, String>> catalogObjectMetadataList = given().pathParam("bucketName",
+                                                                                        bucketMetadata.get("name"))
                                                                              .when()
                                                                              .get(CATALOG_OBJECTS_RESOURCE)
                                                                              .then()
@@ -69,7 +69,7 @@ public class IntegrationTestUtil {
                                                                              .path("");
 
             catalogObjectMetadataList.stream().forEach(catalogObjectMetadata -> {
-                given().pathParam("bucketId", catalogObjectMetadata.get("bucket_id"))
+                given().pathParam("bucketName", catalogObjectMetadata.get("bucket_id"))
                        .pathParam("name", catalogObjectMetadata.get("name"))
                        .delete(CATALOG_OBJECT_RESOURCE)
                        .then()
@@ -103,13 +103,13 @@ public class IntegrationTestUtil {
      * @param bucketOwner
      * @return Get bucket ID from response to create an object in it
      */
-    public static Integer createBucket(String bucketName, String bucketOwner) {
+    public static String createBucket(String bucketName, String bucketOwner) {
         return given().parameters("name", bucketName, "owner", bucketOwner)
                       .when()
                       .post(BUCKETS_RESOURCE)
                       .then()
                       .extract()
-                      .path("id");
+                      .path("name");
     }
 
     /**
@@ -121,9 +121,9 @@ public class IntegrationTestUtil {
      * @param contentType
      * @param file
      */
-    public static void postObjectToBucket(Integer bucketId, String kind, String name, String commitMessage,
+    public static void postObjectToBucket(String bucketId, String kind, String name, String commitMessage,
             String contentType, File file) {
-        given().pathParam("bucketId", bucketId)
+        given().pathParam("bucketName", bucketId)
                .queryParam("kind", kind)
                .queryParam("name", name)
                .queryParam("commitMessage", commitMessage)
@@ -137,7 +137,7 @@ public class IntegrationTestUtil {
      *
      * @param bucketId
      */
-    public static void postDefaultWorkflowToBucket(Integer bucketId) {
+    public static void postDefaultWorkflowToBucket(String bucketId) {
         postObjectToBucket(bucketId,
                            "workflow",
                            "my workflow",

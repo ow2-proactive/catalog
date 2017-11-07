@@ -28,7 +28,6 @@ package org.ow2.proactive.catalog.service;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -81,29 +80,27 @@ public class BucketServiceTest {
 
     @Test
     public void testCreateBucket() throws Exception {
-        BucketEntity mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
+        BucketEntity mockedBucket = newMockedBucket(1L, "bucket-bucketName", LocalDateTime.now());
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
         BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
         verify(bucketRepository, times(1)).save(any(BucketEntity.class));
-        assertEquals(mockedBucket.getName(), bucketMetadata.getName());
-        assertEquals(mockedBucket.getId(), bucketMetadata.getMetaDataId());
+        assertEquals(mockedBucket.getBucketName(), bucketMetadata.getName());
         assertEquals(mockedBucket.getOwner(), bucketMetadata.getOwner());
     }
 
     @Test
     public void testGetBucketMetadataValidBucket() throws Exception {
-        BucketEntity mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
-        when(bucketRepository.findOne(anyLong())).thenReturn(mockedBucket);
-        BucketMetadata bucketMetadata = bucketService.getBucketMetadata(1L);
-        verify(bucketRepository, times(1)).findOne(anyLong());
-        assertEquals(mockedBucket.getName(), bucketMetadata.getName());
-        assertEquals(mockedBucket.getId(), bucketMetadata.getMetaDataId());
+        BucketEntity mockedBucket = newMockedBucket(1L, "bucket-bucketName", LocalDateTime.now());
+        when(bucketRepository.findFirstByBucketName(anyString())).thenReturn(mockedBucket);
+        BucketMetadata bucketMetadata = bucketService.getBucketMetadata("bucket-bucketName");
+        verify(bucketRepository, times(1)).findFirstByBucketName(anyString());
+        assertEquals(mockedBucket.getBucketName(), bucketMetadata.getName());
     }
 
     @Test(expected = BucketNotFoundException.class)
     public void testGetBucketMetadataInvalidBucket() throws Exception {
-        when(bucketRepository.findOne(anyLong())).thenReturn(null);
-        bucketService.getBucketMetadata(1L);
+        when(bucketRepository.findFirstByBucketName(anyString())).thenReturn(null);
+        bucketService.getBucketMetadata("bucket-bucketName");
     }
 
     @Test
@@ -123,25 +120,25 @@ public class BucketServiceTest {
 
     @Test
     public void testDeleteEmptyBucket() {
-        BucketEntity mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
+        BucketEntity mockedBucket = newMockedBucket(1L, "bucket-bucketName", LocalDateTime.now());
 
         when(mockedBucket.getCatalogObjects()).thenReturn(new HashSet<>());
-        when(bucketRepository.findBucketForUpdate(anyLong())).thenReturn(mockedBucket);
-        BucketMetadata bucketMetadata = bucketService.deleteEmptyBucket(1L);
-        verify(bucketRepository, times(1)).findBucketForUpdate(1L);
+        when(bucketRepository.findBucketForUpdate(anyString())).thenReturn(mockedBucket);
+        BucketMetadata bucketMetadata = bucketService.deleteEmptyBucket("bucket-bucketName");
+        verify(bucketRepository, times(1)).findBucketForUpdate("bucket-bucketName");
         verify(bucketRepository, times(1)).delete(1L);
-        assertEquals(bucketMetadata.getName(), mockedBucket.getName());
+        assertEquals(bucketMetadata.getName(), mockedBucket.getBucketName());
     }
 
     @Test(expected = BucketNotFoundException.class)
     public void testDeleteInvalidBucket() {
-        when(bucketRepository.findOne(anyLong())).thenReturn(null);
-        bucketService.deleteEmptyBucket(1L);
+        when(bucketRepository.findFirstByBucketName(anyString())).thenReturn(null);
+        bucketService.deleteEmptyBucket("bucket-bucketName");
     }
 
     @Test(expected = DeleteNonEmptyBucketException.class)
     public void testNotEmptyBucket() {
-        BucketEntity mockedBucket = newMockedBucket(1L, "BUCKET-NAME-TEST", LocalDateTime.now());
+        BucketEntity mockedBucket = newMockedBucket(1L, "bucket-bucketName", LocalDateTime.now());
         Set<CatalogObjectEntity> objects = new HashSet<>();
         CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
                                                                      .id(new CatalogObjectEntity.CatalogObjectEntityKey(mockedBucket.getId(),
@@ -152,9 +149,9 @@ public class BucketServiceTest {
                                                                      .build();
         objects.add(catalogObjectEntity);
         when(mockedBucket.getCatalogObjects()).thenReturn(objects);
-        when(bucketRepository.findBucketForUpdate(anyLong())).thenReturn(mockedBucket);
-        bucketService.deleteEmptyBucket(1L);
-        verify(bucketRepository, times(1)).findBucketForUpdate(1L);
+        when(bucketRepository.findBucketForUpdate(anyString())).thenReturn(mockedBucket);
+        bucketService.deleteEmptyBucket("bucket-bucketName");
+        verify(bucketRepository, times(1)).findBucketForUpdate("bucket-bucketName");
     }
 
     private void listBucket(String owner, String kind) {
@@ -172,7 +169,7 @@ public class BucketServiceTest {
     private BucketEntity newMockedBucket(Long id, String name, LocalDateTime createdAt) {
         BucketEntity mockedBucket = mock(BucketEntity.class);
         when(mockedBucket.getId()).thenReturn(id);
-        when(mockedBucket.getName()).thenReturn(name);
+        when(mockedBucket.getBucketName()).thenReturn(name);
         return mockedBucket;
     }
 }

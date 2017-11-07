@@ -25,14 +25,19 @@
  */
 package org.ow2.proactive.catalog.repository.specification.catalogobject;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyEqNeSpecification;
+import org.ow2.proactive.catalog.repository.specification.AbstractSpecification;
 
 import lombok.Builder;
 
@@ -41,12 +46,30 @@ import lombok.Builder;
  * @author ActiveEon Team
  * @since 05/07/2017
  */
-public class BucketIdEqNeSpecification extends CompositeKeyEqNeSpecification<Long> {
+public class KindSpecification extends AbstractSpecification<String> {
 
     @Builder
-    BucketIdEqNeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations, Long value,
+    public KindSpecification(Operations operations, String value,
             Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
-            Join<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadataJoin) {
-        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
+            Join<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadataJoin,
+            Join<Join, BucketEntity> bucketEntityJoin) {
+        super(operations, value, catalogObjectJoin, metadataJoin, bucketEntityJoin);
+    }
+
+    @Override
+    protected Predicate buildPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query,
+            CriteriaBuilder cb) {
+        switch (operations) {
+            case EQ:
+                return cb.equal(catalogObjectJoin.get(CatalogObjectEntityMetaModelEnum.KIND.getName()), value);
+            case NE:
+                return cb.notEqual(catalogObjectJoin.get(CatalogObjectEntityMetaModelEnum.KIND.getName()), value);
+            case LIKE:
+                return cb.like(catalogObjectJoin.get(CatalogObjectEntityMetaModelEnum.KIND.getName()), value);
+            case NOT_LIKE:
+                return cb.notLike(catalogObjectJoin.get(CatalogObjectEntityMetaModelEnum.KIND.getName()), value);
+            default:
+                throw new IllegalStateException(operations + " is not supported");
+        }
     }
 }

@@ -55,18 +55,19 @@ public class RestApiAccessService {
         this.schedulerUserAuthenticationService = schedulerUserAuthenticationService;
     }
 
-    public RestApiAccessResponse checkAccessBySessionIdAndThrowIfDeclined(String sessionId, long bucketId)
+    public RestApiAccessResponse checkAccessBySessionIdForBucketAndThrowIfDeclined(String sessionId, String bucketName)
             throws NotAuthenticatedException, AccessDeniedException {
-        RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionIdToOwnerOrGroup(sessionId, bucketId);
+        RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionForBucketToOwnerOrGroup(sessionId,
+                                                                                                       bucketName);
         if (!restApiAccessResponse.isAuthorized()) {
             throw new AccessDeniedException("SessionId: " + sessionId + " is not allowed to access buckets with id " +
-                                            bucketId);
+                                            bucketName);
         }
         return restApiAccessResponse;
     }
 
-    public RestApiAccessResponse checkAccessBySessionIdAndThrowIfDeclined(String sessionId, String ownerOrGroup)
-            throws NotAuthenticatedException, AccessDeniedException {
+    public RestApiAccessResponse checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(String sessionId,
+            String ownerOrGroup) throws NotAuthenticatedException, AccessDeniedException {
         RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionIdToOwnerOrGroup(sessionId,
                                                                                                 ownerOrGroup);
         if (!restApiAccessResponse.isAuthorized()) {
@@ -76,9 +77,9 @@ public class RestApiAccessService {
         return restApiAccessResponse;
     }
 
-    private RestApiAccessResponse checkAccessBySessionIdToOwnerOrGroup(String sessionId, long bucketId)
+    private RestApiAccessResponse checkAccessBySessionForBucketToOwnerOrGroup(String sessionId, String bucketName)
             throws NotAuthenticatedException {
-        return checkAccessBySessionIdToOwnerOrGroup(sessionId, bucketService.getBucketMetadata(bucketId).getOwner());
+        return checkAccessBySessionIdToOwnerOrGroup(sessionId, bucketService.getBucketMetadata(bucketName).getOwner());
     }
 
     private RestApiAccessResponse checkAccessBySessionIdToOwnerOrGroup(String sessionId, String ownerOrGroup)

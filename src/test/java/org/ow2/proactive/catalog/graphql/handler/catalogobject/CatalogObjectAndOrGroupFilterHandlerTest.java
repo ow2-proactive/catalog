@@ -42,9 +42,9 @@ import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectNameWhereArg
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification;
-import org.ow2.proactive.catalog.repository.specification.catalogobject.BucketIdEqNeSpecification;
+import org.ow2.proactive.catalog.repository.specification.catalogobject.BucketNameSpecification;
+import org.ow2.proactive.catalog.repository.specification.catalogobject.CatalogNameSpecification;
 import org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification;
-import org.ow2.proactive.catalog.repository.specification.generic.CompositeKeyEqNeSpecification;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.google.common.collect.ImmutableList;
@@ -84,7 +84,7 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
 
         CatalogObjectWhereArgs bucketid = CatalogObjectWhereArgs.builder()
                                                                 .bucketIdArg(CatalogObjectBucketIdWhereArgs.builder()
-                                                                                                           .eq(1L)
+                                                                                                           .eq("bucket1")
                                                                                                            .build())
                                                                 .build();
         CatalogObjectWhereArgs name = CatalogObjectWhereArgs.builder()
@@ -95,7 +95,7 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
 
         CatalogObjectWhereArgs bucketid2 = CatalogObjectWhereArgs.builder()
                                                                  .bucketIdArg(CatalogObjectBucketIdWhereArgs.builder()
-                                                                                                            .eq(2L)
+                                                                                                            .eq("bucket2")
                                                                                                             .build())
                                                                  .build();
 
@@ -140,18 +140,17 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
         AndSpecification rightAnd = (AndSpecification) orSpecification.getFieldSpecifications().get(1);
 
         assertThat(leftAnd.getFieldSpecifications()).hasSize(2);
-        assertThat(leftAnd.getFieldSpecifications().get(0) instanceof BucketIdEqNeSpecification).isTrue();
-        assertThat(leftAnd.getFieldSpecifications().get(1) instanceof CompositeKeyEqNeSpecification).isTrue();
+        assertThat(leftAnd.getFieldSpecifications().get(0) instanceof BucketNameSpecification).isTrue();
+        assertThat(leftAnd.getFieldSpecifications().get(1) instanceof CatalogNameSpecification).isTrue();
 
         assertThat(rightAnd.getFieldSpecifications()).hasSize(2);
-        assertThat(rightAnd.getFieldSpecifications().get(0) instanceof BucketIdEqNeSpecification).isTrue();
+        assertThat(rightAnd.getFieldSpecifications().get(0) instanceof BucketNameSpecification).isTrue();
         assertThat(rightAnd.getFieldSpecifications().get(1) instanceof OrSpecification).isTrue();
 
         OrSpecification rightAndChildOr = (OrSpecification) rightAnd.getFieldSpecifications().get(1);
         assertThat(rightAndChildOr.getFieldSpecifications()).hasSize(2);
-        assertThat(rightAndChildOr.getFieldSpecifications().get(0) instanceof CompositeKeyEqNeSpecification).isTrue();
-        assertThat(rightAndChildOr.getFieldSpecifications().get(1) instanceof CompositeKeyEqNeSpecification).isTrue();
-
+        assertThat(rightAndChildOr.getFieldSpecifications().get(0) instanceof CatalogNameSpecification).isTrue();
+        assertThat(rightAndChildOr.getFieldSpecifications().get(1) instanceof CatalogNameSpecification).isTrue();
     }
 
 }
