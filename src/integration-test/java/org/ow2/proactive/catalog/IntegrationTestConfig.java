@@ -46,6 +46,7 @@ import org.ow2.proactive.catalog.service.KeyValueLabelMetadataHelper;
 import org.ow2.proactive.catalog.service.OwnerGroupStringHelper;
 import org.ow2.proactive.catalog.service.WorkflowXmlManipulator;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
+import org.ow2.proactive.catalog.util.BucketNameValidator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -150,4 +151,8 @@ public class IntegrationTestConfig {
         return new WorkflowXmlManipulator();
     }
 
+    @Bean
+    public BucketNameValidator bucketNameValidator() {
+        return new BucketNameValidator();
+    }
 }

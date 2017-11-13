@@ -276,11 +276,11 @@ public class GraphqlServiceIntegrationTest {
     @Test
     public void testBucketNameLikeQuery() {
         String query = "{\n" + "  allCatalogObjects(where:{bucketIdArg:{like:\"" + bucket.getName() + "\"}}) {\n" +
-                "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" +
-                "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
-                "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" +
-                "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
-                "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+                       "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" +
+                       "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
+                       "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" +
+                       "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
+                       "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
         Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
 

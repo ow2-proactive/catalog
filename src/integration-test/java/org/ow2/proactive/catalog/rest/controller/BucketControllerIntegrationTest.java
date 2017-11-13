@@ -93,6 +93,14 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     }
 
     @Test
+    public void testCreateBucketWrongName() {
+        Response response = given().parameters("name", "bucket.Name", "owner", "bucketOwner")
+                                   .when()
+                                   .post(BUCKETS_RESOURCE);
+        response.then().assertThat().statusCode(HttpStatus.SC_FORBIDDEN);
+    }
+
+    @Test
     public void testCreateDuplicatedBucketSameUser() {
         final String ownerKey = "owner";
         final String bucketNameKey = "name";
@@ -178,8 +186,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testListOneOwnerTwoBuckets() {
-        final String bucketName1 = "TheBucketOfLove";
-        final String bucketName2 = "TheBucketOfPain";
+        final String bucketName1 = "bucket-of-love";
+        final String bucketName2 = "bucket-of-pain";
         final String userAlice = "Alice";
         given().parameters("name", bucketName1, "owner", userAlice).when().post(BUCKETS_RESOURCE);
         given().parameters("name", bucketName2, "owner", userAlice).when().post(BUCKETS_RESOURCE);
@@ -195,9 +203,9 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testListBucketsGivenKindAndEmptyBucket() throws UnsupportedEncodingException {
-        final String bucketName1 = "BucketWithObjectWorkflow";
-        final String bucketName2 = "EmptyBucket";
-        final String bucketNameWithSomeObjects = "BucketWithSomeObjects";
+        final String bucketName1 = "bucket-with-object-workflow";
+        final String bucketName2 = "empty-bucket";
+        final String bucketNameWithSomeObjects = "bucket-with-some-objects";
         // Get bucket ID from response to create an object in it
         String bucket1Id = IntegrationTestUtil.createBucket(bucketName1, "owner");
 
@@ -231,11 +239,11 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testListBucketsByOwnerIsInContainingKindAndEmptyBucket() throws UnsupportedEncodingException {
-        final String BucketAdminOwnerWorkflowKind = "BucketAdminOwnerWorkflowKind";
-        final String BucketAdminOwnerEmptyBucket = "BucketAdminOwnerEmptyBucket";
-        final String BucketAdminOwnerOtherKind = "BucketAdminOwnerOtherKind";
-        final String BucketAdminOwnerMixedKind = "BucketAdminOwnerMixedKind";
-        final String BucketUserOwnerWorkflowKind = "BucketUserOwnerWorkflowKind";
+        final String BucketAdminOwnerWorkflowKind = "bucket-admin-owner-workflow-kind";
+        final String BucketAdminOwnerEmptyBucket = "bucket-admin-owner-empty-bucket";
+        final String BucketAdminOwnerOtherKind = "bucket-admin-owner-other-kind";
+        final String BucketAdminOwnerMixedKind = "bucket-admin-owner-mixed-kind";
+        final String BucketUserOwnerWorkflowKind = "bucket-user-owner-workflow-kind";
 
         final String adminOwner = "admin";
         final String userOwner = "user";
@@ -294,14 +302,14 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     @Test
     public void testDeleteEmptyBucket() {
         // Get bucket ID from response to create an object in it
-        String bucketId = given().parameters("name", "bucketName", "owner", "owner")
-                                 .when()
-                                 .post(BUCKETS_RESOURCE)
-                                 .then()
-                                 .extract()
-                                 .path("name");
+        String bucketName = given().parameters("name", "bucket-name", "owner", "owner")
+                                   .when()
+                                   .post(BUCKETS_RESOURCE)
+                                   .then()
+                                   .extract()
+                                   .path("name");
 
-        given().pathParam("bucketName", bucketId)
+        given().pathParam("bucketName", bucketName)
                .when()
                .delete(BUCKET_RESOURCE)
                .then()
@@ -309,7 +317,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .statusCode(HttpStatus.SC_OK);
 
         // check that the bucket is really gone
-        given().pathParam("bucketName", bucketId)
+        given().pathParam("bucketName", bucketName)
                .when()
                .get(BUCKET_RESOURCE)
                .then()
@@ -319,7 +327,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testDeleteNonEmptyBucket() throws IOException {
-        final String bucketName = "BucketWithObject";
+        final String bucketName = "bucket-with-object";
 
         // Get bucket ID from response to create an object in it
         String bucketId = given().parameters("name", bucketName, "owner", "owner")

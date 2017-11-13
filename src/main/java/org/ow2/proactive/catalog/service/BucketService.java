@@ -33,8 +33,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
+import org.ow2.proactive.catalog.util.BucketNameValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -59,11 +61,18 @@ public class BucketService {
     @Autowired
     private CatalogObjectService catalogObjectService;
 
+    @Autowired
+    private BucketNameValidator bucketNameValidator;
+
     public BucketMetadata createBucket(String name) {
         return createBucket(name, DEFAULT_BUCKET_OWNER);
     }
 
     public BucketMetadata createBucket(String name, String owner) throws DataIntegrityViolationException {
+        if (!bucketNameValidator.checkBucketName(name)) {
+            throw new BucketNameIsNotValidException(name);
+        }
+
         BucketEntity bucket = new BucketEntity(name, owner);
 
         bucket = bucketRepository.save(bucket);

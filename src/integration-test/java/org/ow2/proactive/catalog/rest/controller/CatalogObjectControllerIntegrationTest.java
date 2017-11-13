@@ -78,7 +78,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Before
     public void setup() throws IOException {
         HashMap<String, Object> result = given().parameters("name",
-                                                            "myBucket",
+                                                            "my-bucket",
                                                             "owner",
                                                             "BucketControllerIntegrationTestUser")
                                                 .when()
@@ -273,7 +273,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                 //check generic_information label
                 .body("object_key_values[0].label", is("generic_information"))
                 .body("object_key_values[0].key", is("bucketName"))
-                .body("object_key_values[0].value", is("myBucket"))
+                .body("object_key_values[0].value", is("my-bucket"))
                 .body("object_key_values[1].label", is("generic_information"))
                 .body("object_key_values[1].key", is("genericInfo1"))
                 .body("object_key_values[1].value", is("genericInfo1Value"))
