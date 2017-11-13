@@ -91,7 +91,7 @@ public class CatalogObjectRevisionController {
     public CatalogObjectMetadata create(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name,
-            @ApiParam(value = "The commit message of the CatalogRawObject Revision") @RequestParam String commitMessage,
+            @ApiParam(value = "The commit message of the CatalogRawObject Revision", required = true) @RequestParam String commitMessage,
             @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
