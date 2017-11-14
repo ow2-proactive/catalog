@@ -69,7 +69,7 @@ public class IntegrationTestUtil {
                                                                              .path("");
 
             catalogObjectMetadataList.stream().forEach(catalogObjectMetadata -> {
-                given().pathParam("bucketName", catalogObjectMetadata.get("bucket_id"))
+                given().pathParam("bucketName", catalogObjectMetadata.get("bucket_name"))
                        .pathParam("name", catalogObjectMetadata.get("name"))
                        .delete(CATALOG_OBJECT_RESOURCE)
                        .then()

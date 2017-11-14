@@ -71,7 +71,7 @@ public class CatalogObjectKindFilterHandler
             if (kindArgs.getNotLike() != null) {
                 return Optional.of(KindSpecification.builder()
                                                     .operations(Operations.NOT_LIKE)
-                                                    .value(kindArgs.getLike())
+                                                    .value(kindArgs.getNotLike())
                                                     .build());
             }
         }

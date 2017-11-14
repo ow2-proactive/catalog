@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author ActiveEon Team
  */
-@ResponseStatus(value = HttpStatus.FORBIDDEN)
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
 public class BucketNameIsNotValidException extends RuntimeException {
 
     public BucketNameIsNotValidException(String bucketName) {

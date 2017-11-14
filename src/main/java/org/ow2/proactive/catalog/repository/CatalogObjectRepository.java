@@ -41,7 +41,4 @@ public interface CatalogObjectRepository
 
     @EntityGraph("catalogObject.withRevisions")
     CatalogObjectEntity readCatalogObjectRevisionsById(CatalogObjectEntity.CatalogObjectEntityKey key);
-
-    //    @Query(value = "SELECT co FROM CatalogObjectEntity co INNER JOIN co.bucket bk WHERE bk.bucketName = ?1 AND co.bucketName = ?2")
-    //    CatalogObjectEntity findByBucketNameAndObjectName(String bucketName, String objectName);
 }

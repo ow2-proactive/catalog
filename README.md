@@ -102,9 +102,9 @@ $ http http://localhost:8080/buckets/{bucketName}/resources/{objectName}/revisio
 
 ```
 
-Listing all revisions for object with identifier 1:
+Listing all revisions for object with name test-bucket:
 ```
-$ http http://localhost:8080/buckets/1/objects/objectName/revisions
+$ http http://localhost:8080/buckets/test-bucket/objects/objectName/revisions
 ```
 
 ## GraphQL usage

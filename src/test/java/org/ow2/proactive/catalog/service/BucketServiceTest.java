@@ -105,15 +105,15 @@ public class BucketServiceTest {
     @Test
     public void testGetBucketMetadataValidBucket() throws Exception {
         BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
-        when(bucketRepository.findFirstByBucketName(anyString())).thenReturn(mockedBucket);
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(mockedBucket);
         BucketMetadata bucketMetadata = bucketService.getBucketMetadata("bucket-name");
-        verify(bucketRepository, times(1)).findFirstByBucketName(anyString());
+        verify(bucketRepository, times(1)).findOneByBucketName(anyString());
         assertEquals(mockedBucket.getBucketName(), bucketMetadata.getName());
     }
 
     @Test(expected = BucketNotFoundException.class)
     public void testGetBucketMetadataInvalidBucket() throws Exception {
-        when(bucketRepository.findFirstByBucketName(anyString())).thenReturn(null);
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
         bucketService.getBucketMetadata("bucket-name");
     }
 
@@ -146,7 +146,7 @@ public class BucketServiceTest {
 
     @Test(expected = BucketNotFoundException.class)
     public void testDeleteInvalidBucket() {
-        when(bucketRepository.findFirstByBucketName(anyString())).thenReturn(null);
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
         bucketService.deleteEmptyBucket("bucket-name");
     }
 

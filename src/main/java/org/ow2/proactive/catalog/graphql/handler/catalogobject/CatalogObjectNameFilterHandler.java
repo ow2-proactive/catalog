@@ -71,7 +71,7 @@ public class CatalogObjectNameFilterHandler
             if (nameWhereArgs.getNotLike() != null) {
                 return Optional.of(CatalogNameSpecification.builder()
                                                            .operations(Operations.NOT_LIKE)
-                                                           .value(nameWhereArgs.getLike())
+                                                           .value(nameWhereArgs.getNotLike())
                                                            .build());
             }
         }

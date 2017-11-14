@@ -150,7 +150,7 @@ public class CatalogObjectService {
     }
 
     private BucketEntity findBucketByNameAndCheck(String bucketName) {
-        BucketEntity bucketEntity = bucketRepository.findFirstByBucketName(bucketName);
+        BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
         if (bucketEntity == null) {
             throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
         }
@@ -271,7 +271,6 @@ public class CatalogObjectService {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
         CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
                                                                                                                            name));
-        //         CatalogObjectEntity catalogObject = catalogObjectRepository.findByBucketNameAndObjectName(bucketName, bucketName);
 
         if (catalogObject == null) {
             throw new CatalogObjectNotFoundException("bucketName : " + bucketName + " bucketName : " + name);
@@ -318,8 +317,8 @@ public class CatalogObjectService {
                                                                                                                                   commitTime);
 
         if (catalogObjectRevision == null) {
-            throw new RevisionNotFoundException("bucket bucketName: " + bucketName + " bucketName: " + name +
-                                                " revision: " + commitTime);
+            throw new RevisionNotFoundException("bucketName: " + bucketName + " object name: " + name + " revision: " +
+                                                commitTime);
         }
 
         CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(catalogObjectRevision.getCommitMessage(),

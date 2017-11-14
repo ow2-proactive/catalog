@@ -122,7 +122,7 @@ public class CatalogObjectControllerTest {
         ServletOutputStream sos = mock(ServletOutputStream.class);
         when(response.getOutputStream()).thenReturn(sos);
         BucketEntity bucket = mock(BucketEntity.class);
-        when(bucketRepository.findFirstByBucketName("bucket-name")).thenReturn(bucket);
+        when(bucketRepository.findOneByBucketName("bucket-name")).thenReturn(bucket);
         catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.empty(), response);
         verify(catalogObjectService, times(1)).listCatalogObjects(anyString());
     }

@@ -76,7 +76,7 @@ public class CatalogObjectBucketIdFilterHandler
             if (bucketIdWhereArgs.getNotLike() != null) {
                 return Optional.of(BucketNameSpecification.builder()
                                                           .operations(Operations.NOT_LIKE)
-                                                          .value(bucketIdWhereArgs.getLike())
+                                                          .value(bucketIdWhereArgs.getNotLike())
                                                           .build());
             }
         }

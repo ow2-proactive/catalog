@@ -124,7 +124,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED)
-               .body("object[0].bucket_id", is(bucket.getName()))
+               .body("object[0].bucket_name", is(bucket.getName()))
                .body("object[0].kind", is("workflow"))
                .body("object[0].name", is("workflow_test"))
 
@@ -166,7 +166,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED)
-               .body("object[0].bucket_id", is(bucket.getName()))
+               .body("object[0].bucket_name", is(bucket.getName()))
                .body("object[0].kind", is("pcw-rule"))
                .body("object[0].name", is("pcw-rule test"))
 
@@ -266,7 +266,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                                               .assertThat()
                                               .statusCode(HttpStatus.SC_OK);
 
-        response.body("bucket_id", is(thirdWFRevision.get("bucket_id")))
+        response.body("bucket_name", is(thirdWFRevision.get("bucket_name")))
                 .body("name", is(thirdWFRevision.get("name")))
                 .body("commit_time", is(thirdWFRevision.get("commit_time")))
                 .body("object_key_values", hasSize(8))

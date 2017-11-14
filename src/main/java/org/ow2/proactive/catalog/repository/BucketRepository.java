@@ -46,7 +46,7 @@ import org.springframework.data.repository.query.Param;
 public interface BucketRepository extends JpaRepository<BucketEntity, Long>, JpaSpecificationExecutor<BucketEntity>,
         QueryDslPredicateExecutor<BucketEntity> {
 
-    BucketEntity findFirstByBucketName(String bucketName);
+    BucketEntity findOneByBucketName(String bucketName);
 
     List<BucketEntity> findByOwner(@Param("owner") String owner);
 

@@ -162,7 +162,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED)
-               .body("bucket_id", is(bucket.getName()))
+               .body("bucket_name", is(bucket.getName()))
                .body("name", is("WF_1_Rev_1"));
     }
 
@@ -205,7 +205,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     @Test
     public void testCreateWorkflowRevisionShouldReturnNotFoundIfNonExistingbucketName() {
-        given().pathParam("bucketName", 35434245)
+        given().pathParam("bucketName", "non-existing-bucket")
                .pathParam("name", "WF_1_Rev_1")
                .queryParam("commitMessage", "first commit")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -236,7 +236,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         System.out.println(secondCatalogObjectRevisionCommitTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
 
         validatableResponse.statusCode(HttpStatus.SC_OK)
-                           .body("bucket_id", is(secondCatalogObjectRevision.get("bucket_id")))
+                           .body("bucket_name", is(secondCatalogObjectRevision.get("bucket_name")))
                            .body("name", is(secondCatalogObjectRevision.get("name")))
                            .body("commit_time", is(secondCatalogObjectRevision.get("commit_time")))
                            .body("object_key_values", hasSize(8))

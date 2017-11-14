@@ -94,10 +94,10 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testCreateBucketWrongName() {
-        Response response = given().parameters("name", "bucket.Name", "owner", "bucketOwner")
+        Response response = given().parameters("name", "bucket.Wrong.Name-", "bucket-owner", "bucketOwner")
                                    .when()
                                    .post(BUCKETS_RESOURCE);
-        response.then().assertThat().statusCode(HttpStatus.SC_FORBIDDEN);
+        response.then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -329,16 +329,16 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     public void testDeleteNonEmptyBucket() throws IOException {
         final String bucketName = "bucket-with-object";
 
-        // Get bucket ID from response to create an object in it
-        String bucketId = given().parameters("name", bucketName, "owner", "owner")
-                                 .when()
-                                 .post(BUCKETS_RESOURCE)
-                                 .then()
-                                 .extract()
-                                 .path("name");
+        // Get bucket name from response to create an object in it
+        given().parameters("name", bucketName, "owner", "owner")
+               .when()
+               .post(BUCKETS_RESOURCE)
+               .then()
+               .extract()
+               .path("name");
 
         // Add an object of kind "workflow" into first bucket
-        given().pathParam("bucketName", bucketId)
+        given().pathParam("bucketName", bucketName)
                .queryParam("kind", "myobjectkind")
                .queryParam("name", "myTestName")
                .queryParam("commitMessage", "first commit")
@@ -347,7 +347,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .when()
                .post(CATALOG_OBJECTS_RESOURCE);
 
-        given().pathParam("bucketName", bucketId)
+        given().pathParam("bucketName", bucketName)
                .when()
                .delete(BUCKET_RESOURCE)
                .then()
@@ -355,7 +355,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .statusCode(HttpStatus.SC_FORBIDDEN);
 
         // check that the bucket is still there
-        given().pathParam("bucketName", bucketId)
+        given().pathParam("bucketName", bucketName)
                .when()
                .get(BUCKET_RESOURCE)
                .then()

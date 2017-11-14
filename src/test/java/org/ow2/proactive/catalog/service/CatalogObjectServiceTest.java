@@ -92,14 +92,14 @@ public class CatalogObjectServiceTest {
 
     @Test(expected = BucketNotFoundException.class)
     public void testCreateCatalogObjectWithInvalidBucket() {
-        when(bucketRepository.findFirstByBucketName(anyString())).thenReturn(null);
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
         catalogObjectService.createCatalogObject("bucket", NAME, OBJECT, COMMIT_MESSAGE, APPLICATION_XML, null);
     }
 
     @Test
     public void testCreateCatalogObject() {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
-        when(bucketRepository.findFirstByBucketName(anyString())).thenReturn(bucketEntity);
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity,
                                                                                          System.currentTimeMillis());
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectEntity);
@@ -212,7 +212,7 @@ public class CatalogObjectServiceTest {
         CatalogObjectEntity catalogObjectEntity = newCatalogObjectEntity(System.currentTimeMillis());
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = newCatalogObjectRevisionEntity(bucketEntity,
                                                                                                  System.currentTimeMillis());
-        when(bucketRepository.findFirstByBucketName(anyString())).thenReturn(bucketEntity);
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
         when(catalogObjectRepository.findOne(any(CatalogObjectEntity.CatalogObjectEntityKey.class))).thenReturn(catalogObjectEntity);
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectRevisionEntity);
         List<Metadata> keyvalues = ImmutableList.of(new Metadata("key", "value", null));

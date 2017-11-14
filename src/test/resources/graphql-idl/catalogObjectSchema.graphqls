@@ -81,7 +81,7 @@ type Metadata {
 }
 
 type CatalogObject {
-    bucketId: Long!
+    bucketName: Long!
     commitDateTime: String!
     commitMessage: String
     contentType: String

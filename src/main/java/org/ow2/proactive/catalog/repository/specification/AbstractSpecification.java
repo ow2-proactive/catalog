@@ -94,7 +94,7 @@ public abstract class AbstractSpecification<T> implements Specification<CatalogO
                                                                           .filter(join -> ((Join) join).getAttribute()
                                                                                                        .getName()
                                                                                                        .equals(joinName))
-                                                                          .findFirst();
+                                                                          .findAny();
         if (joinOptional.isPresent()) {
             return joinOptional.get();
         }

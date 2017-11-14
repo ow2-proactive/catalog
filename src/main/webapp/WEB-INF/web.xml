@@ -9,62 +9,62 @@
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
     <context-param>
-        <param-bucketName>contextConfigLocation</param-bucketName>
+        <param-name>contextConfigLocation</param-name>
         <param-value>/WEB-INF/applicationContext.xml</param-value>
     </context-param>
 
     <filter>
-        <filter-bucketName>cross-origin</filter-bucketName>
+        <filter-name>cross-origin</filter-name>
         <filter-class>org.eclipse.jetty.servlets.CrossOriginFilter</filter-class>
         <init-param>
-            <param-bucketName>allowedOrigins</param-bucketName>
+            <param-name>allowedOrigins</param-name>
             <param-value>*</param-value>
         </init-param>
         <init-param>
-            <param-bucketName>allowedMethods</param-bucketName>
+            <param-name>allowedMethods</param-name>
             <param-value>GET,POST,DELETE,PUT,HEAD</param-value>
         </init-param>
         <init-param>
-            <param-bucketName>allowedHeaders</param-bucketName>
+            <param-name>allowedHeaders</param-name>
             <param-value>origin, content-type, accept</param-value>
         </init-param>
     </filter>
     <filter-mapping>
-        <filter-bucketName>cross-origin</filter-bucketName>
+        <filter-name>cross-origin</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
     <filter>
-        <filter-bucketName>encoding-filter</filter-bucketName>
+        <filter-name>encoding-filter</filter-name>
         <filter-class>
             org.springframework.web.filter.CharacterEncodingFilter
         </filter-class>
         <init-param>
-            <param-bucketName>encoding</param-bucketName>
+            <param-name>encoding</param-name>
             <param-value>UTF-8</param-value>
         </init-param>
         <init-param>
-            <param-bucketName>forceEncoding</param-bucketName>
+            <param-name>forceEncoding</param-name>
             <param-value>true</param-value>
         </init-param>
     </filter>
     <filter-mapping>
-        <filter-bucketName>encoding-filter</filter-bucketName>
+        <filter-name>encoding-filter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
     <servlet>
-        <servlet-bucketName>appServlet</servlet-bucketName>
+        <servlet-name>appServlet</servlet-name>
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
         <init-param>
-            <param-bucketName>contextAttribute</param-bucketName>
+            <param-name>contextAttribute</param-name>
             <param-value>org.springframework.web.context.WebApplicationContext.ROOT</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
-        <servlet-bucketName>appServlet</servlet-bucketName>
+        <servlet-name>appServlet</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
 

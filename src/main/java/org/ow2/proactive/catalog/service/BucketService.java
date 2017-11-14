@@ -80,7 +80,7 @@ public class BucketService {
     }
 
     public BucketMetadata getBucketMetadata(String bucketName) {
-        BucketEntity bucketEntity = bucketRepository.findFirstByBucketName(bucketName);
+        BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
         if (bucketEntity == null) {
             throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
         }
@@ -145,7 +145,7 @@ public class BucketService {
     }
 
     private BucketEntity findBucketByNameAndCheck(String bucketName) {
-        BucketEntity bucketEntity = bucketRepository.findFirstByBucketName(bucketName);
+        BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
         if (bucketEntity == null) {
             throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
         }
