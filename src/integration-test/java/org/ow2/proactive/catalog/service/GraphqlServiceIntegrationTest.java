@@ -239,7 +239,7 @@ public class GraphqlServiceIntegrationTest {
 
     @Test
     public void testBucketIdQuery() {
-        String query = "{\n" + "  allCatalogObjects(where:{bucketIdArg:{eq:\"" + bucket.getName() + "\"}}) {\n" +
+        String query = "{\n" + "  allCatalogObjects(where:{bucketNameArg:{eq:\"" + bucket.getName() + "\"}}) {\n" +
                        "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" +
                        "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
                        "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" +
@@ -256,7 +256,7 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.getTotalCount()).isEqualTo(4);
         assertThat(connection.getTotalPage()).isEqualTo(1);
 
-        query = "{\n" + "  allCatalogObjects(where:{bucketIdArg:{eq:\"" + bucket.getName() + "\"}}) {\n" +
+        query = "{\n" + "  allCatalogObjects(where:{bucketNameArg:{eq:\"" + bucket.getName() + "\"}}) {\n" +
                 "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" + "      contentType\n" +
                 "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
                 "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
@@ -275,7 +275,7 @@ public class GraphqlServiceIntegrationTest {
 
     @Test
     public void testBucketNameLikeQuery() {
-        String query = "{\n" + "  allCatalogObjects(where:{bucketIdArg:{like:\"" + bucket.getName() + "\"}}) {\n" +
+        String query = "{\n" + "  allCatalogObjects(where:{bucketNameArg:{like:\"" + bucket.getName() + "\"}}) {\n" +
                        "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" +
                        "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
                        "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" +
@@ -461,8 +461,8 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.getTotalPage()).isEqualTo(1);
 
         query = "{\n" +
-                "  allCatalogObjects(where:{OR:[{AND:[{OR:[{nameArg:{eq:\"catalog1\"}},{nameArg:{eq:\"catalog2\"}}]}, {bucketIdArg:{eq:\"" +
-                bucket.getName() + "\"}}]}, {AND:[{nameArg:{eq:\"catalog1\"}}, {bucketIdArg:{eq:\"" +
+                "  allCatalogObjects(where:{OR:[{AND:[{OR:[{nameArg:{eq:\"catalog1\"}},{nameArg:{eq:\"catalog2\"}}]}, {bucketNameArg:{eq:\"" +
+                bucket.getName() + "\"}}]}, {AND:[{nameArg:{eq:\"catalog1\"}}, {bucketNameArg:{eq:\"" +
                 bucket2.getName() + "\"}}]}]}) {\n" + "    edges {\n" + "      bucketName\n" + "      name\n" +
                 "      kind\n" + "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
                 "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" + "    }\n" +

@@ -27,7 +27,7 @@ package org.ow2.proactive.catalog.graphql.handler.catalogobject;
 
 import java.util.Optional;
 
-import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectBucketIdWhereArgs;
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectBucketNameWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
@@ -42,41 +42,41 @@ import org.springframework.stereotype.Component;
  * @since 12/06/2017
  */
 @Component
-public class CatalogObjectBucketIdFilterHandler
+public class CatalogObjectBucketNameFilterHandler
         implements FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> {
 
     @Override
     public Optional<Specification<CatalogObjectRevisionEntity>> handle(CatalogObjectWhereArgs whereArgs) {
 
-        if (whereArgs.getBucketIdArg() != null) {
+        if (whereArgs.getBucketNameArg() != null) {
 
-            CatalogObjectBucketIdWhereArgs bucketIdWhereArgs = whereArgs.getBucketIdArg();
+            CatalogObjectBucketNameWhereArgs bucketNameWhereArgs = whereArgs.getBucketNameArg();
 
-            if (bucketIdWhereArgs.getEq() != null) {
+            if (bucketNameWhereArgs.getEq() != null) {
                 return Optional.of(BucketNameSpecification.builder()
                                                           .operations(Operations.EQ)
-                                                          .value(bucketIdWhereArgs.getEq())
+                                                          .value(bucketNameWhereArgs.getEq())
                                                           .build());
             }
 
-            if (bucketIdWhereArgs.getNe() != null) {
+            if (bucketNameWhereArgs.getNe() != null) {
                 return Optional.of(BucketNameSpecification.builder()
                                                           .operations(Operations.NE)
-                                                          .value(bucketIdWhereArgs.getNe())
+                                                          .value(bucketNameWhereArgs.getNe())
                                                           .build());
             }
 
-            if (bucketIdWhereArgs.getLike() != null) {
+            if (bucketNameWhereArgs.getLike() != null) {
                 return Optional.of(BucketNameSpecification.builder()
                                                           .operations(Operations.LIKE)
-                                                          .value(bucketIdWhereArgs.getLike())
+                                                          .value(bucketNameWhereArgs.getLike())
                                                           .build());
             }
 
-            if (bucketIdWhereArgs.getNotLike() != null) {
+            if (bucketNameWhereArgs.getNotLike() != null) {
                 return Optional.of(BucketNameSpecification.builder()
                                                           .operations(Operations.NOT_LIKE)
-                                                          .value(bucketIdWhereArgs.getNotLike())
+                                                          .value(bucketNameWhereArgs.getNotLike())
                                                           .build());
             }
         }

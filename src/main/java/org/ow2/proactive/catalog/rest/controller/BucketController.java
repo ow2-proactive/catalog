@@ -121,7 +121,7 @@ public class BucketController {
     @RequestMapping(method = GET)
     public List<BucketMetadata> list(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "The bucketName of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
+            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) String kind)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {

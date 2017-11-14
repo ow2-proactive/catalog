@@ -175,10 +175,10 @@ public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection
             });
         }
 
-        public String generatLink(String bucketId, String name) {
+        public String generatLink(String bucketName, String name) {
             try {
                 ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw("dummy",
-                                                                                                                    bucketId,
+                                                                                                                    bucketName,
                                                                                                                     URLEncoder.encode(name,
                                                                                                                                       "UTF-8")));
 

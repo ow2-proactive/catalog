@@ -38,10 +38,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CatalogObjectBucketIdWhereArgs extends StringWhereArgs {
+public class CatalogObjectBucketNameWhereArgs extends StringWhereArgs {
 
     @Builder
-    public CatalogObjectBucketIdWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte,
+    public CatalogObjectBucketNameWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte,
             String like, String notLike) {
         super(eq, ne, gt, gte, lt, lte, like, notLike);
     }

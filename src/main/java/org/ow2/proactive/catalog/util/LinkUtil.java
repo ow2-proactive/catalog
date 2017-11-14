@@ -53,8 +53,8 @@ public class LinkUtil {
     /**
      * This is used to generate the absolute URL of the given object revision based on the service domain.
      *
-     * @param bucketName The id of the bucket holding this object
-     * @param name The bucketName of the object which is the identifier of the object
+     * @param bucketName The name of the bucket holding this object
+     * @param name The name of the object which is the identifier of the object
      * @param commitTime The commit time of the object which is also the identifier of this revision
      * @return a <code>Link</code> referencing the given object's revision raw content
      */
@@ -78,8 +78,8 @@ public class LinkUtil {
     /**
      * This is used to generate the absolute URL of the given object based on the service domain.
      *
-     * @param bucketName The id of the bucket holding this object
-     * @param name The bucketName of the object which is the identifier of the object
+     * @param bucketName The name of the bucket holding this object
+     * @param name The name of the object which is the identifier of the object
      * @return a <code>Link</code> referencing the given object's raw content
      */
     public static Link createLink(String bucketName, String name)
@@ -102,7 +102,7 @@ public class LinkUtil {
      * The URL will only contain the path <code>buckets/../resources/../revisions/../raw</code>.
      *
      * @param bucketName The id of the bucket holding this object
-     * @param objectName The bucketName of the object which is the identifier of the object
+     * @param objectName The name of the object which is the identifier of the object
      * @param commitTime The commit time of the object which is also the identifier of this revision
      * @return a <code>Link</code> referencing the given object's revision raw content
      */
@@ -124,7 +124,7 @@ public class LinkUtil {
      * The URL will only contain the path <code>buckets/../resources/../raw</code>.
      *
      * @param bucketName The id of the bucket holding this object
-     * @param objectName The bucketName of the object which is the identifier of the object
+     * @param objectName The nokame of the object which is the identifier of the object
      * @return a <code>Link</code> referencing the given object's raw content
      */
     public static Link createRelativeLink(String bucketName, String objectName) {

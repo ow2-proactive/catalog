@@ -37,7 +37,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectBucketIdWhereArgs;
+import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectBucketNameWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectNameWhereArgs;
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
@@ -61,7 +61,7 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
     private CatalogObjectAndOrGroupFilterHandler andFilterHandler;
 
     @Mock
-    private CatalogObjectBucketIdFilterHandler bucketIdHandler;
+    private CatalogObjectBucketNameFilterHandler bucketIdHandler;
 
     @Mock
     private CatalogObjectKindFilterHandler kindHandler;
@@ -83,9 +83,9 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
         when(metadataHandler.handle(any(CatalogObjectWhereArgs.class))).thenReturn(Optional.empty());
 
         CatalogObjectWhereArgs bucketid = CatalogObjectWhereArgs.builder()
-                                                                .bucketIdArg(CatalogObjectBucketIdWhereArgs.builder()
-                                                                                                           .eq("bucket1")
-                                                                                                           .build())
+                                                                .bucketNameArg(CatalogObjectBucketNameWhereArgs.builder()
+                                                                                                               .eq("bucket1")
+                                                                                                               .build())
                                                                 .build();
         CatalogObjectWhereArgs name = CatalogObjectWhereArgs.builder()
                                                             .nameArg(CatalogObjectNameWhereArgs.builder()
@@ -94,9 +94,9 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
                                                             .build();
 
         CatalogObjectWhereArgs bucketid2 = CatalogObjectWhereArgs.builder()
-                                                                 .bucketIdArg(CatalogObjectBucketIdWhereArgs.builder()
-                                                                                                            .eq("bucket2")
-                                                                                                            .build())
+                                                                 .bucketNameArg(CatalogObjectBucketNameWhereArgs.builder()
+                                                                                                                .eq("bucket2")
+                                                                                                                .build())
                                                                  .build();
 
         CatalogObjectWhereArgs name2 = CatalogObjectWhereArgs.builder()

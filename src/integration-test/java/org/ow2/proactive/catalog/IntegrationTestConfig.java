@@ -33,7 +33,7 @@ import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectAndOrGroupFilterHandler;
-import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectBucketIdFilterHandler;
+import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectBucketNameFilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectKindFilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectMetadataFilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectNameFilterHandler;
@@ -102,8 +102,8 @@ public class IntegrationTestConfig {
     }
 
     @Bean
-    public FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> catalogObjectBucketIdFilterHandler() {
-        return new CatalogObjectBucketIdFilterHandler();
+    public FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> catalogObjectBucketNameFilterHandler() {
+        return new CatalogObjectBucketNameFilterHandler();
     }
 
     @Bean

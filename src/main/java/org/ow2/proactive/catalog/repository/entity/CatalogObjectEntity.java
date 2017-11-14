@@ -108,7 +108,7 @@ public class CatalogObjectEntity implements Serializable {
     private CatalogObjectEntityKey id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("bucketName")
+    @MapsId("bucketId")
     @JoinColumn(name = "BUCKET_ID", nullable = false)
     private BucketEntity bucket;
 

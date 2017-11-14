@@ -53,7 +53,7 @@ public class CatalogObjectWhereArgs {
 
     private CatalogObjectMetadataArgs metadataArg;
 
-    private CatalogObjectBucketIdWhereArgs bucketIdArg;
+    private CatalogObjectBucketNameWhereArgs bucketNameArg;
 
     private CatalogObjectKindWhereArgs kindArg;
 

@@ -108,13 +108,11 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        when(bucketService.getBucketMetadata("bucket-bucketName")).thenReturn(new BucketMetadata(1L,
-                                                                                                 "bucket-bucketName",
-                                                                                                 "owner"));
+        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata(1L, "bucket-name", "owner"));
 
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-bucketName");
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-name");
 
-        verify(bucketService).getBucketMetadata("bucket-bucketName");
+        verify(bucketService).getBucketMetadata("bucket-name");
 
     }
 
@@ -126,13 +124,11 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        when(bucketService.getBucketMetadata("bucket-bucketName")).thenReturn(new BucketMetadata(1L,
-                                                                                                 "bucket-bucketName",
-                                                                                                 "owner"));
+        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata(1L, "bucket-name", "owner"));
 
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-bucketName");
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-name");
 
-        verify(bucketService).getBucketMetadata("bucket-bucketName");
+        verify(bucketService).getBucketMetadata("bucket-name");
 
         verify(authorizationService).askUserAuthorizationByBucketOwner(AuthenticatedUser.EMPTY, "owner");
 
@@ -146,11 +142,9 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(false);
 
-        when(bucketService.getBucketMetadata("bucket-bucketName")).thenReturn(new BucketMetadata(1L,
-                                                                                                 "bucket-bucketName",
-                                                                                                 "owner"));
+        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata(1L, "bucket-name", "owner"));
 
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-bucketName");
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-name");
 
     }
 
@@ -167,12 +161,10 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        when(bucketService.getBucketMetadata("bucket-bucketName")).thenReturn(new BucketMetadata(1L,
-                                                                                                 "bucket-bucketName",
-                                                                                                 "owner"));
+        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata(1L, "bucket-name", "owner"));
 
         RestApiAccessResponse response = restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId",
-                                                                                                                "bucket-bucketName");
+                                                                                                                "bucket-name");
 
         assertThat(response.isAuthorized()).isTrue();
         assertThat(response.getAuthenticatedUser().getGroups()).containsAllIn(Arrays.asList("admin",

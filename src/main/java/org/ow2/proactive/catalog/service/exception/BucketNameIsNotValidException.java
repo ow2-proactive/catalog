@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * received but the bucket name is not valid, according to next rules:
  * the bucket name can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, and dashes.
  A bucket name must start with a lowercase letter and cannot terminate with a dash.
- * The HTTP status is 403, 'Forbidden"
+ * The HTTP status is 400, "Bad Request"
  *
  * @author ActiveEon Team
  */

@@ -59,8 +59,7 @@ public class WorkflowXmlManipulator {
     protected final static String ANY_CHARACTER_OR_NEW_LINE = "[\\S\\s]*";
 
     private final static String GENERIC_INFORMATION_ENTRY_FORMAT_STRING = TWO_INTEND +
-                                                                          "<info bucketName=\"%s\" value=\"%s\"/>" +
-                                                                          NEW_LINE;
+                                                                          "<info name=\"%s\" value=\"%s\"/>" + NEW_LINE;
 
     protected final static String GENERIC_INFO_TAG_ENTITY = GENERIC_INFORMATION_START_TAG + "[\\D\\d]*?" +
                                                             GENERIC_INFORMATION_END_TAG + "[\\r\\n]";

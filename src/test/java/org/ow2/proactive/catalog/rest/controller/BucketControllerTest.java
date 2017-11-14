@@ -61,8 +61,8 @@ public class BucketControllerTest {
 
     @Test
     public void testGetMetadata() throws Exception {
-        bucketController.getMetadata("", "bucket-bucketName");
-        verify(bucketService, times(1)).getBucketMetadata("bucket-bucketName");
+        bucketController.getMetadata("", "bucket-name");
+        verify(bucketService, times(1)).getBucketMetadata("bucket-name");
     }
 
     @Test
@@ -73,7 +73,7 @@ public class BucketControllerTest {
 
     @Test
     public void testDelete() throws Exception {
-        bucketService.deleteEmptyBucket("bucket-bucketName");
-        verify(bucketService, times(1)).deleteEmptyBucket("bucket-bucketName");
+        bucketService.deleteEmptyBucket("bucket-name");
+        verify(bucketService, times(1)).deleteEmptyBucket("bucket-name");
     }
 }
