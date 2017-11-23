@@ -28,7 +28,6 @@ package org.ow2.proactive.catalog.rest.controller;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -42,6 +41,7 @@ import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.LinkUtil;
+import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -77,6 +77,9 @@ public class CatalogObjectRevisionController {
 
     @Autowired
     private RestApiAccessService restApiAccessService;
+
+    @Autowired
+    private RawObjectResponseCreator rawObjectResponseCreator;
 
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
@@ -154,19 +157,7 @@ public class CatalogObjectRevisionController {
                                                                                               decodedName,
                                                                                               commitTime);
 
-        byte[] bytes = objectRevisionRaw.getRawObject();
-
-        ResponseEntity.BodyBuilder responseBodyBuilder = ResponseEntity.ok().contentLength(bytes.length);
-
-        try {
-            MediaType mediaType = MediaType.valueOf(objectRevisionRaw.getContentType());
-            responseBodyBuilder = responseBodyBuilder.contentType(mediaType);
-        } catch (org.springframework.http.InvalidMediaTypeException mimeEx) {
-            log.warn("The wrong content type for object: " + decodedName + ", revisionId:" + commitTime +
-                     ", the contentType: " + objectRevisionRaw.getContentType(), mimeEx);
-            mimeEx.printStackTrace();
-        }
-        return responseBodyBuilder.body(new InputStreamResource(new ByteArrayInputStream(bytes)));
+        return rawObjectResponseCreator.createRawObjectResponse(objectRevisionRaw);
     }
 
     @ApiOperation(value = "Lists a catalog object revisions")
