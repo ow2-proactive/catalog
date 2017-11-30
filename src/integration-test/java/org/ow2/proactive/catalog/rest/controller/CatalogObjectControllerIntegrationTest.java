@@ -88,9 +88,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                                                 .extract()
                                                 .path("");
 
-        bucket = new BucketMetadata(((Integer) result.get("id")).longValue(),
-                                    (String) result.get("name"),
-                                    (String) result.get("owner"));
+        bucket = new BucketMetadata((String) result.get("name"), (String) result.get("owner"));
 
         // Add an object of kind "workflow" into first bucket
         given().pathParam("bucketName", bucket.getName())

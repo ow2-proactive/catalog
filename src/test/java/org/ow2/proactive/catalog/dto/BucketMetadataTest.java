@@ -33,91 +33,83 @@ import org.junit.Test;
 /**
  * @author ActiveEon Team
  */
-public class NamedMetadataTest {
+public class BucketMetadataTest {
 
     @Test
     public void testEquality1() throws Exception {
-        CustomNamedMetadata a = new CustomNamedMetadata(1L, "name");
-        CustomNamedMetadata b = new CustomNamedMetadata(1L, "name");
+        BucketMetadata a = new BucketMetadata("bucket-name", "owner-name");
+        BucketMetadata b = new BucketMetadata("bucket-name", "owner-name");
 
         assertThat(a).isEqualTo(b);
     }
 
     @Test
     public void testEquality2() throws Exception {
-        CustomNamedMetadata a = new CustomNamedMetadata(1L, "name");
-        CustomNamedMetadata b = new CustomNamedMetadata(2L, "name");
+        BucketMetadata a = new BucketMetadata("bucket-name", "owner-name");
+        BucketMetadata b = new BucketMetadata("bucket-name-2", "owner-name");
 
         assertThat(a).isNotEqualTo(b);
     }
 
     @Test
     public void testEquality3() throws Exception {
-        CustomNamedMetadata a = new CustomNamedMetadata(1L, "name1");
-        CustomNamedMetadata b = new CustomNamedMetadata(1L, "name2");
+        BucketMetadata a = new BucketMetadata("bucket-name", "owner-name");
+        BucketMetadata b = new BucketMetadata("bucket-name", "owner-name-2");
 
         assertThat(a).isEqualTo(b);
     }
 
     @Test
     public void testEquality4() throws Exception {
-        CustomNamedMetadata a = new CustomNamedMetadata(1L, "name");
-        CustomNamedMetadata b = new CustomNamedMetadata(1L, "name");
+        BucketMetadata a = new BucketMetadata("bucket-name", "owner-name");
+        BucketMetadata b = new BucketMetadata("bucket-name", "owner-name");
 
         assertThat(a).isEqualTo(b);
     }
 
     @Test
     public void testEquality5() throws Exception {
-        CustomNamedMetadata a = new CustomNamedMetadata(1L, "name");
-        CustomNamedMetadata b = new CustomNamedMetadata(2L, "name");
+        BucketMetadata a = new BucketMetadata("bucket-name", "owner-name");
+        BucketMetadata b = new BucketMetadata("bucket-name-2", "owner-name");
 
         assertThat(a).isNotEqualTo(b);
     }
 
     @Test
     public void testEquality6() throws Exception {
-        CustomNamedMetadata a = new CustomNamedMetadata(1L, "name");
+        BucketMetadata a = new BucketMetadata("bucket-name", "owner-name");
 
         assertThat(a.equals(a)).isTrue();
     }
 
     @Test
     public void testEquality7() throws Exception {
-        CustomNamedMetadata a = new CustomNamedMetadata(1L, "name");
+        BucketMetadata a = new BucketMetadata("bucket-name", "owner-name");
 
         assertThat(a).isNotEqualTo(null);
     }
 
     @Test
     public void testEquality8() throws Exception {
-        CustomNamedMetadata a = new CustomNamedMetadata(1L, "name");
+        BucketMetadata a = new BucketMetadata("bucket-name", "owner-name");
 
         assertThat(a).isNotEqualTo(42);
     }
 
     @Test
     public void testHashCode1() throws Exception {
-        CustomNamedMetadata a = new CustomNamedMetadata(1L, "name");
-        CustomNamedMetadata b = new CustomNamedMetadata(1L, "name");
+        BucketMetadata a = new BucketMetadata("bucket-name", "owner-name");
+        BucketMetadata b = new BucketMetadata("bucket-name", "owner-name");
 
         assertThat(a.hashCode()).isEqualTo(b.hashCode());
     }
 
     @Test
     public void testHashCode2() throws Exception {
-        CustomNamedMetadata a = new CustomNamedMetadata(1L, "name");
-        CustomNamedMetadata b = new CustomNamedMetadata(2L, "name");
+        BucketMetadata a = new BucketMetadata("bucket-name", "owner-name");
+        BucketMetadata b = new BucketMetadata("bucket-name-2", "owner-name");
 
         assertThat(a.hashCode()).isNotEqualTo(b.hashCode());
-    }
-
-    private static final class CustomNamedMetadata extends NamedMetadata {
-
-        public CustomNamedMetadata(Long id, String name) {
-            super(id, name);
-        }
-
     }
 
 }

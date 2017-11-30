@@ -108,7 +108,7 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata(1L, "bucket-name", "owner"));
+        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata("bucket-name", "owner"));
 
         restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-name");
 
@@ -124,7 +124,7 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata(1L, "bucket-name", "owner"));
+        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata("bucket-name", "owner"));
 
         restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-name");
 
@@ -142,7 +142,7 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(false);
 
-        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata(1L, "bucket-name", "owner"));
+        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata("bucket-name", "owner"));
 
         restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-name");
 
@@ -161,7 +161,7 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata(1L, "bucket-name", "owner"));
+        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata("bucket-name", "owner"));
 
         RestApiAccessResponse response = restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId",
                                                                                                                 "bucket-name");
