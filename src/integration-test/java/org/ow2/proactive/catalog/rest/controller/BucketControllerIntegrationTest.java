@@ -331,7 +331,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .queryParam("kind", "myobjectkind")
                .queryParam("name", "myTestName")
                .queryParam("commitMessage", "first commit")
-               .queryParam("contentType", "application/xml")
+               .queryParam("objectContentType", "application/xml")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE);
