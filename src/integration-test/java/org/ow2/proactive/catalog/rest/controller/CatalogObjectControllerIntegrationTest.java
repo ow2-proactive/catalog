@@ -159,7 +159,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .queryParam("kind", "pcw-rule")
                .queryParam("name", "pcw-rule test")
                .queryParam("commitMessage", "first commit")
-               .queryParam("objectContentType", "application/json")
+               .queryParam("objectContentType", MediaType.APPLICATION_JSON_VALUE)
                .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleExample.json"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
@@ -192,7 +192,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].object_key_values[5].key", is("NodeUrls"))
                .body("object[0].object_key_values[5].value",
                      is("[\"localhost\",\"service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode\"]"))
-               .body("object[0].content_type", is("application/json"));
+               .body("object[0].content_type", is(MediaType.APPLICATION_JSON_VALUE));
     }
 
     @Test
@@ -201,7 +201,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .queryParam("kind", "pcw-rule")
                .queryParam("name", "pcw-rule test")
                .queryParam("commitMessage", "first commit")
-               .queryParam("objectContentType", "application/json")
+               .queryParam("objectContentType", MediaType.APPLICATION_JSON_VALUE)
                .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleWrongToParse.json"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
