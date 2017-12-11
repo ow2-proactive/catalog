@@ -111,7 +111,7 @@ public class CatalogObjectController {
             @ApiParam(value = "Name of the object or empty when a ZIP archive is uploaded (All objects inside the archive are stored inside the catalog).") @RequestParam(required = false) Optional<String> name,
             @ApiParam(value = "Kind of the new object") @RequestParam String kind,
             @ApiParam(value = "Commit message") @RequestParam String commitMessage,
-            @ApiParam(value = "The content type of CatalogRawObject") @RequestParam String contentType,
+            @ApiParam(value = "The content type of CatalogRawObject") @RequestParam String objectContentType,
             @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
@@ -122,7 +122,7 @@ public class CatalogObjectController {
                                                                                            name.get(),
                                                                                            kind,
                                                                                            commitMessage,
-                                                                                           contentType,
+                                                                                           objectContentType,
                                                                                            file.getBytes());
             catalogObject.add(LinkUtil.createLink(catalogObject.getBucketId(), catalogObject.getName()));
 
@@ -131,7 +131,7 @@ public class CatalogObjectController {
             List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketId,
                                                                                                    kind,
                                                                                                    commitMessage,
-                                                                                                   contentType,
+                                                                                                   objectContentType,
                                                                                                    file.getBytes());
 
             for (CatalogObjectMetadata catalogObject : catalogObjects) {
@@ -167,12 +167,13 @@ public class CatalogObjectController {
 
     }
 
-    @ApiOperation(value = "Gets the raw content of a last revision of a catalog object")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"),
+    @ApiOperation(value = "Gets the raw content of the last revision of a catalog object")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Ok", response = InputStreamResource.class),
                             @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied") })
+                            @ApiResponse(code = 403, message = "Permission denied"),
+                            @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found") })
 
-    @RequestMapping(value = "/{name}/raw", method = GET)
+    @RequestMapping(value = "/{name}/raw", method = GET, produces = MediaType.ALL_VALUE)
     public ResponseEntity<InputStreamResource> getRaw(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable Long bucketId, @PathVariable String name)
@@ -195,8 +196,8 @@ public class CatalogObjectController {
     }
 
     @ApiOperation(value = "Lists catalog objects metadata", notes = "Returns catalog objects metadata associated to the latest revision.")
-    @ApiImplicitParams({ @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "Results page you want to retrieve (0..N)"),
-                         @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "Number of records per page."),
+    @ApiImplicitParams({ @ApiImplicitParam(name = "page", dataType = "int", paramType = "query", value = "Results page you want to retrieve (0..N)"),
+                         @ApiImplicitParam(name = "size", dataType = "int", paramType = "query", value = "Number of records per page."),
                          @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "Sorting criteria in the format: property(,asc|desc). " +
                                                                                                                                   "Default sort order is ascending. " + "Multiple sort criteria are supported.") })
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
@@ -209,7 +210,7 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable Long bucketId,
             @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
-            @ApiParam(value = "Get given list in an archive") @RequestParam(value = "name", required = false) Optional<List<String>> names,
+            @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "name", required = false) Optional<List<String>> names,
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
