@@ -118,16 +118,16 @@ public class IntegrationTestUtil {
      * @param kind
      * @param name
      * @param commitMessage
-     * @param objectContentType
+     * @param contentType
      * @param file
      */
     public static void postObjectToBucket(Integer bucketId, String kind, String name, String commitMessage,
-            String objectContentType, File file) {
+            String contentType, File file) {
         given().pathParam("bucketId", bucketId)
                .queryParam("kind", kind)
                .queryParam("name", name)
                .queryParam("commitMessage", commitMessage)
-               .queryParam("objectContentType", objectContentType)
+               .queryParam("contentType", contentType)
                .multiPart(file)
                .when()
                .post(CATALOG_OBJECTS_RESOURCE);

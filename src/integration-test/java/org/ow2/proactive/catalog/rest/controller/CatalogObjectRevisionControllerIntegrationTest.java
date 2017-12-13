@@ -51,7 +51,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.google.common.io.ByteStreams;
-import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.response.ValidatableResponse;
 
@@ -81,7 +80,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     protected HashMap<String, Object> catalogObjectRevisionAlone;
 
-    private static final String objectContentType = "application/xml";
+    private static final String contentType = "application/xml";
 
     private LocalDateTime secondCatalogObjectRevisionCommitTime;
 
@@ -108,7 +107,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                                             .queryParam("kind", "workflow")
                                             .queryParam("name", "WF_1_Rev_1")
                                             .queryParam("commitMessage", "alone commit")
-                                            .queryParam("objectContentType", objectContentType)
+                                            .queryParam("contentType", contentType)
                                             .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                                             .when()
                                             .post(CATALOG_OBJECTS_RESOURCE)

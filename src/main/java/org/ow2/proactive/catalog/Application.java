@@ -25,13 +25,10 @@
  */
 package org.ow2.proactive.catalog;
 
-import static springfox.documentation.schema.AlternateTypeRules.*;
-
 import java.io.File;
 
 import javax.sql.DataSource;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -42,7 +39,6 @@ import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.MediaType;
@@ -50,13 +46,11 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import com.fasterxml.classmate.TypeResolver;
 import com.google.common.base.Predicate;
 
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -152,17 +146,12 @@ public class Application extends WebMvcConfigurerAdapter {
         return new CommonsMultipartResolver();
     }
 
-    @Autowired
-    private TypeResolver typeResolver;
-
     @Bean
     public Docket workflowCatalogApi() {
         return new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo())
                                                       .groupName("CatalogObjectEntity Catalog")
                                                       .ignoredParameterTypes(Pageable.class,
                                                                              PagedResourcesAssembler.class)
-                                                      .alternateTypeRules(newRule(typeResolver.resolve(InputStreamResource.class),
-                                                                                  typeResolver.resolve(MultipartFile.class)))
                                                       .select()
                                                       .paths(allowedPaths())
                                                       .build();
@@ -173,8 +162,7 @@ public class Application extends WebMvcConfigurerAdapter {
                                    .description("The purpose of the catalog is to store ProActive objects.\n" + "\n" +
                                                 "A catalog is subdivided into buckets.\n\n Each bucket manages zero, one or more\n" +
                                                 "versioned ProActive objects.")
-                                   .license("GNU Affero General Public License v3.0")
-                                   .licenseUrl("https://github.com/ow2-proactive/catalog/blob/master/LICENSE.txt")
+                                   .licenseUrl("https://github.com/ow2-proactive/catalog/blob/master/LICENSE")
                                    .version("1.0")
                                    .build();
     }

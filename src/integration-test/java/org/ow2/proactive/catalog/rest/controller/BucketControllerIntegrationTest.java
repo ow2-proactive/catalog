@@ -45,7 +45,6 @@ import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -205,7 +204,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                "myobjectkind",
                                                "myobjectname",
                                                "first commit",
-                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "application/xml",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         Integer bucketWithSomeObjectsId = IntegrationTestUtil.createBucket(bucketNameWithSomeObjects, "owner");
@@ -214,7 +213,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                "differentkind",
                                                "myobjectname",
                                                "first commit",
-                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "application/xml",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         // list workflow -> should return one only
@@ -250,7 +249,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                "other kind",
                                                "my workflow",
                                                "first commit",
-                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "application/xml",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postDefaultWorkflowToBucket(BucketAdminOwnerMixedKindId);
@@ -258,7 +257,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                "other kind",
                                                "other object",
                                                "first commit",
-                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "application/xml",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postDefaultWorkflowToBucket(BucketUserOwnerWorkflowKindId);
@@ -332,7 +331,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .queryParam("kind", "myobjectkind")
                .queryParam("name", "myTestName")
                .queryParam("commitMessage", "first commit")
-               .queryParam("objectContentType", MediaType.APPLICATION_ATOM_XML_VALUE)
+               .queryParam("contentType", "application/xml")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE);
