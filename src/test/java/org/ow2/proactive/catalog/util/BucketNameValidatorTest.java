@@ -36,22 +36,6 @@ import org.junit.Test;
  */
 public class BucketNameValidatorTest {
 
-    //    protected final static String VALID_BUCKET_NAME_PATTERN = "[a-z][a-z0-9-]{1,61}[a-z0-9]";
-    //
-    //    private final static Pattern validBucketNamePattern = Pattern.compile(VALID_BUCKET_NAME_PATTERN);
-    //
-    //    /**
-    //     * According to this check: the bucket name can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, and dashes.
-    //     A bucket name must start with a lowercase letter and cannot terminate with a dash.
-    //     *
-    //     * @param bucketNameForCheck
-    //     * @return true result if bucket name is valid
-    //     */
-    //    public static boolean checkBucketName(String bucketNameForCheck) {
-    //        Matcher matcher = validBucketNamePattern.matcher(bucketNameForCheck);
-    //        return matcher.matches();
-    //    }
-
     private BucketNameValidator bucketNameValidator = new BucketNameValidator();
 
     @Test

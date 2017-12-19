@@ -81,7 +81,9 @@ public class CatalogObjectRevisionControllerTest {
                                                           Collections.emptyList(),
                                                           new byte[0]);
         ResponseEntity responseEntity = ResponseEntity.ok().body(1);
-        when(catalogObjectService.getCatalogObjectRevisionRaw(anyString(), anyString(), anyLong())).thenReturn(rawObject);
+        when(catalogObjectService.getCatalogObjectRevisionRaw(anyString(),
+                                                              anyString(),
+                                                              anyLong())).thenReturn(rawObject);
         when(rawObjectResponseCreator.createRawObjectResponse(rawObject)).thenReturn(responseEntity);
         ResponseEntity responseEntityFromController = catalogObjectRevisionController.getRaw("",
                                                                                              BUCKET_ID,

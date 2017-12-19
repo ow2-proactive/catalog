@@ -55,8 +55,8 @@ public class BucketControllerTest {
     @Test
     public void testCreate() throws Exception {
         final String bucketTestUser = "BucketControllerTestUser";
-        bucketController.create("", "DUMMY", bucketTestUser);
-        verify(bucketService, times(1)).createBucket("DUMMY", bucketTestUser);
+        bucketController.create("", "dummy", bucketTestUser);
+        verify(bucketService, times(1)).createBucket("dummy", bucketTestUser);
     }
 
     @Test
