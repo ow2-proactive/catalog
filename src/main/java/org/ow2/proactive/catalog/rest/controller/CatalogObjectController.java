@@ -30,7 +30,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -52,6 +51,7 @@ import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.LinkUtil;
+import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -90,6 +90,9 @@ public class CatalogObjectController {
     @Autowired
     private RestApiAccessService restApiAccessService;
 
+    @Autowired
+    private RawObjectResponseCreator rawObjectResponseCreator;
+
     private static final String ZIP_CONTENT_TYPE = "application/zip";
 
     @Value("${pa.catalog.security.required.sessionid}")
@@ -106,7 +109,7 @@ public class CatalogObjectController {
             @ApiParam(value = "Name of the object or empty when a ZIP archive is uploaded (All objects inside the archive are stored inside the catalog).") @RequestParam(required = false) Optional<String> name,
             @ApiParam(value = "Kind of the new object", required = true) @RequestParam String kind,
             @ApiParam(value = "Commit message", required = true) @RequestParam String commitMessage,
-            @ApiParam(value = "The content type of CatalogRawObject - MIME type", required = true) @RequestParam String contentType,
+            @ApiParam(value = "The content type of CatalogRawObject - MIME type", required = true) @RequestParam String objectContentType,
             @ApiParam(value = "The content of CatalogRawObject", required = true) @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
@@ -117,7 +120,7 @@ public class CatalogObjectController {
                                                                                            name.get(),
                                                                                            kind,
                                                                                            commitMessage,
-                                                                                           contentType,
+                                                                                           objectContentType,
                                                                                            file.getBytes());
             catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
 
@@ -126,7 +129,7 @@ public class CatalogObjectController {
             List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketName,
                                                                                                    kind,
                                                                                                    commitMessage,
-                                                                                                   contentType,
+                                                                                                   objectContentType,
                                                                                                    file.getBytes());
 
             for (CatalogObjectMetadata catalogObject : catalogObjects) {
@@ -162,12 +165,13 @@ public class CatalogObjectController {
 
     }
 
-    @ApiOperation(value = "Gets the raw content of a last revision of a catalog object")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found"),
+    @ApiOperation(value = "Gets the raw content of the last revision of a catalog object")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Ok", response = InputStreamResource.class),
                             @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied") })
+                            @ApiResponse(code = 403, message = "Permission denied"),
+                            @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found") })
 
-    @RequestMapping(value = "/{name}/raw", method = GET)
+    @RequestMapping(value = "/{name}/raw", method = GET, produces = MediaType.ALL_VALUE)
     public ResponseEntity<InputStreamResource> getRaw(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name)
@@ -181,19 +185,7 @@ public class CatalogObjectController {
         try {
             CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucketName, decodedName);
 
-            byte[] bytes = rawObject.getRawObject();
-
-            ResponseEntity.BodyBuilder responseBodyBuilder = ResponseEntity.ok().contentLength(bytes.length);
-
-            try {
-                MediaType mediaType = MediaType.valueOf(rawObject.getContentType());
-                responseBodyBuilder = responseBodyBuilder.contentType(mediaType);
-            } catch (org.springframework.http.InvalidMediaTypeException mimeEx) {
-                log.warn("The wrong content type for object: " + name + ", commitTime:" +
-                         rawObject.getCommitDateTime() + ", the contentType: " + rawObject.getContentType(), mimeEx);
-            }
-
-            return responseBodyBuilder.body(new InputStreamResource(new ByteArrayInputStream(bytes)));
+            return rawObjectResponseCreator.createRawObjectResponse(rawObject);
         } catch (CatalogObjectNotFoundException e) {
             log.error("CatalogObject not found ", e);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -212,7 +204,7 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
             @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
-            @ApiParam(value = "Get given list in an archive") @RequestParam(value = "name", required = false) Optional<List<String>> names,
+            @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "name", required = false) Optional<List<String>> names,
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 

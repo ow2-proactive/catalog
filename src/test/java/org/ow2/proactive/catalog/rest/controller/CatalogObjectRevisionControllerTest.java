@@ -41,6 +41,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
+import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.springframework.http.ResponseEntity;
 
 
@@ -55,6 +56,9 @@ public class CatalogObjectRevisionControllerTest {
 
     @Mock
     private CatalogObjectService catalogObjectService;
+
+    @Mock
+    private RawObjectResponseCreator rawObjectResponseCreator;
 
     private static final String BUCKET_ID = "bucket-name";
 
@@ -76,15 +80,15 @@ public class CatalogObjectRevisionControllerTest {
                                                           "commit message",
                                                           Collections.emptyList(),
                                                           new byte[0]);
-
-        when(catalogObjectService.getCatalogObjectRevisionRaw(anyString(),
-                                                              anyString(),
-                                                              anyLong())).thenReturn(rawObject);
-        ResponseEntity responseEntity = catalogObjectRevisionController.getRaw("",
-                                                                               BUCKET_ID,
-                                                                               "name",
-                                                                               System.currentTimeMillis());
+        ResponseEntity responseEntity = ResponseEntity.ok().body(1);
+        when(catalogObjectService.getCatalogObjectRevisionRaw(anyString(), anyString(), anyLong())).thenReturn(rawObject);
+        when(rawObjectResponseCreator.createRawObjectResponse(rawObject)).thenReturn(responseEntity);
+        ResponseEntity responseEntityFromController = catalogObjectRevisionController.getRaw("",
+                                                                                             BUCKET_ID,
+                                                                                             "name",
+                                                                                             System.currentTimeMillis());
         verify(catalogObjectService, times(1)).getCatalogObjectRevisionRaw(anyString(), anyString(), anyLong());
-        assertThat(responseEntity).isNotNull();
+        assertThat(responseEntityFromController).isNotNull();
+        assertThat(responseEntityFromController).isEqualTo(responseEntity);
     }
 }

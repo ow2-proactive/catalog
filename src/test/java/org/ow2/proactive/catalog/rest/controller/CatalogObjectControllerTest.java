@@ -57,6 +57,7 @@ import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
+import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
@@ -78,6 +79,9 @@ public class CatalogObjectControllerTest {
 
     @Mock
     private ArchiveManagerHelper archiveManagerHelper;
+
+    @Mock
+    private RawObjectResponseCreator rawObjectResponseCreator;
 
     @Test
     public void testGetCatalogObjectsAsArchive() throws IOException, NotAuthenticatedException, AccessDeniedException {
@@ -137,10 +141,14 @@ public class CatalogObjectControllerTest {
                                                           "commit message",
                                                           Collections.emptyList(),
                                                           new byte[0]);
+        ResponseEntity responseEntity = ResponseEntity.ok().body(1);
         when(catalogObjectService.getCatalogRawObject(anyString(), anyString())).thenReturn(rawObject);
-        ResponseEntity responseEntity = catalogObjectController.getRaw("", "bucket-name", "name");
+        when(rawObjectResponseCreator.createRawObjectResponse(rawObject)).thenReturn(responseEntity);
+        ResponseEntity responseEntityFromController = catalogObjectController.getRaw("", "bucket-name", "name");
         verify(catalogObjectService, times(1)).getCatalogRawObject(anyString(), anyString());
-        assertThat(responseEntity).isNotNull();
+        verify(rawObjectResponseCreator, times(1)).createRawObjectResponse(rawObject);
+        assertThat(responseEntityFromController).isNotNull();
+        assertThat(responseEntityFromController).isEqualTo(responseEntity);
     }
 
     @Test
