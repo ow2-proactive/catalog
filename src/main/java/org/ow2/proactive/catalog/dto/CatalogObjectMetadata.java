@@ -56,8 +56,8 @@ public class CatalogObjectMetadata extends ResourceSupport {
     @JsonProperty("kind")
     protected final String kind;
 
-    @JsonProperty("bucket_id")
-    protected final Long bucketId;
+    @JsonProperty("bucket_name")
+    protected final String bucketName;
 
     @JsonProperty
     protected final String name;
@@ -76,7 +76,7 @@ public class CatalogObjectMetadata extends ResourceSupport {
     protected final List<Metadata> metadataList;
 
     public CatalogObjectMetadata(CatalogObjectEntity catalogObject) {
-        this(catalogObject.getId().getBucketId(),
+        this(catalogObject.getBucket().getBucketName(),
              catalogObject.getId().getName(),
              catalogObject.getKind(),
              catalogObject.getContentType(),
@@ -86,7 +86,7 @@ public class CatalogObjectMetadata extends ResourceSupport {
     }
 
     public CatalogObjectMetadata(CatalogObjectRevisionEntity catalogObject) {
-        this(catalogObject.getCatalogObject().getId().getBucketId(),
+        this(catalogObject.getCatalogObject().getBucket().getBucketName(),
              catalogObject.getCatalogObject().getId().getName(),
              catalogObject.getCatalogObject().getKind(),
              catalogObject.getCatalogObject().getContentType(),
@@ -95,9 +95,9 @@ public class CatalogObjectMetadata extends ResourceSupport {
              KeyValueEntityToDtoTransformer.to(catalogObject.getKeyValueMetadataList()));
     }
 
-    public CatalogObjectMetadata(Long bucketId, String name, String kind, String contentType, long commitTime,
+    public CatalogObjectMetadata(String bucketName, String name, String kind, String contentType, long commitTime,
             String commitMessage, List<Metadata> metadataList) {
-        this.bucketId = bucketId;
+        this.bucketName = bucketName;
         this.name = name;
         this.kind = kind;
         this.contentType = contentType;

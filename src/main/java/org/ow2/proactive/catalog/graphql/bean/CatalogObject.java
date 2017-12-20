@@ -46,7 +46,7 @@ public class CatalogObject {
 
     private String kind;
 
-    private Long bucketId;
+    private String bucketName;
 
     private String name;
 
@@ -61,7 +61,7 @@ public class CatalogObject {
     private String link;
 
     public CatalogObject(CatalogObjectEntity catalogObject) {
-        this(catalogObject.getId().getBucketId(),
+        this(catalogObject.getBucket().getBucketName(),
              catalogObject.getId().getName(),
              catalogObject.getKind(),
              catalogObject.getContentType(),
@@ -71,7 +71,7 @@ public class CatalogObject {
     }
 
     public CatalogObject(CatalogObjectRevisionEntity catalogObject) {
-        this(catalogObject.getCatalogObject().getId().getBucketId(),
+        this(catalogObject.getCatalogObject().getBucket().getBucketName(),
              catalogObject.getCatalogObject().getId().getName(),
              catalogObject.getCatalogObject().getKind(),
              catalogObject.getCatalogObject().getContentType(),
@@ -80,9 +80,9 @@ public class CatalogObject {
              KeyValueEntityToDtoTransformer.to(catalogObject.getKeyValueMetadataList()));
     }
 
-    public CatalogObject(Long bucketId, String name, String kind, String contentType, long createdAt,
+    public CatalogObject(String bucketName, String name, String kind, String contentType, long createdAt,
             String commitMessage, List<Metadata> metadataList) {
-        this.bucketId = bucketId;
+        this.bucketName = bucketName;
         this.name = name;
         this.kind = kind;
         this.contentType = contentType;

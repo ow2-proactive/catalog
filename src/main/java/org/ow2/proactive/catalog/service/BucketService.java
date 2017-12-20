@@ -33,8 +33,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
+import org.ow2.proactive.catalog.util.BucketNameValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -59,25 +61,30 @@ public class BucketService {
     @Autowired
     private CatalogObjectService catalogObjectService;
 
+    @Autowired
+    private BucketNameValidator bucketNameValidator;
+
     public BucketMetadata createBucket(String name) {
         return createBucket(name, DEFAULT_BUCKET_OWNER);
     }
 
     public BucketMetadata createBucket(String name, String owner) throws DataIntegrityViolationException {
+        if (!bucketNameValidator.checkBucketName(name)) {
+            throw new BucketNameIsNotValidException(name);
+        }
+
         BucketEntity bucket = new BucketEntity(name, owner);
 
         bucket = bucketRepository.save(bucket);
         return new BucketMetadata(bucket);
     }
 
-    public BucketMetadata getBucketMetadata(long id) {
-        BucketEntity bucket = bucketRepository.findOne(id);
-
-        if (bucket == null) {
-            throw new BucketNotFoundException();
+    public BucketMetadata getBucketMetadata(String bucketName) {
+        BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
+        if (bucketEntity == null) {
+            throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
         }
-
-        return new BucketMetadata(bucket);
+        return new BucketMetadata(bucketEntity);
     }
 
     public List<BucketMetadata> listBuckets(List<String> owners, String kind) {
@@ -123,8 +130,8 @@ public class BucketService {
         bucketRepository.deleteAll();
     }
 
-    public BucketMetadata deleteEmptyBucket(long bucketId) {
-        BucketEntity bucket = bucketRepository.findBucketForUpdate(bucketId);
+    public BucketMetadata deleteEmptyBucket(String bucketName) {
+        BucketEntity bucket = bucketRepository.findBucketForUpdate(bucketName);
 
         if (bucket == null) {
             throw new BucketNotFoundException();
@@ -133,8 +140,15 @@ public class BucketService {
         if (!bucket.getCatalogObjects().isEmpty()) {
             throw new DeleteNonEmptyBucketException();
         }
-        bucketRepository.delete(bucketId);
+        bucketRepository.delete(bucket.getId());
         return new BucketMetadata(bucket);
     }
 
+    private BucketEntity findBucketByNameAndCheck(String bucketName) {
+        BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
+        if (bucketEntity == null) {
+            throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
+        }
+        return bucketEntity;
+    }
 }

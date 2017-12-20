@@ -23,41 +23,33 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.graphql.bean.argument;
+package org.ow2.proactive.catalog.util;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.springframework.stereotype.Component;
 
 
 /**
  * @author ActiveEon Team
- * @since 09/06/2017
+ * @since 11/13/2017
  */
-@NoArgsConstructor
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class CatalogObjectBucketIdWhereArgs extends WhereArgs<Long> {
+@Component
+public class BucketNameValidator {
+    protected final static String VALID_BUCKET_NAME_PATTERN = "[a-z][a-z0-9-]{1,61}[a-z0-9]";
 
-    protected Long[] in;
+    private final static Pattern validBucketNamePattern = Pattern.compile(VALID_BUCKET_NAME_PATTERN);
 
-    protected Long[] notIn;
-
-    @Builder
-    public CatalogObjectBucketIdWhereArgs(Long eq, Long ne, Long gt, Long gte, Long lt, Long lte, Long[] in,
-            Long[] notIn) {
-        super(eq, ne, gt, gte, lt, lte);
-        this.in = in;
-        this.notIn = notIn;
+    /**
+     * According to this check: the bucket name can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, and dashes.
+     A bucket name must start with a lowercase letter and cannot terminate with a dash.
+     *
+     * @param bucketNameForCheck
+     * @return true result if bucket name is valid
+     */
+    public boolean checkBucketName(String bucketNameForCheck) {
+        Matcher matcher = validBucketNamePattern.matcher(bucketNameForCheck);
+        return matcher.matches();
     }
-
-    public Long[] getIn() {
-        return in;
-    }
-
-    public Long[] getNotIn() {
-        return notIn;
-    }
-
 }

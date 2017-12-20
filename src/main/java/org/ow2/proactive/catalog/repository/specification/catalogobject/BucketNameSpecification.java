@@ -36,7 +36,7 @@ import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.generic.AbstractSpecification;
+import org.ow2.proactive.catalog.repository.specification.AbstractSpecification;
 
 import lombok.Builder;
 
@@ -45,25 +45,32 @@ import lombok.Builder;
  * @author ActiveEon Team
  * @since 05/07/2017
  */
-public class StringLikeNotLikeSpecification extends AbstractSpecification<String> {
+public class BucketNameSpecification extends AbstractSpecification<String> {
 
     @Builder
-    public StringLikeNotLikeSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            String value, Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
-            Join<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadataJoin) {
-        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
+    BucketNameSpecification(Operations operations, String value,
+            Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
+            Join<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadataJoin, Join bucketEntityJoin) {
+        super(operations, value, catalogObjectJoin, metadataJoin, bucketEntityJoin);
     }
 
     @Override
     protected Predicate buildPredicate(Root<CatalogObjectRevisionEntity> root, CriteriaQuery<?> query,
             CriteriaBuilder cb) {
+        initBucketJoin(root, query, cb);
+
         switch (operations) {
+            case EQ:
+                return cb.equal(bucketEntityJoin.get(CatalogObjectEntityMetaModelEnum.BUCKET_NAME.getName()), value);
+            case NE:
+                return cb.notEqual(bucketEntityJoin.get(CatalogObjectEntityMetaModelEnum.BUCKET_NAME.getName()), value);
             case LIKE:
-                return cb.like(catalogObjectJoin.get(entityMetaModelEnum.getName()), value);
+                return cb.like(bucketEntityJoin.get(CatalogObjectEntityMetaModelEnum.BUCKET_NAME.getName()), value);
             case NOT_LIKE:
-                return cb.notLike(catalogObjectJoin.get(entityMetaModelEnum.getName()), value);
+                return cb.notLike(bucketEntityJoin.get(CatalogObjectEntityMetaModelEnum.BUCKET_NAME.getName()), value);
             default:
                 throw new IllegalStateException(operations + " is not supported");
         }
+
     }
 }

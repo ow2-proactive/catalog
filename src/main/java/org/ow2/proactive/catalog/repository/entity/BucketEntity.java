@@ -36,6 +36,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -57,7 +58,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Data
 @Entity
-@Table(name = "BUCKET", uniqueConstraints = @UniqueConstraint(columnNames = { "NAME" }))
+@Table(name = "BUCKET", uniqueConstraints = @UniqueConstraint(columnNames = { "BUCKET_NAME" }), indexes = { @Index(name = "BUCKET_INDEX", columnList = "BUCKET_NAME") })
 @ToString(exclude = "catalogObjects")
 public class BucketEntity implements Serializable {
 
@@ -69,8 +70,8 @@ public class BucketEntity implements Serializable {
     @Column(name = "ID")
     protected Long id;
 
-    @Column(name = "NAME", nullable = false)
-    protected String name;
+    @Column(name = "BUCKET_NAME", nullable = false)
+    protected String bucketName;
 
     @Column(name = "OWNER", nullable = false)
     protected String owner;
@@ -85,8 +86,8 @@ public class BucketEntity implements Serializable {
         catalogObjects = new HashSet<>();
     }
 
-    public BucketEntity(String name, String owner) {
-        this.name = name;
+    public BucketEntity(String bucketName, String owner) {
+        this.bucketName = bucketName;
         this.owner = owner;
         this.catalogObjects = new HashSet<>();
     }

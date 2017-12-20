@@ -23,37 +23,30 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository.specification.catalogobject;
+package org.ow2.proactive.catalog.service.exception;
 
-import java.util.List;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Predicate;
-
-import org.ow2.proactive.catalog.graphql.bean.common.Operations;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.springframework.data.jpa.domain.Specification;
-
-import lombok.Builder;
-import lombok.Getter;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 /**
+ * This Exception is thrown when a CREATE request for bucket has been
+ * received but the bucket name is not valid, according to next rules:
+ * the bucket name can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, and dashes.
+ A bucket name must start with a lowercase letter and cannot terminate with a dash.
+ * The HTTP status is 400, "Bad Request"
+ *
  * @author ActiveEon Team
- * @since 06/07/2017
  */
-@Getter
-public class OrSpecification extends AndOrSpecification {
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+public class BucketNameIsNotValidException extends RuntimeException {
 
-    @Builder
-    public OrSpecification(Operations operations, Object value, Join catalogObjectJoin, Join metadataJoin,
-            Join bucketJoin, List<Specification<CatalogObjectRevisionEntity>> fieldSpecifications) {
-        super(operations, value, catalogObjectJoin, metadataJoin, bucketJoin, fieldSpecifications);
+    public BucketNameIsNotValidException(String bucketName) {
+        super("The bucket name:'" + bucketName + "' is not valid, please check the specification of bucket naming");
     }
 
-    @Override
-    protected Predicate predicate(CriteriaBuilder cb, Predicate[] predicates) {
-        return cb.or(predicates);
+    public BucketNameIsNotValidException(Throwable cause) {
+        super(cause);
     }
+
 }

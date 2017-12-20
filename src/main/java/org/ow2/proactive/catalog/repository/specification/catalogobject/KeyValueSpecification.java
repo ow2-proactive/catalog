@@ -32,8 +32,12 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
+import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.generic.AbstractSpecification;
+import org.ow2.proactive.catalog.repository.specification.AbstractSpecification;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -49,11 +53,12 @@ public class KeyValueSpecification extends AbstractSpecification<String> {
     private String key;
 
     @Builder
-    public KeyValueSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations,
-            String value, Join catalogObjectJoin, Join metadataJoin, String key) {
-        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
+    public KeyValueSpecification(Operations operations, String value,
+            Join<CatalogObjectRevisionEntity, CatalogObjectEntity> catalogObjectJoin,
+            Join<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadataJoin,
+            Join<Join, BucketEntity> bucketEntityJoin, String key) {
+        super(operations, value, catalogObjectJoin, metadataJoin, bucketEntityJoin);
         this.key = key;
-
     }
 
     @Override

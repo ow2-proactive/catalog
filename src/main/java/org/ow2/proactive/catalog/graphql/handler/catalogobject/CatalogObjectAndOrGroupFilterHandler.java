@@ -62,7 +62,7 @@ public class CatalogObjectAndOrGroupFilterHandler
         implements FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> {
 
     @Autowired
-    @Qualifier("catalogObjectBucketIdFilterHandler")
+    @Qualifier("catalogObjectBucketNameFilterHandler")
     private FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> bucketIdHandler;
 
     @Autowired

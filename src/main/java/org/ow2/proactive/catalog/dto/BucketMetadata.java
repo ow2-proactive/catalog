@@ -25,30 +25,61 @@
  */
 package org.ow2.proactive.catalog.dto;
 
-import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import java.util.Objects;
 
-import lombok.EqualsAndHashCode;
+import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.springframework.hateoas.ResourceSupport;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
 
 
 /**
  * @author ActiveEon Team
  */
-@EqualsAndHashCode(callSuper = true)
-public class BucketMetadata extends NamedMetadata {
+@Data
+public class BucketMetadata extends ResourceSupport {
 
+    @JsonProperty
     private final String owner;
 
+    @JsonProperty
+    private final String name;
+
     public BucketMetadata(BucketEntity bucket) {
-        super(bucket.getId(), bucket.getName());
+        this.name = bucket.getBucketName();
         this.owner = bucket.getOwner();
     }
 
-    public BucketMetadata(Long id, String name, String owner) {
-        super(id, name);
+    public BucketMetadata(String name, String owner) {
+        this.name = name;
         this.owner = owner;
     }
 
     public String getOwner() {
         return owner;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        return Objects.equals(this.getName(), ((BucketMetadata) o).getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

@@ -23,54 +23,26 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.dto;
+package org.ow2.proactive.catalog.graphql.bean.argument;
 
-import java.util.Objects;
-
-import org.springframework.hateoas.ResourceSupport;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 
 /**
  * @author ActiveEon Team
+ * @since 09/06/2017
  */
-public abstract class NamedMetadata extends ResourceSupport {
+@NoArgsConstructor
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class CatalogObjectBucketNameWhereArgs extends StringWhereArgs {
 
-    @JsonProperty("id")
-    protected final Long metaDataId;
-
-    protected final String name;
-
-    public NamedMetadata(Long id, String name) {
-        this.metaDataId = id;
-        this.name = name;
+    @Builder
+    public CatalogObjectBucketNameWhereArgs(String eq, String ne, String gt, String gte, String lt, String lte,
+            String like, String notLike) {
+        super(eq, ne, gt, gte, lt, lte, like, notLike);
     }
-
-    public Long getMetaDataId() {
-        return metaDataId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        return Objects.equals(this.getMetaDataId(), ((NamedMetadata) o).getMetaDataId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(metaDataId);
-    }
-
 }

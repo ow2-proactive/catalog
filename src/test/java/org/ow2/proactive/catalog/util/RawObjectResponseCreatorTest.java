@@ -49,7 +49,7 @@ public class RawObjectResponseCreatorTest {
     public void testCreateRawObjectResponseGeneralKindRightContentType() {
         String objectName = "object name";
         String contentDispositionFileName = "attachment; filename=\"" + objectName + "\"";
-        CatalogRawObject rawObject = new CatalogRawObject(1L,
+        CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
                                                           "object",
                                                           "application/xml",
@@ -73,7 +73,7 @@ public class RawObjectResponseCreatorTest {
         String objectName = "object name";
         String contentDispositionFileName = "attachment; filename=\"" + objectName +
                                             RawObjectResponseCreator.WORKFLOW_EXTENSION + "\"";
-        CatalogRawObject rawObject = new CatalogRawObject(1L,
+        CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
                                                           "workflow",
                                                           "application/xml",
@@ -94,7 +94,7 @@ public class RawObjectResponseCreatorTest {
     public void testCreateRawObjectResponseWorkflowKindWithExtension() {
         String objectName = "object name.xml";
         String contentDispositionFileName = "attachment; filename=\"" + objectName + "\"";
-        CatalogRawObject rawObject = new CatalogRawObject(1L,
+        CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
                                                           "workflow",
                                                           "application/xml",
@@ -113,7 +113,7 @@ public class RawObjectResponseCreatorTest {
 
     @Test
     public void testCreateRawObjectResponseWrongContentType() {
-        CatalogRawObject rawObject = new CatalogRawObject(1L,
+        CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           "name",
                                                           "object",
                                                           "testContentType",

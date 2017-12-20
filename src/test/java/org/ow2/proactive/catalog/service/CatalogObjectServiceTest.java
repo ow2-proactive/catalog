@@ -92,22 +92,23 @@ public class CatalogObjectServiceTest {
 
     @Test(expected = BucketNotFoundException.class)
     public void testCreateCatalogObjectWithInvalidBucket() {
-        when(bucketRepository.findOne(anyLong())).thenReturn(null);
-        catalogObjectService.createCatalogObject(1L, NAME, OBJECT, COMMIT_MESSAGE, APPLICATION_XML, null);
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
+        catalogObjectService.createCatalogObject("bucket", NAME, OBJECT, COMMIT_MESSAGE, APPLICATION_XML, null);
     }
 
     @Test
     public void testCreateCatalogObject() {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
-        when(bucketRepository.findOne(anyLong())).thenReturn(bucketEntity);
-        CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(System.currentTimeMillis());
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
+        CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity,
+                                                                                         System.currentTimeMillis());
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectEntity);
         when(genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(any(),
                                                                                 any(),
                                                                                 any())).thenReturn(new byte[] {});
         List<Metadata> keyValues = ImmutableList.of(new Metadata("key", "value", null));
 
-        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(1L,
+        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject("bucket",
                                                                                        NAME,
                                                                                        OBJECT,
                                                                                        COMMIT_MESSAGE,
@@ -126,13 +127,13 @@ public class CatalogObjectServiceTest {
     @Test
     public void testGetCatalogObjectMetadata() {
         long now = System.currentTimeMillis();
-
-        CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(now);
-        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyLong(),
+        BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
+        CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
                                                                                     anyString())).thenReturn(catalogObjectEntity);
-        CatalogObjectMetadata objectMetadata = catalogObjectService.getCatalogObjectMetadata(1L, "name");
+        CatalogObjectMetadata objectMetadata = catalogObjectService.getCatalogObjectMetadata("bucket", "name");
 
-        verify(catalogObjectRevisionRepository, times(1)).findDefaultCatalogObjectByNameInBucket(anyLong(),
+        verify(catalogObjectRevisionRepository, times(1)).findDefaultCatalogObjectByNameInBucket(anyString(),
                                                                                                  anyString());
         assertThat(objectMetadata).isNotNull();
         assertThat(objectMetadata.getName()).isEqualTo(NAME);
@@ -167,11 +168,12 @@ public class CatalogObjectServiceTest {
         return catalogObjectEntity;
     }
 
-    private CatalogObjectRevisionEntity newCatalogObjectRevisionEntity(long now) {
+    private CatalogObjectRevisionEntity newCatalogObjectRevisionEntity(BucketEntity bucketEntity, long now) {
         CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
                                                                      .id(new CatalogObjectEntity.CatalogObjectEntityKey(1L,
                                                                                                                         "catalog"))
                                                                      .kind("object")
+                                                                     .bucket(bucketEntity)
                                                                      .contentType("application/xml")
                                                                      .lastCommitTime(now)
                                                                      .build();
@@ -190,30 +192,33 @@ public class CatalogObjectServiceTest {
 
     @Test(expected = CatalogObjectNotFoundException.class)
     public void testFindWorkflowInvalidId() throws Exception {
-        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyLong(),
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
                                                                                     anyString())).thenReturn(null);
-        catalogObjectService.getCatalogObjectMetadata(1L, "name");
+        catalogObjectService.getCatalogObjectMetadata("bucket", "name");
     }
 
-    @Test(expected = CatalogObjectNotFoundException.class)
+    @Test(expected = BucketNotFoundException.class)
     public void testCreateCatalogObjectRevisionNotFound() {
         when(catalogObjectRepository.findOne(any(CatalogObjectEntity.CatalogObjectEntityKey.class))).thenReturn(null);
         List<KeyValueLabelMetadataEntity> keyvalues = ImmutableList.of(new KeyValueLabelMetadataEntity("key",
                                                                                                        "value",
                                                                                                        null));
-        catalogObjectService.createCatalogObjectRevision(1L, NAME, COMMIT_MESSAGE, null);
+        catalogObjectService.createCatalogObjectRevision("bucket", NAME, COMMIT_MESSAGE, null);
     }
 
     @Test
     public void testCreateCatalogObjectRevision() {
+        BucketEntity bucketEntity = new BucketEntity("bucket", "owner");
         CatalogObjectEntity catalogObjectEntity = newCatalogObjectEntity(System.currentTimeMillis());
-        CatalogObjectRevisionEntity catalogObjectRevisionEntity = newCatalogObjectRevisionEntity(System.currentTimeMillis());
+        CatalogObjectRevisionEntity catalogObjectRevisionEntity = newCatalogObjectRevisionEntity(bucketEntity,
+                                                                                                 System.currentTimeMillis());
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
         when(catalogObjectRepository.findOne(any(CatalogObjectEntity.CatalogObjectEntityKey.class))).thenReturn(catalogObjectEntity);
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectRevisionEntity);
         List<Metadata> keyvalues = ImmutableList.of(new Metadata("key", "value", null));
         when(keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(any(),
                                                                                         any())).thenReturn(Collections.emptyList());
-        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObjectRevision(1L,
+        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObjectRevision("bucket",
                                                                                                NAME,
                                                                                                COMMIT_MESSAGE,
                                                                                                keyvalues,
@@ -230,10 +235,10 @@ public class CatalogObjectServiceTest {
     @Test(expected = RevisionNotFoundException.class)
     public void testGetCatalogObjectRevisionNotFound() {
         long now = System.currentTimeMillis();
-        when(catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(anyLong(),
+        when(catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(anyString(),
                                                                                    anyString(),
                                                                                    anyLong())).thenReturn(null);
-        CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectService.getCatalogObjectRevisionEntityByCommitTime(1L,
+        CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectService.getCatalogObjectRevisionEntityByCommitTime("bucket",
                                                                                                                                   NAME,
                                                                                                                                   now);
 
@@ -242,11 +247,12 @@ public class CatalogObjectServiceTest {
     @Test
     public void testGetCatalogObjectRevision() {
         long now = System.currentTimeMillis();
-        CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(now);
-        when(catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(anyLong(),
+        BucketEntity bucketEntity = new BucketEntity("bucket", "owner");
+        CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
+        when(catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(anyString(),
                                                                                    anyString(),
                                                                                    anyLong())).thenReturn(catalogObjectEntity);
-        CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectService.getCatalogObjectRevisionEntityByCommitTime(1L,
+        CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectService.getCatalogObjectRevisionEntityByCommitTime("bucket",
                                                                                                                                   NAME,
                                                                                                                                   now);
 

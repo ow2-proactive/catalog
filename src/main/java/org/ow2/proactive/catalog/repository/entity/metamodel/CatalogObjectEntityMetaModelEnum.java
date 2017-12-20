@@ -34,7 +34,6 @@ import com.google.common.base.CaseFormat;
  */
 public enum CatalogObjectEntityMetaModelEnum {
 
-    BUCKET_ID,
     CATALOG_OBJECT,
     COMMIT_DATE,
     COMMIT_ID,
@@ -45,6 +44,7 @@ public enum CatalogObjectEntityMetaModelEnum {
     KIND,
     LAST_COMMIT_TIME,
     NAME,
+    BUCKET_NAME,
     VALUE;
 
     public String getName() {

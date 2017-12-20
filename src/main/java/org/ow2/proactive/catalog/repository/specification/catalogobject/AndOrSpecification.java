@@ -36,8 +36,7 @@ import javax.persistence.criteria.Root;
 
 import org.ow2.proactive.catalog.graphql.bean.common.Operations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.repository.entity.metamodel.CatalogObjectEntityMetaModelEnum;
-import org.ow2.proactive.catalog.repository.specification.generic.AbstractSpecification;
+import org.ow2.proactive.catalog.repository.specification.AbstractSpecification;
 import org.springframework.data.jpa.domain.Specification;
 
 
@@ -49,10 +48,9 @@ public abstract class AndOrSpecification extends AbstractSpecification {
 
     protected List<Specification<CatalogObjectRevisionEntity>> fieldSpecifications;
 
-    public AndOrSpecification(CatalogObjectEntityMetaModelEnum entityMetaModelEnum, Operations operations, Object value,
-            Join catalogObjectJoin, Join metadataJoin,
-            List<Specification<CatalogObjectRevisionEntity>> fieldSpecifications) {
-        super(entityMetaModelEnum, operations, value, catalogObjectJoin, metadataJoin);
+    public AndOrSpecification(Operations operations, Object value, Join catalogObjectJoin, Join metadataJoin,
+            Join bucketJoin, List<Specification<CatalogObjectRevisionEntity>> fieldSpecifications) {
+        super(operations, value, catalogObjectJoin, metadataJoin, bucketJoin);
         this.fieldSpecifications = fieldSpecifications;
     }
 

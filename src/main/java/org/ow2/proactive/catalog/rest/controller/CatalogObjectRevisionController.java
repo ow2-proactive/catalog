@@ -68,7 +68,7 @@ import lombok.extern.log4j.Log4j2;
  * @author ActiveEon Team
  */
 @RestController
-@RequestMapping("/buckets/{bucketId}/resources/{name}/revisions")
+@RequestMapping("/buckets/{bucketName}/resources/{name}/revisions")
 @Log4j2
 public class CatalogObjectRevisionController {
 
@@ -93,19 +93,19 @@ public class CatalogObjectRevisionController {
     @ResponseStatus(HttpStatus.CREATED)
     public CatalogObjectMetadata create(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @PathVariable Long bucketId, @PathVariable String name,
-            @ApiParam(value = "The commit message of the CatalogRawObject Revision") @RequestParam String commitMessage,
+            @PathVariable String bucketName, @PathVariable String name,
+            @ApiParam(value = "The commit message of the CatalogRawObject Revision", required = true) @RequestParam String commitMessage,
             @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined(sessionId, bucketId);
+            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
-        CatalogObjectMetadata catalogObjectRevision = catalogObjectService.createCatalogObjectRevision(bucketId,
+        CatalogObjectMetadata catalogObjectRevision = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                                        name,
                                                                                                        commitMessage,
                                                                                                        file.getBytes());
-        catalogObjectRevision.add(LinkUtil.createLink(catalogObjectRevision.getBucketId(),
+        catalogObjectRevision.add(LinkUtil.createLink(bucketName,
                                                       catalogObjectRevision.getName(),
                                                       catalogObjectRevision.getCommitDateTime()));
         return catalogObjectRevision;
@@ -118,21 +118,19 @@ public class CatalogObjectRevisionController {
     @RequestMapping(value = "/{commitTime}", method = GET)
     public ResponseEntity<CatalogObjectMetadata> get(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @PathVariable Long bucketId, @PathVariable String name, @PathVariable long commitTime)
+            @PathVariable String bucketName, @PathVariable String name, @PathVariable long commitTime)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined(sessionId, bucketId);
+            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
         try {
             String decodedName = URLDecoder.decode(name, "UTF-8");
-            CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketId,
+            CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketName,
                                                                                            decodedName,
                                                                                            commitTime);
-            metadata.add(LinkUtil.createLink(metadata.getBucketId(), metadata.getName(), metadata.getCommitDateTime()));
-            metadata.add(LinkUtil.createRelativeLink(metadata.getBucketId(),
-                                                     metadata.getName(),
-                                                     metadata.getCommitDateTime()));
+            metadata.add(LinkUtil.createLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
+            metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
             return ResponseEntity.ok(metadata);
         } catch (RevisionNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -147,14 +145,14 @@ public class CatalogObjectRevisionController {
     @RequestMapping(value = "/{commitTime}/raw", method = GET, produces = MediaType.ALL_VALUE)
     public ResponseEntity<InputStreamResource> getRaw(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @PathVariable Long bucketId, @PathVariable String name, @PathVariable long commitTime)
+            @PathVariable String bucketName, @PathVariable String name, @PathVariable long commitTime)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined(sessionId, bucketId);
+            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
         String decodedName = URLDecoder.decode(name, "UTF-8");
-        CatalogRawObject objectRevisionRaw = catalogObjectService.getCatalogObjectRevisionRaw(bucketId,
+        CatalogRawObject objectRevisionRaw = catalogObjectService.getCatalogObjectRevisionRaw(bucketName,
                                                                                               decodedName,
                                                                                               commitTime);
 
@@ -168,21 +166,21 @@ public class CatalogObjectRevisionController {
     @RequestMapping(method = GET)
     public List<CatalogObjectMetadata> list(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @PathVariable Long bucketId, @PathVariable String name)
+            @PathVariable String bucketName, @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdAndThrowIfDeclined(sessionId, bucketId);
+            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
         String decodedName = URLDecoder.decode(name, "UTF-8");
-        List<CatalogObjectMetadata> catalogObjectMetadataList = catalogObjectService.listCatalogObjectRevisions(bucketId,
+        List<CatalogObjectMetadata> catalogObjectMetadataList = catalogObjectService.listCatalogObjectRevisions(bucketName,
                                                                                                                 decodedName);
 
         for (CatalogObjectMetadata catalogObjectMetadata : catalogObjectMetadataList) {
-            catalogObjectMetadata.add(LinkUtil.createLink(catalogObjectMetadata.getBucketId(),
+            catalogObjectMetadata.add(LinkUtil.createLink(bucketName,
                                                           catalogObjectMetadata.getName(),
                                                           catalogObjectMetadata.getCommitDateTime()));
-            catalogObjectMetadata.add(LinkUtil.createRelativeLink(catalogObjectMetadata.getBucketId(),
+            catalogObjectMetadata.add(LinkUtil.createRelativeLink(bucketName,
                                                                   catalogObjectMetadata.getName(),
                                                                   catalogObjectMetadata.getCommitDateTime()));
         }

@@ -33,7 +33,7 @@ import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectAndOrGroupFilterHandler;
-import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectBucketIdFilterHandler;
+import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectBucketNameFilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectKindFilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectMetadataFilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectNameFilterHandler;
@@ -46,6 +46,7 @@ import org.ow2.proactive.catalog.service.KeyValueLabelMetadataHelper;
 import org.ow2.proactive.catalog.service.OwnerGroupStringHelper;
 import org.ow2.proactive.catalog.service.WorkflowXmlManipulator;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
+import org.ow2.proactive.catalog.util.BucketNameValidator;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
@@ -102,8 +103,8 @@ public class IntegrationTestConfig {
     }
 
     @Bean
-    public FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> catalogObjectBucketIdFilterHandler() {
-        return new CatalogObjectBucketIdFilterHandler();
+    public FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> catalogObjectBucketNameFilterHandler() {
+        return new CatalogObjectBucketNameFilterHandler();
     }
 
     @Bean
@@ -156,4 +157,8 @@ public class IntegrationTestConfig {
         return new RawObjectResponseCreator();
     }
 
+    @Bean
+    public BucketNameValidator bucketNameValidator() {
+        return new BucketNameValidator();
+    }
 }

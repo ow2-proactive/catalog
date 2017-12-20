@@ -55,14 +55,14 @@ public class BucketControllerTest {
     @Test
     public void testCreate() throws Exception {
         final String bucketTestUser = "BucketControllerTestUser";
-        bucketController.create("", "DUMMY", bucketTestUser);
-        verify(bucketService, times(1)).createBucket("DUMMY", bucketTestUser);
+        bucketController.create("", "dummy", bucketTestUser);
+        verify(bucketService, times(1)).createBucket("dummy", bucketTestUser);
     }
 
     @Test
     public void testGetMetadata() throws Exception {
-        bucketController.getMetadata("", 1L);
-        verify(bucketService, times(1)).getBucketMetadata(1L);
+        bucketController.getMetadata("", "bucket-name");
+        verify(bucketService, times(1)).getBucketMetadata("bucket-name");
     }
 
     @Test
@@ -73,7 +73,7 @@ public class BucketControllerTest {
 
     @Test
     public void testDelete() throws Exception {
-        bucketService.deleteEmptyBucket(1L);
-        verify(bucketService, times(1)).deleteEmptyBucket(1L);
+        bucketService.deleteEmptyBucket("bucket-name");
+        verify(bucketService, times(1)).deleteEmptyBucket("bucket-name");
     }
 }
