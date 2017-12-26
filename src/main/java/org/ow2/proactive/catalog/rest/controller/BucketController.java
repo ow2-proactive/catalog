@@ -85,10 +85,10 @@ public class BucketController {
     @ResponseStatus(HttpStatus.CREATED)
     public BucketMetadata create(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "The unique bucketName of the Bucket. /n " +
-                              "The bucket bucketName can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, and dashes. /n" +
-                              "A bucket bucketName must start with a lowercase letter and cannot terminate with a dash") @RequestParam(value = "name", required = true) String bucketName,
-            @ApiParam(value = "The bucketName of the user that will own the Bucket", defaultValue = BucketService.DEFAULT_BUCKET_OWNER) @RequestParam(value = "owner", required = false, defaultValue = BucketService.DEFAULT_BUCKET_OWNER) String ownerName)
+            @ApiParam(value = "The unique name of the Bucket. /n " +
+                              "The name of bucket can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, and dashes. /n" +
+                              "A bucket's name must start with a lowercase letter and cannot terminate with a dash") @RequestParam(value = "name", required = true) String bucketName,
+            @ApiParam(value = "The name of the user that will own the Bucket", defaultValue = BucketService.DEFAULT_BUCKET_OWNER) @RequestParam(value = "owner", required = false, defaultValue = BucketService.DEFAULT_BUCKET_OWNER) String ownerName)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
             restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId, ownerName);
