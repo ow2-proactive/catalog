@@ -289,7 +289,8 @@ public class CatalogObjectController {
     @RequestMapping(value = "/{name}", method = PUT)
     public ResponseEntity<?> restore(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @PathVariable String bucketName, @PathVariable String name, @RequestParam(required = true) Long commitTime)
+            @PathVariable String bucketName, @PathVariable String name,
+            @RequestParam(required = true) Long commitTimeRaw)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
@@ -298,7 +299,7 @@ public class CatalogObjectController {
         try {
             CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.restore(bucketName,
                                                                                        decodedName,
-                                                                                       commitTime);
+                                                                                       commitTimeRaw);
             return ResponseEntity.ok(catalogObjectMetadata);
         } catch (RevisionNotFoundException e) {
             return ResponseEntity.notFound().build();
