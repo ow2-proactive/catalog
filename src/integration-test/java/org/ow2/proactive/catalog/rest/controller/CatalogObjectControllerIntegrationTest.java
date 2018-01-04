@@ -560,7 +560,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         //Restore the first version
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "restoredworkflow")
-               .queryParam("commitTime", commitTime)
+               .queryParam("commitTimeRaw", commitTime)
                .when()
                .put(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -610,7 +610,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         //Check wrong bucket
         given().pathParam("bucketName", bucket.getName() + 1)
                .pathParam("name", "restoredworkflow")
-               .queryParam("commitTime", 0)
+               .queryParam("commitTimeRaw", 0)
                .when()
                .put(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -620,7 +620,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         //Check wrong bucketName
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "wrongrestoredworkflow")
-               .queryParam("commitTime", commitTime)
+               .queryParam("commitTimeRaw", commitTime)
                .when()
                .put(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -630,7 +630,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         //Check wrong time
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "restoredworkflow")
-               .queryParam("commitTime", commitTime + 1)
+               .queryParam("commitTimeRaw", commitTime + 1)
                .when()
                .put(CATALOG_OBJECT_RESOURCE)
                .then()
