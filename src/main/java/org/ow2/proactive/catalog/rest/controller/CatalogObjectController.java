@@ -30,6 +30,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
@@ -54,7 +56,6 @@ import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -64,7 +65,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -145,7 +145,7 @@ public class CatalogObjectController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(value = "/{name}", method = GET)
-    public ResponseEntity<?> get(
+    public ResponseEntity<CatalogObjectMetadata> get(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name) throws MalformedURLException,
             UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
@@ -160,19 +160,18 @@ public class CatalogObjectController {
             metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName()));
             return ResponseEntity.ok(metadata);
         } catch (CatalogObjectNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e);
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
-
     }
 
     @ApiOperation(value = "Gets the raw content of the last revision of a catalog object")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Ok", response = InputStreamResource.class),
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Ok"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"),
                             @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found") })
 
     @RequestMapping(value = "/{name}/raw", method = GET, produces = MediaType.ALL_VALUE)
-    public ResponseEntity<InputStreamResource> getRaw(
+    public ResponseEntity<String> getRaw(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
@@ -199,9 +198,8 @@ public class CatalogObjectController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(method = GET)
-    @ResponseBody
-    public ResponseEntity<?> list(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+    public ResponseEntity<List<CatalogObjectMetadata>> list(
+            @ApiParam(value = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
             @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
             @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "name", required = false) Optional<List<String>> names,
@@ -242,7 +240,7 @@ public class CatalogObjectController {
             } catch (IOException ioe) {
                 throw new RuntimeException(ioe);
             }
-            return ResponseEntity.status(status).build();
+            return new ResponseEntity<>(status);
         } else {
             List<CatalogObjectMetadata> metadataList;
             if (kind.isPresent()) {
@@ -287,7 +285,7 @@ public class CatalogObjectController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(value = "/{name}", method = PUT)
-    public ResponseEntity<?> restore(
+    public ResponseEntity<CatalogObjectMetadata> restore(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name,
             @RequestParam(required = true) Long commitTimeRaw)
@@ -302,7 +300,7 @@ public class CatalogObjectController {
                                                                                        commitTimeRaw);
             return ResponseEntity.ok(catalogObjectMetadata);
         } catch (RevisionNotFoundException e) {
-            return ResponseEntity.notFound().build();
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
     }
 

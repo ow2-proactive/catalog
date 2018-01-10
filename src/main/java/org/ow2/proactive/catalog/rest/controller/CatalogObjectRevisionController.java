@@ -138,12 +138,12 @@ public class CatalogObjectRevisionController {
     }
 
     @ApiOperation(value = "Gets the raw content of a specific revision")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Ok", response = InputStreamResource.class),
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Ok"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"),
                             @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found") })
     @RequestMapping(value = "/{commitTimeRaw}/raw", method = GET, produces = MediaType.ALL_VALUE)
-    public ResponseEntity<InputStreamResource> getRaw(
+    public ResponseEntity<String> getRaw(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name, @PathVariable long commitTimeRaw)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
