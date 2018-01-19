@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,6 +47,21 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class WorkflowXmlManipulatorTest {
 
+    protected final static String TASK_FLOW_START_TAG = "<taskFlow>";
+
+    protected final static String TASK_FLOW_END_TAG = "<\\/taskFlow>";
+
+    protected final static String GENERIC_INFORMATION_START_TAG = "<genericInformation>";
+
+    protected final static String GENERIC_INFORMATION_END_TAG = "<\\/genericInformation>";
+
+    protected final static String ANY_CHARACTER_OR_NEW_LINE = "[\\S\\s]*";
+
+    protected final static String PYTHON_CODE_REGEXP = "for x in range\\(1, 11\\):[\\r\\n]+    print x[\\r\\n]+";
+
+    protected final static String GENERIC_INFO_TAG_ENTITY = GENERIC_INFORMATION_START_TAG + "[\\D\\d]*?" +
+                                                            GENERIC_INFORMATION_END_TAG + "[\\r\\n]";
+
     private final byte[] simpleWorkflowWithoutGenericInfo = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<job\n" +
                                                              "  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
                                                              "  xmlns=\"urn:proactive:jobdescriptor:3.8\"\n" +
@@ -54,13 +70,13 @@ public class WorkflowXmlManipulatorTest {
                                                              "    priority=\"normal\"\n" +
                                                              "    onTaskError=\"continueJobExecution\"\n" +
                                                              "     maxNumberOfExecution=\"2\"\n" + ">\n" +
-                                                             "  <taskFlow>\n" + "    <task name=\"Task1\">\n" +
-                                                             "      <scriptExecutable>\n" + "        <script>\n" +
-                                                             "          <code language=\"javascript\">\n" +
-                                                             "            <![CDATA[\n" +
-                                                             "print(java.lang.System.getProperty('pas.task.name'))\n" +
-                                                             "]]>\n" + "          </code>\n" + "        </script>\n" +
-                                                             "      </scriptExecutable>\n" + "    </task>\n" +
+                                                             "  <taskFlow>\n" + "   " + " <task name=\"Task1\">\n" +
+                                                             "      <scriptExecutable>\n" + "      " + "  <script>\n" +
+                                                             "          <code language=\"python\">\n" +
+                                                             "            <![CDATA[\n" + "for x in range(1, 11):\n" +
+                                                             "    print x\n" + "]]>\n" + "      " + "    </code>\n" +
+                                                             "       " + " </script>\n" +
+                                                             "      </scriptExecutable>\n" + "   " + " </task>\n" +
                                                              "  </taskFlow>\n" + "</job>").getBytes();
 
     private final byte[] simpleWorkflowWithGenericInfo = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<job\n" +
@@ -77,12 +93,11 @@ public class WorkflowXmlManipulatorTest {
                                                           "  </genericInformation>\n" + "  <taskFlow>\n" +
                                                           "    <task name=\"Task1\">\n" + "      <scriptExecutable>\n" +
                                                           "        <script>\n" +
-                                                          "          <code language=\"javascript\">\n" +
-                                                          "            <![CDATA[\n" +
-                                                          "print(java.lang.System.getProperty('pas.task.name'))\n" +
-                                                          "]]>\n" + "          </code>\n" + "        </script>\n" +
-                                                          "      </scriptExecutable>\n" + "    </task>\n" +
-                                                          "  </taskFlow>\n" + "</job>").getBytes();
+                                                          "          <code language=\"python\">\n" +
+                                                          "            <![CDATA[\n" + "for x in range(1, 11):\n" +
+                                                          "    print x\n" + "]]>\n" + "          </code>\n" +
+                                                          "        </script>\n" + "      </scriptExecutable>\n" +
+                                                          "    </task>\n" + "  </taskFlow>\n" + "</job>").getBytes();
 
     private final byte[] workflowWithGenericInfoAtJobAndTaskLevel_BeforeTaskFlow = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                                                                                     "<job\n" +
@@ -107,10 +122,11 @@ public class WorkflowXmlManipulatorTest {
                                                                                     "       </genericInformation>\n" +
                                                                                     "      <scriptExecutable>\n" +
                                                                                     "        <script>\n" +
-                                                                                    "          <code language=\"javascript\">\n" +
+                                                                                    "          <code language=\"python\">\n" +
                                                                                     "            <![CDATA[\n" +
-                                                                                    "print(java.lang.System.getProperty('pas.task.name'))\n" +
-                                                                                    "]]>\n" + "          </code>\n" +
+                                                                                    "for x in range(1, 11):\n" +
+                                                                                    "    print x\n" + "]]>\n" +
+                                                                                    "          </code>\n" +
                                                                                     "        </script>\n" +
                                                                                     "      </scriptExecutable>\n" +
                                                                                     "    </task>\n" +
@@ -133,10 +149,11 @@ public class WorkflowXmlManipulatorTest {
                                                                                    "       </genericInformation>\n" +
                                                                                    "      <scriptExecutable>\n" +
                                                                                    "        <script>\n" +
-                                                                                   "          <code language=\"javascript\">\n" +
+                                                                                   "          <code language=\"python\">\n" +
                                                                                    "            <![CDATA[\n" +
-                                                                                   "print(java.lang.System.getProperty('pas.task.name'))\n" +
-                                                                                   "]]>\n" + "          </code>\n" +
+                                                                                   "for x in range(1, 11):\n" +
+                                                                                   "    print x\n" + "]]>\n" +
+                                                                                   "          </code>\n" +
                                                                                    "        </script>\n" +
                                                                                    "      </scriptExecutable>\n" +
                                                                                    "    </task>\n" + "  </taskFlow>\n" +
@@ -152,31 +169,40 @@ public class WorkflowXmlManipulatorTest {
     @Spy
     private WorkflowXmlManipulator workflowXmlManipulator;
 
-    private final static Pattern genericInformationPatternInsideTaskFlow = Pattern.compile(WorkflowXmlManipulator.ANY_CHARACTER_OR_NEW_LINE +
-                                                                                           WorkflowXmlManipulator.TASK_FLOW_START_TAG +
-                                                                                           WorkflowXmlManipulator.ANY_CHARACTER_OR_NEW_LINE +
+    private final static Pattern genericInformationPatternInsideTaskFlow = Pattern.compile(ANY_CHARACTER_OR_NEW_LINE +
+                                                                                           TASK_FLOW_START_TAG +
+                                                                                           ANY_CHARACTER_OR_NEW_LINE +
                                                                                            "(" +
-                                                                                           WorkflowXmlManipulator.GENERIC_INFO_TAG_ENTITY +
+                                                                                           GENERIC_INFO_TAG_ENTITY +
                                                                                            ")" +
-                                                                                           WorkflowXmlManipulator.ANY_CHARACTER_OR_NEW_LINE +
-                                                                                           WorkflowXmlManipulator.TASK_FLOW_END_TAG +
-                                                                                           WorkflowXmlManipulator.ANY_CHARACTER_OR_NEW_LINE);
+                                                                                           ANY_CHARACTER_OR_NEW_LINE +
+                                                                                           TASK_FLOW_END_TAG +
+                                                                                           ANY_CHARACTER_OR_NEW_LINE);
+
+    private static Pattern pythonCodePattern = Pattern.compile(PYTHON_CODE_REGEXP);
 
     @Test
     public void testThatWorkflowHasGenericInfoTagAdded() {
         String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationJobLevel(simpleWorkflowWithoutGenericInfo,
                                                                                                       Collections.emptyMap()));
-        assertThat(emptyGenericInfo).contains("<genericInformation>");
-        assertThat(emptyGenericInfo).contains("</genericInformation>");
+        assertThat(emptyGenericInfo).contains("<genericInformation/>");
         assertThat(emptyGenericInfo).doesNotContain("<info name="); // Generic Info has no Entry
+    }
+
+    @Test
+    public void testThatFormattingDoesNotChangePythonIdentation() {
+        String formattedWorkflow = new String(workflowXmlManipulator.replaceGenericInformationJobLevel(simpleWorkflowWithoutGenericInfo,
+                                                                                                       Collections.emptyMap()));
+        Matcher pythonCodeMatcher = pythonCodePattern.matcher(formattedWorkflow);
+        assertTrue("Unmodified python code should be found in " + formattedWorkflow, pythonCodeMatcher.find());
+
     }
 
     @Test
     public void testThatWorkflowHasGenericInfoRemovedIfAlreadyThere() {
         String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationJobLevel(simpleWorkflowWithGenericInfo,
                                                                                                       Collections.emptyMap()));
-        assertThat(emptyGenericInfo).contains("<genericInformation>");
-        assertThat(emptyGenericInfo).contains("</genericInformation>");
+        assertThat(emptyGenericInfo).contains("<genericInformation/>");
         assertThat(emptyGenericInfo).doesNotContain("<info name="); // Generic Info has no Entry
     }
 
