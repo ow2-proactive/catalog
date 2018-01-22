@@ -25,13 +25,26 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.StringReader;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+
+import lombok.extern.log4j.Log4j2;
 
 
 /**
@@ -42,61 +55,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class WorkflowXmlManipulator {
 
-    protected final static String TASK_FLOW_START_TAG = "<taskFlow>";
-
-    protected final static String TASK_FLOW_END_TAG = "<\\/taskFlow>";
-
-    protected final static String GENERIC_INFORMATION_START_TAG = "<genericInformation>";
-
-    protected final static String GENERIC_INFORMATION_END_TAG = "<\\/genericInformation>";
-
-    protected final static String ONE_INTEND = "  ";
-
-    private final static String TWO_INTEND = ONE_INTEND + ONE_INTEND;
-
-    private final static String NEW_LINE = "\n";
-
-    protected final static String ANY_CHARACTER_OR_NEW_LINE = "[\\S\\s]*";
-
-    private final static String GENERIC_INFORMATION_ENTRY_FORMAT_STRING = TWO_INTEND +
-                                                                          "<info name=\"%s\" value=\"%s\"/>" + NEW_LINE;
-
-    protected final static String GENERIC_INFO_TAG_ENTITY = GENERIC_INFORMATION_START_TAG + "[\\D\\d]*?" +
-                                                            GENERIC_INFORMATION_END_TAG + "[\\r\\n]";
-
-    private final static Pattern taskFlowStartTagPattern = Pattern.compile(TASK_FLOW_START_TAG);
-
-    private final static Pattern genericInformationPatternBeforeTaskFlow = Pattern.compile(ANY_CHARACTER_OR_NEW_LINE +
-                                                                                           "(" +
-                                                                                           GENERIC_INFO_TAG_ENTITY +
-                                                                                           ")" +
-                                                                                           ANY_CHARACTER_OR_NEW_LINE +
-                                                                                           TASK_FLOW_START_TAG +
-                                                                                           ANY_CHARACTER_OR_NEW_LINE);
-
-    private final static Pattern genericInformationPatternAfterTaskFlow = Pattern.compile(ANY_CHARACTER_OR_NEW_LINE +
-                                                                                          TASK_FLOW_END_TAG +
-                                                                                          ANY_CHARACTER_OR_NEW_LINE +
-                                                                                          "(" +
-                                                                                          GENERIC_INFO_TAG_ENTITY +
-                                                                                          ")" +
-                                                                                          ANY_CHARACTER_OR_NEW_LINE);
-
-    private byte[] removeGenericInformationJobLevel(final byte[] xmlWorkflow) {
-        String workflow = new String(xmlWorkflow);
-
-        Matcher matcherBeforeTask = genericInformationPatternBeforeTaskFlow.matcher(workflow);
-        Matcher matcherAfterTask = genericInformationPatternAfterTaskFlow.matcher(workflow);
-
-        //from the definition workflow xsd schema: generic information's block can not be separated in several tags
-        if (matcherBeforeTask.matches()) {
-            workflow = workflow.replaceFirst(Pattern.quote(matcherBeforeTask.group(1)), "");
-        } else if (matcherAfterTask.matches()) {
-            workflow = workflow.replaceFirst(Pattern.quote(matcherAfterTask.group(1)), "");
-        }
-        return workflow.getBytes();
-    }
-
     public byte[] replaceGenericInformationJobLevel(final byte[] xmlWorkflow, Map<String, String> genericInfoMap) {
         if (xmlWorkflow == null) {
             return new byte[] {};
@@ -105,23 +63,64 @@ public class WorkflowXmlManipulator {
             return xmlWorkflow;
         }
 
-        String workflowWithoutGenericInfo = new String(removeGenericInformationJobLevel(xmlWorkflow));
+        Document doc = null;
+        try {
+            doc = DocumentBuilderFactory.newInstance()
+                                        .newDocumentBuilder()
+                                        .parse(new InputSource(new StringReader(new String(xmlWorkflow))));
 
-        return taskFlowStartTagPattern.matcher(workflowWithoutGenericInfo)
-                                      .replaceFirst(GENERIC_INFORMATION_START_TAG + NEW_LINE +
-                                                    createGenericInfoString(genericInfoMap) + ONE_INTEND +
-                                                    GENERIC_INFORMATION_END_TAG + NEW_LINE + ONE_INTEND +
-                                                    TASK_FLOW_START_TAG)
-                                      .getBytes();
+            Element rootElement = doc.getDocumentElement();
+            replaceOrAddGenericInfoElement(genericInfoMap, doc, rootElement);
+
+            Transformer xformer = TransformerFactory.newInstance().newTransformer();
+            xformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            ByteArrayOutputStream answer = new ByteArrayOutputStream();
+            xformer.transform(new DOMSource(doc), new StreamResult(answer));
+            return answer.toByteArray();
+        } catch (Exception e) {
+            throw new UnprocessableEntityException(e);
+        }
     }
 
-    private String createGenericInfoString(Map<String, String> keyValueMetadataEntities) {
-        return keyValueMetadataEntities.entrySet()
-                                       .stream()
-                                       .map(entry -> String.format(GENERIC_INFORMATION_ENTRY_FORMAT_STRING,
-                                                                   entry.getKey(),
-                                                                   StringEscapeUtils.escapeXml10(entry.getValue())))
-                                       .collect(Collectors.joining());
+    private void replaceOrAddGenericInfoElement(Map<String, String> genericInfoMap, Document doc, Element rootElement) {
+        NodeList nodes = rootElement.getChildNodes();
+        for (int idx = 0; idx < nodes.getLength(); idx++) {
+            if (nodes.item(idx).getNodeName() == "genericInformation") {
+                Element oldGenericInfoElement = (Element) nodes.item(idx);
+                rootElement.replaceChild(createGenericInfoElement(doc, genericInfoMap), oldGenericInfoElement);
+                break;
+            }
+            switch (nodes.item(idx).getNodeName()) {
+                case "genericInformation":
+                    Element oldGenericInfoElement = (Element) nodes.item(idx);
+                    rootElement.replaceChild(createGenericInfoElement(doc, genericInfoMap), oldGenericInfoElement);
+                    return;
+                case "inputSpace":
+                case "outputSpace":
+                case "globalSpace":
+                case "userSpace":
+                case "taskFlow":
+                    Element elementAfterGenericInfo = (Element) nodes.item(idx);
+                    rootElement.insertBefore(createGenericInfoElement(doc, genericInfoMap), elementAfterGenericInfo);
+                    return;
+            }
+        }
+    }
+
+    private Element createInfoElement(Document doc, String name, String value) {
+        Element infoElement = doc.createElement("info");
+        infoElement.setAttribute("name", name);
+        infoElement.setAttribute("value", value);
+        return infoElement;
+    }
+
+    private Node createGenericInfoElement(Document doc, Map<String, String> keyValueMetadataEntities) {
+        Element genericInfoElement = doc.createElement("genericInformation");
+        for (Map.Entry<String, String> entry : keyValueMetadataEntities.entrySet()) {
+            Element child = createInfoElement(doc, entry.getKey(), entry.getValue());
+            genericInfoElement.appendChild(child);
+        }
+        return genericInfoElement;
     }
 
 }
