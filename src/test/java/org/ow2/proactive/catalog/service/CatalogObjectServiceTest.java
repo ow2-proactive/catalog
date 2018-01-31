@@ -124,6 +124,12 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObject.getMetadataList()).hasSize(1);
     }
 
+    @Test(expected = BucketNotFoundException.class)
+    public void testGetCatalogObjectWithInvalidBucket() {
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
+        catalogObjectService.listCatalogObjects("wrong-bucket");
+    }
+
     @Test
     public void testGetCatalogObjectMetadata() {
         long now = System.currentTimeMillis();

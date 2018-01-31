@@ -25,7 +25,6 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
-import static com.google.common.truth.Truth.assertThat;
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -33,7 +32,6 @@ import static org.hamcrest.Matchers.is;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -366,16 +364,13 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
-    public void testListWorkflowsShouldReturnNotFoundIfNonExistingbucketName() {
-        List<?> response = given().pathParam("bucketName", "non-existing-bucket")
-                                  .when()
-                                  .get(CATALOG_OBJECTS_RESOURCE)
-                                  .then()
-                                  .assertThat()
-                                  .statusCode(HttpStatus.SC_OK)
-                                  .extract()
-                                  .path("");
-        assertThat(response).isEmpty();
+    public void testListWorkflowsShouldReturnNotFoundIfNonExistingBucketName() {
+        given().pathParam("bucketName", "non-existing-bucket")
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
