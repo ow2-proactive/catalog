@@ -23,6 +23,7 @@ buildscript {
     }
 }
 
+apply plugin: 'project-report'
 apply plugin: 'spring-boot'
 apply plugin: 'com.github.kt3k.coveralls'
 apply from: "$rootDir/gradle/ext/coding-format.gradle"
@@ -50,6 +51,8 @@ configurations {
     integrationTestRuntime.extendsFrom testRuntime
 
     querydsl
+
+    jacksonCoreLibs
 }
 
 compileJava {
@@ -128,6 +131,7 @@ springBoot {
 war {
     baseName = "catalog"
     version = version
+    classpath configurations.jacksonCoreLibs
 }
 
 dependencyManagement {
@@ -152,6 +156,12 @@ dependencies {
     compile 'com.fasterxml.jackson.module:jackson-module-jaxb-annotations'
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor'
     compile 'com.mysema.querydsl:querydsl-jpa'
+
+    jacksonCoreLibs 'com.fasterxml.jackson.core:jackson-databind'
+    jacksonCoreLibs 'com.fasterxml.jackson.core:jackson-core'
+    jacksonCoreLibs 'com.fasterxml.jackson.core:jackson-annotations'
+    jacksonCoreLibs 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor'
+
     querydsl 'com.mysema.querydsl:querydsl-apt'
 
     /*
