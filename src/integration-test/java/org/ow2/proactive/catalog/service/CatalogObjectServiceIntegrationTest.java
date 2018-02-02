@@ -123,18 +123,18 @@ public class CatalogObjectServiceIntegrationTest {
 
     @Test
     public void testListCatalogObjectsInBucket() {
-        List<CatalogObjectMetadata> catalogObjecs = catalogObjectService.listCatalogObjects(bucket.getName());
-        assertThat(catalogObjecs).hasSize(3);
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjects(bucket.getName());
+        assertThat(catalogObjects).hasSize(3);
     }
 
     @Test
     public void testListCatalogObjectsByKindInBucket() {
-        List<CatalogObjectMetadata> catalogObjecs = catalogObjectService.listCatalogObjectsByKind(bucket.getName(),
-                                                                                                  "object");
-        assertThat(catalogObjecs).hasSize(2);
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKind(bucket.getName(),
+                                                                                                   "object");
+        assertThat(catalogObjects).hasSize(2);
 
-        catalogObjecs = catalogObjectService.listCatalogObjectsByKind(bucket.getName(), "workflow");
-        assertThat(catalogObjecs).hasSize(1);
+        catalogObjects = catalogObjectService.listCatalogObjectsByKind(bucket.getName(), "workflow");
+        assertThat(catalogObjects).hasSize(1);
     }
 
     @Test

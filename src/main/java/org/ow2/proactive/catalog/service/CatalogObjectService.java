@@ -199,6 +199,7 @@ public class CatalogObjectService {
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(String bucketName) {
+        findBucketByNameAndCheck(bucketName);
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketName);
 
         return buildMetadataWithLink(bucketName, result);
@@ -210,6 +211,7 @@ public class CatalogObjectService {
     }
 
     public List<CatalogObjectMetadata> listCatalogObjectsByKind(String bucketName, String kind) {
+        findBucketByNameAndCheck(bucketName);
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindInBucket(bucketName,
                                                                                                                            kind);
 
@@ -217,7 +219,7 @@ public class CatalogObjectService {
     }
 
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {
-
+        findBucketByNameAndCheck(bucketName);
         List<CatalogObjectRevisionEntity> revisions = catalogObjectsNames.stream()
                                                                          .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketName,
                                                                                                                                                              name))
