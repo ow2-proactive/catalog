@@ -124,7 +124,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].kind", is("workflow"))
                .body("object[0].name", is("workflow_test"))
 
-               .body("object[0].object_key_values", hasSize(8))
+               .body("object[0].object_key_values", hasSize(9))
                //check job info
                .body("object[0].object_key_values[0].label", is("job_information"))
                .body("object[0].object_key_values[0].key", is("project_name"))
@@ -139,13 +139,18 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].object_key_values[3].label", is("variable"))
                .body("object[0].object_key_values[3].key", is("var2"))
                .body("object[0].object_key_values[3].value", is("var2Value"))
+               //check General label
+               .body("object[0].object_key_values[4].label", is("General"))
+               .body("object[0].object_key_values[4].key", is("description"))
+               .body("object[0].object_key_values[4].value",
+                     is("\n" + "         A workflow that executes cmd in JVM. \n" + "    "))
                //check generic_information label
-               .body("object[0].object_key_values[4].label", is("generic_information"))
-               .body("object[0].object_key_values[4].key", is("genericInfo1"))
-               .body("object[0].object_key_values[4].value", is("genericInfo1Value"))
                .body("object[0].object_key_values[5].label", is("generic_information"))
-               .body("object[0].object_key_values[5].key", is("genericInfo2"))
-               .body("object[0].object_key_values[5].value", is("genericInfo2Value"))
+               .body("object[0].object_key_values[5].key", is("genericInfo1"))
+               .body("object[0].object_key_values[5].value", is("genericInfo1Value"))
+               .body("object[0].object_key_values[6].label", is("generic_information"))
+               .body("object[0].object_key_values[6].key", is("genericInfo2"))
+               .body("object[0].object_key_values[6].value", is("genericInfo2Value"))
                .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 
@@ -265,34 +270,39 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         response.body("bucket_name", is(thirdWFRevision.get("bucket_name")))
                 .body("name", is(thirdWFRevision.get("name")))
                 .body("commit_time", is(thirdWFRevision.get("commit_time")))
-                .body("object_key_values", hasSize(8))
+                .body("object_key_values", hasSize(9))
                 //check generic_information label
                 .body("object_key_values[0].label", is("generic_information"))
                 .body("object_key_values[0].key", is("bucketName"))
                 .body("object_key_values[0].value", is("my-bucket"))
-                .body("object_key_values[1].label", is("generic_information"))
-                .body("object_key_values[1].key", is("genericInfo1"))
-                .body("object_key_values[1].value", is("genericInfo1Value"))
+                //check General label
+                .body("object_key_values[1].label", is("General"))
+                .body("object_key_values[1].key", is("description"))
+                .body("object_key_values[1].value",
+                      is("\n" + "         A workflow that executes cmd in JVM. \n" + "    "))
                 .body("object_key_values[2].label", is("generic_information"))
-                .body("object_key_values[2].key", is("genericInfo2"))
-                .body("object_key_values[2].value", is("genericInfo2Value"))
+                .body("object_key_values[2].key", is("genericInfo1"))
+                .body("object_key_values[2].value", is("genericInfo1Value"))
                 .body("object_key_values[3].label", is("generic_information"))
-                .body("object_key_values[3].key", is("group"))
-                .body("object_key_values[3].value", is("BucketControllerIntegrationTestUser"))
+                .body("object_key_values[3].key", is("genericInfo2"))
+                .body("object_key_values[3].value", is("genericInfo2Value"))
+                .body("object_key_values[4].label", is("generic_information"))
+                .body("object_key_values[4].key", is("group"))
+                .body("object_key_values[4].value", is("BucketControllerIntegrationTestUser"))
                 //check job info
-                .body("object_key_values[4].label", is("job_information"))
-                .body("object_key_values[4].key", is("name"))
-                .body("object_key_values[4].value", is("Valid Workflow"))
                 .body("object_key_values[5].label", is("job_information"))
-                .body("object_key_values[5].key", is("project_name"))
-                .body("object_key_values[5].value", is("Project Name"))
+                .body("object_key_values[5].key", is("name"))
+                .body("object_key_values[5].value", is("Valid Workflow"))
+                .body("object_key_values[6].label", is("job_information"))
+                .body("object_key_values[6].key", is("project_name"))
+                .body("object_key_values[6].value", is("Project Name"))
                 //check variables label
-                .body("object_key_values[6].label", is("variable"))
-                .body("object_key_values[6].key", is("var1"))
-                .body("object_key_values[6].value", is("var1Value"))
                 .body("object_key_values[7].label", is("variable"))
-                .body("object_key_values[7].key", is("var2"))
-                .body("object_key_values[7].value", is("var2Value"))
+                .body("object_key_values[7].key", is("var1"))
+                .body("object_key_values[7].value", is("var1Value"))
+                .body("object_key_values[8].label", is("variable"))
+                .body("object_key_values[8].key", is("var2"))
+                .body("object_key_values[8].value", is("var2Value"))
                 .body("content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 
