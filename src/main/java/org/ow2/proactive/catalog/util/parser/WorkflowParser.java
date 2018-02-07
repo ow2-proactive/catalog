@@ -220,11 +220,12 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
     private void handleDescriptionElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
             XMLStreamReader xmlStreamReader) {
 
-        String descriptionContent = new String();
+        String descriptionContent = "";
         try {
             descriptionContent = xmlStreamReader.getElementText(); //returns the text content of CDATA for description tag in our case
         } catch (XMLStreamException e) {
             log.error("Unable to parse the workflow description", e);
+            throw new RuntimeException("Unable to parse the workflow description", e);
         }
         keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_DESCRIPTION_KEY, descriptionContent, GENERAL_LABEL));
         descriptionHandled = true;
