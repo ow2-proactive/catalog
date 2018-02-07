@@ -38,6 +38,7 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 
 import com.google.common.collect.ImmutableList;
 
+import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 
@@ -52,6 +53,7 @@ import lombok.extern.log4j.Log4j2;
  * @author ActiveEon Team
  */
 @Log4j2
+@NoArgsConstructor
 public final class WorkflowParser implements CatalogObjectParserInterface {
 
     private static final String JOB_NAME_KEY = "name";
@@ -117,9 +119,6 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
 
     }
 
-    public WorkflowParser() {
-    }
-
     public List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException {
 
         XMLStreamReader xmlStreamReader = XmlInputFactoryLazyHolder.INSTANCE.createXMLStreamReader(inputStream);
@@ -157,9 +156,11 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
                                     handleDescriptionElement(keyValueMapBuilder, xmlStreamReader);
                                 }
                                 break;
+                            default: // all the other workflow tags should be ignored for parsing
+                                break;
                         }
-
                         break;
+
                     case XMLEvent.END_ELEMENT:
                         elementLocalPart = xmlStreamReader.getName().getLocalPart();
 
@@ -177,8 +178,11 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
                                     this.variablesHandled = true;
                                 }
                                 break;
-
+                            default: // all the other workflow tags should be ignored for parsing
+                                break;
                         }
+                        break;
+
                     default:
                         break;
                 }
