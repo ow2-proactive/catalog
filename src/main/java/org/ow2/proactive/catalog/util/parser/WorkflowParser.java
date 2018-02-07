@@ -38,6 +38,9 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 
 import com.google.common.collect.ImmutableList;
 
+import lombok.NoArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
 
 /**
  * ProActiveWorkflowParser aims to parse a ProActive XML workflow (whatever the schema version is)
@@ -49,6 +52,8 @@ import com.google.common.collect.ImmutableList;
  *
  * @author ActiveEon Team
  */
+@Log4j2
+@NoArgsConstructor
 public final class WorkflowParser implements CatalogObjectParserInterface {
 
     private static final String JOB_NAME_KEY = "name";
@@ -85,6 +90,12 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
 
     private static final String ELEMENT_VARIABLES = "variables";
 
+    private static final String GENERAL_LABEL = "General";
+
+    private static final String ELEMENT_JOB_DESCRIPTION = "description";
+
+    private static final String JOB_DESCRIPTION_KEY = "description";
+
     /*
      * Variables indicating which parts of the document have been parsed. Thanks to these
      * information, parsing can be stopped once required information have been extracted.
@@ -96,6 +107,8 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
 
     private boolean genericInformationHandled = false;
 
+    private boolean descriptionHandled = false;
+
     /* Below are instance variables containing values which are extracted */
 
     private ImmutableList<KeyValueLabelMetadataEntity> keyValueMap;
@@ -104,9 +117,6 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
 
         private static final XMLInputFactory INSTANCE = XMLInputFactory.newInstance();
 
-    }
-
-    public WorkflowParser() {
     }
 
     public List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException {
@@ -141,9 +151,16 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
                                     handleVariableElement(keyValueMapBuilder, xmlStreamReader);
                                 }
                                 break;
+                            case ELEMENT_JOB_DESCRIPTION:
+                                if (!isTaskFlow) {
+                                    handleDescriptionElement(keyValueMapBuilder, xmlStreamReader);
+                                }
+                                break;
+                            default: // all the other workflow tags should be ignored for parsing
+                                break;
                         }
-
                         break;
+
                     case XMLEvent.END_ELEMENT:
                         elementLocalPart = xmlStreamReader.getName().getLocalPart();
 
@@ -161,8 +178,11 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
                                     this.variablesHandled = true;
                                 }
                                 break;
-
+                            default: // all the other workflow tags should be ignored for parsing
+                                break;
                         }
+                        break;
+
                     default:
                         break;
                 }
@@ -201,6 +221,20 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
         jobHandled = true;
     }
 
+    private void handleDescriptionElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
+            XMLStreamReader xmlStreamReader) {
+
+        String descriptionContent = "";
+        try {
+            descriptionContent = xmlStreamReader.getElementText(); //returns the text content of CDATA for description tag in our case
+        } catch (XMLStreamException e) {
+            log.error("Unable to parse the workflow description", e);
+            throw new RuntimeException("Unable to parse the workflow description", e);
+        }
+        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_DESCRIPTION_KEY, descriptionContent, GENERAL_LABEL));
+        descriptionHandled = true;
+    }
+
     private void handleVariableElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
             XMLStreamReader xmlStreamReader) {
         handleElementWithMultipleValues(keyValueMapBuilder,
@@ -237,7 +271,7 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
     }
 
     private boolean allElementHandled() {
-        return this.jobHandled && this.genericInformationHandled && this.variablesHandled;
+        return this.jobHandled && this.genericInformationHandled && this.variablesHandled && this.descriptionHandled;
     }
 
     private ImmutableList<KeyValueLabelMetadataEntity> getKeyValueMap() {
