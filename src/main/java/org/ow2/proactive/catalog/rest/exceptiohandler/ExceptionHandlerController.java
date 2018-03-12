@@ -28,11 +28,15 @@ package org.ow2.proactive.catalog.rest.exceptiohandler;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import lombok.extern.log4j.Log4j;
 
 
 /**
@@ -41,15 +45,24 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @ControllerAdvice
+@Log4j
 public class ExceptionHandlerController {
 
     @ExceptionHandler(Exception.class)
+    @ResponseBody
     public ResponseEntity exceptionHandler(HttpServletRequest request, Exception exception) {
+        log.warn("Exception: " + exception.getLocalizedMessage());
 
-        ResponseStatus responseStatusAnnotation = AnnotationUtils.findAnnotation(exception.getClass(),
-                                                                                 ResponseStatus.class);
-        return new ResponseEntity(responseStatusAnnotation.code());
+        HttpStatus responseStatusCode = resolveAnnotatedResponseStatus(exception);
 
+        return ResponseEntity.status(responseStatusCode).body(new ExceptionRepresentation(responseStatusCode.value(), exception.getLocalizedMessage()));
     }
 
+    HttpStatus resolveAnnotatedResponseStatus(Exception exception) {
+        ResponseStatus annotation = AnnotationUtils.findAnnotation(exception.getClass(), ResponseStatus.class);
+        if (annotation != null) {
+            return annotation.code();
+        }
+        return HttpStatus.INTERNAL_SERVER_ERROR;
+    }
 }
