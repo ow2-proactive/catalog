@@ -84,7 +84,7 @@ public class KeyValueLabelMetadataHelper {
             CatalogObjectParserInterface catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
             return catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
         } catch (XMLStreamException e) {
-            throw new UnprocessableEntityException(e);
+            throw new UnprocessableEntityException("It was not possible to parse object: " + e);
         }
     }
 

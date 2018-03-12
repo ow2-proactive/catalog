@@ -44,8 +44,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import lombok.extern.log4j.Log4j2;
-
 
 /**
  * @author ActiveEon Team
@@ -78,7 +76,7 @@ public class WorkflowXmlManipulator {
             xformer.transform(new DOMSource(doc), new StreamResult(answer));
             return answer.toByteArray();
         } catch (Exception e) {
-            throw new UnprocessableEntityException(e);
+            throw new UnprocessableEntityException("It was not possible to parse object: " + e);
         }
     }
 

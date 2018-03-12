@@ -25,15 +25,22 @@
  */
 package org.ow2.proactive.catalog.service.exception;
 
-import java.io.IOException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 /**
+ * This Exception is thrown when a POST request for object creation has been
+ * received but such a CatalogObject already exists (bucketName + ObjectName)
+ * The HTTP status is 409 (Conflict because of duplication attempt)
+ *
  * @author ActiveEon Team
  */
-public class DefaultCatalogObjectsFolderNotFoundException extends IOException {
+@ResponseStatus(value = HttpStatus.CONFLICT)
+public class CatalogObjectAlreadyExistingException extends DataIntegrityViolationException {
 
-    public DefaultCatalogObjectsFolderNotFoundException() {
-        super("The default-objects folder has not been found");
+    public CatalogObjectAlreadyExistingException(String message) {
+        super(message);
     }
 }

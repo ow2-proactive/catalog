@@ -43,6 +43,7 @@ import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
+import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
@@ -132,6 +133,13 @@ public class CatalogObjectService {
 
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
 
+        CatalogObjectRevisionEntity catalogObjectEntityCheck = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketName,
+                                                                                                                                      name);
+        if (catalogObjectEntityCheck != null) {
+            throw new CatalogObjectAlreadyExistingException("Catalog Object with name '" + name +
+                                                            "' is already exist in bucket: '" + bucketName + "'");
+        }
+
         CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
                                                                      .bucket(bucketEntity)
                                                                      .contentType(contentType)
@@ -155,6 +163,15 @@ public class CatalogObjectService {
             throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
         }
         return bucketEntity;
+    }
+
+    private CatalogObjectRevisionEntity findCatalogObjectByNameAndBucketAndCheck(String bucketName, String name) {
+        CatalogObjectRevisionEntity catalogObject = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketName,
+                                                                                                                           name);
+        if (catalogObject == null) {
+            throw new CatalogObjectNotFoundException(bucketName, name);
+        }
+        return catalogObject;
     }
 
     private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(final String commitMessage,
@@ -234,30 +251,16 @@ public class CatalogObjectService {
             catalogObjectRepository.delete(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(), name));
         } catch (EmptyResultDataAccessException emptyResultDataAccessException) {
             log.warn("CatalogObject {} does not exist in bucket {}", name, bucketName);
-            throw new CatalogObjectNotFoundException("bucketName:" + name + " bucket id : " + bucketName);
+            throw new CatalogObjectNotFoundException(bucketName, name);
         }
     }
 
     public CatalogObjectMetadata getCatalogObjectMetadata(String bucketName, String name) {
-        CatalogObjectRevisionEntity catalogObject = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketName,
-                                                                                                                           name);
-
-        if (catalogObject == null) {
-            throw new CatalogObjectNotFoundException("bucketName : " + bucketName + " bucketName : " + name);
-        }
-
-        return new CatalogObjectMetadata(catalogObject);
+        return new CatalogObjectMetadata(findCatalogObjectByNameAndBucketAndCheck(bucketName, name));
     }
 
     public CatalogRawObject getCatalogRawObject(String bucketName, String name) {
-        CatalogObjectRevisionEntity catalogObject = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketName,
-                                                                                                                           name);
-
-        if (catalogObject == null) {
-            throw new CatalogObjectNotFoundException("bucketName : " + bucketName + " bucketName : " + name);
-        }
-
-        return new CatalogRawObject(catalogObject);
+        return new CatalogRawObject(findCatalogObjectByNameAndBucketAndCheck(bucketName, name));
     }
 
     /** ####################  Revision Operations ###################**/
@@ -275,7 +278,7 @@ public class CatalogObjectService {
                                                                                                                            name));
 
         if (catalogObject == null) {
-            throw new CatalogObjectNotFoundException("bucketName : " + bucketName + " bucketName : " + name);
+            throw new CatalogObjectNotFoundException(bucketName, name);
         }
 
         CatalogObjectRevisionEntity revisionEntity = buildCatalogObjectRevisionEntity(commitMessage,
@@ -288,6 +291,7 @@ public class CatalogObjectService {
 
     public List<CatalogObjectMetadata> listCatalogObjectRevisions(String bucketName, String name) {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
+        findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
         CatalogObjectEntity list = catalogObjectRepository.readCatalogObjectRevisionsById(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
                                                                                                                                          name));
 
@@ -319,7 +323,7 @@ public class CatalogObjectService {
                                                                                                                                   commitTime);
 
         if (catalogObjectRevision == null) {
-            throw new RevisionNotFoundException("bucketName: " + bucketName + " object name: " + name + " revision: " +
+            throw new RevisionNotFoundException("Revision was not found for bucketName: " + bucketName + " object name: " + name + " revision: " +
                                                 commitTime);
         }
 
@@ -338,7 +342,8 @@ public class CatalogObjectService {
                                                                                                                            name,
                                                                                                                            commitTime);
         if (revisionEntity == null) {
-            throw new RevisionNotFoundException("bucketName : " + name + " commitTime : " + commitTime);
+            throw new RevisionNotFoundException("Revision was not found for bucketName: " + bucketName + " object name: " + name + " revision: " +
+                    commitTime);
         }
         return revisionEntity;
     }
