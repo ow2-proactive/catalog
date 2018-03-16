@@ -137,7 +137,7 @@ public class CatalogObjectService {
                                                                                                                                       name);
         if (catalogObjectEntityCheck != null) {
             throw new CatalogObjectAlreadyExistingException("Catalog Object with name '" + name +
-                                                            "' is already exist in bucket: '" + bucketName + "'");
+                                                            "' is already exists in bucket: '" + bucketName + "'");
         }
 
         CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
@@ -160,7 +160,7 @@ public class CatalogObjectService {
     private BucketEntity findBucketByNameAndCheck(String bucketName) {
         BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
         if (bucketEntity == null) {
-            throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
+            throw new BucketNotFoundException(bucketName);
         }
         return bucketEntity;
     }
@@ -323,8 +323,8 @@ public class CatalogObjectService {
                                                                                                                                   commitTime);
 
         if (catalogObjectRevision == null) {
-            throw new RevisionNotFoundException("Revision was not found for bucketName: " + bucketName + " object name: " + name + " revision: " +
-                                                commitTime);
+            throw new RevisionNotFoundException("Revision was not found for bucketName: " + bucketName +
+                                                " object name: " + name + " revision: " + commitTime);
         }
 
         CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(catalogObjectRevision.getCommitMessage(),
@@ -342,8 +342,8 @@ public class CatalogObjectService {
                                                                                                                            name,
                                                                                                                            commitTime);
         if (revisionEntity == null) {
-            throw new RevisionNotFoundException("Revision was not found for bucketName: " + bucketName + " object name: " + name + " revision: " +
-                    commitTime);
+            throw new RevisionNotFoundException("Revision was not found for bucketName: " + bucketName +
+                                                " object name: " + name + " revision: " + commitTime);
         }
         return revisionEntity;
     }

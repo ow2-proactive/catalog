@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class BucketNameIsNotValidException extends RuntimeException {
 
     public BucketNameIsNotValidException(String bucketName) {
-        super("The bucket name:'" + bucketName + "' is not valid, please check the specification of bucket naming");
+        super("The bucket name: '" + bucketName + "' is not valid, please check the specification of bucket naming");
     }
 
     public BucketNameIsNotValidException(Throwable cause) {

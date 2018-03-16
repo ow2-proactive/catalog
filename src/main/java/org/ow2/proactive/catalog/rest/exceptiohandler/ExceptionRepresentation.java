@@ -30,9 +30,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+
 @Data
 @AllArgsConstructor
-public class ExceptionRepresentation{
+public class ExceptionRepresentation {
     @JsonProperty("status_code")
     private final Integer statusCode;
 

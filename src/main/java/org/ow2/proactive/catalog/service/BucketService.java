@@ -131,7 +131,7 @@ public class BucketService {
         BucketEntity bucket = bucketRepository.findBucketForUpdate(bucketName);
 
         if (bucket == null) {
-            throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
+            throw new BucketNotFoundException(bucketName);
         }
 
         if (!bucket.getCatalogObjects().isEmpty()) {
@@ -144,7 +144,7 @@ public class BucketService {
     private BucketEntity findBucketByNameAndCheck(String bucketName) {
         BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
         if (bucketEntity == null) {
-            throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
+            throw new BucketNotFoundException(bucketName);
         }
         return bucketEntity;
     }

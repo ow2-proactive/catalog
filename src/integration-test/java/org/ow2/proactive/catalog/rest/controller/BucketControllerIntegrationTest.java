@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.when;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
@@ -42,6 +43,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
+import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException;
+import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
+import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
@@ -49,6 +54,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.response.Response;
 
 
@@ -68,6 +74,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketName}/resources";
 
     private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketName}/resources/{name}";
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @After
     public void cleanup() {
@@ -98,7 +106,11 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         Response response = given().parameters("name", "bucket.Wrong.Name-", "bucket-owner", "bucketOwner")
                                    .when()
                                    .post(BUCKETS_RESOURCE);
-        response.then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+        response.then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body("error_message",
+                      equalTo(new BucketNameIsNotValidException("bucket.Wrong.Name-").getLocalizedMessage()));
     }
 
     @Test
@@ -116,7 +128,9 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .post(BUCKETS_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_CONFLICT);
+               .statusCode(HttpStatus.SC_CONFLICT)
+               .body("error_message",
+                     equalTo(new BucketAlreadyExistingException(bucketNameValue, ownerValue).getLocalizedMessage()));
     }
 
     @Test
@@ -135,7 +149,9 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .post(BUCKETS_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_CONFLICT);
+               .statusCode(HttpStatus.SC_CONFLICT)
+               .body("error_message",
+                     equalTo(new BucketAlreadyExistingException(bucketNameValue, ownerValue2).getLocalizedMessage()));
     }
 
     @Test
@@ -143,7 +159,9 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         given().pathParam("bucketName", "non-existing-bucket")
                .get(BUCKET_RESOURCE)
                .then()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
     }
 
     @Test
@@ -353,7 +371,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .delete(BUCKET_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_FORBIDDEN);
+               .statusCode(HttpStatus.SC_FORBIDDEN)
+               .body("error_message", equalTo(new DeleteNonEmptyBucketException(bucketName).getLocalizedMessage()));
 
         // check that the bucket is still there
         given().pathParam("bucketName", bucketName)
@@ -371,7 +390,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .delete(BUCKET_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message", equalTo(new BucketNotFoundException("some-bucket").getLocalizedMessage()));
     }
 
 }

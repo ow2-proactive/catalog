@@ -50,19 +50,21 @@ public class ExceptionHandlerController {
 
     @ExceptionHandler(Exception.class)
     @ResponseBody
-    public ResponseEntity exceptionHandler(HttpServletRequest request, Exception exception) {
+    public ResponseEntity exceptionHandler(HttpServletRequest request, Exception exception) throws Exception {
         log.warn("Exception: " + exception.getLocalizedMessage());
 
         HttpStatus responseStatusCode = resolveAnnotatedResponseStatus(exception);
 
-        return ResponseEntity.status(responseStatusCode).body(new ExceptionRepresentation(responseStatusCode.value(), exception.getLocalizedMessage()));
+        return ResponseEntity.status(responseStatusCode)
+                             .body(new ExceptionRepresentation(responseStatusCode.value(),
+                                                               exception.getLocalizedMessage()));
     }
 
-    HttpStatus resolveAnnotatedResponseStatus(Exception exception) {
+    HttpStatus resolveAnnotatedResponseStatus(Exception exception) throws Exception {
         ResponseStatus annotation = AnnotationUtils.findAnnotation(exception.getClass(), ResponseStatus.class);
         if (annotation != null) {
             return annotation.code();
-        }
-        return HttpStatus.INTERNAL_SERVER_ERROR;
+        } else
+            throw exception;
     }
 }
