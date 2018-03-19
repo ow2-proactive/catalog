@@ -26,6 +26,8 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
@@ -44,6 +46,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
+import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
+import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
@@ -70,7 +74,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     private static final String BUCKETS_RESOURCE = "/buckets";
 
-    private static final Long SLEEP_TIME = 503L; //in miliseconds
+    private static final Long SLEEP_TIME = 503L; //in milliseconds
 
     protected BucketMetadata bucket;
 
@@ -174,11 +178,12 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+               .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY)
+               .body("error_message", containsString("It was not possible to parse object: "));
     }
 
     @Test
-    public void testCreateWorkflowRevisionShouldWorkIfNoProjectNameInXmlPayload() {
+    public void testCreateWorkflowRevisionShouldReturnCreatedIfNoProjectNameInXmlPayload() {
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "WF_1_Rev_1")
                .queryParam("commitMessage", "first commit")
@@ -202,7 +207,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     }
 
     @Test
-    public void testCreateWorkflowRevisionShouldReturnNotFoundIfNonExistingbucketName() {
+    public void testCreateWorkflowRevisionShouldReturnNotFoundIfNonExistingBucketName() {
         given().pathParam("bucketName", "non-existing-bucket")
                .pathParam("name", "WF_1_Rev_1")
                .queryParam("commitMessage", "first commit")
@@ -211,7 +216,9 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
     }
 
     @Test
@@ -292,25 +299,31 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     @Test
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingBucketName() {
         given().pathParam("bucketName", "non-existing")
-               .pathParam("name", "1")
+               .pathParam("name", "object-name")
                .pathParam("commitTime", "1")
                .when()
                .get(CATALOG_OBJECT_REVISION_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message", equalTo(new RevisionNotFoundException("non-existing",
+                                                                            "object-name",
+                                                                            1).getLocalizedMessage()));
     }
 
     @Test
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingBucketName() {
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "1")
+               .pathParam("name", "object-name")
                .pathParam("commitTime", "1")
                .when()
                .get(CATALOG_OBJECT_REVISION_RESOURCE + "/raw")
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                                            "object-name",
+                                                                            1).getLocalizedMessage()));
     }
 
     @Test
@@ -322,7 +335,10 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .get(CATALOG_OBJECT_REVISION_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                                            "workflow_test",
+                                                                            1).getLocalizedMessage()));
     }
 
     @Test
@@ -334,7 +350,10 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .get(CATALOG_OBJECT_REVISION_RESOURCE + "/raw")
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                                            "workflow_test",
+                                                                            1).getLocalizedMessage()));
     }
 
     @Test
@@ -346,7 +365,10 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .get(CATALOG_OBJECT_REVISION_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                                            "workflow_test",
+                                                                            42).getLocalizedMessage()));
     }
 
     @Test
@@ -358,7 +380,10 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .get(CATALOG_OBJECT_REVISION_RESOURCE + "/raw")
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                                            "workflow_test",
+                                                                            42).getLocalizedMessage()));
     }
 
     @Test

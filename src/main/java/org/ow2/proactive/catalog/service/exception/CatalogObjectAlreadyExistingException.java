@@ -43,4 +43,8 @@ public class CatalogObjectAlreadyExistingException extends DataIntegrityViolatio
     public CatalogObjectAlreadyExistingException(String message) {
         super(message);
     }
+
+    public CatalogObjectAlreadyExistingException(String bucketName, String name) {
+        super("Catalog Object with name '" + name + "' is already exists in bucket: '" + bucketName + "'");
+    }
 }

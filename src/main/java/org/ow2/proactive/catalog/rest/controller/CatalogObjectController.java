@@ -47,7 +47,6 @@ import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
-import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
@@ -281,14 +280,12 @@ public class CatalogObjectController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
         String decodedName = URLDecoder.decode(name, "UTF-8");
-        try {
-            CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.restore(bucketName,
-                                                                                       decodedName,
-                                                                                       commitTimeRaw);
-            return ResponseEntity.ok(catalogObjectMetadata);
-        } catch (RevisionNotFoundException e) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
+
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.restore(bucketName,
+                                                                                   decodedName,
+                                                                                   commitTimeRaw);
+        return ResponseEntity.ok(catalogObjectMetadata);
+
     }
 
 }

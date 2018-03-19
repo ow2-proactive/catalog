@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
@@ -40,6 +41,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
+import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
+import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingException;
+import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
@@ -197,6 +202,23 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    public void testCreateObjectAlreadyExisting() {
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", "workflow")
+               .queryParam("name", "workflowname")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CONFLICT)
+               .body("error_message",
+                     equalTo(new CatalogObjectAlreadyExistingException(bucket.getName(),
+                                                                       "workflowname").getLocalizedMessage()));
+    }
+
+    @Test
     public void testCreateWrongPCWRuleShouldReturnError() {
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "pcw-rule")
@@ -222,7 +244,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
-    public void testCreateWorkflowShouldReturnNotFoundIfNonExistingbucketName() {
+    public void testCreateWorkflowShouldReturnNotFoundIfNonExistingBucketName() {
         given().pathParam("bucketName", "non-existing-bucket")
                .queryParam("kind", "workflow")
                .queryParam("name", "workflow_test")
@@ -233,7 +255,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
     }
 
     @Test
@@ -320,47 +344,59 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
-    public void testGetWorkflowShouldReturnNotFoundIfNonExistingbucketName() {
+    public void testGetWorkflowShouldReturnNotFoundIfNonExistingBucketName() {
         given().pathParam("bucketName", "non-existing-bucket")
-               .pathParam("name", "23")
+               .pathParam("name", "object-name")
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new CatalogObjectNotFoundException("non-existing-bucket",
+                                                                "object-name").getLocalizedMessage()));
     }
 
     @Test
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingbucketName() {
         given().pathParam("bucketName", "non-existing-bucket")
-               .pathParam("name", "42")
+               .pathParam("name", "object-name")
                .when()
                .get(CATALOG_OBJECT_RESOURCE + "/raw")
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new CatalogObjectNotFoundException("non-existing-bucket",
+                                                                "object-name").getLocalizedMessage()));
     }
 
     @Test
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingObjectId() {
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "42")
+               .pathParam("name", "non-existing-object")
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new CatalogObjectNotFoundException(bucket.getName(),
+                                                                "non-existing-object").getLocalizedMessage()));
     }
 
     @Test
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingObjectId() {
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "42")
+               .pathParam("name", "non-existing-object")
                .when()
                .get(CATALOG_OBJECT_RESOURCE + "/raw")
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new CatalogObjectNotFoundException(bucket.getName(),
+                                                                "non-existing-object").getLocalizedMessage()));
     }
 
     @Test
@@ -380,7 +416,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .get(CATALOG_OBJECTS_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
     }
 
     @Test
@@ -400,18 +438,24 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new CatalogObjectNotFoundException(bucket.getName(),
+                                                                "workflowname").getLocalizedMessage()));
     }
 
     @Test
     public void testDeleteNonExistingWorkflow() {
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "42")
+               .pathParam("name", "non-existing-object")
                .when()
                .delete(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new CatalogObjectNotFoundException(bucket.getName(),
+                                                                "non-existing-object").getLocalizedMessage()));
     }
 
     @Test
@@ -620,7 +664,10 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .put(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName() + 1,
+                                                                            "restoredworkflow",
+                                                                            0).getLocalizedMessage()));
 
         //Check wrong bucketName
         given().pathParam("bucketName", bucket.getName())
@@ -630,7 +677,11 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .put(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                           "wrongrestoredworkflow",
+                                                           Long.valueOf(commitTime)).getLocalizedMessage()));
 
         //Check wrong time
         given().pathParam("bucketName", bucket.getName())
@@ -640,7 +691,11 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .put(CATALOG_OBJECT_RESOURCE)
                .then()
                .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND);
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                           "restoredworkflow",
+                                                           Long.valueOf(commitTime + 1)).getLocalizedMessage()));
     }
 
 }
