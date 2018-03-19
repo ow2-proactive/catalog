@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)
 public class ParsingObjectException extends RuntimeException {
 
-    final public static String ERROR_MESSAGE =  "It was not possible to parse an object: ";
+    final public static String ERROR_MESSAGE = "It was not possible to parse an object: ";
 
     public ParsingObjectException(String message) {
         super(message);
