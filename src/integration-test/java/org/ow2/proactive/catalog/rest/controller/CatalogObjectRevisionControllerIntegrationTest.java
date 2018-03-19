@@ -47,6 +47,7 @@ import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
+import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -179,7 +180,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY)
-               .body("error_message", containsString("It was not possible to parse object: "));
+               .body("error_message", containsString(ParsingObjectException.ERROR_MESSAGE));
     }
 
     @Test

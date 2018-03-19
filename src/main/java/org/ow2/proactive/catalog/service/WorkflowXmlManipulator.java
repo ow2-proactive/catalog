@@ -36,7 +36,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
+import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -76,7 +76,7 @@ public class WorkflowXmlManipulator {
             xformer.transform(new DOMSource(doc), new StreamResult(answer));
             return answer.toByteArray();
         } catch (Exception e) {
-            throw new UnprocessableEntityException("It was not possible to parse object: " + e);
+            throw new ParsingObjectException(e);
         }
     }
 
