@@ -78,6 +78,10 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
 
     private static final String ATTRIBUTE_VARIABLE_VALUE = "value";
 
+    private static final String ATTRIBUTE_VARIABLE_MODEL_LABEL = "variable_model";
+
+    private static final String ATTRIBUTE_VARIABLE_MODEL = "model";
+
     private static final String ELEMENT_GENERIC_INFORMATION = "genericInformation";
 
     private static final String ELEMENT_GENERIC_INFORMATION_INFO = "info";
@@ -202,7 +206,8 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
                                         ATTRIBUTE_GENERIC_INFORMATION_LABEL,
                                         ATTRIBUTE_GENERIC_INFORMATION_NAME,
                                         ATTRIBUTE_GENERIC_INFORMATION_VALUE,
-                                        xmlStreamReader);
+                                        xmlStreamReader,
+                                        true);
     }
 
     private void handleJobElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
@@ -237,16 +242,26 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
 
     private void handleVariableElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
             XMLStreamReader xmlStreamReader) {
+
         handleElementWithMultipleValues(keyValueMapBuilder,
                                         ATTRIBUTE_VARIABLE_LABEL,
                                         ATTRIBUTE_VARIABLE_NAME,
                                         ATTRIBUTE_VARIABLE_VALUE,
-                                        xmlStreamReader);
+                                        xmlStreamReader,
+                                        true);
+        //for variables model
+        handleElementWithMultipleValues(keyValueMapBuilder,
+                                        ATTRIBUTE_VARIABLE_MODEL_LABEL,
+                                        ATTRIBUTE_VARIABLE_NAME,
+                                        ATTRIBUTE_VARIABLE_MODEL,
+                                        xmlStreamReader,
+                                        false);
+
     }
 
     private void handleElementWithMultipleValues(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
             String attributeLabel, String attributeNameForKey, String attributeNameForValue,
-            XMLStreamReader xmlStreamReader) {
+            XMLStreamReader xmlStreamReader, boolean allowEmptyValues) {
         String[] key = new String[1];
         String[] value = new String[1];
 
@@ -258,7 +273,11 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
             }
         }, xmlStreamReader);
 
-        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(key[0], value[0], attributeLabel));
+        if (key[0] != null && value[0] != null) {
+            if (allowEmptyValues || (!value[0].isEmpty() && !key[0].isEmpty())) {
+                keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(key[0], value[0], attributeLabel));
+            }
+        }
     }
 
     private void iterateOverAttributes(BiConsumer<String, String> attribute, XMLStreamReader xmlStreamReader) {
