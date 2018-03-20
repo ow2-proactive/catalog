@@ -25,15 +25,24 @@
  */
 package org.ow2.proactive.catalog.service.exception;
 
-import java.io.IOException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 /**
  * @author ActiveEon Team
  */
-public class DefaultCatalogObjectsFolderNotFoundException extends IOException {
+@ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)
+public class ParsingObjectException extends RuntimeException {
 
-    public DefaultCatalogObjectsFolderNotFoundException() {
-        super("The default-objects folder has not been found");
+    final public static String ERROR_MESSAGE = "It was not possible to parse an object: ";
+
+    public ParsingObjectException(String message) {
+        super(message);
     }
+
+    public ParsingObjectException(Throwable cause) {
+        super(ERROR_MESSAGE + cause);
+    }
+
 }

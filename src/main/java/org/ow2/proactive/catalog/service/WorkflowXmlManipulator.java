@@ -36,15 +36,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
+import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-
-import lombok.extern.log4j.Log4j2;
 
 
 /**
@@ -78,7 +76,7 @@ public class WorkflowXmlManipulator {
             xformer.transform(new DOMSource(doc), new StreamResult(answer));
             return answer.toByteArray();
         } catch (Exception e) {
-            throw new UnprocessableEntityException(e);
+            throw new ParsingObjectException(e);
         }
     }
 

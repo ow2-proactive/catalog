@@ -96,8 +96,7 @@ public class BucketController {
         try {
             return bucketService.createBucket(bucketName, ownerName);
         } catch (DataIntegrityViolationException exception) {
-            throw new BucketAlreadyExistingException("The bucket named " + bucketName + " owned by " + ownerName +
-                                                     " already exist");
+            throw new BucketAlreadyExistingException(bucketName, ownerName);
         }
     }
 

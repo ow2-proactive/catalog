@@ -80,10 +80,7 @@ public class BucketService {
     }
 
     public BucketMetadata getBucketMetadata(String bucketName) {
-        BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
-        if (bucketEntity == null) {
-            throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
-        }
+        BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
         return new BucketMetadata(bucketEntity);
     }
 
@@ -134,11 +131,11 @@ public class BucketService {
         BucketEntity bucket = bucketRepository.findBucketForUpdate(bucketName);
 
         if (bucket == null) {
-            throw new BucketNotFoundException();
+            throw new BucketNotFoundException(bucketName);
         }
 
         if (!bucket.getCatalogObjects().isEmpty()) {
-            throw new DeleteNonEmptyBucketException();
+            throw new DeleteNonEmptyBucketException(bucketName);
         }
         bucketRepository.delete(bucket.getId());
         return new BucketMetadata(bucket);
@@ -147,7 +144,7 @@ public class BucketService {
     private BucketEntity findBucketByNameAndCheck(String bucketName) {
         BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
         if (bucketEntity == null) {
-            throw new BucketNotFoundException("Cannot find bucket with bucketName : " + bucketName);
+            throw new BucketNotFoundException(bucketName);
         }
         return bucketEntity;
     }

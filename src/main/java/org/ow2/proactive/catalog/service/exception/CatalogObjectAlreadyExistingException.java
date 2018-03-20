@@ -25,18 +25,26 @@
  */
 package org.ow2.proactive.catalog.service.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 /**
+ * This Exception is thrown when a POST request for object creation has been
+ * received but such a CatalogObject already exists (bucketName + ObjectName)
+ * The HTTP status is 409 (Conflict because of duplication attempt)
+ *
  * @author ActiveEon Team
  */
-@ResponseStatus(value = HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-public class UnsupportedMediaTypeException extends ResourceNotFoundException {
+@ResponseStatus(value = HttpStatus.CONFLICT)
+public class CatalogObjectAlreadyExistingException extends DataIntegrityViolationException {
 
-    public UnsupportedMediaTypeException(String message) {
+    public CatalogObjectAlreadyExistingException(String message) {
         super(message);
     }
 
+    public CatalogObjectAlreadyExistingException(String bucketName, String name) {
+        super("Catalog Object with name '" + name + "' is already exists in bucket: '" + bucketName + "'");
+    }
 }

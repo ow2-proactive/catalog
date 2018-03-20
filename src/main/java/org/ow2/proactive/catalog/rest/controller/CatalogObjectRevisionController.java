@@ -39,12 +39,10 @@ import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
-import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -124,17 +122,14 @@ public class CatalogObjectRevisionController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
-        try {
-            String decodedName = URLDecoder.decode(name, "UTF-8");
-            CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketName,
-                                                                                           decodedName,
-                                                                                           commitTimeRaw);
-            metadata.add(LinkUtil.createLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
-            metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
-            return ResponseEntity.ok(metadata);
-        } catch (RevisionNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        String decodedName = URLDecoder.decode(name, "UTF-8");
+        CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketName,
+                                                                                       decodedName,
+                                                                                       commitTimeRaw);
+        metadata.add(LinkUtil.createLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
+        metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
+        return ResponseEntity.ok(metadata);
+
     }
 
     @ApiOperation(value = "Gets the raw content of a specific revision")

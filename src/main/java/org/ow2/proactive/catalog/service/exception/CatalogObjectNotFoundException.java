@@ -37,4 +37,9 @@ public class CatalogObjectNotFoundException extends ResourceNotFoundException {
     public CatalogObjectNotFoundException(String message) {
         super(message);
     }
+
+    public CatalogObjectNotFoundException(String bucketName, String objectName) {
+        super("Catalog Object is not found in bucket with name: '" + bucketName + "' for object name: '" + objectName +
+              "'");
+    }
 }

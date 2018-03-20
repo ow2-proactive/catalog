@@ -37,7 +37,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
-import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
+import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
@@ -84,7 +84,7 @@ public class KeyValueLabelMetadataHelper {
             CatalogObjectParserInterface catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
             return catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
         } catch (XMLStreamException e) {
-            throw new UnprocessableEntityException(e);
+            throw new ParsingObjectException(e);
         }
     }
 

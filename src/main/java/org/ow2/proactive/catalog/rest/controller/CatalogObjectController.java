@@ -30,7 +30,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
@@ -41,16 +40,13 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
-import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
@@ -154,14 +150,11 @@ public class CatalogObjectController {
         }
 
         String decodedName = URLDecoder.decode(name, "UTF-8");
-        try {
-            CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketName, decodedName);
-            metadata.add(LinkUtil.createLink(bucketName, metadata.getName()));
-            metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName()));
-            return ResponseEntity.ok(metadata);
-        } catch (CatalogObjectNotFoundException e) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
+
+        CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketName, decodedName);
+        metadata.add(LinkUtil.createLink(bucketName, metadata.getName()));
+        metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName()));
+        return ResponseEntity.ok(metadata);
     }
 
     @ApiOperation(value = "Gets the raw content of the last revision of a catalog object")
@@ -181,14 +174,9 @@ public class CatalogObjectController {
 
         String decodedName = URLDecoder.decode(name, "UTF-8");
 
-        try {
-            CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucketName, decodedName);
+        CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucketName, decodedName);
 
-            return rawObjectResponseCreator.createRawObjectResponse(rawObject);
-        } catch (CatalogObjectNotFoundException e) {
-            log.error("CatalogObject not found ", e);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return rawObjectResponseCreator.createRawObjectResponse(rawObject);
 
     }
 
@@ -272,11 +260,9 @@ public class CatalogObjectController {
         }
 
         String decodedName = URLDecoder.decode(name, "UTF-8");
-        try {
-            catalogObjectService.delete(bucketName, decodedName);
-        } catch (CatalogObjectNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+
+        catalogObjectService.delete(bucketName, decodedName);
+
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -294,14 +280,12 @@ public class CatalogObjectController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
         String decodedName = URLDecoder.decode(name, "UTF-8");
-        try {
-            CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.restore(bucketName,
-                                                                                       decodedName,
-                                                                                       commitTimeRaw);
-            return ResponseEntity.ok(catalogObjectMetadata);
-        } catch (RevisionNotFoundException e) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
+
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.restore(bucketName,
+                                                                                   decodedName,
+                                                                                   commitTimeRaw);
+        return ResponseEntity.ok(catalogObjectMetadata);
+
     }
 
 }

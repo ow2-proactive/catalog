@@ -23,17 +23,20 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.service.exception;
+package org.ow2.proactive.catalog.rest.exceptiohandler;
 
-import java.io.IOException;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 
-/**
- * @author ActiveEon Team
- */
-public class DefaultRawCatalogObjectsFolderNotFoundException extends IOException {
+@Data
+@AllArgsConstructor
+public class ExceptionRepresentation {
+    @JsonProperty("status_code")
+    private final Integer statusCode;
 
-    public DefaultRawCatalogObjectsFolderNotFoundException() {
-        super("The raw-objects folder has not been found");
-    }
+    @JsonProperty("error_message")
+    private final String errorMessage;
 }

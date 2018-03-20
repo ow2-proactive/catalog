@@ -37,4 +37,9 @@ public class RevisionNotFoundException extends ResourceNotFoundException {
     public RevisionNotFoundException(String message) {
         super(message);
     }
+
+    public RevisionNotFoundException(String bucketName, String name, long commitTime) {
+        super("Revision was not found for bucketName: " + bucketName + " object name: " + name + " revision: " +
+              commitTime);
+    }
 }
