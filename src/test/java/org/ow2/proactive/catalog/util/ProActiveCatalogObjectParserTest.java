@@ -64,6 +64,19 @@ public class ProActiveCatalogObjectParserTest {
 
     }
 
+    @Test
+    public void testParseWorkflowWithModelVariables() throws Exception {
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_variables_with_model.xml");
+
+        assertThat(result).hasSize(6);
+        assertKeyValueDataAre(result.get(0), "name", "test_variables", "job_information");
+        assertKeyValueDataAre(result.get(1), "keyWithoutModel", "valueWithoutModel", "variable");
+        assertKeyValueDataAre(result.get(2), "keyInteger", "1", "variable");
+        assertKeyValueDataAre(result.get(3), "keyInteger", "PA:Integer", "variable_model");
+        assertKeyValueDataAre(result.get(4), "keyGeneral", "valueGeneral", "variable");
+        assertKeyValueDataAre(result.get(5), "emptyValue", "", "variable");
+    }
+
     private static void assertKeyValueDataAre(KeyValueLabelMetadataEntity data, String key, String value,
             String label) {
         assertTrue(data.getKey().equals(key) && data.getValue().equals(value) && data.getLabel().equals(label));
