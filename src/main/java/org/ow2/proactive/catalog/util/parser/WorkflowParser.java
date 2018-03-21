@@ -281,7 +281,7 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
     }
 
     private boolean checkIfNotEmpty(String... values) {
-        return Arrays.stream(values).noneMatch(s -> s.isEmpty());
+        return Arrays.stream(values).noneMatch(String::isEmpty);
 
     }
 
