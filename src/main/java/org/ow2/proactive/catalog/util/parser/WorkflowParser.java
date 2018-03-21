@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.util.parser;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -269,15 +270,13 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
         String key = strings.get(0);
         String value = strings.get(1);
 
-        if (checkIfNotNull(key, value)) {
-            if (allowEmptyValues || checkIfNotEmpty(key, value)) {
-                keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(key, value, attributeLabel));
-            }
+        if (checkIfNotNull(key, value) && (allowEmptyValues || checkIfNotEmpty(key, value))) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(key, value, attributeLabel));
         }
     }
 
     private boolean checkIfNotNull(String... values) {
-        return Arrays.stream(values).noneMatch(s -> s == null);
+        return Arrays.stream(values).noneMatch(Objects::isNull);
 
     }
 
