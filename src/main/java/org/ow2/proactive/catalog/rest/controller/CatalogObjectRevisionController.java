@@ -30,7 +30,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.List;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
@@ -98,7 +97,7 @@ public class CatalogObjectRevisionController {
         if (sessionIdRequired) {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
-
+        //        String decodedName = URLDecoder.decode(name, "UTF-8");
         CatalogObjectMetadata catalogObjectRevision = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                                        name,
                                                                                                        commitMessage,
@@ -122,10 +121,8 @@ public class CatalogObjectRevisionController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
-        String decodedName = URLDecoder.decode(name, "UTF-8");
-        CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketName,
-                                                                                       decodedName,
-                                                                                       commitTimeRaw);
+        //        String decodedName = URLDecoder.decode(name, "UTF-8");
+        CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketName, name, commitTimeRaw);
         metadata.add(LinkUtil.createLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
         metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
         return ResponseEntity.ok(metadata);
@@ -146,9 +143,9 @@ public class CatalogObjectRevisionController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
-        String decodedName = URLDecoder.decode(name, "UTF-8");
+        //        String decodedName = URLDecoder.decode(name, "UTF-8");
         CatalogRawObject objectRevisionRaw = catalogObjectService.getCatalogObjectRevisionRaw(bucketName,
-                                                                                              decodedName,
+                                                                                              name,
                                                                                               commitTimeRaw);
 
         return rawObjectResponseCreator.createRawObjectResponse(objectRevisionRaw);
@@ -167,9 +164,9 @@ public class CatalogObjectRevisionController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
-        String decodedName = URLDecoder.decode(name, "UTF-8");
+        //        String decodedName = URLDecoder.decode(name, "UTF-8");
         List<CatalogObjectMetadata> catalogObjectMetadataList = catalogObjectService.listCatalogObjectRevisions(bucketName,
-                                                                                                                decodedName);
+                                                                                                                name);
 
         for (CatalogObjectMetadata catalogObjectMetadata : catalogObjectMetadataList) {
             catalogObjectMetadata.add(LinkUtil.createLink(bucketName,

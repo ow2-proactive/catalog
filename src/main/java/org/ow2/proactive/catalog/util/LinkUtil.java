@@ -25,10 +25,10 @@
  */
 package org.ow2.proactive.catalog.util;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -38,7 +38,10 @@ import org.ow2.proactive.catalog.rest.controller.CatalogObjectRevisionController
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.springframework.hateoas.Link;
+import org.springframework.hateoas.core.LinkBuilderSupport;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -62,13 +65,18 @@ public class LinkUtil {
             throws NotAuthenticatedException, AccessDeniedException {
         try {
             long epochMilli = commitTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-            ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectRevisionController.class).getRaw(null,
-                                                                                                                        bucketName,
-                                                                                                                        URLEncoder.encode(name,
-                                                                                                                                          "UTF-8"),
-                                                                                                                        epochMilli));
+            //            ControllerLinkBuilder controllerLinkBuilder = ControllerLinkBuilder.linkTo(methodOn(CatalogObjectRevisionController.class).getRaw(null,
+            //                                                                                                                        bucketName,
+            //                                                                                                                        URLEncoder.encode(name,
+            //                                                                                                                                          "UTF-8"),
+            //                                                                                                                        epochMilli)));
+            String absoluteLink = linkTo(methodOn(CatalogObjectRevisionController.class).getRaw(null,
+                                                                                                bucketName,
+                                                                                                URLEncoder.encode(name,
+                                                                                                                  "UTF-8"),
+                                                                                                epochMilli));
 
-            return new Link(controllerLinkBuilder.toString()).withRel("content");
+            return new Link(absoluteLink).withRel("content");
         } catch (UnsupportedEncodingException e) {
             log.error("{} cannot be encoded", name, e);
         }
@@ -85,12 +93,16 @@ public class LinkUtil {
     public static Link createLink(String bucketName, String name)
             throws NotAuthenticatedException, AccessDeniedException {
         try {
-            ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw(null,
-                                                                                                                bucketName,
-                                                                                                                URLEncoder.encode(name,
-                                                                                                                                  "UTF-8")));
+            //            ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw(null,
+            //                                                                                                                bucketName,
+            //                                                                                                                URLEncoder.encode(name,
+            //                                                                                                                                  "UTF-8")));
+            String absoluteLink = linkTo(methodOn(CatalogObjectController.class).getRaw(null,
+                                                                                        bucketName,
+                                                                                        URLEncoder.encode(name,
+                                                                                                          "UTF-8")));
 
-            return new Link(controllerLinkBuilder.toString()).withRel("content");
+            return new Link(absoluteLink).withRel("content");
         } catch (UnsupportedEncodingException e) {
             log.error("{} cannot be encoded", name, e);
         }
@@ -138,4 +150,36 @@ public class LinkUtil {
         }
         return link;
     }
+
+    // ControllerLinkBuilder.linkTo has a problem: it double-URL-encodes characters!
+    // e.g. ' ' (whitespace) is encoded to '%2525' instead of '%20'
+    // TODO remove hack when https://github.com/spring-projects/spring-hateoas/issues/40 is resolved
+    private static final Field uriComponentsField;
+
+    static {
+        try {
+            uriComponentsField = LinkBuilderSupport.class.getDeclaredField("uriComponents");
+            uriComponentsField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String relativeLinkTo(Object invocationValue) {
+        return UriComponentsBuilder.fromUriString(linkTo(invocationValue))
+                                   .scheme(null)
+                                   .host(null)
+                                   .build()
+                                   .toUriString();
+    }
+
+    public static String linkTo(Object invocationValue) {
+        try {
+            final UriComponents uriComponents = (UriComponents) uriComponentsField.get(ControllerLinkBuilder.linkTo(invocationValue));
+            return uriComponents.toString();
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

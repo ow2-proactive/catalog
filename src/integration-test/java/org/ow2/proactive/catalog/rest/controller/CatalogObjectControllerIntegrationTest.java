@@ -26,11 +26,13 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -157,6 +159,84 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].object_key_values[6].key", is("genericInfo2"))
                .body("object[0].object_key_values[6].value", is("genericInfo2Value"))
                .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()));
+    }
+
+    @Test
+    public void testCreateWorkflowWithSpecificSymbolsInNameAndCheckReturnSavedWorkflow() throws IOException {
+        String objectNameWithSpecificSymbols = "workflow$with&specific&symbols in name:$&%ae";
+
+        given().urlEncodingEnabled(true)
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", "workflow")
+               .queryParam("name", objectNameWithSpecificSymbols)
+               .queryParam("commitMessage", "first commit")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED)
+               .body("object[0].bucket_name", is(bucket.getName()))
+               .body("object[0].kind", is("workflow"))
+               .body("object[0].name", is(objectNameWithSpecificSymbols))
+
+               .body("object[0].object_key_values", hasSize(9))
+               //check job info
+               .body("object[0].object_key_values[0].label", is("job_information"))
+               .body("object[0].object_key_values[0].key", is("project_name"))
+               .body("object[0].object_key_values[0].value", is("Project Name"))
+               .body("object[0].object_key_values[1].label", is("job_information"))
+               .body("object[0].object_key_values[1].key", is("name"))
+               .body("object[0].object_key_values[1].value", is("Valid Workflow"))
+               //check variables label
+               .body("object[0].object_key_values[2].label", is("variable"))
+               .body("object[0].object_key_values[2].key", is("var1"))
+               .body("object[0].object_key_values[2].value", is("var1Value"))
+               .body("object[0].object_key_values[3].label", is("variable"))
+               .body("object[0].object_key_values[3].key", is("var2"))
+               .body("object[0].object_key_values[3].value", is("var2Value"))
+               //check General label
+               .body("object[0].object_key_values[4].label", is("General"))
+               .body("object[0].object_key_values[4].key", is("description"))
+               .body("object[0].object_key_values[4].value",
+                     is("\n" + "         A workflow that executes cmd in JVM. \n" + "    "))
+               //check generic_information label
+               .body("object[0].object_key_values[5].label", is("generic_information"))
+               .body("object[0].object_key_values[5].key", is("genericInfo1"))
+               .body("object[0].object_key_values[5].value", is("genericInfo1Value"))
+               .body("object[0].object_key_values[6].label", is("generic_information"))
+               .body("object[0].object_key_values[6].key", is("genericInfo2"))
+               .body("object[0].object_key_values[6].value", is("genericInfo2Value"))
+               .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()))
+               .body("object[0].links[0].href",
+                     containsString("/buckets/" + bucket.getName() + "/resources/" +
+                                    URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8") + "/raw"))
+               .body("object[0].links[0].rel", is("content"));
+
+        Response rawResponse = given().pathParam("bucketName", bucket.getName())
+                                      .pathParam("name", objectNameWithSpecificSymbols)
+                                      .when()
+                                      .get(CATALOG_OBJECT_RESOURCE + "/raw");
+
+        Arrays.equals(ByteStreams.toByteArray(rawResponse.asInputStream()),
+                      IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+
+        rawResponse.then().assertThat().statusCode(HttpStatus.SC_OK).contentType(MediaType.APPLICATION_XML.toString());
+
+        ValidatableResponse metadataResponse = given().pathParam("bucketName", bucket.getName())
+                                                      .pathParam("name", objectNameWithSpecificSymbols)
+                                                      .when()
+                                                      .get(CATALOG_OBJECT_RESOURCE)
+                                                      .then()
+                                                      .assertThat()
+                                                      .statusCode(HttpStatus.SC_OK);
+        metadataResponse.body("_links.content.href",
+                              containsString("/buckets/" + bucket.getName() + "/resources/" +
+                                             URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8") + "/raw"))
+                        .body("_links.relative.href",
+                              is("buckets/" + bucket.getName() + "/resources/" +
+                                 URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8")));
     }
 
     @Test
@@ -483,6 +563,30 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    public void testGetCatalogObjectWithSpecialSymbolsNamesAsArchive() {
+
+        // Add an second object of kind "workflow" into first bucket
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", "workflow")
+               .queryParam("name", "wf n:$ %ae")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        given().pathParam("bucketName", bucket.getName())
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,wf n:$ %ae")
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .contentType(ZIP_CONTENT_TYPE);
+    }
+
+    @Test
     public void testGetCatalogObjectsAsArchiveWithNotExistingWorkflow() {
 
         given().pathParam("bucketName", bucket.getName())
@@ -511,7 +615,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED);
 
-        //Check that workflow_exinsting has a a first revision
+        //Check that workflow_existing has a a first revision
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "workflow_existing")
                .when()
