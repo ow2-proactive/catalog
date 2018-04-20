@@ -73,7 +73,9 @@ public class LinkUtil {
             String absoluteLink = linkTo(methodOn(CatalogObjectRevisionController.class).getRaw(null,
                                                                                                 bucketName,
                                                                                                 URLEncoder.encode(name,
-                                                                                                                  "UTF-8"),
+                                                                                                                  "UTF-8")
+                                                                                                          .replace("+",
+                                                                                                                   "%20"),
                                                                                                 epochMilli));
 
             return new Link(absoluteLink).withRel("content");
@@ -99,8 +101,25 @@ public class LinkUtil {
             //                                                                                                                                  "UTF-8")));
             String absoluteLink = linkTo(methodOn(CatalogObjectController.class).getRaw(null,
                                                                                         bucketName,
-                                                                                        URLEncoder.encode(name,
-                                                                                                          "UTF-8")));
+                                                                                        URLEncoder.encode(name, "UTF-8")
+                                                                                                  .replace("+",
+                                                                                                           "%20")));
+
+            String relativeStr = UriComponentsBuilder.fromUriString(linkTo(methodOn(CatalogObjectController.class).getRaw(null,
+                                                                                                                          bucketName,
+                                                                                                                          name)))
+                                                     .scheme(null)
+                                                     .host(null)
+                                                     .build()
+                                                     .toUriString();
+
+            String absoluteStr = UriComponentsBuilder.fromUriString(linkTo(methodOn(CatalogObjectController.class).getRaw(null,
+                                                                                                                          bucketName,
+                                                                                                                          name)))
+                                                     .build()
+                                                     .toUriString();
+
+            String absoluteLink2 = linkTo(methodOn(CatalogObjectController.class).getRaw(null, bucketName, name));
 
             return new Link(absoluteLink).withRel("content");
         } catch (UnsupportedEncodingException e) {
@@ -122,8 +141,9 @@ public class LinkUtil {
         Link link = null;
         try {
             long epochMilli = commitTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-            link = new Link("buckets/" + bucketName + "/resources/" + URLEncoder.encode(objectName, "UTF-8") +
-                            "/revisions/" + epochMilli).withRel("relative");
+            link = new Link("buckets/" + bucketName + "/resources/" +
+                            URLEncoder.encode(objectName, "UTF-8").replace("+", "%20") + "/revisions/" +
+                            epochMilli).withRel("relative");
 
         } catch (UnsupportedEncodingException e) {
             log.error("{} cannot be encoded", objectName, e);
@@ -143,7 +163,7 @@ public class LinkUtil {
         Link link = null;
         try {
             link = new Link("buckets/" + bucketName + "/resources/" +
-                            URLEncoder.encode(objectName, "UTF-8")).withRel("relative");
+                            URLEncoder.encode(objectName, "UTF-8").replace("+", "%20")).withRel("relative");
 
         } catch (UnsupportedEncodingException e) {
             log.error("{} cannot be encoded", objectName, e);

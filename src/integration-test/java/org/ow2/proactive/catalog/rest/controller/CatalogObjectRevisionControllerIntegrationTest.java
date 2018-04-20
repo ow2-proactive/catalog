@@ -280,6 +280,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                            .body("object_key_values[8].label", is("variable"))
                            .body("object_key_values[8].key", is("var2"))
                            .body("object_key_values[8].value", is("var2ValueUpdated"))
+                           //check link references
                            .body("_links.content.href",
                                  containsString("/buckets/" + bucket.getName() + "/resources/" +
                                                 URLEncoder.encode(secondCatalogObjectRevision.get("name").toString(),

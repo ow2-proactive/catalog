@@ -30,8 +30,11 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_EXTENSION;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -50,6 +53,7 @@ import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -161,15 +165,43 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 
+    public static String decode(String url) {
+        try {
+            String prevURL = "";
+            String decodeURL = url;
+            while (!prevURL.equals(decodeURL)) {
+                prevURL = decodeURL;
+                decodeURL = URLDecoder.decode(decodeURL, "UTF-8");
+            }
+            return decodeURL;
+        } catch (UnsupportedEncodingException e) {
+            return "Issue while decoding" + e.getMessage();
+        }
+    }
+
     @Test
     public void testCreateWorkflowWithSpecificSymbolsInNameAndCheckReturnSavedWorkflow() throws IOException {
         String objectNameWithSpecificSymbols = "workflow$with&specific&symbols in name:$&%ae";
+        //        String objectNameWithSpecificSymbols = "name 1";
 
+        String encodedObjectName = URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8").replace("+", "%20");
+
+        String str = URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8");
+
+        byte[] myBytes = null;
+        try {
+            myBytes = str.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+
+        //create the workflow and check returned metadata
         given().urlEncodingEnabled(true)
                .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
                .queryParam("name", objectNameWithSpecificSymbols)
-               .queryParam("commitMessage", "first commit")
+               .queryParam("commitMessage", "first")
                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
@@ -209,21 +241,28 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].object_key_values[6].key", is("genericInfo2"))
                .body("object[0].object_key_values[6].value", is("genericInfo2Value"))
                .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()))
+               //check link references
                .body("object[0].links[0].href",
-                     containsString("/buckets/" + bucket.getName() + "/resources/" +
-                                    URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8") + "/raw"))
+                     containsString("/buckets/" + bucket.getName() + "/resources/" + encodedObjectName + "/raw"))
                .body("object[0].links[0].rel", is("content"));
 
-        Response rawResponse = given().pathParam("bucketName", bucket.getName())
+        //check get the raw object, created on previous request with specific name
+        Response rawResponse = given().urlEncodingEnabled(true)
+                                      .pathParam("bucketName", bucket.getName())
                                       .pathParam("name", objectNameWithSpecificSymbols)
                                       .when()
                                       .get(CATALOG_OBJECT_RESOURCE + "/raw");
-
         Arrays.equals(ByteStreams.toByteArray(rawResponse.asInputStream()),
                       IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
-
         rawResponse.then().assertThat().statusCode(HttpStatus.SC_OK).contentType(MediaType.APPLICATION_XML.toString());
+        rawResponse.then()
+                   .assertThat()
+                   .header(HttpHeaders.CONTENT_DISPOSITION,
+                           is("attachment; filename=\"" + objectNameWithSpecificSymbols + WORKFLOW_EXTENSION + "\""));
+        rawResponse.then().assertThat().header(HttpHeaders.CONTENT_TYPE,
+                                               is(MediaType.APPLICATION_XML.toString() + ";charset=UTF-8"));
 
+        //check get metadata of created object with specific name
         ValidatableResponse metadataResponse = given().pathParam("bucketName", bucket.getName())
                                                       .pathParam("name", objectNameWithSpecificSymbols)
                                                       .when()
@@ -232,11 +271,10 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                                                       .assertThat()
                                                       .statusCode(HttpStatus.SC_OK);
         metadataResponse.body("_links.content.href",
-                              containsString("/buckets/" + bucket.getName() + "/resources/" +
-                                             URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8") + "/raw"))
+                              containsString("/buckets/" + bucket.getName() + "/resources/" + encodedObjectName +
+                                             "/raw"))
                         .body("_links.relative.href",
-                              is("buckets/" + bucket.getName() + "/resources/" +
-                                 URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8")));
+                              is("buckets/" + bucket.getName() + "/resources/" + encodedObjectName));
     }
 
     @Test
@@ -564,11 +602,11 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testGetCatalogObjectWithSpecialSymbolsNamesAsArchive() {
-
+        String nameWithSpecialSymbols = "wf n:$ %ae";
         // Add an second object of kind "workflow" into first bucket
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
-               .queryParam("name", "wf n:$ %ae")
+               .queryParam("name", nameWithSpecialSymbols)
                .queryParam("commitMessage", "commit message")
                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -577,9 +615,10 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .statusCode(HttpStatus.SC_CREATED);
 
+        //get zip file for workflow name's list separated by coma
         given().pathParam("bucketName", bucket.getName())
                .when()
-               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,wf n:$ %ae")
+               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname," + nameWithSpecialSymbols)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)

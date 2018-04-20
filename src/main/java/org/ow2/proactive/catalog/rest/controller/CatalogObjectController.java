@@ -209,7 +209,6 @@ public class CatalogObjectController {
 
             ZipArchiveContent zipArchiveContent = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName,
                                                                                                      names.get());
-            ;
 
             HttpStatus status;
             if (zipArchiveContent.isPartial()) {
