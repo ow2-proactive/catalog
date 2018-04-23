@@ -181,20 +181,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testCreateWorkflowWithSpecificSymbolsInNameAndCheckReturnSavedWorkflow() throws IOException {
-        String objectNameWithSpecificSymbols = "workflow$with&specific&symbols in name:$&%ae";
-        //        String objectNameWithSpecificSymbols = "name 1";
-
+        String objectNameWithSpecificSymbols = "workflow$with&specific&symbols+in name:$&%ae";
         String encodedObjectName = URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8").replace("+", "%20");
-
-        String str = URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8");
-
-        byte[] myBytes = null;
-        try {
-            myBytes = str.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
 
         //create the workflow and check returned metadata
         given().urlEncodingEnabled(true)

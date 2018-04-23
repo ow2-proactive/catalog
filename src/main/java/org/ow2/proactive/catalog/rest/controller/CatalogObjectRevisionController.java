@@ -97,7 +97,6 @@ public class CatalogObjectRevisionController {
         if (sessionIdRequired) {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
-        //        String decodedName = URLDecoder.decode(name, "UTF-8");
         CatalogObjectMetadata catalogObjectRevision = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                                        name,
                                                                                                        commitMessage,
@@ -121,7 +120,6 @@ public class CatalogObjectRevisionController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
-        //        String decodedName = URLDecoder.decode(name, "UTF-8");
         CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketName, name, commitTimeRaw);
         metadata.add(LinkUtil.createLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
         metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
@@ -143,7 +141,6 @@ public class CatalogObjectRevisionController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
-        //        String decodedName = URLDecoder.decode(name, "UTF-8");
         CatalogRawObject objectRevisionRaw = catalogObjectService.getCatalogObjectRevisionRaw(bucketName,
                                                                                               name,
                                                                                               commitTimeRaw);
@@ -163,8 +160,6 @@ public class CatalogObjectRevisionController {
         if (sessionIdRequired) {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
-
-        //        String decodedName = URLDecoder.decode(name, "UTF-8");
         List<CatalogObjectMetadata> catalogObjectMetadataList = catalogObjectService.listCatalogObjectRevisions(bucketName,
                                                                                                                 name);
 

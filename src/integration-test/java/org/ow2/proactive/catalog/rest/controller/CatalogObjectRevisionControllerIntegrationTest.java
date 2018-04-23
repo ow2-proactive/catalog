@@ -242,6 +242,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         System.out.println(responseString);
 
         System.out.println(secondCatalogObjectRevisionCommitTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        String encodedObjectName = URLEncoder.encode(secondCatalogObjectRevision.get("name").toString(), "UTF-8")
+                                             .replace("+", "%20");
 
         validatableResponse.statusCode(HttpStatus.SC_OK)
                            .body("bucket_name", is(secondCatalogObjectRevision.get("bucket_name")))
@@ -282,15 +284,12 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                            .body("object_key_values[8].value", is("var2ValueUpdated"))
                            //check link references
                            .body("_links.content.href",
-                                 containsString("/buckets/" + bucket.getName() + "/resources/" +
-                                                URLEncoder.encode(secondCatalogObjectRevision.get("name").toString(),
-                                                                  "UTF-8") +
+                                 containsString("/buckets/" + bucket.getName() + "/resources/" + encodedObjectName +
                                                 "/revisions/" + secondCatalogObjectRevision.get("commit_time_raw") +
                                                 "/raw"))
                            .body("_links.relative.href",
-                                 is("buckets/" + bucket.getName() + "/resources/" +
-                                    URLEncoder.encode(secondCatalogObjectRevision.get("name").toString(), "UTF-8") +
-                                    "/revisions/" + secondCatalogObjectRevision.get("commit_time_raw")));
+                                 is("buckets/" + bucket.getName() + "/resources/" + encodedObjectName + "/revisions/" +
+                                    secondCatalogObjectRevision.get("commit_time_raw")));
         ;
     }
 
