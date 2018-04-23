@@ -66,10 +66,7 @@ public class LinkUtil {
             long epochMilli = commitTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
             String absoluteLink = linkTo(methodOn(CatalogObjectRevisionController.class).getRaw(null,
                                                                                                 bucketName,
-                                                                                                URLEncoder.encode(name,
-                                                                                                                  "UTF-8")
-                                                                                                          .replace("+",
-                                                                                                                   "%20"),
+                                                                                                encodeUrl(name),
                                                                                                 epochMilli));
 
             return new Link(absoluteLink).withRel("content");
@@ -156,7 +153,7 @@ public class LinkUtil {
     }
 
     /**
-     * Method is craeted to avoid double encoding
+     * Method is created to avoid double encoding
      * @param invocationValue
      * @return encoded link
      */
@@ -170,9 +167,9 @@ public class LinkUtil {
     }
 
     /**
-     * The aim of this method to encode the specified value, so it can be decoded in the same way for Spring: @PathVariable and @RequestParam
+     * The aim of this method to encode the specified value, so it can be decoded in the same way for Spring annotations: PathVariable and RequestParam
      * According to specification:
-     * '+' is accepted by @RequestParam as space. In case of @PathVariable, '+' is accepted as '+'
+     * '+' is accepted by RequestParam as space. In case of PathVariable, '+' is accepted as '+'
      * @param valueToEncode
      * @return the encoded string that will be compliant with REST API requests
      * @throws UnsupportedEncodingException

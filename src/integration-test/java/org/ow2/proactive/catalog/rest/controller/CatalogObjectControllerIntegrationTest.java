@@ -33,8 +33,6 @@ import static org.hamcrest.Matchers.is;
 import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_EXTENSION;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -163,20 +161,6 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].object_key_values[6].key", is("genericInfo2"))
                .body("object[0].object_key_values[6].value", is("genericInfo2Value"))
                .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()));
-    }
-
-    public static String decode(String url) {
-        try {
-            String prevURL = "";
-            String decodeURL = url;
-            while (!prevURL.equals(decodeURL)) {
-                prevURL = decodeURL;
-                decodeURL = URLDecoder.decode(decodeURL, "UTF-8");
-            }
-            return decodeURL;
-        } catch (UnsupportedEncodingException e) {
-            return "Issue while decoding" + e.getMessage();
-        }
     }
 
     @Test

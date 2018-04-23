@@ -110,9 +110,8 @@ public class CatalogObjectController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
         if (name.isPresent()) {
-            String objectName = name.get();
             CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketName,
-                                                                                           objectName,
+                                                                                           name.get(),
                                                                                            kind,
                                                                                            commitMessage,
                                                                                            objectContentType,
