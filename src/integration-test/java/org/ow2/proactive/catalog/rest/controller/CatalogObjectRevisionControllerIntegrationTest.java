@@ -30,6 +30,8 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PERCENT_20;
+import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PLUS;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -243,7 +245,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
         System.out.println(secondCatalogObjectRevisionCommitTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         String encodedObjectName = URLEncoder.encode(secondCatalogObjectRevision.get("name").toString(), "UTF-8")
-                                             .replace("+", "%20");
+                                             .replace(SPACE_ENCODED_AS_PLUS, SPACE_ENCODED_AS_PERCENT_20);
 
         validatableResponse.statusCode(HttpStatus.SC_OK)
                            .body("bucket_name", is(secondCatalogObjectRevision.get("bucket_name")))

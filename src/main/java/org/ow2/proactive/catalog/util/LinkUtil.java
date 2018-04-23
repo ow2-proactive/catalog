@@ -166,6 +166,10 @@ public class LinkUtil {
         }
     }
 
+    public static final String SPACE_ENCODED_AS_PERCENT_20 = "%20";
+
+    public static final String SPACE_ENCODED_AS_PLUS = "+";
+
     /**
      * The aim of this method to encode the specified value, so it can be decoded in the same way for Spring annotations: PathVariable and RequestParam
      * According to specification:
@@ -175,7 +179,7 @@ public class LinkUtil {
      * @throws UnsupportedEncodingException
      */
     private static String encodeUrl(String valueToEncode) throws UnsupportedEncodingException {
-        return URLEncoder.encode(valueToEncode, "UTF-8").replace("+", "%20");
+        return URLEncoder.encode(valueToEncode, "UTF-8").replace(SPACE_ENCODED_AS_PLUS, SPACE_ENCODED_AS_PERCENT_20);
     }
 
 }

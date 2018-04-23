@@ -30,6 +30,8 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PERCENT_20;
+import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PLUS;
 import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_EXTENSION;
 
 import java.io.IOException;
@@ -166,7 +168,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testCreateWorkflowWithSpecificSymbolsInNameAndCheckReturnSavedWorkflow() throws IOException {
         String objectNameWithSpecificSymbols = "workflow$with&specific&symbols+in name:$&%ae";
-        String encodedObjectName = URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8").replace("+", "%20");
+        String encodedObjectName = URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8")
+                                             .replace(SPACE_ENCODED_AS_PLUS, SPACE_ENCODED_AS_PERCENT_20);
 
         //create the workflow and check returned metadata
         given().urlEncodingEnabled(true)
