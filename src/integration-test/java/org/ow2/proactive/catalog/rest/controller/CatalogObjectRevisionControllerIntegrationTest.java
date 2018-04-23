@@ -30,8 +30,12 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PERCENT_20;
+import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PLUS;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -223,7 +227,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     }
 
     @Test
-    public void testGetWorkflowRevisionShouldReturnSavedWorkflowRevision() {
+    public void testGetWorkflowRevisionShouldReturnSavedWorkflowRevision() throws UnsupportedEncodingException {
         ValidatableResponse validatableResponse = given().pathParam("bucketName", bucket.getName())
                                                          .pathParam("name", "WF_1_Rev_1")
                                                          .pathParam("commitTime",
@@ -240,6 +244,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         System.out.println(responseString);
 
         System.out.println(secondCatalogObjectRevisionCommitTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        String encodedObjectName = URLEncoder.encode(secondCatalogObjectRevision.get("name").toString(), "UTF-8")
+                                             .replace(SPACE_ENCODED_AS_PLUS, SPACE_ENCODED_AS_PERCENT_20);
 
         validatableResponse.statusCode(HttpStatus.SC_OK)
                            .body("bucket_name", is(secondCatalogObjectRevision.get("bucket_name")))
@@ -277,7 +283,16 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                            .body("object_key_values[7].value", is("var1ValueUpdated"))
                            .body("object_key_values[8].label", is("variable"))
                            .body("object_key_values[8].key", is("var2"))
-                           .body("object_key_values[8].value", is("var2ValueUpdated"));
+                           .body("object_key_values[8].value", is("var2ValueUpdated"))
+                           //check link references
+                           .body("_links.content.href",
+                                 containsString("/buckets/" + bucket.getName() + "/resources/" + encodedObjectName +
+                                                "/revisions/" + secondCatalogObjectRevision.get("commit_time_raw") +
+                                                "/raw"))
+                           .body("_links.relative.href",
+                                 is("buckets/" + bucket.getName() + "/resources/" + encodedObjectName + "/revisions/" +
+                                    secondCatalogObjectRevision.get("commit_time_raw")));
+        ;
     }
 
     @Test

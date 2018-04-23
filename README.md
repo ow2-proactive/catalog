@@ -119,7 +119,7 @@ The next example will fetch all Objects that has name like `Clear%` from `cloud-
 The response will return all fields, that are in the query.
 ```
 {
-  allCatalogObjects(where: {AND: [{nameArg: {like: “Clear%“}}, {bucketNameArg: {eq: "cloud-automation"}}]}) {
+  allCatalogObjects(where: {AND: [{nameArg: {like: "Clear%"}}, {bucketNameArg: {eq: "cloud-automation"}}]}) {
     edges {
       bucketName
       name

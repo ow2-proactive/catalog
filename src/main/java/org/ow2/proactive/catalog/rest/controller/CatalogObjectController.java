@@ -33,10 +33,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.URLDecoder;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -149,9 +147,7 @@ public class CatalogObjectController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
-        String decodedName = URLDecoder.decode(name, "UTF-8");
-
-        CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketName, decodedName);
+        CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketName, name);
         metadata.add(LinkUtil.createLink(bucketName, metadata.getName()));
         metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName()));
         return ResponseEntity.ok(metadata);
@@ -172,10 +168,7 @@ public class CatalogObjectController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
-        String decodedName = URLDecoder.decode(name, "UTF-8");
-
-        CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucketName, decodedName);
-
+        CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucketName, name);
         return rawObjectResponseCreator.createRawObjectResponse(rawObject);
 
     }
@@ -199,16 +192,9 @@ public class CatalogObjectController {
         }
 
         if (names.isPresent()) {
-            List<String> decodedNames = names.get().stream().map(name -> {
-                try {
-                    return URLDecoder.decode(name, "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    return name;
-                }
-            }).collect(Collectors.toList());
 
             ZipArchiveContent zipArchiveContent = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName,
-                                                                                                     decodedNames);
+                                                                                                     names.get());
 
             HttpStatus status;
             if (zipArchiveContent.isPartial()) {
@@ -259,9 +245,7 @@ public class CatalogObjectController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
-        String decodedName = URLDecoder.decode(name, "UTF-8");
-
-        catalogObjectService.delete(bucketName, decodedName);
+        catalogObjectService.delete(bucketName, name);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -279,11 +263,8 @@ public class CatalogObjectController {
         if (sessionIdRequired) {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
-        String decodedName = URLDecoder.decode(name, "UTF-8");
 
-        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.restore(bucketName,
-                                                                                   decodedName,
-                                                                                   commitTimeRaw);
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.restore(bucketName, name, commitTimeRaw);
         return ResponseEntity.ok(catalogObjectMetadata);
 
     }
