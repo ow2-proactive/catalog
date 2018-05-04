@@ -51,6 +51,7 @@ import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
+import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
@@ -87,6 +88,9 @@ public class CatalogObjectService {
 
     @Autowired
     private GenericInformationAdder genericInformationAdder;
+
+    @Autowired
+    private RevisionCommitMessageBuilder revisionCommitMessageBuilder;
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
             String contentType, byte[] rawObject) {
@@ -325,7 +329,10 @@ public class CatalogObjectService {
             throw new RevisionNotFoundException(bucketName, name, commitTime);
         }
 
-        CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(catalogObjectRevision.getCommitMessage(),
+        String restoreCommitMessage = revisionCommitMessageBuilder.build(catalogObjectRevision.getCommitMessage(),
+                                                                         commitTime);
+
+        CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(restoreCommitMessage,
                                                                                         keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
                                                                                         catalogObjectRevision.getRawObject(),
                                                                                         catalogObjectRevision.getCatalogObject());

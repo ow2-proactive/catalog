@@ -733,7 +733,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("commit_message", is(firstCommitMessage));
+               .body("commit_message", containsString(firstCommitMessage));
 
         //Check that last revision is the restored one
         given().pathParam("bucketName", bucket.getName())
@@ -743,7 +743,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("commit_message", is(firstCommitMessage));
+               .body("commit_message", containsString(firstCommitMessage));
     }
 
     @Test
