@@ -123,7 +123,6 @@ public class CatalogObjectController {
             List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketName,
                                                                                                    kind,
                                                                                                    commitMessage,
-                                                                                                   objectContentType,
                                                                                                    file.getBytes());
 
             for (CatalogObjectMetadata catalogObject : catalogObjects) {

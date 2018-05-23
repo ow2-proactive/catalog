@@ -25,7 +25,13 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URLConnection;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
@@ -104,7 +110,7 @@ public class CatalogObjectService {
     }
 
     public List<CatalogObjectMetadata> createCatalogObjects(String bucketName, String kind, String commitMessage,
-            String contentType, byte[] zipArchive) {
+            byte[] zipArchive) {
 
         List<FileNameAndContent> filesContainedInArchive = archiveManager.extractZIP(zipArchive);
 
@@ -116,14 +122,23 @@ public class CatalogObjectService {
         return filesContainedInArchive.stream().map(file -> {
             CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
                                                                                                                                file.getName()));
-
-            //        CatalogObjectEntity catalogObject = catalogObjectRepository.findByBucketNameAndObjectName(bucketName, bucketName);
             if (catalogObject == null) {
+                String contentTypeOfFile = APPLICATION_OCTET_STREAM;
+                try {
+                    InputStream is = new BufferedInputStream(new ByteArrayInputStream(file.getContent()));
+                    String guessedContentTypeOfFile = URLConnection.guessContentTypeFromStream(is);
+                    if (guessedContentTypeOfFile != null) {
+                        contentTypeOfFile = guessedContentTypeOfFile;
+                    }
+                } catch (Exception e) {
+                    log.warn("there is a problem of identifying mime type for the file from archive : " +
+                             file.getName(), e);
+                }
                 return this.createCatalogObject(bucketName,
                                                 file.getName(),
                                                 kind,
                                                 commitMessage,
-                                                contentType,
+                                                contentTypeOfFile,
                                                 Collections.emptyList(),
                                                 file.getContent());
             } else {

@@ -637,7 +637,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("commit_message", is(firstCommitMessage));
+               .body("commit_message", is(firstCommitMessage))
+               .body("content_type", is(MediaType.APPLICATION_XML.toString()));
 
         //Check that workflow_new has no revisions
         given().pathParam("bucketName", bucket.getName())
@@ -652,7 +653,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
                .queryParam("commitMessage", archiveCommitMessage)
-               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .queryParam("objectContentType", MediaType.MULTIPART_FORM_DATA.toString())
                .multiPart(IntegrationTestUtil.getArchiveFile("archive.zip"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
@@ -668,7 +669,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("commit_message", is(archiveCommitMessage));
+               .body("commit_message", is(archiveCommitMessage))
+               .body("content_type", is(MediaType.APPLICATION_XML.toString()));
 
         //Check that workflow_new was created
         given().pathParam("bucketName", bucket.getName())
@@ -678,7 +680,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("commit_message", is(archiveCommitMessage));
+               .body("commit_message", is(archiveCommitMessage))
+               .body("content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 
     @Test
