@@ -237,11 +237,10 @@ public class CatalogObjectService {
         findBucketByNameAndCheck(bucketName);
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketName);
 
-        return buildMetadataWithLink(bucketName, result);
+        return buildMetadataWithLink(result);
     }
 
-    private List<CatalogObjectMetadata> buildMetadataWithLink(String bucketName,
-            List<CatalogObjectRevisionEntity> result) {
+    private List<CatalogObjectMetadata> buildMetadataWithLink(List<CatalogObjectRevisionEntity> result) {
         return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
@@ -250,7 +249,7 @@ public class CatalogObjectService {
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindInBucket(bucketName,
                                                                                                                            kind);
 
-        return buildMetadataWithLink(bucketName, result);
+        return buildMetadataWithLink(result);
     }
 
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {
