@@ -685,6 +685,46 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    public void testCreateObjectDifferentTypeFromArchive() {
+        String archiveCommitMessage = "Import from archive";
+
+        //Create objects from the archive
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", "my-kind")
+               .queryParam("commitMessage", archiveCommitMessage)
+               .queryParam("objectContentType", MediaType.MULTIPART_FORM_DATA.toString())
+               .multiPart(IntegrationTestUtil.getArchiveFile("filesGCP.zip"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED)
+               .body("object", hasSize(12));
+
+        //Check that the object was created
+        given().pathParam("bucketName", bucket.getName())
+               .pathParam("name", "cmdFile")
+               .when()
+               .get(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("commit_message", is(archiveCommitMessage))
+               .body("content_type", is("application/x-bat"));
+
+        //Check that the object was created
+        given().pathParam("bucketName", bucket.getName())
+               .pathParam("name", "array")
+               .when()
+               .get(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("commit_message", is(archiveCommitMessage))
+               .body("content_type", is(MediaType.APPLICATION_JSON_VALUE));
+    }
+
+    @Test
     public void testCreateWorkflowsFromArchiveWithBadArchive() {
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")

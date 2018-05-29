@@ -77,7 +77,7 @@ public class CatalogObjectServiceIntegrationTest {
     private long secondCommitTime;
 
     @Before
-    public void setup() throws IOException {
+    public void setup() throws IOException, InterruptedException {
         bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
         keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
 
@@ -92,6 +92,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                        workflowAsByteArray);
         firstCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
+        Thread.sleep(1); // to be sure that a new revision time will be different from previous revision time
         catalogObject = catalogObjectService.createCatalogObjectRevision(bucket.getName(),
                                                                          "catalog1",
                                                                          "commit message 2",

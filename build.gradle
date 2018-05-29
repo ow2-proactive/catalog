@@ -145,6 +145,7 @@ dependencyManagement {
 dependencies {
     antlr 'org.antlr:antlr4'
 
+    compile 'org.apache.tika:tika-core:1.18'
     compile 'commons-fileupload:commons-fileupload'
     compile 'org.apache.commons:commons-lang3'
     compile 'com.fasterxml.jackson.core:jackson-databind'

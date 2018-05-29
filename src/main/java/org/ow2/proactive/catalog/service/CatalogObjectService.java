@@ -29,15 +29,18 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URLConnection;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.tika.detect.Detector;
+import org.apache.tika.mime.MediaType;
+import org.apache.tika.parser.AutoDetectParser;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.dto.Metadata;
@@ -98,6 +101,8 @@ public class CatalogObjectService {
     @Autowired
     private RevisionCommitMessageBuilder revisionCommitMessageBuilder;
 
+    private AutoDetectParser mediaTypeFileParser = new AutoDetectParser();
+
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
             String contentType, byte[] rawObject) {
         return this.createCatalogObject(bucketName,
@@ -125,11 +130,7 @@ public class CatalogObjectService {
             if (catalogObject == null) {
                 String contentTypeOfFile = APPLICATION_OCTET_STREAM;
                 try {
-                    InputStream is = new BufferedInputStream(new ByteArrayInputStream(file.getContent()));
-                    String guessedContentTypeOfFile = URLConnection.guessContentTypeFromStream(is);
-                    if (guessedContentTypeOfFile != null) {
-                        contentTypeOfFile = guessedContentTypeOfFile;
-                    }
+                    contentTypeOfFile = getFileMimeType(file);
                 } catch (Exception e) {
                     log.warn("there is a problem of identifying mime type for the file from archive : " +
                              file.getName(), e);
@@ -145,6 +146,15 @@ public class CatalogObjectService {
                 return this.createCatalogObjectRevision(bucketName, file.getName(), commitMessage, file.getContent());
             }
         }).collect(Collectors.toList());
+    }
+
+    private String getFileMimeType(FileNameAndContent file) throws IOException {
+        InputStream is = new BufferedInputStream(new ByteArrayInputStream(file.getContent()));
+        Detector detector = mediaTypeFileParser.getDetector();
+        org.apache.tika.metadata.Metadata md = new org.apache.tika.metadata.Metadata();
+        md.set(org.apache.tika.metadata.Metadata.RESOURCE_NAME_KEY, file.getFileNameWithExtension());
+        MediaType mediaType = detector.detect(is, md);
+        return mediaType.toString();
     }
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
@@ -193,7 +203,8 @@ public class CatalogObjectService {
     }
 
     private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(final String commitMessage,
-            final List<Metadata> metadataList, final byte[] rawObject, final CatalogObjectEntity catalogObjectEntity) {
+            final List<org.ow2.proactive.catalog.dto.Metadata> metadataList, final byte[] rawObject,
+            final CatalogObjectEntity catalogObjectEntity) {
 
         List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = KeyValueLabelMetadataHelper.convertToEntity(metadataList);
 

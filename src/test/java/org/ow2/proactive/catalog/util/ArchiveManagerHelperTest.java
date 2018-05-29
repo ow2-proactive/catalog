@@ -58,7 +58,11 @@ public class ArchiveManagerHelperTest {
 
     private static URI XML_FILE_1;
 
+    private static URI JSON_FILE_1;
+
     private static URI ZIP_FILE;
+
+    private static URI ZIP_FILE_DIFF_TYPES;
 
     @InjectMocks
     private ArchiveManagerHelper archiveManager;
@@ -72,7 +76,9 @@ public class ArchiveManagerHelperTest {
     public static void setFilesUrl() throws Exception {
         XML_FILE_0 = ArchiveManagerHelperTest.class.getResource("/archives/workflow_0.xml").toURI();
         XML_FILE_1 = ArchiveManagerHelperTest.class.getResource("/archives/workflow_1.xml").toURI();
+        JSON_FILE_1 = ArchiveManagerHelperTest.class.getResource("/archives/array.json").toURI();
         ZIP_FILE = ArchiveManagerHelperTest.class.getResource("/archives/archive.zip").toURI();
+        ZIP_FILE_DIFF_TYPES = ArchiveManagerHelperTest.class.getResource("/archives/archiveDiffTypes.zip").toURI();
     }
 
     private CatalogObjectRevisionEntity getCatalogObjectRevisionEntity(String name, byte[] fileContent)
@@ -85,6 +91,26 @@ public class ArchiveManagerHelperTest {
         revision.setRawObject(fileContent);
 
         return revision;
+    }
+
+    @Test
+    public void testCompressZipWithDifferentFileTypes() throws IOException {
+
+        assertNull(archiveManager.compressZIP(null));
+
+        byte[] workflowByteArray0 = convertFromURIToByteArray(XML_FILE_0);
+        byte[] jsonByteArray1 = convertFromURIToByteArray(XML_FILE_1);
+        List<CatalogObjectRevisionEntity> expectedFiles = new ArrayList<>();
+        expectedFiles.add(getCatalogObjectRevisionEntity("workflow_0", workflowByteArray0));
+        expectedFiles.add(getCatalogObjectRevisionEntity("array", jsonByteArray1));
+        //Compress
+        ZipArchiveContent archive = archiveManager.compressZIP(expectedFiles);
+        //Then extract
+        List<FileNameAndContent> actualFiles = archiveManager.extractZIP(archive.getContent());
+        assertEquals(2, actualFiles.size());
+
+        compare(workflowByteArray0, actualFiles.get(0).getContent());
+        compare(jsonByteArray1, actualFiles.get(1).getContent());
     }
 
     @Test
@@ -115,6 +141,16 @@ public class ArchiveManagerHelperTest {
 
         compare(convertFromURIToByteArray(XML_FILE_0), files.get(0).getContent());
         compare(convertFromURIToByteArray(XML_FILE_1), files.get(1).getContent());
+    }
+
+    @Test
+    public void testExtractZipWithDiffTypes() throws IOException {
+        assertTrue(archiveManager.extractZIP(null).isEmpty());
+        List<FileNameAndContent> files = archiveManager.extractZIP(convertFromURIToByteArray(ZIP_FILE_DIFF_TYPES));
+        assertEquals(2, files.size());
+
+        compare(convertFromURIToByteArray(JSON_FILE_1), files.get(0).getContent());
+        compare(convertFromURIToByteArray(XML_FILE_0), files.get(1).getContent());
     }
 
     /**
