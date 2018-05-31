@@ -92,7 +92,7 @@ public class GraphqlServiceIntegrationTest {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @Before
-    public void setup() throws IOException, NotAuthenticatedException, AccessDeniedException {
+    public void setup() throws IOException, NotAuthenticatedException, AccessDeniedException, InterruptedException {
         doReturn("link").when(catalogObjectMapper).generatLink(anyString(), anyString());
 
         bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
@@ -109,6 +109,7 @@ public class GraphqlServiceIntegrationTest {
                                                                                        workflowAsByteArray);
         firstCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
+        Thread.sleep(1); // to be sure that a new revision time will be different from previous revision time
         catalogObject = catalogObjectService.createCatalogObjectRevision(bucket.getName(),
                                                                          "catalog1",
                                                                          "commit message 2",
