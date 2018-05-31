@@ -82,12 +82,6 @@ public class ArchiveManagerHelper {
 
         private String fileNameWithExtension;
 
-        public FileNameAndContent() {
-            content = null;
-            name = null;
-            fileNameWithExtension = null;
-        }
-
         public byte[] getContent() {
             return content;
         }

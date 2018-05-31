@@ -25,8 +25,6 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -128,13 +126,7 @@ public class CatalogObjectService {
             CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
                                                                                                                                file.getName()));
             if (catalogObject == null) {
-                String contentTypeOfFile = APPLICATION_OCTET_STREAM;
-                try {
-                    contentTypeOfFile = getFileMimeType(file);
-                } catch (Exception e) {
-                    log.warn("there is a problem of identifying mime type for the file from archive : " +
-                             file.getName(), e);
-                }
+                String contentTypeOfFile = getFileMimeType(file);
                 return this.createCatalogObject(bucketName,
                                                 file.getName(),
                                                 kind,
@@ -148,12 +140,17 @@ public class CatalogObjectService {
         }).collect(Collectors.toList());
     }
 
-    private String getFileMimeType(FileNameAndContent file) throws IOException {
+    private String getFileMimeType(FileNameAndContent file) {
         InputStream is = new BufferedInputStream(new ByteArrayInputStream(file.getContent()));
         Detector detector = mediaTypeFileParser.getDetector();
         org.apache.tika.metadata.Metadata md = new org.apache.tika.metadata.Metadata();
         md.set(org.apache.tika.metadata.Metadata.RESOURCE_NAME_KEY, file.getFileNameWithExtension());
-        MediaType mediaType = detector.detect(is, md);
+        MediaType mediaType = MediaType.OCTET_STREAM;
+        try {
+            mediaType = detector.detect(is, md);
+        } catch (IOException e) {
+            log.warn("there is a problem of identifying mime type for the file from archive : " + file.getName(), e);
+        }
         return mediaType.toString();
     }
 
