@@ -134,8 +134,19 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                    "object");
         assertThat(catalogObjects).hasSize(2);
 
-        catalogObjects = catalogObjectService.listCatalogObjectsByKind(bucket.getName(), "workflow");
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog4",
+                                                 "workflow-general",
+                                                 "commit message",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray);
+
+        catalogObjects = catalogObjectService.listCatalogObjectsByKind(bucket.getName(), "workflow-general");
         assertThat(catalogObjects).hasSize(1);
+
+        catalogObjects = catalogObjectService.listCatalogObjectsByKind(bucket.getName(), "WORKFLOW");
+        assertThat(catalogObjects).hasSize(2);
     }
 
     @Test
