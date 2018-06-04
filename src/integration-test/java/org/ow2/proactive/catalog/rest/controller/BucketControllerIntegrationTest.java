@@ -221,18 +221,29 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     }
 
     @Test
-    public void testListBucketsGivenKindAndEmptyBucket() throws UnsupportedEncodingException {
-        final String bucketName1 = "bucket-with-object-workflow";
-        final String bucketName2 = "empty-bucket";
+    public void testListBucketsGivenPrefixKindAndEmptyBucket() throws UnsupportedEncodingException {
+        final String bucketNameForMyObjects = "bucket-with-object-workflow";
+        final String bucketNameForEmpty = "empty-bucket";
         final String bucketNameWithSomeObjects = "bucket-with-some-objects";
+        final String bucketNameForMyObjectsWithGeneralPrefix = "bucket-with-my-objects-general";
         // Get bucket ID from response to create an object in it
-        String bucket1Id = IntegrationTestUtil.createBucket(bucketName1, "owner");
+        String bucketIdWithMyObjects = IntegrationTestUtil.createBucket(bucketNameForMyObjects, "owner");
+        String bucketIdWithmyObjectsGeneral = IntegrationTestUtil.createBucket(bucketNameForMyObjectsWithGeneralPrefix,
+                                                                               "owner");
 
-        IntegrationTestUtil.createBucket(bucketName2, "owner");
+        IntegrationTestUtil.createBucket(bucketNameForEmpty, "owner");
 
-        // Add an object of kind "myobjectkind" into first bucket
-        IntegrationTestUtil.postObjectToBucket(bucket1Id,
-                                               "myobjectkind",
+        // Add an object of kind "my-object-kind" into specific bucket
+        IntegrationTestUtil.postObjectToBucket(bucketIdWithMyObjects,
+                                               "MY-objecT-Kind",
+                                               "myobjectname",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        // Add an object of kind "my-object-general" into specific bucket
+        IntegrationTestUtil.postObjectToBucket(bucketIdWithmyObjectsGeneral,
+                                               "My-oBJeCt-General",
                                                "myobjectname",
                                                "first commit",
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
@@ -247,13 +258,21 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
-        // list workflow -> should return one only
-        given().param("kind", "myobjectkind")
+        // list buckets by specific kind -> should return one specified bucket and empty bucket
+        given().param("kind", "my-object-kind")
                .get(BUCKETS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("", hasSize(2));
+
+        // list buckets by prefix kind -> should return two buckets, matching kind pattern, and empty bucket
+        given().param("kind", "MY-Object")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(3));
     }
 
     @Test
