@@ -55,7 +55,8 @@ public class GenericInformationAdderTest {
     @Test
     public void testThatWorkflowParserKindTriggersXmlManipulation() {
         genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(new byte[] {},
-                                                                           SupportedParserKinds.WORKFLOW.toString(),
+                                                                           SupportedParserKinds.WORKFLOW.toString() +
+                                                                                          "specific-workflow-kind",
                                                                            Collections.emptyMap());
 
         verify(workflowXmlManipulator).replaceGenericInformationJobLevel(Mockito.any(), Mockito.any());
