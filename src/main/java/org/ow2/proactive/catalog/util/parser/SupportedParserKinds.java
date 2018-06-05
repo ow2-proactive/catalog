@@ -31,7 +31,7 @@ package org.ow2.proactive.catalog.util.parser;
  */
 public enum SupportedParserKinds {
     WORKFLOW("workflow"),
-    PCW_RULE("pcw-rule");
+    PCW_RULE("rule");
 
     private final String kind;
 

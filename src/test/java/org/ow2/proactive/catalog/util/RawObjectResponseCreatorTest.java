@@ -75,7 +75,7 @@ public class RawObjectResponseCreatorTest {
                                             RawObjectResponseCreator.WORKFLOW_EXTENSION + "\"";
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
-                                                          "workflow",
+                                                          "workflow/specific-workflow-kind",
                                                           "application/xml",
                                                           1400343L,
                                                           "commit message",
@@ -96,7 +96,7 @@ public class RawObjectResponseCreatorTest {
         String contentDispositionFileName = "attachment; filename=\"" + objectName + "\"";
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
-                                                          "workflow",
+                                                          "workflow/specific-workflow-kind",
                                                           "application/xml",
                                                           1400343L,
                                                           "commit message",

@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
 import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
 import org.ow2.proactive.catalog.util.parser.DefaultCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.PCWRuleParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 
 
@@ -46,6 +47,15 @@ public class CatalogObjectParserFactoryTest {
 
         CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("workflow");
         assertThat(parser).isInstanceOf(WorkflowParser.class);
+
+        parser = CatalogObjectParserFactory.get().getParser("workflow/specific-kind");
+        assertThat(parser).isInstanceOf(WorkflowParser.class);
+
+        parser = CatalogObjectParserFactory.get().getParser("RULE/specific-kind");
+        assertThat(parser).isInstanceOf(PCWRuleParser.class);
+
+        parser = CatalogObjectParserFactory.get().getParser(null);
+        assertThat(parser).isInstanceOf(DefaultCatalogObjectParser.class);
 
         parser = CatalogObjectParserFactory.get().getParser("default parser");
         assertThat(parser).isInstanceOf(DefaultCatalogObjectParser.class);

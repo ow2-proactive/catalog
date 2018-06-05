@@ -59,7 +59,8 @@ public class RawObjectResponseCreator {
             String contentDispositionFileName = name;
 
             //add the .xml extension to contentDispositionFileName for workflow if the extension was not yet in name
-            if (SupportedParserKinds.WORKFLOW.toString().equals(rawObject.getKind()) &&
+            if (rawObject.getKind() != null &&
+                rawObject.getKind().toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase()) &&
                 !name.endsWith(WORKFLOW_EXTENSION)) {
                 contentDispositionFileName += WORKFLOW_EXTENSION;
             }

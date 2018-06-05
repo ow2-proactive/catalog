@@ -154,7 +154,7 @@ public final class PCWRuleParserTest {
     }
 
     private List<KeyValueLabelMetadataEntity> parseRule(String filename) throws XMLStreamException {
-        CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("pcw-rule");
+        CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("rule");
 
         return parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/pcw-rules/" + filename));
     }

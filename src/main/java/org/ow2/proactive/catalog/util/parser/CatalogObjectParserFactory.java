@@ -39,10 +39,12 @@ public enum CatalogObjectParserFactory {
     }
 
     public CatalogObjectParserInterface getParser(String type) {
-        if (SupportedParserKinds.WORKFLOW.toString().equals(type))
-            return new WorkflowParser();
-        if (SupportedParserKinds.PCW_RULE.toString().equals(type))
-            return new PCWRuleParser();
+        if (type != null) {
+            if (type.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase()))
+                return new WorkflowParser();
+            if (type.toLowerCase().startsWith(SupportedParserKinds.PCW_RULE.toString().toLowerCase()))
+                return new PCWRuleParser();
+        }
         return new DefaultCatalogObjectParser();
     }
 

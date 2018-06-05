@@ -121,7 +121,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testCreateWorkflowShouldReturnSavedWorkflow() {
         given().pathParam("bucketName", bucket.getName())
-               .queryParam("kind", "workflow")
+               .queryParam("kind", "Workflow/specific-workflow-kind")
                .queryParam("name", "workflow_test")
                .queryParam("commitMessage", "first commit")
                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
@@ -132,7 +132,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED)
                .body("object[0].bucket_name", is(bucket.getName()))
-               .body("object[0].kind", is("workflow"))
+               .body("object[0].kind", is("Workflow/specific-workflow-kind"))
                .body("object[0].name", is("workflow_test"))
 
                .body("object[0].object_key_values", hasSize(9))
@@ -174,7 +174,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         //create the workflow and check returned metadata
         given().urlEncodingEnabled(true)
                .pathParam("bucketName", bucket.getName())
-               .queryParam("kind", "workflow")
+               .queryParam("kind", "workflow/specific-workflow-kind")
                .queryParam("name", objectNameWithSpecificSymbols)
                .queryParam("commitMessage", "first")
                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
@@ -185,7 +185,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED)
                .body("object[0].bucket_name", is(bucket.getName()))
-               .body("object[0].kind", is("workflow"))
+               .body("object[0].kind", is("workflow/specific-workflow-kind"))
                .body("object[0].name", is(objectNameWithSpecificSymbols))
 
                .body("object[0].object_key_values", hasSize(9))
@@ -255,7 +255,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testCreatePCWRuleShouldReturnSavedRule() {
         given().pathParam("bucketName", bucket.getName())
-               .queryParam("kind", "pcw-rule")
+               .queryParam("kind", "Rule/cpu")
                .queryParam("name", "pcw-rule test")
                .queryParam("commitMessage", "first commit")
                .queryParam("objectContentType", MediaType.APPLICATION_JSON_VALUE)
@@ -266,7 +266,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED)
                .body("object[0].bucket_name", is(bucket.getName()))
-               .body("object[0].kind", is("pcw-rule"))
+               .body("object[0].kind", is("Rule/cpu"))
                .body("object[0].name", is("pcw-rule test"))
 
                .body("object[0].object_key_values", hasSize(8))
@@ -314,7 +314,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testCreateWrongPCWRuleShouldReturnError() {
         given().pathParam("bucketName", bucket.getName())
-               .queryParam("kind", "pcw-rule")
+               .queryParam("kind", "Rule")
                .queryParam("name", "pcw-rule test")
                .queryParam("commitMessage", "first commit")
                .queryParam("objectContentType", MediaType.APPLICATION_JSON_VALUE)
