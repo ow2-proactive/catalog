@@ -56,6 +56,7 @@ import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -72,12 +73,6 @@ import com.jayway.restassured.response.ValidatableResponse;
 @SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest(randomPort = true)
 public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCatalogObjectRevisionControllerTest {
-
-    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketName}/resources";
-
-    private static final String CATALOG_OBJECT_REVISIONS_RESOURCE = "/buckets/{bucketName}/resources/{name}/revisions";
-
-    private static final String BUCKETS_RESOURCE = "/buckets";
 
     private static final Long SLEEP_TIME = 503L; //in milliseconds
 
@@ -230,12 +225,12 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testGetWorkflowRevisionShouldReturnSavedWorkflowRevision() throws UnsupportedEncodingException {
         ValidatableResponse validatableResponse = given().pathParam("bucketName", bucket.getName())
                                                          .pathParam("name", "WF_1_Rev_1")
-                                                         .pathParam("commitTime",
+                                                         .pathParam("commitTimeRaw",
                                                                     secondCatalogObjectRevisionCommitTime.atZone(ZoneId.systemDefault())
                                                                                                          .toInstant()
                                                                                                          .toEpochMilli())
                                                          .when()
-                                                         .get(CATALOG_OBJECT_REVISION_RESOURCE)
+                                                         .get(CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME)
                                                          .then()
                                                          .assertThat();
 
@@ -299,12 +294,12 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testGetWorkflowRevisionPayloadShouldReturnSavedRawObject() throws IOException {
         Response response = given().pathParam("bucketName", bucket.getName())
                                    .pathParam("name", "WF_1_Rev_1")
-                                   .pathParam("commitTime",
+                                   .pathParam("commitTimeRaw",
                                               secondCatalogObjectRevisionCommitTime.atZone(ZoneId.systemDefault())
                                                                                    .toInstant()
                                                                                    .toEpochMilli())
                                    .when()
-                                   .get(CATALOG_OBJECT_REVISION_RESOURCE + "/raw");
+                                   .get(CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME + "/raw");
 
         Arrays.equals(ByteStreams.toByteArray(response.asInputStream()),
                       IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml"));
@@ -316,9 +311,9 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingBucketName() {
         given().pathParam("bucketName", "non-existing")
                .pathParam("name", "object-name")
-               .pathParam("commitTime", "1")
+               .pathParam("commitTimeRaw", "1")
                .when()
-               .get(CATALOG_OBJECT_REVISION_RESOURCE)
+               .get(CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
@@ -331,9 +326,9 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingBucketName() {
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "object-name")
-               .pathParam("commitTime", "1")
+               .pathParam("commitTimeRaw", "1")
                .when()
-               .get(CATALOG_OBJECT_REVISION_RESOURCE + "/raw")
+               .get(CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME + "/raw")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
@@ -346,9 +341,9 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingObjectId() {
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "workflow_test")
-               .pathParam("commitTime", "1")
+               .pathParam("commitTimeRaw", "1")
                .when()
-               .get(CATALOG_OBJECT_REVISION_RESOURCE)
+               .get(CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
@@ -361,9 +356,9 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingObjectId() {
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "workflow_test")
-               .pathParam("commitTime", "1")
+               .pathParam("commitTimeRaw", "1")
                .when()
-               .get(CATALOG_OBJECT_REVISION_RESOURCE + "/raw")
+               .get(CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME + "/raw")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
@@ -376,9 +371,9 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingCommitId() {
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "workflow_test")
-               .pathParam("commitTime", "42")
+               .pathParam("commitTimeRaw", "42")
                .when()
-               .get(CATALOG_OBJECT_REVISION_RESOURCE)
+               .get(CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
@@ -391,9 +386,9 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testGetWorkflowPayloadShouldReturnNotFoundIfNonExistingRevisionId() {
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "workflow_test")
-               .pathParam("commitTime", "42")
+               .pathParam("commitTimeRaw", "42")
                .when()
-               .get(CATALOG_OBJECT_REVISION_RESOURCE + "/raw")
+               .get(CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME + "/raw")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
@@ -427,6 +422,127 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                                    .get(CATALOG_OBJECT_REVISIONS_RESOURCE);
 
         response.then().assertThat().statusCode(HttpStatus.SC_OK).body("", hasSize(28));
+    }
+
+    @Test
+    public void testRestoreVersion() {
+        String firstCommitMessage = "First commit message";
+        // Create a new object in the bucket
+        Response response = given().pathParam("bucketName", bucket.getName())
+                                   .queryParam("name", "restoredworkflow")
+                                   .queryParam("kind", "workflow")
+                                   .queryParam("commitMessage", firstCommitMessage)
+                                   .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+                                   .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+                                   .when()
+                                   .post(CATALOG_OBJECTS_RESOURCE)
+                                   .then()
+                                   .statusCode(HttpStatus.SC_CREATED)
+                                   .extract()
+                                   .response();
+
+        String commitTime = response.path("object[0].commit_time_raw");
+
+        //Add a new revision to the created object
+        given().pathParam("bucketName", bucket.getName())
+               .pathParam("name", "restoredworkflow")
+               .queryParam("commitMessage", "Second commit message")
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        //Restore the first version
+        given().pathParam("bucketName", bucket.getName())
+               .pathParam("name", "restoredworkflow")
+               .pathParam("commitTimeRaw", commitTime)
+               .when()
+               .put(CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("commit_message", containsString(firstCommitMessage));
+
+        //Check that last revision is the restored one
+        given().pathParam("bucketName", bucket.getName())
+               .pathParam("name", "restoredworkflow")
+               .when()
+               .get(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("commit_message", containsString(firstCommitMessage));
+    }
+
+    @Test
+    public void testRestoreVersionWithWrongParam() {
+        // Create a new object in the bucket
+        Response response = given().pathParam("bucketName", bucket.getName())
+                                   .queryParam("kind", "workflow")
+                                   .queryParam("name", "restoredworkflow")
+                                   .queryParam("commitMessage", "First commit")
+                                   .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+                                   .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+                                   .when()
+                                   .post(CATALOG_OBJECTS_RESOURCE)
+                                   .then()
+                                   .statusCode(HttpStatus.SC_CREATED)
+                                   .extract()
+                                   .response();
+
+        String commitTime = response.path("object[0].commit_time_raw");
+
+        //Add a new revision to the created object
+        given().pathParam("bucketName", bucket.getName())
+               .pathParam("name", "restoredworkflow")
+               .queryParam("commitMessage", "Second commit message")
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        //Check wrong bucket
+        given().pathParam("bucketName", bucket.getName() + 1)
+               .pathParam("name", "restoredworkflow")
+               .pathParam("commitTimeRaw", 0)
+               .when()
+               .put(CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName() + 1,
+                                                                            "restoredworkflow",
+                                                                            0).getLocalizedMessage()));
+
+        //Check wrong bucketName
+        given().pathParam("bucketName", bucket.getName())
+               .pathParam("name", "wrongrestoredworkflow")
+               .pathParam("commitTimeRaw", commitTime)
+               .when()
+               .put(CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                           "wrongrestoredworkflow",
+                                                           Long.valueOf(commitTime)).getLocalizedMessage()));
+
+        //Check wrong time
+        given().pathParam("bucketName", bucket.getName())
+               .pathParam("name", "restoredworkflow")
+               .pathParam("commitTimeRaw", commitTime + 1)
+               .when()
+               .put(CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_NOT_FOUND)
+               .body("error_message",
+                     equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                           "restoredworkflow",
+                                                           Long.valueOf(commitTime + 1)).getLocalizedMessage()));
     }
 
 }

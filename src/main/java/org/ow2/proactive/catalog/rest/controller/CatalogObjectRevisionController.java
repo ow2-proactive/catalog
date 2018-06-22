@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -173,6 +174,24 @@ public class CatalogObjectRevisionController {
         }
 
         return catalogObjectMetadataList;
+    }
+
+    @ApiOperation(value = "Restore a catalog object revision")
+    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
+                            @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied") })
+    @RequestMapping(value = "/{commitTimeRaw}", method = PUT)
+    public ResponseEntity<CatalogObjectMetadata> restore(
+            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @PathVariable String bucketName, @PathVariable String name, @PathVariable Long commitTimeRaw)
+            throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
+        if (sessionIdRequired) {
+            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
+        }
+
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.restore(bucketName, name, commitTimeRaw);
+        return ResponseEntity.ok(catalogObjectMetadata);
+
     }
 
 }
