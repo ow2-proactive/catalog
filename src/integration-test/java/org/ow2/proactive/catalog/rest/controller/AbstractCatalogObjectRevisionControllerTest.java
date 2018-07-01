@@ -43,14 +43,6 @@ import com.google.gson.JsonParser;
  */
 public class AbstractCatalogObjectRevisionControllerTest extends AbstractRestAssuredTest {
 
-    protected static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketName}/resources/{name}";
-
-    protected static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketName}/resources/";
-
-    protected static final String CATALOG_OBJECT_REVISIONS_RESOURCE = "/buckets/{bucketName}/resources/{name}/revisions";
-
-    protected static final String CATALOG_OBJECT_REVISION_RESOURCE = "/buckets/{bucketName}/resources/{name}/revisions/{commitTime}";
-
     @Autowired
     protected BucketRepository bucketRepository;
 
