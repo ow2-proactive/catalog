@@ -49,6 +49,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
@@ -153,8 +154,16 @@ public class CatalogObjectControllerTest {
 
     @Test
     public void testDelete() throws Exception {
-        doNothing().when(catalogObjectService).delete(anyString(), anyString());
-        catalogObjectController.delete("", "bucket-name", "name");
+        CatalogObjectMetadata mock = new CatalogObjectMetadata("bucket-name",
+                                                               "name",
+                                                               "object",
+                                                               "application/xml",
+                                                               1400343L,
+                                                               "commit message",
+                                                               Collections.emptyList());
+        when(catalogObjectService.delete(anyString(), anyString())).thenReturn(mock);
+        CatalogObjectMetadata result = catalogObjectController.delete("", "bucket-name", "name");
+        assertThat(mock).isEqualTo(result);
         verify(catalogObjectService, times(1)).delete(anyString(), anyString());
     }
 }
