@@ -34,6 +34,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.tika.detect.Detector;
@@ -152,6 +153,26 @@ public class CatalogObjectService {
             log.warn("there is a problem of identifying mime type for the file from archive : " + file.getName(), e);
         }
         return mediaType.toString();
+    }
+
+    public CatalogObjectMetadata updateObjectMetadata(String bucketName, String name, Optional<String> kind,
+            Optional<String> contentType) {
+        if (!kind.isPresent() && !contentType.isPresent()) {
+            throw new IllegalArgumentException("The wrong amount of request parameters: at least one should be present");
+        }
+        findBucketByNameAndCheck(bucketName);
+        CatalogObjectRevisionEntity catalogObjectRevisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName,
+                                                                                                           name);
+        CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
+        if (kind.isPresent()) {
+            catalogObjectEntity.setKind(kind.get());
+        }
+        if (contentType.isPresent()) {
+            catalogObjectEntity.setKind(contentType.get());
+        }
+
+        catalogObjectRepository.save(catalogObjectEntity);
+        return new CatalogObjectMetadata(catalogObjectEntity);
     }
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
