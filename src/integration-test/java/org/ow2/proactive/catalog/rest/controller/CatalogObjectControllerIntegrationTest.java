@@ -297,7 +297,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
                .statusCode(HttpStatus.SC_CONFLICT)
-               .body("error_message",
+               .body(ERROR_MESSAGE,
                      equalTo(new CatalogObjectAlreadyExistingException(bucket.getName(),
                                                                        "workflowname").getLocalizedMessage()));
     }
@@ -340,8 +340,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
-                     equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
+               .body(ERROR_MESSAGE, equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
     }
 
     @Test
@@ -436,7 +435,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
+               .body(ERROR_MESSAGE,
                      equalTo(new CatalogObjectNotFoundException("non-existing-bucket",
                                                                 "object-name").getLocalizedMessage()));
     }
@@ -450,7 +449,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
+               .body(ERROR_MESSAGE,
                      equalTo(new CatalogObjectNotFoundException("non-existing-bucket",
                                                                 "object-name").getLocalizedMessage()));
     }
@@ -464,7 +463,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
+               .body(ERROR_MESSAGE,
                      equalTo(new CatalogObjectNotFoundException(bucket.getName(),
                                                                 "non-existing-object").getLocalizedMessage()));
     }
@@ -478,7 +477,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
+               .body(ERROR_MESSAGE,
                      equalTo(new CatalogObjectNotFoundException(bucket.getName(),
                                                                 "non-existing-object").getLocalizedMessage()));
     }
@@ -501,8 +500,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
-                     equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
+               .body(ERROR_MESSAGE, equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
     }
 
     @Test
@@ -523,7 +521,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
+               .body(ERROR_MESSAGE,
                      equalTo(new CatalogObjectNotFoundException(bucket.getName(),
                                                                 "workflowname").getLocalizedMessage()));
     }
@@ -537,7 +535,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
+               .body(ERROR_MESSAGE,
                      equalTo(new CatalogObjectNotFoundException(bucket.getName(),
                                                                 "non-existing-object").getLocalizedMessage()));
     }
