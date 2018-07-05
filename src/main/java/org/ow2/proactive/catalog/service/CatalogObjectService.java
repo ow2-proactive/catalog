@@ -55,6 +55,7 @@ import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingE
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
+import org.ow2.proactive.catalog.service.exception.WrongParametersException;
 import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
@@ -157,20 +158,19 @@ public class CatalogObjectService {
 
     public CatalogObjectMetadata updateObjectMetadata(String bucketName, String name, Optional<String> kind,
             Optional<String> contentType) {
-        if (!kind.isPresent() && !contentType.isPresent()) {
-            throw new IllegalArgumentException("The wrong amount of request parameters: at least one should be present");
-        }
         findBucketByNameAndCheck(bucketName);
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName,
                                                                                                            name);
+        if (!kind.isPresent() && !contentType.isPresent()) {
+            throw new WrongParametersException("at least one parameter should be present");
+        }
         CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
         if (kind.isPresent()) {
             catalogObjectEntity.setKind(kind.get());
         }
         if (contentType.isPresent()) {
-            catalogObjectEntity.setKind(contentType.get());
+            catalogObjectEntity.setContentType(contentType.get());
         }
-
         catalogObjectRepository.save(catalogObjectEntity);
         return new CatalogObjectMetadata(catalogObjectEntity);
     }

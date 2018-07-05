@@ -136,8 +136,9 @@ public class CatalogObjectController {
     @ApiOperation(value = "Update a catalog object metadata, like kind and content type")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied") })
-    @RequestMapping(value = "/{commitTimeRaw}", method = PUT)
+                            @ApiResponse(code = 403, message = "Permission denied"),
+                            @ApiResponse(code = 400, message = "Wrong specified parameters: at least one should be present") })
+    @RequestMapping(value = "/{name}", method = PUT)
     @ResponseStatus(HttpStatus.OK)
     public CatalogObjectMetadata updateObjectMetadata(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
