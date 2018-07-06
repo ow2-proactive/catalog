@@ -165,12 +165,8 @@ public class CatalogObjectService {
             throw new WrongParametersException("at least one parameter should be present");
         }
         CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
-        if (kind.isPresent()) {
-            catalogObjectEntity.setKind(kind.get());
-        }
-        if (contentType.isPresent()) {
-            catalogObjectEntity.setContentType(contentType.get());
-        }
+        kind.ifPresent(catalogObjectEntity::setKind);
+        contentType.ifPresent(catalogObjectEntity::setContentType);
         catalogObjectRepository.save(catalogObjectEntity);
         return new CatalogObjectMetadata(catalogObjectEntity);
     }
