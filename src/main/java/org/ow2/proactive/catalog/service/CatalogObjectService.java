@@ -291,14 +291,16 @@ public class CatalogObjectService {
         return archiveManager.compressZIP(revisions);
     }
 
-    public void delete(String bucketName, String name) throws CatalogObjectNotFoundException {
+    public CatalogObjectMetadata delete(String bucketName, String name) throws CatalogObjectNotFoundException {
+        BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
+        CatalogObjectMetadata catalogObjectMetadata = getCatalogObjectMetadata(bucketName, name);
         try {
-            BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
             catalogObjectRepository.delete(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(), name));
         } catch (EmptyResultDataAccessException emptyResultDataAccessException) {
             log.warn("CatalogObject {} does not exist in bucket {}", name, bucketName);
             throw new CatalogObjectNotFoundException(bucketName, name);
         }
+        return catalogObjectMetadata;
     }
 
     public CatalogObjectMetadata getCatalogObjectMetadata(String bucketName, String name) {

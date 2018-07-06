@@ -113,7 +113,8 @@ public class CatalogObjectRevisionController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(value = "/{commitTimeRaw}", method = GET)
-    public ResponseEntity<CatalogObjectMetadata> get(
+    @ResponseStatus(HttpStatus.OK)
+    public CatalogObjectMetadata get(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name, @PathVariable long commitTimeRaw)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
@@ -124,7 +125,7 @@ public class CatalogObjectRevisionController {
         CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketName, name, commitTimeRaw);
         metadata.add(LinkUtil.createLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
         metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
-        return ResponseEntity.ok(metadata);
+        return metadata;
 
     }
 
@@ -134,6 +135,7 @@ public class CatalogObjectRevisionController {
                             @ApiResponse(code = 403, message = "Permission denied"),
                             @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found") })
     @RequestMapping(value = "/{commitTimeRaw}/raw", method = GET, produces = MediaType.ALL_VALUE)
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<String> getRaw(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name, @PathVariable long commitTimeRaw)
@@ -154,6 +156,7 @@ public class CatalogObjectRevisionController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(method = GET)
+    @ResponseStatus(HttpStatus.OK)
     public List<CatalogObjectMetadata> list(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name)
@@ -181,7 +184,8 @@ public class CatalogObjectRevisionController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(value = "/{commitTimeRaw}", method = PUT)
-    public ResponseEntity<CatalogObjectMetadata> restore(
+    @ResponseStatus(HttpStatus.OK)
+    public CatalogObjectMetadata restore(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name, @PathVariable Long commitTimeRaw)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
@@ -189,9 +193,7 @@ public class CatalogObjectRevisionController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
-        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.restore(bucketName, name, commitTimeRaw);
-        return ResponseEntity.ok(catalogObjectMetadata);
-
+        return catalogObjectService.restore(bucketName, name, commitTimeRaw);
     }
 
 }
