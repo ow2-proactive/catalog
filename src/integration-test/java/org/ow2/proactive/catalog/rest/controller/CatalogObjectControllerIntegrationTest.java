@@ -157,6 +157,33 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    public void testUpdateObjectMetadataAndGetItSavedObjectFromCatalog() {
+        given().pathParam("bucketName", bucket.getName())
+               .pathParam("name", "workflowname")
+               .queryParam("kind", "updated-kind")
+               .queryParam("contentType", "updated-contentType")
+               .when()
+               .put(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("bucket_name", is(bucket.getName()))
+               .body("kind", is("updated-kind"))
+               .body("content_type", is("updated-contentType"));
+
+        given().pathParam("bucketName", bucket.getName())
+               .pathParam("name", "workflowname")
+               .when()
+               .get(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("bucket_name", is(bucket.getName()))
+               .body("kind", is("updated-kind"))
+               .body("content_type", is("updated-contentType"));
+    }
+
+    @Test
     public void testCreateWorkflowWithSpecificSymbolsInNameAndCheckReturnSavedWorkflow() throws IOException {
         String objectNameWithSpecificSymbols = "workflow$with&specific&symbols+in name:$&%ae";
         String encodedObjectName = URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8")

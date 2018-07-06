@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.After;
 import org.junit.Before;
@@ -126,6 +127,18 @@ public class CatalogObjectServiceIntegrationTest {
     public void testListCatalogObjectsInBucket() {
         List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjects(bucket.getName());
         assertThat(catalogObjects).hasSize(3);
+    }
+
+    @Test
+    public void testUpdateObjectMetadata() {
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucket.getName(),
+                                                                                                "catalog1",
+                                                                                                Optional.of("updated-kind"),
+                                                                                                Optional.of("updated-contentType"));
+        assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("commit message 2");
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(3);
+        assertThat(catalogObjectMetadata.getContentType()).isEqualTo("updated-contentType");
+        assertThat(catalogObjectMetadata.getKind()).isEqualTo("updated-kind");
     }
 
     @Test
