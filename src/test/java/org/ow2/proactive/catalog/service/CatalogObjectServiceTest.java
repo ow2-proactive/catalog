@@ -189,6 +189,7 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObject.getName()).isEqualTo(NAME);
         assertThat(catalogObject.getMetadataList()).isNotEmpty();
         assertThat(catalogObject.getMetadataList()).hasSize(1);
+        assertThat(catalogObject.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
     }
 
     @Test
@@ -213,6 +214,7 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedKind.getName()).isEqualTo(NAME);
         assertThat(catalogObjectUpdatedKind.getMetadataList()).isNotEmpty();
         assertThat(catalogObjectUpdatedKind.getMetadataList()).hasSize(1);
+        assertThat(catalogObjectUpdatedKind.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
 
         // only contentType should be updated without changing kind
         CatalogObjectMetadata catalogObjectUpdatedContentType = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
@@ -227,7 +229,7 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedContentType.getName()).isEqualTo(NAME);
         assertThat(catalogObjectUpdatedContentType.getMetadataList()).isNotEmpty();
         assertThat(catalogObjectUpdatedContentType.getMetadataList()).hasSize(1);
-
+        assertThat(catalogObjectUpdatedContentType.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
     }
 
     @Test
