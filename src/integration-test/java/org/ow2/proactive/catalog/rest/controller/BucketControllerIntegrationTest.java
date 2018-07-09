@@ -67,14 +67,6 @@ import com.jayway.restassured.response.Response;
 @WebIntegrationTest(randomPort = true)
 public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
-    private static final String BUCKETS_RESOURCE = "/buckets";
-
-    private static final String BUCKET_RESOURCE = "/buckets/{bucketName}";
-
-    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketName}/resources";
-
-    private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketName}/resources/{name}";
-
     private final ObjectMapper mapper = new ObjectMapper();
 
     @After

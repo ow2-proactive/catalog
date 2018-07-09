@@ -23,36 +23,24 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.controller;
+package org.ow2.proactive.catalog.service.exception;
 
-import org.junit.Before;
-import org.springframework.beans.factory.annotation.Value;
-
-import com.jayway.restassured.RestAssured;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 /**
  * @author ActiveEon Team
  */
-public abstract class AbstractRestAssuredTest {
-    protected static final String BUCKET_RESOURCE = "/buckets/{bucketName}";
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+public class WrongParametersException extends RuntimeException {
 
-    protected static final String BUCKETS_RESOURCE = "/buckets";
+    public WrongParametersException(String message) {
+        super("Wrong parameters: " + message);
+    }
 
-    protected static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketName}/resources/{name}";
-
-    protected static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketName}/resources/";
-
-    protected static final String CATALOG_OBJECT_REVISIONS_RESOURCE = "/buckets/{bucketName}/resources/{name}/revisions";
-
-    protected static final String CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME = "/buckets/{bucketName}/resources/{name}/revisions/{commitTimeRaw}";
-
-    @Value("${local.server.port}")
-    private int serverPort;
-
-    @Before
-    public void configureRestAssured() {
-        RestAssured.port = serverPort;
+    public WrongParametersException(Throwable cause) {
+        super(cause);
     }
 
 }

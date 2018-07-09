@@ -49,7 +49,6 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
-import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
@@ -71,14 +70,6 @@ import com.jayway.restassured.response.ValidatableResponse;
 @SpringApplicationConfiguration(classes = { Application.class })
 @WebIntegrationTest(randomPort = true)
 public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredTest {
-
-    private static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketName}/resources";
-
-    private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketName}/resources/{name}";
-
-    private static final String CATALOG_OBJECT_REVISIONS_RESOURCE = "/buckets/{bucketName}/resources/{name}/revisions";
-
-    private static final String BUCKETS_RESOURCE = "/buckets";
 
     private static final String ZIP_CONTENT_TYPE = "application/zip";
 
@@ -163,6 +154,33 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].object_key_values[6].key", is("genericInfo2"))
                .body("object[0].object_key_values[6].value", is("genericInfo2Value"))
                .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()));
+    }
+
+    @Test
+    public void testUpdateObjectMetadataAndGetItSavedObjectFromCatalog() {
+        given().pathParam("bucketName", bucket.getName())
+               .pathParam("name", "workflowname")
+               .queryParam("kind", "updated-kind")
+               .queryParam("contentType", "updated-contentType")
+               .when()
+               .put(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("bucket_name", is(bucket.getName()))
+               .body("kind", is("updated-kind"))
+               .body("content_type", is("updated-contentType"));
+
+        given().pathParam("bucketName", bucket.getName())
+               .pathParam("name", "workflowname")
+               .when()
+               .get(CATALOG_OBJECT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("bucket_name", is(bucket.getName()))
+               .body("kind", is("updated-kind"))
+               .body("content_type", is("updated-contentType"));
     }
 
     @Test
@@ -736,127 +754,6 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
-    }
-
-    @Test
-    public void testRestoreVersion() {
-        String firstCommitMessage = "First commit message";
-        // Create a new object in the bucket
-        Response response = given().pathParam("bucketName", bucket.getName())
-                                   .queryParam("kind", "workflow")
-                                   .queryParam("name", "restoredworkflow")
-                                   .queryParam("commitMessage", firstCommitMessage)
-                                   .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
-                                   .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
-                                   .when()
-                                   .post(CATALOG_OBJECTS_RESOURCE)
-                                   .then()
-                                   .statusCode(HttpStatus.SC_CREATED)
-                                   .extract()
-                                   .response();
-
-        String commitTime = response.path("object[0].commit_time_raw");
-
-        //Add a new revision to the created object
-        given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "restoredworkflow")
-               .queryParam("commitMessage", "Second commit message")
-               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
-               .when()
-               .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
-               .then()
-               .statusCode(HttpStatus.SC_CREATED);
-
-        //Restore the first version
-        given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "restoredworkflow")
-               .queryParam("commitTimeRaw", commitTime)
-               .when()
-               .put(CATALOG_OBJECT_RESOURCE)
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_OK)
-               .body("commit_message", containsString(firstCommitMessage));
-
-        //Check that last revision is the restored one
-        given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "restoredworkflow")
-               .when()
-               .get(CATALOG_OBJECT_RESOURCE)
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_OK)
-               .body("commit_message", containsString(firstCommitMessage));
-    }
-
-    @Test
-    public void testRestoreVersionWithWrongParam() {
-        // Create a new object in the bucket
-        Response response = given().pathParam("bucketName", bucket.getName())
-                                   .queryParam("kind", "workflow")
-                                   .queryParam("name", "restoredworkflow")
-                                   .queryParam("commitMessage", "First commit")
-                                   .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
-                                   .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
-                                   .when()
-                                   .post(CATALOG_OBJECTS_RESOURCE)
-                                   .then()
-                                   .statusCode(HttpStatus.SC_CREATED)
-                                   .extract()
-                                   .response();
-
-        String commitTime = response.path("object[0].commit_time_raw");
-
-        //Add a new revision to the created object
-        given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "restoredworkflow")
-               .queryParam("commitMessage", "Second commit message")
-               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
-               .when()
-               .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
-               .then()
-               .statusCode(HttpStatus.SC_CREATED);
-
-        //Check wrong bucket
-        given().pathParam("bucketName", bucket.getName() + 1)
-               .pathParam("name", "restoredworkflow")
-               .queryParam("commitTimeRaw", 0)
-               .when()
-               .put(CATALOG_OBJECT_RESOURCE)
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName() + 1,
-                                                                            "restoredworkflow",
-                                                                            0).getLocalizedMessage()));
-
-        //Check wrong bucketName
-        given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "wrongrestoredworkflow")
-               .queryParam("commitTimeRaw", commitTime)
-               .when()
-               .put(CATALOG_OBJECT_RESOURCE)
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
-                     equalTo(new RevisionNotFoundException(bucket.getName(),
-                                                           "wrongrestoredworkflow",
-                                                           Long.valueOf(commitTime)).getLocalizedMessage()));
-
-        //Check wrong time
-        given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "restoredworkflow")
-               .queryParam("commitTimeRaw", commitTime + 1)
-               .when()
-               .put(CATALOG_OBJECT_RESOURCE)
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
-                     equalTo(new RevisionNotFoundException(bucket.getName(),
-                                                           "restoredworkflow",
-                                                           Long.valueOf(commitTime + 1)).getLocalizedMessage()));
     }
 
 }

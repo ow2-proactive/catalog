@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -112,7 +113,8 @@ public class CatalogObjectRevisionController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(value = "/{commitTimeRaw}", method = GET)
-    public ResponseEntity<CatalogObjectMetadata> get(
+    @ResponseStatus(HttpStatus.OK)
+    public CatalogObjectMetadata get(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name, @PathVariable long commitTimeRaw)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
@@ -123,7 +125,7 @@ public class CatalogObjectRevisionController {
         CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketName, name, commitTimeRaw);
         metadata.add(LinkUtil.createLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
         metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
-        return ResponseEntity.ok(metadata);
+        return metadata;
 
     }
 
@@ -133,6 +135,7 @@ public class CatalogObjectRevisionController {
                             @ApiResponse(code = 403, message = "Permission denied"),
                             @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found") })
     @RequestMapping(value = "/{commitTimeRaw}/raw", method = GET, produces = MediaType.ALL_VALUE)
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<String> getRaw(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name, @PathVariable long commitTimeRaw)
@@ -153,6 +156,7 @@ public class CatalogObjectRevisionController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(method = GET)
+    @ResponseStatus(HttpStatus.OK)
     public List<CatalogObjectMetadata> list(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name)
@@ -173,6 +177,23 @@ public class CatalogObjectRevisionController {
         }
 
         return catalogObjectMetadataList;
+    }
+
+    @ApiOperation(value = "Restore a catalog object revision")
+    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
+                            @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied") })
+    @RequestMapping(value = "/{commitTimeRaw}", method = PUT)
+    @ResponseStatus(HttpStatus.OK)
+    public CatalogObjectMetadata restore(
+            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @PathVariable String bucketName, @PathVariable String name, @PathVariable Long commitTimeRaw)
+            throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
+        if (sessionIdRequired) {
+            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
+        }
+
+        return catalogObjectService.restore(bucketName, name, commitTimeRaw);
     }
 
 }

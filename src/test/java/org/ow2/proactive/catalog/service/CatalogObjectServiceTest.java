@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,6 +55,7 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
+import org.ow2.proactive.catalog.service.exception.WrongParametersException;
 
 import com.google.common.collect.ImmutableList;
 
@@ -124,10 +126,110 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObject.getMetadataList()).hasSize(1);
     }
 
+    @Test(expected = WrongParametersException.class)
+    public void testUpdateObjectMetadataWithoutGivenParameters() {
+        long now = System.currentTimeMillis();
+        BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
+        CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
+                                                                                    anyString())).thenReturn(catalogObjectEntity);
+
+        catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
+                                                  NAME,
+                                                  Optional.empty(),
+                                                  Optional.empty());
+    }
+
+    @Test(expected = BucketNotFoundException.class)
+    public void testUpdateObjectMetadataWithInvalidBucket() {
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
+        catalogObjectService.updateObjectMetadata("wrong-bucket",
+                                                  NAME,
+                                                  Optional.of("some-kind"),
+                                                  Optional.of("some-contentType"));
+    }
+
+    @Test(expected = CatalogObjectNotFoundException.class)
+    public void testUpdateObjectMetadataWithInvalidObjectName() {
+        BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
+                                                                                    anyString())).thenReturn(null);
+        catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
+                                                  "wrong-name",
+                                                  Optional.of("some-kind"),
+                                                  Optional.of("some-contentType"));
+    }
+
     @Test(expected = BucketNotFoundException.class)
     public void testGetCatalogObjectWithInvalidBucket() {
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
         catalogObjectService.listCatalogObjects("wrong-bucket");
+    }
+
+    @Test
+    public void testUpdateObjectMetadata() {
+        long now = System.currentTimeMillis();
+        BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
+        CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
+                                                                                    anyString())).thenReturn(catalogObjectEntity);
+
+        CatalogObjectMetadata catalogObject = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
+                                                                                        NAME,
+                                                                                        Optional.of("updated-kind"),
+                                                                                        Optional.of("updated-contentType"));
+
+        assertThat(catalogObject).isNotNull();
+        assertThat(catalogObject.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
+        assertThat(catalogObject.getContentType()).isEqualTo("updated-contentType");
+        assertThat(catalogObject.getKind()).isEqualTo("updated-kind");
+        assertThat(catalogObject.getName()).isEqualTo(NAME);
+        assertThat(catalogObject.getMetadataList()).isNotEmpty();
+        assertThat(catalogObject.getMetadataList()).hasSize(1);
+        assertThat(catalogObject.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
+    }
+
+    @Test
+    public void testUpdateObjectMetadataOnlyKindOrOnlyContentType() {
+        long now = System.currentTimeMillis();
+        BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
+        CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
+                                                                                    anyString())).thenReturn(catalogObjectEntity);
+
+        // only kind should be updated without changing contentType
+        CatalogObjectMetadata catalogObjectUpdatedKind = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
+                                                                                                   NAME,
+                                                                                                   Optional.of("updated-kind"),
+                                                                                                   Optional.empty());
+
+        assertThat(catalogObjectUpdatedKind).isNotNull();
+        assertThat(catalogObjectUpdatedKind.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
+        assertThat(catalogObjectUpdatedKind.getContentType()).isEqualTo(APPLICATION_XML);
+        assertThat(catalogObjectUpdatedKind.getKind()).isEqualTo("updated-kind");
+        assertThat(catalogObjectUpdatedKind.getName()).isEqualTo(NAME);
+        assertThat(catalogObjectUpdatedKind.getMetadataList()).isNotEmpty();
+        assertThat(catalogObjectUpdatedKind.getMetadataList()).hasSize(1);
+        assertThat(catalogObjectUpdatedKind.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
+
+        // only contentType should be updated without changing kind
+        CatalogObjectMetadata catalogObjectUpdatedContentType = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
+                                                                                                          NAME,
+                                                                                                          Optional.empty(),
+                                                                                                          Optional.of("updated-contentType"));
+
+        assertThat(catalogObjectUpdatedContentType).isNotNull();
+        assertThat(catalogObjectUpdatedContentType.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
+        assertThat(catalogObjectUpdatedContentType.getContentType()).isEqualTo("updated-contentType");
+        assertThat(catalogObjectUpdatedContentType.getKind()).isEqualTo("updated-kind");
+        assertThat(catalogObjectUpdatedContentType.getName()).isEqualTo(NAME);
+        assertThat(catalogObjectUpdatedContentType.getMetadataList()).isNotEmpty();
+        assertThat(catalogObjectUpdatedContentType.getMetadataList()).hasSize(1);
+        assertThat(catalogObjectUpdatedContentType.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
     }
 
     @Test
