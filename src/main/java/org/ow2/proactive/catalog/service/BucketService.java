@@ -85,20 +85,16 @@ public class BucketService {
     }
 
     public List<BucketMetadata> listBuckets(List<String> owners, String kind, String contentType) {
-        System.out.println("params kind  " + kind + " content " + contentType);
         if (owners == null) {
             return Collections.emptyList();
         }
 
         List<BucketEntity> entities;
         if (!StringUtils.isEmpty(kind) && !StringUtils.isEmpty(contentType)) {
-            System.out.println("kind  " + kind + " content " + contentType);
             entities = bucketRepository.findByOwnerIsInContainingKindAndContentType(owners, kind, contentType);
         } else if (!StringUtils.isEmpty(kind) && StringUtils.isEmpty(contentType)) {
-            System.out.println("kind  " + kind);
             entities = bucketRepository.findByOwnerIsInContainingKind(owners, kind);
         } else if (StringUtils.isEmpty(kind) && !StringUtils.isEmpty(contentType)) {
-            System.out.println("content " + contentType);
             entities = bucketRepository.findByOwnerIsInContainingKind(owners, kind);
         }
 

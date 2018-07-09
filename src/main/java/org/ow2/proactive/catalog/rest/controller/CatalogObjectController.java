@@ -218,15 +218,12 @@ public class CatalogObjectController {
         } else {
             List<CatalogObjectMetadata> metadataList;
             if (kind.isPresent() && contentType.isPresent()) {
-                System.out.println("kind and content " + kind + " " + contentType);
                 metadataList = catalogObjectService.listCatalogObjectsByKindAndContentType(bucketName,
                                                                                            kind.get(),
                                                                                            contentType.get());
             } else if (!kind.isPresent() && contentType.isPresent()) {
-                System.out.println("content only " + contentType);
                 metadataList = catalogObjectService.listCatalogObjectsByContentType(bucketName, contentType.get());
             } else if (kind.isPresent() && !contentType.isPresent()) {
-                System.out.println("kind only " + kind);
                 metadataList = catalogObjectService.listCatalogObjectsByKind(bucketName, kind.get());
             }
 

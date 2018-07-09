@@ -124,7 +124,6 @@ public class BucketController {
             @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) String kind,
             @ApiParam(value = "The content type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) String contentType)
             throws NotAuthenticatedException, AccessDeniedException {
-        System.out.println("content type " + contentType + " kind " + kind);
 
         if (sessionIdRequired) {
             RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
