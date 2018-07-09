@@ -253,9 +253,33 @@ public class CatalogObjectService {
     }
 
     public List<CatalogObjectMetadata> listCatalogObjectsByKind(String bucketName, String kind) {
+        System.out.println("kind " + kind);
+
         findBucketByNameAndCheck(bucketName);
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindInBucket(bucketName,
                                                                                                                            kind);
+
+        return buildMetadataWithLink(result);
+    }
+
+    // find catalog objects by kind and content type
+    public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentType(String bucketName, String kind,
+            String contentType) {
+        System.out.println("kind and content " + kind + "  " + contentType);
+        findBucketByNameAndCheck(bucketName);
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeInBucket(bucketName,
+                                                                                                                                         kind,
+                                                                                                                                         contentType);
+
+        return buildMetadataWithLink(result);
+    }
+
+    // find catalog objects by content type
+    public List<CatalogObjectMetadata> listCatalogObjectsByContentType(String bucketName, String contentType) {
+        System.out.println("content " + contentType);
+        findBucketByNameAndCheck(bucketName);
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfContentTypeInBucket(bucketName,
+                                                                                                                                  contentType);
 
         return buildMetadataWithLink(result);
     }

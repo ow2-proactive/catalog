@@ -84,15 +84,25 @@ public class BucketService {
         return new BucketMetadata(bucketEntity);
     }
 
-    public List<BucketMetadata> listBuckets(List<String> owners, String kind) {
+    public List<BucketMetadata> listBuckets(List<String> owners, String kind, String contentType) {
+        System.out.println("params kind  " + kind + " content " + contentType);
         if (owners == null) {
             return Collections.emptyList();
         }
 
         List<BucketEntity> entities;
-        if (!StringUtils.isEmpty(kind)) {
+        if (!StringUtils.isEmpty(kind) && !StringUtils.isEmpty(contentType)) {
+            System.out.println("kind  " + kind + " content " + contentType);
+            entities = bucketRepository.findByOwnerIsInContainingKindAndContentType(owners, kind, contentType);
+        } else if (!StringUtils.isEmpty(kind) && StringUtils.isEmpty(contentType)) {
+            System.out.println("kind  " + kind);
             entities = bucketRepository.findByOwnerIsInContainingKind(owners, kind);
-        } else {
+        } else if (StringUtils.isEmpty(kind) && !StringUtils.isEmpty(contentType)) {
+            System.out.println("content " + contentType);
+            entities = bucketRepository.findByOwnerIsInContainingKind(owners, kind);
+        }
+
+        else {
             entities = bucketRepository.findByOwnerIn(owners);
         }
 
@@ -100,16 +110,24 @@ public class BucketService {
         return entities.stream().map(BucketMetadata::new).collect(Collectors.toList());
     }
 
-    public List<BucketMetadata> listBuckets(String ownerName, String kind) {
+    public List<BucketMetadata> listBuckets(String ownerName, String kind, String contentType) {
         List<BucketEntity> entities;
         List<String> owners = Collections.singletonList(ownerName);
 
-        if (!StringUtils.isEmpty(ownerName) && !StringUtils.isEmpty(kind)) {
+        if (!StringUtils.isEmpty(ownerName) && !StringUtils.isEmpty(kind) && !StringUtils.isEmpty(contentType)) {
+            entities = bucketRepository.findByOwnerIsInContainingKindAndContentType(owners, kind, contentType);
+        } else if (!StringUtils.isEmpty(ownerName) && !StringUtils.isEmpty(kind) && StringUtils.isEmpty(contentType)) {
             entities = bucketRepository.findByOwnerIsInContainingKind(owners, kind);
-        } else if (!StringUtils.isEmpty(ownerName)) {
+        } else if (!StringUtils.isEmpty(ownerName) && StringUtils.isEmpty(kind) && !StringUtils.isEmpty(contentType)) {
+            entities = bucketRepository.findByOwnerIsInContainingContentType(owners, contentType);
+        } else if (!StringUtils.isEmpty(ownerName) && StringUtils.isEmpty(kind) && StringUtils.isEmpty(contentType)) {
             entities = bucketRepository.findByOwner(ownerName);
-        } else if (!StringUtils.isEmpty(kind)) {
+        } else if (StringUtils.isEmpty(ownerName) && !StringUtils.isEmpty(kind) && StringUtils.isEmpty(contentType)) {
             entities = bucketRepository.findContainingKind(kind);
+        } else if (StringUtils.isEmpty(ownerName) && !StringUtils.isEmpty(kind) && !StringUtils.isEmpty(contentType)) {
+            entities = bucketRepository.findContainingKindAndContentType(kind, contentType);
+        } else if (StringUtils.isEmpty(ownerName) && !StringUtils.isEmpty(contentType) && StringUtils.isEmpty(kind)) {
+            entities = bucketRepository.findContainingContentType(contentType);
         } else {
             entities = bucketRepository.findAll();
         }
