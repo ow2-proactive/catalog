@@ -146,7 +146,7 @@ public class BucketController {
             return bucketService.listBuckets(ownerName, kind, contentType);
         }
     }
-    
+
     @ApiOperation(value = "Delete the empty buckets")
     @RequestMapping(method = DELETE)
     @ResponseStatus(HttpStatus.OK)
