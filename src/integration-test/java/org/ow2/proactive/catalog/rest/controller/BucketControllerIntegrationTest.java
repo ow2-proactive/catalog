@@ -315,11 +315,11 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
-                "new-kind-2",
-                "other new object",
-                "first commit",
-                "bucket-admin-owner-content-type",
-                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+                                               "new-kind-2",
+                                               "other new object",
+                                               "first commit",
+                                               "new-content-2",
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postDefaultWorkflowToBucket(BucketUserOwnerWorkflowKindId);
 
@@ -358,19 +358,17 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("", hasSize(3));
-        /*
-         * // list bucket with the given kind of objects and content type inside bucket -> should
-         * return
-         * // the specified buckets
-         * given().param("owner", adminOwner)
-         * .param("kind", "workflow")
-         * .param("objectContentType", "contentTypeA")
-         * .get(BUCKETS_RESOURCE)
-         * .then()
-         * .assertThat()
-         * .statusCode(HttpStatus.SC_OK)
-         * .body("", hasSize(1));
-         */
+
+        // list bucket with the given kind of objects and content type inside bucket -> should
+        // return the specified buckets
+        given().param("owner", adminOwner)
+               .param("kind", "new-kind-2")
+               .param("objectContentType", "new-content-2")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(1));
 
         // list buckets by specific kind and specified content type -> should return one specified bucket and empty bucket
         given().param("kind", "my-object-kind")
