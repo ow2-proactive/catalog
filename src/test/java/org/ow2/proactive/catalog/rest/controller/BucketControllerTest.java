@@ -72,13 +72,6 @@ public class BucketControllerTest {
     }
 
     @Test
-    public void testListWithContentType() throws Exception {
-        //bucketController.listWithContentType(null, null, null,null);
-        bucketController.list(null, null, null, null);
-        verify(bucketService, times(1)).listBuckets((String) null, null, null);
-    }
-
-    @Test
     public void testDelete() throws Exception {
         bucketService.deleteEmptyBucket("bucket-name");
         verify(bucketService, times(1)).deleteEmptyBucket("bucket-name");
