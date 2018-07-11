@@ -221,9 +221,9 @@ public class CatalogObjectController {
                 metadataList = catalogObjectService.listCatalogObjectsByKindAndContentType(bucketName,
                                                                                            kind.get(),
                                                                                            contentType.get());
-            } else if (!kind.isPresent() && contentType.isPresent()) {
+            } else if (contentType.isPresent()) {
                 metadataList = catalogObjectService.listCatalogObjectsByContentType(bucketName, contentType.get());
-            } else if (kind.isPresent() && !contentType.isPresent()) {
+            } else if (kind.isPresent()) {
                 metadataList = catalogObjectService.listCatalogObjectsByKind(bucketName, kind.get());
             }
 

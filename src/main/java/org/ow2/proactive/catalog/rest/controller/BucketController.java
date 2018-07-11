@@ -31,6 +31,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.BucketService;
@@ -120,9 +121,9 @@ public class BucketController {
     @RequestMapping(method = GET)
     public List<BucketMetadata> list(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
-            @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) String kind,
-            @ApiParam(value = "The content type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) String contentType)
+            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) Optional<String> ownerName,
+            @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @ApiParam(value = "The content type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
             throws NotAuthenticatedException, AccessDeniedException {
 
         if (sessionIdRequired) {
@@ -130,12 +131,12 @@ public class BucketController {
                                                                                                                                        ownerName);
             List<String> groups;
 
-            if (ownerName == null) {
+            if (!ownerName.isPresent()) {
                 groups = ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(restApiAccessResponse.getAuthenticatedUser()
                                                                                                       .getGroups());
                 groups.add(BucketService.DEFAULT_BUCKET_OWNER);
             } else {
-                groups = Collections.singletonList(ownerName);
+                groups = Collections.singletonList(ownerName.get());
             }
 
             return bucketService.listBuckets(groups, kind, contentType);
@@ -145,51 +146,6 @@ public class BucketController {
         }
     }
 
-    /*
-     * @ApiOperation(value = "Lists the buckets with specific content type")
-     * 
-     * @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-     * 
-     * @ApiResponse(code = 403, message = "Permission denied"), })
-     * 
-     * @RequestMapping(method = GET)
-     * public List<BucketMetadata> listWithContentType(
-     * 
-     * @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required
-     * = false) String sessionId,
-     * 
-     * @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner",
-     * required = false) String ownerName,
-     * 
-     * @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value =
-     * "kind", required = false) String kind,
-     * 
-     * @ApiParam(value =
-     * "The content type of objects that buckets must contain") @RequestParam(value = "contentType",
-     * required = false) String contentType)
-     * 
-     * throws NotAuthenticatedException, AccessDeniedException {
-     * if (sessionIdRequired) {
-     * RestApiAccessResponse restApiAccessResponse =
-     * restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
-     * ownerName);
-     * List<String> groups;
-     * if (ownerName == null) {
-     * groups = ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(restApiAccessResponse.
-     * getAuthenticatedUser()
-     * .getGroups());
-     * groups.add(BucketService.DEFAULT_BUCKET_OWNER);
-     * } else {
-     * groups = Collections.singletonList(ownerName);
-     * }
-     * 
-     * return bucketService.listBuckets(groups, kind);
-     * 
-     * } else {
-     * return bucketService.listBuckets(ownerName, kind);
-     * }
-     * }
-     */
 
     @ApiOperation(value = "Delete the empty buckets")
     @RequestMapping(method = DELETE)

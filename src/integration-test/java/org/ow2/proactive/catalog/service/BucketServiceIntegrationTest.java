@@ -29,6 +29,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.After;
 import org.junit.Before;
@@ -98,7 +99,9 @@ public class BucketServiceIntegrationTest {
 
         BucketMetadata emptyBucket = bucketService.createBucket("bucketempty", "emptyBucketTest");
 
-        List<BucketMetadata> emptyBucketTest = bucketService.listBuckets("emptyBucketTest", null, null);
+        List<BucketMetadata> emptyBucketTest = bucketService.listBuckets("emptyBucketTest",
+                                                                         Optional.empty(),
+                                                                         Optional.empty());
         assertThat(emptyBucketTest).hasSize(2);
 
         bucketService.cleanAllEmptyBuckets();
@@ -109,7 +112,9 @@ public class BucketServiceIntegrationTest {
 
     @Test
     public void testGetBucket() {
-        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("BucketServiceIntegrationTest", null, null);
+        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("BucketServiceIntegrationTest",
+                                                                         Optional.empty(),
+                                                                         Optional.empty());
         assertThat(bucketMetadatas).hasSize(1);
         BucketMetadata bucketMetadata = bucketService.getBucketMetadata(bucket.getName());
         assertThat(bucketMetadata).isNotNull();

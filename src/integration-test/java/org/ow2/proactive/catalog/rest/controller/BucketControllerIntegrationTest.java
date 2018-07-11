@@ -79,7 +79,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @After
     public void cleanup() {
-        IntegrationTestUtil.cleanup();
+    //    IntegrationTestUtil.cleanup();
     }
 
     @Test
@@ -230,7 +230,6 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         String bucketIdWithMyObjects = IntegrationTestUtil.createBucket(bucketNameForMyObjects, "owner");
         String bucketIdWithmyObjectsGeneral = IntegrationTestUtil.createBucket(bucketNameForMyObjectsWithGeneralPrefix,
                                                                                "owner");
-
         IntegrationTestUtil.createBucket(bucketNameForEmpty, "owner");
 
         // Add an object of kind "my-object-kind" into specific bucket
@@ -266,6 +265,15 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .statusCode(HttpStatus.SC_OK)
                .body("", hasSize(2));
 
+        // list buckets by specific kind and specified content type -> should return one specified bucket and empty bucket
+        given().param("kind", "my-object-kind")
+               .param("contentType", "my-content")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(1));
+
         // list buckets by prefix kind -> should return two buckets, matching kind pattern, and empty bucket
         given().param("kind", "MY-Object")
                .get(BUCKETS_RESOURCE)
@@ -275,148 +283,74 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .body("", hasSize(3));
     }
 
-    /*
-     * @Test
-     * public void testListBucketsByOwnerIsInContainingKindAndEmptyBucket() throws
-     * UnsupportedEncodingException {
-     * final String BucketAdminOwnerWorkflowKind = "bucket-admin-owner-workflow-kind";
-     * final String BucketAdminOwnerEmptyBucket = "bucket-admin-owner-empty-bucket";
-     * final String BucketAdminOwnerOtherKind = "bucket-admin-owner-other-kind";
-     * final String BucketAdminOwnerMixedKind = "bucket-admin-owner-mixed-kind";
-     * final String BucketUserOwnerWorkflowKind = "bucket-user-owner-workflow-kind";
-     * 
-     * final String adminOwner = "admin";
-     * final String userOwner = "user";
-     * 
-     * String bucketAdminOwnerWorkflowKindId =
-     * IntegrationTestUtil.createBucket(BucketAdminOwnerWorkflowKind,
-     * adminOwner);
-     * IntegrationTestUtil.createBucket(BucketAdminOwnerEmptyBucket, adminOwner);
-     * String BucketAdminOwnerOtherKindId =
-     * IntegrationTestUtil.createBucket(BucketAdminOwnerOtherKind, adminOwner);
-     * String BucketAdminOwnerMixedKindId =
-     * IntegrationTestUtil.createBucket(BucketAdminOwnerMixedKind, adminOwner);
-     * String BucketUserOwnerWorkflowKindId =
-     * IntegrationTestUtil.createBucket(BucketUserOwnerWorkflowKind, userOwner);
-     * 
-     * IntegrationTestUtil.postDefaultWorkflowToBucket(bucketAdminOwnerWorkflowKindId);
-     * IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerOtherKindId,
-     * "other kind",
-     * "my workflow",
-     * "first commit",
-     * MediaType.APPLICATION_ATOM_XML_VALUE,
-     * IntegrationTestUtil.getWorkflowFile("workflow.xml"));
-     * 
-     * IntegrationTestUtil.postDefaultWorkflowToBucket(BucketAdminOwnerMixedKindId);
-     * IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
-     * "other kind",
-     * "other object",
-     * "first commit",
-     * MediaType.APPLICATION_ATOM_XML_VALUE,
-     * IntegrationTestUtil.getWorkflowFile("workflow.xml"));
-     * 
-     * IntegrationTestUtil.postDefaultWorkflowToBucket(BucketUserOwnerWorkflowKindId);
-     * 
-     * // list bucket with the given owner -> should return one only
-     * given().param("owner", adminOwner)
-     * .get(BUCKETS_RESOURCE)
-     * .then()
-     * .assertThat()
-     * .statusCode(HttpStatus.SC_OK)
-     * .body("", hasSize(4));
-     * 
-     * // list bucket with the given kind -> should return the specified buckets and empty buckets
-     * given().param("kind", "workflow")
-     * .get(BUCKETS_RESOURCE)
-     * .then()
-     * .assertThat()
-     * .statusCode(HttpStatus.SC_OK)
-     * .body("", hasSize(4));
-     * 
-     * // list bucket with the given owner and kind of objects inside bucket -> should return the
-     * //specified buckets
-     * given().param("kind", "workflow")
-     * .param("contentType", java.util.Optional.of(null))
-     * .param("owner", adminOwner)
-     * .get(BUCKETS_RESOURCE)
-     * .then()
-     * .assertThat()
-     * .statusCode(HttpStatus.SC_OK)
-     * .body("", hasSize(3));
-     * }
-     */
+    @Test
+    public void testListBucketsByOwnerIsInContainingKindAndEmptyBucket() throws UnsupportedEncodingException {
+        final String BucketAdminOwnerWorkflowKind = "bucket-admin-owner-workflow-kind";
+        final String BucketAdminOwnerEmptyBucket = "bucket-admin-owner-empty-bucket";
+        final String BucketAdminOwnerOtherKind = "bucket-admin-owner-other-kind";
+        final String BucketAdminOwnerMixedKind = "bucket-admin-owner-mixed-kind";
+        final String BucketUserOwnerWorkflowKind = "bucket-user-owner-workflow-kind";
+        final String BucketAdminOwnerContentType = "bucket-admin-owner-content-type";
+        final String BucketUserOwnerContentType = "bucket-user-owner-";
 
-    /*
-     * @Test
-     * public void testListBucketsByOwnerIsInContainingKindAndContentTypeAndEmptyBucket()
-     * throws UnsupportedEncodingException {
-     * final String BucketAdminOwnerWorkflowKind = "bucket-admin-owner-workflow-kind";
-     * final String BucketAdminOwnerEmptyBucket = "bucket-admin-owner-empty-bucket";
-     * final String BucketAdminOwnerOtherKind = "bucket-admin-owner-other-kind";
-     * final String BucketAdminOwnerMixedKind = "bucket-admin-owner-mixed-kind";
-     * final String BucketUserOwnerWorkflowKind = "bucket-user-owner-workflow-kind";
-     * final String BucketUserOwnerWorkflowContentType = "bucket-user-owner-workflow-type";
-     * 
-     * final String adminOwner = "admin";
-     * final String userOwner = "user";
-     * 
-     * String bucketAdminOwnerWorkflowKindId =
-     * IntegrationTestUtil.createBucket(BucketAdminOwnerWorkflowKind,
-     * adminOwner);
-     * IntegrationTestUtil.createBucket(BucketAdminOwnerEmptyBucket, adminOwner);
-     * String BucketAdminOwnerOtherKindId =
-     * IntegrationTestUtil.createBucket(BucketAdminOwnerOtherKind, adminOwner);
-     * String BucketAdminOwnerMixedKindId =
-     * IntegrationTestUtil.createBucket(BucketAdminOwnerMixedKind, adminOwner);
-     * String BucketUserOwnerWorkflowKindId =
-     * IntegrationTestUtil.createBucket(BucketUserOwnerWorkflowKind, userOwner);
-     * 
-     * IntegrationTestUtil.postDefaultWorkflowToBucket(bucketAdminOwnerWorkflowKindId);
-     * IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerOtherKindId,
-     * "other kind",
-     * "my workflow",
-     * "first commit",
-     * MediaType.APPLICATION_ATOM_XML_VALUE,
-     * IntegrationTestUtil.getWorkflowFile("workflow.xml"));
-     * 
-     * IntegrationTestUtil.postDefaultWorkflowToBucket(BucketAdminOwnerMixedKindId);
-     * IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
-     * "other kind",
-     * "other object",
-     * "first commit",
-     * MediaType.APPLICATION_ATOM_XML_VALUE,
-     * IntegrationTestUtil.getWorkflowFile("workflow.xml"));
-     * 
-     * IntegrationTestUtil.postDefaultWorkflowToBucket(BucketUserOwnerWorkflowKindId);
-     * 
-     * // list bucket with the given owner -> should return one only
-     * given().param("owner", adminOwner)
-     * .get(BUCKETS_RESOURCE)
-     * .then()
-     * .assertThat()
-     * .statusCode(HttpStatus.SC_OK)
-     * .body("", hasSize(4));
-     * 
-     * // list bucket with the given kind -> should return the specified buckets and empty buckets
-     * given().param("kind", "workflow")
-     * .get(BUCKETS_RESOURCE)
-     * .then()
-     * .assertThat()
-     * .statusCode(HttpStatus.SC_OK)
-     * .body("", hasSize(4));
-     * 
-     * // list bucket with the given owner and kind of objects inside bucket -> should return the
-     * //specified buckets
-     * given().param("kind", "workflow")
-     * .param("contentType", java.util.Optional.of(null))
-     * .param("owner", adminOwner)
-     * .get(BUCKETS_RESOURCE)
-     * .then()
-     * .assertThat()
-     * .statusCode(HttpStatus.SC_OK)
-     * .body("", hasSize(3));
-     * }
-     */
+        final String adminOwner = "admin";
+        final String userOwner = "user";
+
+        String bucketAdminOwnerWorkflowKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerWorkflowKind,
+                                                                                 adminOwner);
+        IntegrationTestUtil.createBucket(BucketAdminOwnerEmptyBucket, adminOwner);
+        String BucketAdminOwnerOtherKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerOtherKind, adminOwner);
+        String BucketAdminOwnerMixedKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerMixedKind, adminOwner);
+        String BucketUserOwnerWorkflowKindId = IntegrationTestUtil.createBucket(BucketUserOwnerWorkflowKind, userOwner);
+        //String BucketAdminOwnerKindAndContentType = IntegrationTestUtil.createBucket()
+
+        IntegrationTestUtil.postDefaultWorkflowToBucket(bucketAdminOwnerWorkflowKindId);
+        IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerOtherKindId,
+                                               "other kind",
+                                               "my workflow",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postDefaultWorkflowToBucket(BucketAdminOwnerMixedKindId);
+        IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
+                                               "other kind",
+                                               "other object",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postDefaultWorkflowToBucket(BucketUserOwnerWorkflowKindId);
+
+        // list bucket with the given owner -> should return one only
+
+        given().param("owner", adminOwner)
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(4));
+
+        // list bucket with the given kind -> should return the specified buckets and empty
+        // buckets
+        given().param("kind", "workflow")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(4));
+
+        // list bucket with the given owner and kind of objects inside bucket -> should return
+        // the specified buckets
+        given().param("kind", "workflow")
+               .param("owner", adminOwner)
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(3));
+
+    }
 
     @Test
     public void testDeleteEmptyBucket() {
