@@ -67,8 +67,8 @@ public class BucketControllerTest {
 
     @Test
     public void testList() throws Exception {
-        bucketController.list(null, null, null);
-        verify(bucketService, times(1)).listBuckets((String) null, null);
+        bucketController.list(null, null, null, null);
+        verify(bucketService, times(1)).listBuckets((String) null, null, null);
     }
 
     @Test

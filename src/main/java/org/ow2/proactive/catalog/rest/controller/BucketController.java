@@ -123,12 +123,15 @@ public class BucketController {
     public List<BucketMetadata> list(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
-            @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) String kind)
+            @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) String kind,
+            @ApiParam(value = "The content type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) String contentType)
             throws NotAuthenticatedException, AccessDeniedException {
+
         if (sessionIdRequired) {
             RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
                                                                                                                                        ownerName);
             List<String> groups;
+
             if (ownerName == null) {
                 groups = ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(restApiAccessResponse.getAuthenticatedUser()
                                                                                                       .getGroups());
@@ -137,10 +140,10 @@ public class BucketController {
                 groups = Collections.singletonList(ownerName);
             }
 
-            return bucketService.listBuckets(groups, kind);
+            return bucketService.listBuckets(groups, kind, contentType);
 
         } else {
-            return bucketService.listBuckets(ownerName, kind);
+            return bucketService.listBuckets(ownerName, kind, contentType);
         }
     }
 

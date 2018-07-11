@@ -202,6 +202,7 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
             @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
+            @ApiParam(value = "Filter according to content type.") @RequestParam(required = false) Optional<String> contentType,
             @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "name", required = false) Optional<List<String>> names,
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
@@ -236,9 +237,17 @@ public class CatalogObjectController {
             return new ResponseEntity<>(status);
         } else {
             List<CatalogObjectMetadata> metadataList;
-            if (kind.isPresent()) {
+            if (kind.isPresent() && contentType.isPresent()) {
+                metadataList = catalogObjectService.listCatalogObjectsByKindAndContentType(bucketName,
+                                                                                           kind.get(),
+                                                                                           contentType.get());
+            } else if (!kind.isPresent() && contentType.isPresent()) {
+                metadataList = catalogObjectService.listCatalogObjectsByContentType(bucketName, contentType.get());
+            } else if (kind.isPresent() && !contentType.isPresent()) {
                 metadataList = catalogObjectService.listCatalogObjectsByKind(bucketName, kind.get());
-            } else {
+            }
+
+            else {
                 metadataList = catalogObjectService.listCatalogObjects(bucketName);
             }
 

@@ -277,6 +277,26 @@ public class CatalogObjectService {
         return buildMetadataWithLink(result);
     }
 
+    // find catalog objects by kind and content type
+    public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentType(String bucketName, String kind,
+            String contentType) {
+        findBucketByNameAndCheck(bucketName);
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeInBucket(bucketName,
+                                                                                                                                         kind,
+                                                                                                                                         contentType);
+
+        return buildMetadataWithLink(result);
+    }
+
+    // find catalog objects by content type
+    public List<CatalogObjectMetadata> listCatalogObjectsByContentType(String bucketName, String contentType) {
+        findBucketByNameAndCheck(bucketName);
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfContentTypeInBucket(bucketName,
+                                                                                                                                  contentType);
+
+        return buildMetadataWithLink(result);
+    }
+
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {
         findBucketByNameAndCheck(bucketName);
         List<CatalogObjectRevisionEntity> revisions = catalogObjectsNames.stream()
