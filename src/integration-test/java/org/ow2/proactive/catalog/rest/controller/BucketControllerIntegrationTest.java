@@ -308,6 +308,19 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                "bucket-admin-owner-content-type",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
+        IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
+                                               "new-kind",
+                                               "first commit",
+                                               "bucket-admin-owner-content-type",
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
+                "new-kind-2",
+                "other new object",
+                "first commit",
+                "bucket-admin-owner-content-type",
+                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
         IntegrationTestUtil.postDefaultWorkflowToBucket(BucketUserOwnerWorkflowKindId);
 
         // list bucket with the given owner -> should return one only
@@ -326,6 +339,15 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("", hasSize(4));
+
+        // list bucket with the given kind -> should return the specified buckets and empty
+        // buckets
+        given().param("kind", "new-kind")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(1));
 
         // list bucket with the given owner and kind of objects inside bucket -> should return
         // the specified buckets
