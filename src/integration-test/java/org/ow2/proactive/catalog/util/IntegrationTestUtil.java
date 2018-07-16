@@ -136,6 +136,24 @@ public class IntegrationTestUtil {
     /**
      *
      * @param bucketId
+     * @param kind
+     * @param name
+     * @param commitMessage
+     * @param file
+     */
+    public static void postObjectToBucket(String bucketId, String kind, String name, String commitMessage, File file) {
+        given().pathParam("bucketName", bucketId)
+               .queryParam("kind", kind)
+               .queryParam("name", name)
+               .queryParam("commitMessage", commitMessage)
+               .multiPart(file)
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE);
+    }
+
+    /**
+     *
+     * @param bucketId
      */
     public static void postDefaultWorkflowToBucket(String bucketId) {
         postObjectToBucket(bucketId,

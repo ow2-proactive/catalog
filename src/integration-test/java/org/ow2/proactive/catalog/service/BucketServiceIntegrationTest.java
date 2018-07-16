@@ -81,7 +81,7 @@ public class BucketServiceIntegrationTest {
 
     @Test
     public void testThatEmptyOwnerListReturnsAndEmptyListAndDoesNotReturnAnException() {
-        List emptyResult = bucketService.listBuckets(Collections.emptyList(), null);
+        List emptyResult = bucketService.listBuckets(Collections.emptyList(), null, null);
         assertThat(emptyResult).isEmpty();
     }
 
@@ -98,18 +98,18 @@ public class BucketServiceIntegrationTest {
 
         BucketMetadata emptyBucket = bucketService.createBucket("bucketempty", "emptyBucketTest");
 
-        List<BucketMetadata> emptyBucketTest = bucketService.listBuckets("emptyBucketTest", null);
+        List<BucketMetadata> emptyBucketTest = bucketService.listBuckets("emptyBucketTest", null, null);
         assertThat(emptyBucketTest).hasSize(2);
 
         bucketService.cleanAllEmptyBuckets();
-        emptyBucketTest = bucketService.listBuckets("emptyBucketTest", null);
+        emptyBucketTest = bucketService.listBuckets("emptyBucketTest", null, null);
         assertThat(emptyBucketTest).hasSize(1);
         assertThat(emptyBucketTest.get(0).getName()).isEqualTo("bucketnotempty");
     }
 
     @Test
     public void testGetBucket() {
-        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("BucketServiceIntegrationTest", null);
+        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("BucketServiceIntegrationTest", null, null);
         assertThat(bucketMetadatas).hasSize(1);
         BucketMetadata bucketMetadata = bucketService.getBucketMetadata(bucket.getName());
         assertThat(bucketMetadata).isNotNull();
@@ -128,12 +128,12 @@ public class BucketServiceIntegrationTest {
                                                  keyValues,
                                                  null);
 
-        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("owner", null);
+        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("owner", null, null);
         assertThat(bucketMetadatas).hasSize(1);
         assertThat(bucketMetadatas.get(0).getOwner()).isEqualTo(bucket.getOwner());
         assertThat(bucketMetadatas.get(0).getName()).isEqualTo(bucket.getName());
 
-        bucketMetadatas = bucketService.listBuckets((String) null, "workflow");
+        bucketMetadatas = bucketService.listBuckets((String) null, "workflow", null);
         assertThat(bucketMetadatas).hasSize(2);
         assertThat(bucketMetadatas.get(1).getName()).isEqualTo(bucket.getName());
     }
@@ -181,23 +181,25 @@ public class BucketServiceIntegrationTest {
                                                  null);
 
         // test filtering by owner
-        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("owner", null);
+        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("owner", null, null);
         assertThat(bucketMetadatas).hasSize(3);
         assertThat(bucketMetadatas.get(0).getOwner()).isEqualTo(bucket.getOwner());
         assertThat(bucketMetadatas.get(0).getName()).isEqualTo(bucket.getName());
 
         //we expect to get only workflow/pca bucket and empty bucket
-        List<BucketMetadata> bucketMetadatasWfPCA = bucketService.listBuckets((String) null, "Workflow/pca");
+        List<BucketMetadata> bucketMetadatasWfPCA = bucketService.listBuckets((String) null, "Workflow/pca", null);
         assertThat(bucketMetadatasWfPCA).hasSize(2);
         assertThat(bucketMetadatasWfPCA.get(1).getName()).isEqualTo(bucketWfPCA.getName());
 
         //we expect to get only workflow/standard bucket and empty bucket
-        List<BucketMetadata> bucketMetadatasWfStandard = bucketService.listBuckets((String) null, "workflow/STANDARD");
+        List<BucketMetadata> bucketMetadatasWfStandard = bucketService.listBuckets((String) null,
+                                                                                   "workflow/STANDARD",
+                                                                                   null);
         assertThat(bucketMetadatasWfStandard).hasSize(2);
         assertThat(bucketMetadatasWfStandard.get(1).getName()).isEqualTo(bucketWfStandard.getName());
 
         //we expect to get all workflow kind bucket and empty bucket
-        List<BucketMetadata> bucketMetadatasWorkflows = bucketService.listBuckets((String) null, "WORKFLOW");
+        List<BucketMetadata> bucketMetadatasWorkflows = bucketService.listBuckets((String) null, "WORKFLOW", null);
         assertThat(bucketMetadatasWorkflows).hasSize(4);
         assertThat(bucketMetadatasWorkflows.get(1).getName()).isEqualTo(bucket.getName());
     }

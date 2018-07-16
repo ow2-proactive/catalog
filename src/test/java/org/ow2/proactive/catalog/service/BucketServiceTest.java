@@ -78,7 +78,7 @@ public class BucketServiceTest {
 
     @Test
     public void testThatEmptyListIsReturnedIfListAndKindAreNull() {
-        assertThat(bucketService.listBuckets((List<String>) null, null)).isEmpty();
+        assertThat(bucketService.listBuckets((List<String>) null, null, null)).isEmpty();
         verify(bucketRepository, times(0)).findByOwnerIsInContainingKind(any(), any());
         verify(bucketRepository, times(0)).findByOwnerIn(any());
     }
@@ -119,17 +119,17 @@ public class BucketServiceTest {
 
     @Test
     public void testListBucketsNoOwner() throws Exception {
-        listBucket(null, null);
+        listBucket(null, null, null);
     }
 
     @Test
     public void testListBucketsWithOwner() throws Exception {
-        listBucket("toto", null);
+        listBucket("toto", null, null);
     }
 
     @Test
     public void testListBucketsNoOwnerWithKind() throws Exception {
-        listBucket(null, "workflow");
+        listBucket(null, "workflow", null);
     }
 
     @Test
@@ -168,9 +168,9 @@ public class BucketServiceTest {
         verify(bucketRepository, times(1)).findBucketForUpdate("bucket-name");
     }
 
-    private void listBucket(String owner, String kind) {
+    private void listBucket(String owner, String kind, String contentType) {
         when(bucketRepository.findAll()).thenReturn(Collections.emptyList());
-        bucketService.listBuckets(owner, kind);
+        bucketService.listBuckets(owner, kind, contentType);
         if (!StringUtils.isEmpty(owner)) {
             verify(bucketRepository, times(1)).findByOwner(anyString());
         } else if (!StringUtils.isEmpty(kind)) {

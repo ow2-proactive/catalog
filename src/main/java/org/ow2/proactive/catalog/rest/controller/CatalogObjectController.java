@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.rest.controller;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -132,6 +133,25 @@ public class CatalogObjectController {
         }
     }
 
+    @ApiOperation(value = "Update a catalog object metadata, like kind and content type")
+    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
+                            @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied"),
+                            @ApiResponse(code = 400, message = "Wrong specified parameters: at least one should be present") })
+    @RequestMapping(value = "/{name}", method = PUT)
+    @ResponseStatus(HttpStatus.OK)
+    public CatalogObjectMetadata updateObjectMetadata(
+            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @PathVariable String bucketName, @PathVariable String name,
+            @ApiParam(value = "The new kind of an object", required = false) @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @ApiParam(value = "The new content type of an object - MIME type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType)
+            throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
+        if (sessionIdRequired) {
+            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
+        }
+        return catalogObjectService.updateObjectMetadata(bucketName, name, kind, contentType);
+    }
+
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket or catalog object not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
@@ -182,6 +202,7 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
             @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
+            @ApiParam(value = "Filter according to content type.") @RequestParam(required = false) Optional<String> contentType,
             @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "name", required = false) Optional<List<String>> names,
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
@@ -216,9 +237,17 @@ public class CatalogObjectController {
             return new ResponseEntity<>(status);
         } else {
             List<CatalogObjectMetadata> metadataList;
-            if (kind.isPresent()) {
+            if (kind.isPresent() && contentType.isPresent()) {
+                metadataList = catalogObjectService.listCatalogObjectsByKindAndContentType(bucketName,
+                                                                                           kind.get(),
+                                                                                           contentType.get());
+            } else if (!kind.isPresent() && contentType.isPresent()) {
+                metadataList = catalogObjectService.listCatalogObjectsByContentType(bucketName, contentType.get());
+            } else if (kind.isPresent() && !contentType.isPresent()) {
                 metadataList = catalogObjectService.listCatalogObjectsByKind(bucketName, kind.get());
-            } else {
+            }
+
+            else {
                 metadataList = catalogObjectService.listCatalogObjects(bucketName);
             }
 

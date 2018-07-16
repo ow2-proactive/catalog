@@ -47,6 +47,14 @@ public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogOb
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND lower(cor.catalogObject.kind) LIKE lower(concat(?2, '%')) AND cor.catalogObject.lastCommitTime = cor.commitTime")
     List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindInBucket(String bucketName, String kind);
 
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND lower(cor.catalogObject.kind) LIKE lower(concat(?2, '%')) AND lower(cor.catalogObject.contentType) = ?3 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindAndContentTypeInBucket(String bucketName,
+            String kind, String contentType);
+
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND lower(cor.catalogObject.contentType) = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfContentTypeInBucket(String bucketName,
+            String contentType);
+
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.id.name = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
     CatalogObjectRevisionEntity findDefaultCatalogObjectByNameInBucket(String bucketName, String name);
 

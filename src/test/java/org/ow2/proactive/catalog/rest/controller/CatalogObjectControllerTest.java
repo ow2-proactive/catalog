@@ -94,7 +94,12 @@ public class CatalogObjectControllerTest {
         ZipArchiveContent content = new ZipArchiveContent();
         content.setContent(new byte[0]);
         when(catalogObjectService.getCatalogObjectsAsZipArchive("bucket-name", nameList)).thenReturn(content);
-        catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.of(nameList), response);
+        catalogObjectController.list("",
+                                     "bucket-name",
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.of(nameList),
+                                     response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
         verify(response, times(1)).setContentType("application/zip");
@@ -116,7 +121,12 @@ public class CatalogObjectControllerTest {
         content.setContent(new byte[0]);
         content.setPartial(true);
         when(catalogObjectService.getCatalogObjectsAsZipArchive("bucket-name", nameList)).thenReturn(content);
-        catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.of(nameList), response);
+        catalogObjectController.list("",
+                                     "bucket-name",
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.of(nameList),
+                                     response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
         verify(response, never()).setStatus(HttpServletResponse.SC_OK);
     }
@@ -128,7 +138,7 @@ public class CatalogObjectControllerTest {
         when(response.getOutputStream()).thenReturn(sos);
         BucketEntity bucket = mock(BucketEntity.class);
         when(bucketRepository.findOneByBucketName("bucket-name")).thenReturn(bucket);
-        catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.empty(), response);
+        catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.empty(), Optional.empty(), response);
         verify(catalogObjectService, times(1)).listCatalogObjects(anyString());
     }
 

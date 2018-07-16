@@ -34,6 +34,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.tika.detect.Detector;
@@ -54,6 +55,7 @@ import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingE
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
+import org.ow2.proactive.catalog.service.exception.WrongParametersException;
 import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
@@ -152,6 +154,21 @@ public class CatalogObjectService {
             log.warn("there is a problem of identifying mime type for the file from archive : " + file.getName(), e);
         }
         return mediaType.toString();
+    }
+
+    public CatalogObjectMetadata updateObjectMetadata(String bucketName, String name, Optional<String> kind,
+            Optional<String> contentType) {
+        findBucketByNameAndCheck(bucketName);
+        CatalogObjectRevisionEntity catalogObjectRevisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName,
+                                                                                                           name);
+        if (!kind.isPresent() && !contentType.isPresent()) {
+            throw new WrongParametersException("at least one parameter should be present");
+        }
+        CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
+        kind.ifPresent(catalogObjectEntity::setKind);
+        contentType.ifPresent(catalogObjectEntity::setContentType);
+        catalogObjectRepository.save(catalogObjectEntity);
+        return new CatalogObjectMetadata(catalogObjectEntity);
     }
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
@@ -256,6 +273,26 @@ public class CatalogObjectService {
         findBucketByNameAndCheck(bucketName);
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindInBucket(bucketName,
                                                                                                                            kind);
+
+        return buildMetadataWithLink(result);
+    }
+
+    // find catalog objects by kind and content type
+    public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentType(String bucketName, String kind,
+            String contentType) {
+        findBucketByNameAndCheck(bucketName);
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeInBucket(bucketName,
+                                                                                                                                         kind,
+                                                                                                                                         contentType);
+
+        return buildMetadataWithLink(result);
+    }
+
+    // find catalog objects by content type
+    public List<CatalogObjectMetadata> listCatalogObjectsByContentType(String bucketName, String contentType) {
+        findBucketByNameAndCheck(bucketName);
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfContentTypeInBucket(bucketName,
+                                                                                                                                  contentType);
 
         return buildMetadataWithLink(result);
     }
