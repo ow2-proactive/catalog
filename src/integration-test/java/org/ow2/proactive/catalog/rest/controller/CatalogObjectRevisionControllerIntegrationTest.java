@@ -179,7 +179,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY)
-               .body("error_message", containsString(ParsingObjectException.ERROR_MESSAGE));
+               .body(ERROR_MESSAGE, containsString(ParsingObjectException.ERROR_MESSAGE));
     }
 
     @Test
@@ -217,8 +217,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
-                     equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
+               .body(ERROR_MESSAGE, equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
     }
 
     @Test
@@ -317,9 +316,9 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message", equalTo(new RevisionNotFoundException("non-existing",
-                                                                            "object-name",
-                                                                            1).getLocalizedMessage()));
+               .body(ERROR_MESSAGE, equalTo(new RevisionNotFoundException("non-existing",
+                                                                          "object-name",
+                                                                          1).getLocalizedMessage()));
     }
 
     @Test
@@ -332,9 +331,9 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName(),
-                                                                            "object-name",
-                                                                            1).getLocalizedMessage()));
+               .body(ERROR_MESSAGE, equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                                          "object-name",
+                                                                          1).getLocalizedMessage()));
     }
 
     @Test
@@ -347,9 +346,10 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName(),
-                                                                            "workflow_test",
-                                                                            1).getLocalizedMessage()));
+               .body(ERROR_MESSAGE,
+                     equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                           "workflow_test",
+                                                           1).getLocalizedMessage()));
     }
 
     @Test
@@ -362,9 +362,10 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName(),
-                                                                            "workflow_test",
-                                                                            1).getLocalizedMessage()));
+               .body(ERROR_MESSAGE,
+                     equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                           "workflow_test",
+                                                           1).getLocalizedMessage()));
     }
 
     @Test
@@ -377,9 +378,10 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName(),
-                                                                            "workflow_test",
-                                                                            42).getLocalizedMessage()));
+               .body(ERROR_MESSAGE,
+                     equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                           "workflow_test",
+                                                           42).getLocalizedMessage()));
     }
 
     @Test
@@ -392,9 +394,10 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName(),
-                                                                            "workflow_test",
-                                                                            42).getLocalizedMessage()));
+               .body(ERROR_MESSAGE,
+                     equalTo(new RevisionNotFoundException(bucket.getName(),
+                                                           "workflow_test",
+                                                           42).getLocalizedMessage()));
     }
 
     @Test
@@ -512,9 +515,9 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message", equalTo(new RevisionNotFoundException(bucket.getName() + 1,
-                                                                            "restoredworkflow",
-                                                                            0).getLocalizedMessage()));
+               .body(ERROR_MESSAGE, equalTo(new RevisionNotFoundException(bucket.getName() + 1,
+                                                                          "restoredworkflow",
+                                                                          0).getLocalizedMessage()));
 
         //Check wrong bucketName
         given().pathParam("bucketName", bucket.getName())
@@ -525,7 +528,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
+               .body(ERROR_MESSAGE,
                      equalTo(new RevisionNotFoundException(bucket.getName(),
                                                            "wrongrestoredworkflow",
                                                            Long.valueOf(commitTime)).getLocalizedMessage()));
@@ -539,7 +542,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body("error_message",
+               .body(ERROR_MESSAGE,
                      equalTo(new RevisionNotFoundException(bucket.getName(),
                                                            "restoredworkflow",
                                                            Long.valueOf(commitTime + 1)).getLocalizedMessage()));

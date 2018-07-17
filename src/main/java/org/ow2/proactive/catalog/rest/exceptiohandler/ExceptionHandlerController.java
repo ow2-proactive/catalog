@@ -25,6 +25,9 @@
  */
 package org.ow2.proactive.catalog.rest.exceptiohandler;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.core.annotation.AnnotationUtils;
@@ -57,7 +60,8 @@ public class ExceptionHandlerController {
 
         return ResponseEntity.status(responseStatusCode)
                              .body(new ExceptionRepresentation(responseStatusCode.value(),
-                                                               exception.getLocalizedMessage()));
+                                                               exception.getLocalizedMessage(),
+                                                               getStackTrace(exception)));
     }
 
     HttpStatus resolveAnnotatedResponseStatus(Exception exception) throws Exception {
@@ -66,5 +70,12 @@ public class ExceptionHandlerController {
             return annotation.code();
         } else
             throw exception;
+    }
+
+    private String getStackTrace(final Throwable throwable) {
+        final StringWriter sw = new StringWriter();
+        final PrintWriter pw = new PrintWriter(sw, true);
+        throwable.printStackTrace(pw);
+        return sw.getBuffer().toString();
     }
 }
