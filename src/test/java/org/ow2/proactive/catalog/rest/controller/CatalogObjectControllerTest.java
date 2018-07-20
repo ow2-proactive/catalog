@@ -27,7 +27,6 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -54,6 +53,7 @@ import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
+import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
@@ -83,6 +83,9 @@ public class CatalogObjectControllerTest {
 
     @Mock
     private RawObjectResponseCreator rawObjectResponseCreator;
+
+    @Mock
+    private RestApiAccessService restApiAccessService;
 
     @Test
     public void testGetCatalogObjectsAsArchive() throws IOException, NotAuthenticatedException, AccessDeniedException {
@@ -153,6 +156,9 @@ public class CatalogObjectControllerTest {
                                                           Collections.emptyList(),
                                                           new byte[0]);
         ResponseEntity responseEntity = ResponseEntity.ok().body(1);
+
+        when(restApiAccessService.isAPublicBucket(anyString())).thenReturn(true);
+
         when(catalogObjectService.getCatalogRawObject(anyString(), anyString())).thenReturn(rawObject);
         when(rawObjectResponseCreator.createRawObjectResponse(rawObject)).thenReturn(responseEntity);
         ResponseEntity responseEntityFromController = catalogObjectController.getRaw("", "bucket-name", "name");
