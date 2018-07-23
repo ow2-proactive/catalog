@@ -99,6 +99,12 @@ public class CatalogObjectServiceTest {
     }
 
     @Test
+    public void testGetKinds() {
+        catalogObjectRepository.findAllKinds();
+        verify(catalogObjectRepository, times(1)).findAllKinds();
+    }
+
+    @Test
     public void testCreateCatalogObject() {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);

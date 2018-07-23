@@ -401,6 +401,10 @@ public class CatalogObjectService {
         return new CatalogObjectMetadata(restoredRevision);
     }
 
+    public List<String> getKinds() {
+        return catalogObjectRepository.findAllKinds();
+    }
+
     @VisibleForTesting
     protected CatalogObjectRevisionEntity getCatalogObjectRevisionEntityByCommitTime(String bucketName, String name,
             long commitTime) {

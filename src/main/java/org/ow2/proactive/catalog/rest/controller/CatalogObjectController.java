@@ -75,8 +75,9 @@ import lombok.extern.log4j.Log4j2;
  */
 @RestController
 @Log4j2
-@RequestMapping(value = "/buckets/{bucketName}/resources")
 public class CatalogObjectController {
+
+    private static final String REQUEST_API_QUERY = "/buckets/{bucketName}/resources";
 
     @Autowired
     private CatalogObjectService catalogObjectService;
@@ -95,7 +96,7 @@ public class CatalogObjectController {
     @ApiOperation(value = "Creates a new catalog object")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
                             @ApiResponse(code = 422, message = "Invalid file content supplied") })
-    @RequestMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
+    @RequestMapping(value = REQUEST_API_QUERY, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public CatalogObjectMetadataList create(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
@@ -133,12 +134,19 @@ public class CatalogObjectController {
         }
     }
 
+    @ApiOperation(value = "Lists all kinds for all objects")
+    @RequestMapping(value = "/kinds", method = GET)
+    @ResponseStatus(HttpStatus.OK)
+    public List<String> listKinds() {
+        return catalogObjectService.getKinds();
+    }
+
     @ApiOperation(value = "Update a catalog object metadata, like kind and content type")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"),
                             @ApiResponse(code = 400, message = "Wrong specified parameters: at least one should be present") })
-    @RequestMapping(value = "/{name}", method = PUT)
+    @RequestMapping(value = REQUEST_API_QUERY + "/{name}", method = PUT)
     @ResponseStatus(HttpStatus.OK)
     public CatalogObjectMetadata updateObjectMetadata(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
@@ -157,7 +165,7 @@ public class CatalogObjectController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/{name}", method = GET)
+    @RequestMapping(value = REQUEST_API_QUERY + "/{name}", method = GET)
     public CatalogObjectMetadata get(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name) throws MalformedURLException,
@@ -178,7 +186,7 @@ public class CatalogObjectController {
                             @ApiResponse(code = 403, message = "Permission denied"),
                             @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found") })
 
-    @RequestMapping(value = "/{name}/raw", method = GET, produces = MediaType.ALL_VALUE)
+    @RequestMapping(value = REQUEST_API_QUERY + "/{name}/raw", method = GET, produces = MediaType.ALL_VALUE)
     public ResponseEntity<String> getRaw(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name)
@@ -197,7 +205,7 @@ public class CatalogObjectController {
                             @ApiResponse(code = 206, message = "Missing object"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
-    @RequestMapping(method = GET)
+    @RequestMapping(value = REQUEST_API_QUERY, method = GET)
     public ResponseEntity<List<CatalogObjectMetadata>> list(
             @ApiParam(value = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
@@ -264,7 +272,7 @@ public class CatalogObjectController {
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket or object not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
-    @RequestMapping(value = "/{name}", method = DELETE)
+    @RequestMapping(value = REQUEST_API_QUERY + "/{name}", method = DELETE)
     public CatalogObjectMetadata delete(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name)

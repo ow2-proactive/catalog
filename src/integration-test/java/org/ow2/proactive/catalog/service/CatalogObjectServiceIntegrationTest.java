@@ -130,6 +130,23 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
+    public void testGetAllKinds() {
+        List<String> listKinds = catalogObjectService.getKinds();
+        assertThat(listKinds).hasSize(2);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "object-name-4",
+                                                 "workflow/new",
+                                                 "commit message",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray);
+        listKinds = catalogObjectService.getKinds();
+        assertThat(listKinds).hasSize(3);
+        assertThat(listKinds).contains("workflow/new");
+    }
+
+    @Test
     public void testUpdateObjectMetadata() {
         CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucket.getName(),
                                                                                                 "object-name-1",

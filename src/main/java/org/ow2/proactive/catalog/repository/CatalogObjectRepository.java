@@ -25,10 +25,13 @@
  */
 package org.ow2.proactive.catalog.repository;
 
+import java.util.List;
+
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 
 
@@ -41,4 +44,7 @@ public interface CatalogObjectRepository
 
     @EntityGraph("catalogObject.withRevisions")
     CatalogObjectEntity readCatalogObjectRevisionsById(CatalogObjectEntity.CatalogObjectEntityKey key);
+
+    @Query(value = "SELECT DISTINCT cos.kind FROM CatalogObjectEntity cos")
+    List<String> findAllKinds();
 }
