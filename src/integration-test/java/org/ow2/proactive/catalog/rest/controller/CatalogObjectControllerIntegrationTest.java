@@ -36,8 +36,10 @@ import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_E
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -181,6 +183,51 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("bucket_name", is(bucket.getName()))
                .body("kind", is("updated-kind"))
                .body("content_type", is("updated-contentType"));
+    }
+
+    @Test
+    public void testGetAllKindsFromCatalog() {
+        // Add an object of kind "workflow" into first bucket
+        // The object with same kind should be already present in catalog
+        given().pathParam("bucketName", bucket.getName())
+                .queryParam("kind", "workflow")
+                .queryParam("name", "new workflow")
+                .queryParam("commitMessage", "commit message")
+                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+                .when()
+                .post(CATALOG_OBJECTS_RESOURCE)
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        List<String> allKinds = new ArrayList<>();
+        allKinds.add("workflow");
+        given().when()
+                .get("/kinds")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("", is(allKinds));
+
+        String otherKind = "workflow new kind";
+        given().pathParam("bucketName", bucket.getName())
+                .queryParam("kind", otherKind)
+                .queryParam("name", "new object")
+                .queryParam("commitMessage", "commit message")
+                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+                .when()
+                .post(CATALOG_OBJECTS_RESOURCE)
+                .then()
+                .statusCode(HttpStatus.SC_CREATED);
+
+        allKinds.add(otherKind);
+        given().when()
+                .get("/kinds")
+                .then()
+                .assertThat()
+                .statusCode(HttpStatus.SC_OK)
+                .body("", is(allKinds));
     }
 
     @Test

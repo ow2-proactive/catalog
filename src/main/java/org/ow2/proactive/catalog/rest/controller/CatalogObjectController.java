@@ -135,10 +135,11 @@ public class CatalogObjectController {
     }
 
     @ApiOperation(value = "Lists all kinds for all objects")
-    @RequestMapping(value = "/kinds", method = GET)
+    @RequestMapping(value = "/kinds", method = GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    public List<String> listKinds() {
-        return catalogObjectService.getKinds();
+    public ResponseEntity<List<String>> listKinds() {
+        List<String> allKinds = catalogObjectService.getKinds();
+        return ResponseEntity.ok(allKinds);
     }
 
     @ApiOperation(value = "Update a catalog object metadata, like kind and content type")
