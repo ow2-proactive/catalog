@@ -190,49 +190,39 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         // Add an object of kind "workflow" into first bucket
         // The object with same kind should be already present in catalog
         given().pathParam("bucketName", bucket.getName())
-                .queryParam("kind", "workflow")
-                .queryParam("name", "new workflow")
-                .queryParam("commitMessage", "commit message")
-                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
-                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
-                .when()
-                .post(CATALOG_OBJECTS_RESOURCE)
-                .then()
-                .statusCode(HttpStatus.SC_CREATED);
+               .queryParam("kind", "workflow")
+               .queryParam("name", "new workflow")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
 
         List<String> allKinds = new ArrayList<>();
         allKinds.add("workflow");
-        given().when()
-                .get("/kinds")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("", is(allKinds));
+        given().when().get("/kinds").then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
 
         String otherKind = "workflow new kind";
         given().pathParam("bucketName", bucket.getName())
-                .queryParam("kind", otherKind)
-                .queryParam("name", "new object")
-                .queryParam("commitMessage", "commit message")
-                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
-                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
-                .when()
-                .post(CATALOG_OBJECTS_RESOURCE)
-                .then()
-                .statusCode(HttpStatus.SC_CREATED);
+               .queryParam("kind", otherKind)
+               .queryParam("name", "new object")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
 
         allKinds.add(otherKind);
-        given().when()
-                .get("/kinds")
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body("", is(allKinds));
+        given().when().get("/kinds").then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
     }
 
     @Test
     public void testCreateWorkflowWithSpecificSymbolsInNameAndCheckReturnSavedWorkflow() throws IOException {
-        String objectNameWithSpecificSymbols = "workflow$with&specific&symbols+in name:$&%ae";
+        String objectNameWithSpecificSymbols = "workflow$with&specific&symbols+in name:$&%ae.extension";
         String encodedObjectName = URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8")
                                              .replace(SPACE_ENCODED_AS_PLUS, SPACE_ENCODED_AS_PERCENT_20);
 
