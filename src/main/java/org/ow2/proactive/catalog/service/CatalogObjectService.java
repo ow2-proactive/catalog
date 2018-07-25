@@ -35,6 +35,8 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.tika.detect.Detector;
@@ -62,6 +64,7 @@ import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,7 +82,6 @@ import lombok.extern.log4j.Log4j2;
 @Service
 @Transactional
 public class CatalogObjectService {
-
     @Autowired
     private CatalogObjectRepository catalogObjectRepository;
 
@@ -100,6 +102,9 @@ public class CatalogObjectService {
 
     @Autowired
     private RevisionCommitMessageBuilder revisionCommitMessageBuilder;
+
+    @Value("${kind.separator}")
+    protected String kindSeparator;
 
     private AutoDetectParser mediaTypeFileParser = new AutoDetectParser();
 
@@ -399,6 +404,29 @@ public class CatalogObjectService {
                                                                                         catalogObjectRevision.getCatalogObject());
 
         return new CatalogObjectMetadata(restoredRevision);
+    }
+
+    /**
+     * Method returns all ordered stored kinds for all objects in catalog
+     * @return unique set of kinds with root kind
+     * for example kinds: a/b, a/c, d/f/g
+     * should return a, a/b, a/c, d, d/f, d/f/g
+     */
+    public TreeSet<String> getKinds() {
+        Set<String> allStoredKinds = catalogObjectRepository.findAllKinds();
+        TreeSet<String> resultKinds = new TreeSet<>();
+
+        allStoredKinds.stream().forEach(kind -> {
+            String[] splittedKinds = kind.split(kindSeparator);
+            StringBuilder rootKinds = new StringBuilder();
+            for (int i = 0; i < splittedKinds.length - 1; i++) {
+                rootKinds.append(splittedKinds[i]);
+                resultKinds.add(rootKinds.toString());
+                rootKinds.append(kindSeparator);
+            }
+            resultKinds.add(kind);
+        });
+        return resultKinds;
     }
 
     @VisibleForTesting

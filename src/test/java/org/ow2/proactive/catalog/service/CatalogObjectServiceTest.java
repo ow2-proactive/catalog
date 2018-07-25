@@ -37,6 +37,8 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -96,6 +98,28 @@ public class CatalogObjectServiceTest {
     public void testCreateCatalogObjectWithInvalidBucket() {
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
         catalogObjectService.createCatalogObject("bucket", NAME, OBJECT, COMMIT_MESSAGE, APPLICATION_XML, null);
+    }
+
+    /**
+     * for example kinds: a/b, a/c, d/f/g
+     * should return a, a/b, a/c, d, d/f, d/f/g
+     */
+    @Test
+    public void testGetKinds() {
+        TreeSet<String> storedKinds = new TreeSet<>();
+        storedKinds.add("a/b");
+        storedKinds.add("a/c");
+        storedKinds.add("d/f/g");
+        when(catalogObjectRepository.findAllKinds()).thenReturn(storedKinds);
+        catalogObjectService.kindSeparator = "/";
+        Set<String> returnedKinds = catalogObjectService.getKinds();
+        verify(catalogObjectRepository, times(1)).findAllKinds();
+        storedKinds.add("a");
+        storedKinds.add("d");
+        storedKinds.add("d/f");
+        System.out.println(storedKinds);
+        System.out.println(returnedKinds);
+        assertThat(storedKinds).isEqualTo(returnedKinds);
     }
 
     @Test

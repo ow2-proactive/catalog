@@ -33,6 +33,7 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
@@ -127,6 +128,23 @@ public class CatalogObjectServiceIntegrationTest {
     public void testListCatalogObjectsInBucket() {
         List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjects(bucket.getName());
         assertThat(catalogObjects).hasSize(3);
+    }
+
+    @Test
+    public void testGetAllKinds() {
+        Set<String> listKinds = catalogObjectService.getKinds();
+        assertThat(listKinds).hasSize(2);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "object-name-4",
+                                                 "workflow/new",
+                                                 "commit message",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray);
+        listKinds = catalogObjectService.getKinds();
+        assertThat(listKinds).hasSize(3);
+        assertThat(listKinds).contains("workflow/new");
     }
 
     @Test

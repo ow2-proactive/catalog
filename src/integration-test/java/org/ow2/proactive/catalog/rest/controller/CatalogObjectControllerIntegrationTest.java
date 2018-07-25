@@ -36,8 +36,10 @@ import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_E
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -57,6 +59,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.io.ByteStreams;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.response.ValidatableResponse;
@@ -181,6 +184,60 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("bucket_name", is(bucket.getName()))
                .body("kind", is("updated-kind"))
                .body("content_type", is("updated-contentType"));
+    }
+
+    @Test
+    public void testGetAllKindsFromCatalog() throws JsonProcessingException {
+        // Add an object of kind "workflow" into first bucket
+        // The object with same kind should be already present in catalog
+        String workflowKind = "workflow";
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", workflowKind)
+               .queryParam("name", "new workflow")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+        List<String> allKinds = new ArrayList<>();
+        allKinds.add(workflowKind);
+        given().when().get("/kinds").then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
+
+        String newKindMy = "workflow/new_kind/my";
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", newKindMy)
+               .queryParam("name", "new object")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+        allKinds.add("workflow/new_kind");
+        allKinds.add(newKindMy);
+        given().when().get("/kinds").then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
+
+        String newKindNotMine = "workflow/new_kind/not-my";
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", newKindNotMine)
+               .queryParam("name", "new not my object")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        List<String> allKindsWithRoots = new ArrayList<>();
+        allKindsWithRoots.add(workflowKind);
+        allKindsWithRoots.add("workflow/new_kind");
+        allKindsWithRoots.add(newKindMy);
+        allKindsWithRoots.add(newKindNotMine);
+        given().when().get("/kinds").then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKindsWithRoots));
     }
 
     @Test
