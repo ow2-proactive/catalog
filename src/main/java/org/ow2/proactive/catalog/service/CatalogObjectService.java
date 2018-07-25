@@ -33,10 +33,10 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.tika.detect.Detector;
@@ -407,28 +407,24 @@ public class CatalogObjectService {
     }
 
     /**
-     * Method returns all stored kinds for all objects in catalog
+     * Method returns all ordered stored kinds for all objects in catalog
      * @return unique set of kinds with root kind
      * for example kinds: a/b, a/c, d/f/g
-     * should return a/b, a/c, d/f/g, a
+     * should return a, a/b, a/c, d, d/f, d/f/g
      */
-    public Set<String> getKinds() {
+    public TreeSet<String> getKinds() {
         Set<String> allStoredKinds = catalogObjectRepository.findAllKinds();
-        Set<String> resultKinds = new HashSet<>(allStoredKinds);
-        Set<String> firstTimeSeenKindsWithRoot = new HashSet<>();
+        TreeSet<String> resultKinds = new TreeSet<>();
+
         allStoredKinds.stream().forEach(kind -> {
             String[] splittedKinds = kind.split(kindSeparator);
             StringBuilder rootKinds = new StringBuilder();
             for (int i = 0; i < splittedKinds.length - 1; i++) {
                 rootKinds.append(splittedKinds[i]);
-                if (!firstTimeSeenKindsWithRoot.contains(rootKinds.toString())) {
-                    firstTimeSeenKindsWithRoot.add(rootKinds.toString());
-                } else {
-                    //already has this root kind
-                    resultKinds.add(rootKinds.toString());
-                }
+                resultKinds.add(rootKinds.toString());
                 rootKinds.append(kindSeparator);
             }
+            resultKinds.add(kind);
         });
         return resultKinds;
     }

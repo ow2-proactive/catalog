@@ -216,6 +216,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
                .statusCode(HttpStatus.SC_CREATED);
+        allKinds.add("workflow/new_kind");
         allKinds.add(newKindMy);
         given().when().get("/kinds").then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
 
