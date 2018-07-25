@@ -33,6 +33,7 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
@@ -131,7 +132,7 @@ public class CatalogObjectServiceIntegrationTest {
 
     @Test
     public void testGetAllKinds() {
-        List<String> listKinds = catalogObjectService.getKinds();
+        Set<String> listKinds = catalogObjectService.getKinds();
         assertThat(listKinds).hasSize(2);
 
         catalogObjectService.createCatalogObject(bucket.getName(),

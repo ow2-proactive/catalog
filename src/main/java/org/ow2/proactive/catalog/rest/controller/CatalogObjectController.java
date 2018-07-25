@@ -35,6 +35,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -137,8 +138,8 @@ public class CatalogObjectController {
     @ApiOperation(value = "Lists all kinds for all objects")
     @RequestMapping(value = "/kinds", method = GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<String>> listKinds() {
-        List<String> allKinds = catalogObjectService.getKinds();
+    public ResponseEntity<Set<String>> listKinds() {
+        Set<String> allKinds = catalogObjectService.getKinds();
         return ResponseEntity.ok(allKinds);
     }
 

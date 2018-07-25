@@ -25,7 +25,7 @@
  */
 package org.ow2.proactive.catalog.repository;
 
-import java.util.List;
+import java.util.Set;
 
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -46,5 +46,5 @@ public interface CatalogObjectRepository
     CatalogObjectEntity readCatalogObjectRevisionsById(CatalogObjectEntity.CatalogObjectEntityKey key);
 
     @Query(value = "SELECT DISTINCT cos.kind FROM CatalogObjectEntity cos")
-    List<String> findAllKinds();
+    Set<String> findAllKinds();
 }

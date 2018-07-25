@@ -35,8 +35,10 @@ import static org.mockito.Mockito.when;
 
 import java.time.ZoneId;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -98,10 +100,22 @@ public class CatalogObjectServiceTest {
         catalogObjectService.createCatalogObject("bucket", NAME, OBJECT, COMMIT_MESSAGE, APPLICATION_XML, null);
     }
 
+    /**
+     * for example kinds: a/b, a/c, d/f/g
+     * should return a/b, a/c, d/f/g, a
+     */
     @Test
     public void testGetKinds() {
-        catalogObjectRepository.findAllKinds();
+        Set<String> storedKinds = new HashSet<>();
+        storedKinds.add("a/b");
+        storedKinds.add("a/c");
+        storedKinds.add("d/f/g");
+        when(catalogObjectRepository.findAllKinds()).thenReturn(storedKinds);
+        catalogObjectService.kindSeparator = "/";
+        Set<String> returnedKinds = catalogObjectService.getKinds();
         verify(catalogObjectRepository, times(1)).findAllKinds();
+        storedKinds.add("a");
+        assertThat(storedKinds).isEqualTo(returnedKinds);
     }
 
     @Test
