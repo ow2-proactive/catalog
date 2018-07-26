@@ -76,9 +76,10 @@ import lombok.extern.log4j.Log4j2;
  */
 @RestController
 @Log4j2
+@RequestMapping(value = "/buckets")
 public class CatalogObjectController {
 
-    private static final String REQUEST_API_QUERY = "/buckets/{bucketName}/resources";
+    private static final String REQUEST_API_QUERY = "/{bucketName}/resources";
 
     @Autowired
     private CatalogObjectService catalogObjectService;
