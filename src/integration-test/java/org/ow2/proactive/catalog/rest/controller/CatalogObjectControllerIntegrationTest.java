@@ -190,6 +190,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     public void testGetAllKindsFromCatalog() throws JsonProcessingException {
         // Add an object of kind "workflow" into first bucket
         // The object with same kind should be already present in catalog
+        String kindsQuery = "/buckets/kinds";
         String workflowKind = "workflow";
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", workflowKind)
@@ -203,7 +204,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_CREATED);
         List<String> allKinds = new ArrayList<>();
         allKinds.add(workflowKind);
-        given().when().get("/kinds").then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
+        given().when().get(kindsQuery).then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
 
         String newKindMy = "workflow/new_kind/my";
         given().pathParam("bucketName", bucket.getName())
@@ -218,7 +219,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_CREATED);
         allKinds.add("workflow/new_kind");
         allKinds.add(newKindMy);
-        given().when().get("/kinds").then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
+        given().when().get(kindsQuery).then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
 
         String newKindNotMine = "workflow/new_kind/not-my";
         given().pathParam("bucketName", bucket.getName())
@@ -237,7 +238,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         allKindsWithRoots.add("workflow/new_kind");
         allKindsWithRoots.add(newKindMy);
         allKindsWithRoots.add(newKindNotMine);
-        given().when().get("/kinds").then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKindsWithRoots));
+        given().when().get(kindsQuery).then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKindsWithRoots));
     }
 
     @Test
