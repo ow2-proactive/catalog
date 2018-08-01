@@ -93,7 +93,7 @@ public class CatalogObjectReportController {
 
         byte[] content = catalogObjectReportService.generateBytesReport(authorisedBucketsNames, kind, contentType);
 
-        response.addHeader("Content-size", new Integer(content.length).toString());
+        response.addHeader("Content-size", Integer.toString(content.length));
         response.setCharacterEncoding("UTF-8");
 
         response.getOutputStream().write(content);
