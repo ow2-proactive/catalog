@@ -25,7 +25,7 @@
  */
 package org.ow2.proactive.catalog;
 
-import static springfox.documentation.schema.AlternateTypeRules.*;
+import static springfox.documentation.schema.AlternateTypeRules.newRule;
 
 import java.io.File;
 
@@ -91,6 +91,7 @@ public class Application extends WebMvcConfigurerAdapter {
     private String dataSourcePassword;
 
     public static void main(String[] args) {
+        System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
         SpringApplication.run(Application.class, args);
     }
 

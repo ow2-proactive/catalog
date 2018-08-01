@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -181,7 +182,7 @@ public class CatalogObjectService {
 
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
 
-        CatalogObjectRevisionEntity catalogObjectEntityCheck = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketName,
+        CatalogObjectRevisionEntity catalogObjectEntityCheck = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Arrays.asList(bucketName),
                                                                                                                                       name);
         if (catalogObjectEntityCheck != null) {
             throw new CatalogObjectAlreadyExistingException(bucketName, name);
@@ -213,7 +214,7 @@ public class CatalogObjectService {
     }
 
     private CatalogObjectRevisionEntity findCatalogObjectByNameAndBucketAndCheck(String bucketName, String name) {
-        CatalogObjectRevisionEntity catalogObject = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketName,
+        CatalogObjectRevisionEntity catalogObject = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Arrays.asList(bucketName),
                                                                                                                            name);
         if (catalogObject == null) {
             throw new CatalogObjectNotFoundException(bucketName, name);
@@ -263,9 +264,9 @@ public class CatalogObjectService {
         return GenericInfoBucketData.builder().bucketName(bucket.getBucketName()).group(bucket.getOwner()).build();
     }
 
-    public List<CatalogObjectMetadata> listCatalogObjects(String bucketName) {
-        findBucketByNameAndCheck(bucketName);
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketName);
+    public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketNames) {
+        bucketNames.stream().forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames);
 
         return buildMetadataWithLink(result);
     }
@@ -274,19 +275,19 @@ public class CatalogObjectService {
         return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
-    public List<CatalogObjectMetadata> listCatalogObjectsByKind(String bucketName, String kind) {
-        findBucketByNameAndCheck(bucketName);
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindInBucket(bucketName,
+    public List<CatalogObjectMetadata> listCatalogObjectsByKind(List<String> bucketNames, String kind) {
+        bucketNames.stream().forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindInBucket(bucketNames,
                                                                                                                            kind);
 
         return buildMetadataWithLink(result);
     }
 
     // find catalog objects by kind and content type
-    public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentType(String bucketName, String kind,
+    public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentType(List<String> bucketNames, String kind,
             String contentType) {
-        findBucketByNameAndCheck(bucketName);
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeInBucket(bucketName,
+        bucketNames.stream().forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeInBucket(bucketNames,
                                                                                                                                          kind,
                                                                                                                                          contentType);
 
@@ -294,9 +295,9 @@ public class CatalogObjectService {
     }
 
     // find catalog objects by content type
-    public List<CatalogObjectMetadata> listCatalogObjectsByContentType(String bucketName, String contentType) {
-        findBucketByNameAndCheck(bucketName);
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfContentTypeInBucket(bucketName,
+    public List<CatalogObjectMetadata> listCatalogObjectsByContentType(List<String> bucketNames, String contentType) {
+        bucketNames.stream().forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfContentTypeInBucket(bucketNames,
                                                                                                                                   contentType);
 
         return buildMetadataWithLink(result);
@@ -305,7 +306,7 @@ public class CatalogObjectService {
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {
         findBucketByNameAndCheck(bucketName);
         List<CatalogObjectRevisionEntity> revisions = catalogObjectsNames.stream()
-                                                                         .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketName,
+                                                                         .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Arrays.asList(bucketName),
                                                                                                                                                              name))
                                                                          .collect(Collectors.toList());
 
@@ -387,7 +388,7 @@ public class CatalogObjectService {
     }
 
     public CatalogObjectMetadata restore(String bucketName, String name, Long commitTime) {
-        CatalogObjectRevisionEntity catalogObjectRevision = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(bucketName,
+        CatalogObjectRevisionEntity catalogObjectRevision = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(Arrays.asList(bucketName),
                                                                                                                                   name,
                                                                                                                                   commitTime);
 
@@ -432,7 +433,7 @@ public class CatalogObjectService {
     @VisibleForTesting
     protected CatalogObjectRevisionEntity getCatalogObjectRevisionEntityByCommitTime(String bucketName, String name,
             long commitTime) {
-        CatalogObjectRevisionEntity revisionEntity = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(bucketName,
+        CatalogObjectRevisionEntity revisionEntity = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(Arrays.asList(bucketName),
                                                                                                                            name,
                                                                                                                            commitTime);
         if (revisionEntity == null) {

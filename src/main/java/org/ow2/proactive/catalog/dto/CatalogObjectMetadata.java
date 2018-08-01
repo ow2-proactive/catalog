@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
@@ -75,6 +76,8 @@ public class CatalogObjectMetadata extends ResourceSupport {
     @JsonProperty("object_key_values")
     protected final List<Metadata> metadataList;
 
+    protected final String projectName;
+
     public CatalogObjectMetadata(CatalogObjectEntity catalogObject) {
         this(catalogObject.getBucket().getBucketName(),
              catalogObject.getId().getName(),
@@ -109,7 +112,16 @@ public class CatalogObjectMetadata extends ResourceSupport {
         } else {
             this.metadataList = metadataList;
         }
+        this.projectName = getProjectNameIfExists();
 
+    }
+
+    public String getProjectNameIfExists() {
+        Optional<Metadata> projectNameIfExists = metadataList.stream()
+                                                             .filter(property -> property.getKey()
+                                                                                         .equals("project_name"))
+                                                             .findAny();
+        return projectNameIfExists.map(meta -> meta.getValue()).orElse("");
     }
 
 }
