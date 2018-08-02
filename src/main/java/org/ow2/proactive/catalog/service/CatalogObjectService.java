@@ -32,7 +32,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -182,7 +181,7 @@ public class CatalogObjectService {
 
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
 
-        CatalogObjectRevisionEntity catalogObjectEntityCheck = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Arrays.asList(bucketName),
+        CatalogObjectRevisionEntity catalogObjectEntityCheck = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
                                                                                                                                       name);
         if (catalogObjectEntityCheck != null) {
             throw new CatalogObjectAlreadyExistingException(bucketName, name);
@@ -214,7 +213,7 @@ public class CatalogObjectService {
     }
 
     private CatalogObjectRevisionEntity findCatalogObjectByNameAndBucketAndCheck(String bucketName, String name) {
-        CatalogObjectRevisionEntity catalogObject = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Arrays.asList(bucketName),
+        CatalogObjectRevisionEntity catalogObject = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
                                                                                                                            name);
         if (catalogObject == null) {
             throw new CatalogObjectNotFoundException(bucketName, name);
@@ -306,7 +305,7 @@ public class CatalogObjectService {
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {
         findBucketByNameAndCheck(bucketName);
         List<CatalogObjectRevisionEntity> revisions = catalogObjectsNames.stream()
-                                                                         .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Arrays.asList(bucketName),
+                                                                         .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
                                                                                                                                                              name))
                                                                          .collect(Collectors.toList());
 
@@ -388,7 +387,7 @@ public class CatalogObjectService {
     }
 
     public CatalogObjectMetadata restore(String bucketName, String name, Long commitTime) {
-        CatalogObjectRevisionEntity catalogObjectRevision = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(Arrays.asList(bucketName),
+        CatalogObjectRevisionEntity catalogObjectRevision = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(Collections.singletonList(bucketName),
                                                                                                                                   name,
                                                                                                                                   commitTime);
 
@@ -433,7 +432,7 @@ public class CatalogObjectService {
     @VisibleForTesting
     protected CatalogObjectRevisionEntity getCatalogObjectRevisionEntityByCommitTime(String bucketName, String name,
             long commitTime) {
-        CatalogObjectRevisionEntity revisionEntity = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(Arrays.asList(bucketName),
+        CatalogObjectRevisionEntity revisionEntity = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(Collections.singletonList(bucketName),
                                                                                                                            name,
                                                                                                                            commitTime);
         if (revisionEntity == null) {

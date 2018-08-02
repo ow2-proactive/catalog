@@ -68,7 +68,7 @@ public class CatalogObjectReportPDFGenerator {
             page.setMediaBox(PAGE_SHAPE_A4);
             doc.addPage(page);
 
-            BaseTable dataTable = createBaseTable(doc, page);
+            BaseTable dataTable = createAndIntitializeBaseTable(doc, page);
             populateTable(page, dataTable, orderedObjectsPerBucket);
 
             doc.save(byteArrayOutputStream);
@@ -80,7 +80,7 @@ public class CatalogObjectReportPDFGenerator {
         }
     }
 
-    private BaseTable createBaseTable(PDDocument doc, PDPage page) throws IOException {
+    private BaseTable createAndIntitializeBaseTable(PDDocument doc, PDPage page) throws IOException {
         //Initialize table
         float margin = 10;
         float tableWidth = page.getMediaBox().getWidth() - (2 * margin);
@@ -99,12 +99,20 @@ public class CatalogObjectReportPDFGenerator {
 
         String currentBucketName = "";
 
+        currentBucketName = addRowForEachObject(orderedObjectsPerBucket, data, currentBucketName);
+
+        DataTable t = new DataTable(dataTable, page);
+        styleHeader(t);
+        t.addListToTable(data, DataTable.HASHEADER);
+        dataTable.draw();
+
+    }
+
+    private String addRowForEachObject(SortedSet<CatalogObjectMetadata> orderedObjectsPerBucket, List<List> data,
+            String currentBucketName) {
         for (CatalogObjectMetadata catalogObject : orderedObjectsPerBucket) {
 
-            if (StringUtils.isEmpty(currentBucketName) || !currentBucketName.equals(catalogObject.getBucketName())) {
-                currentBucketName = catalogObject.getBucketName();
-                data.add(new ArrayList<>(EMPTY_ROW));
-            }
+            currentBucketName = separateBucketsWithEmptyRow(data, currentBucketName, catalogObject);
 
             data.add(new ArrayList<>(Arrays.asList(catalogObject.getBucketName(),
                                                    catalogObject.getProjectName(),
@@ -112,12 +120,16 @@ public class CatalogObjectReportPDFGenerator {
                                                    catalogObject.getKind(),
                                                    catalogObject.getContentType())));
         }
+        return currentBucketName;
+    }
 
-        DataTable t = new DataTable(dataTable, page);
-        styleHeader(t);
-        t.addListToTable(data, DataTable.HASHEADER);
-        dataTable.draw();
-
+    private String separateBucketsWithEmptyRow(List<List> data, String currentBucketName,
+            CatalogObjectMetadata catalogObject) {
+        if (StringUtils.isEmpty(currentBucketName) || !currentBucketName.equals(catalogObject.getBucketName())) {
+            currentBucketName = catalogObject.getBucketName();
+            data.add(new ArrayList<>(EMPTY_ROW));
+        }
+        return currentBucketName;
     }
 
     private void styleHeader(DataTable t) {
