@@ -30,12 +30,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.TreeSet;
+import java.util.SortedSet;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.service.exception.PDFGenerationException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -57,12 +58,11 @@ public class CatalogObjectReportPDFGenerator {
     private static final PDRectangle PAGE_SHAPE_A4 = new PDRectangle(PDRectangle.A4.getHeight(),
                                                                      PDRectangle.A4.getWidth());
 
-    public byte[] generatePDF(TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket) {
+    public byte[] generatePDF(SortedSet<CatalogObjectMetadata> orderedObjectsPerBucket) {
 
-        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                PDDocument doc = new PDDocument()) {
 
-            //Initialize Document
-            PDDocument doc = new PDDocument();
             PDPage page = new PDPage();
             //Create a landscape page
             page.setMediaBox(PAGE_SHAPE_A4);
@@ -72,12 +72,11 @@ public class CatalogObjectReportPDFGenerator {
             populateTable(page, dataTable, orderedObjectsPerBucket);
 
             doc.save(byteArrayOutputStream);
-            doc.close();
 
             return byteArrayOutputStream.toByteArray();
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new PDFGenerationException(e);
         }
     }
 
@@ -92,8 +91,8 @@ public class CatalogObjectReportPDFGenerator {
         return new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, doc, page, true, true);
     }
 
-    private void populateTable(PDPage page, BaseTable dataTable, TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket)
-            throws IOException {
+    private void populateTable(PDPage page, BaseTable dataTable,
+            SortedSet<CatalogObjectMetadata> orderedObjectsPerBucket) throws IOException {
         //Create the data
         List<List> data = new ArrayList();
         data.add(new ArrayList<>(HEADER));

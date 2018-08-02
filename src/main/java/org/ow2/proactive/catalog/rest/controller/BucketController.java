@@ -126,8 +126,7 @@ public class BucketController {
             RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
                                                                                                                                        ownerName);
 
-            return bucketService.getBucketsByGroups(sessionId,
-                                                    ownerName,
+            return bucketService.getBucketsByGroups(ownerName,
                                                     kind,
                                                     contentType,
                                                     () -> restApiAccessResponse.getAuthenticatedUser().getGroups());

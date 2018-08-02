@@ -25,7 +25,6 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -71,7 +70,7 @@ public class CatalogObjectReportService {
 
     private List<CatalogObjectMetadata> getListOfCatalogObjects(Optional<String> kind, Optional<String> contentType,
             List<String> authorisedBucketsNames) {
-        List<CatalogObjectMetadata> metadataList = new ArrayList<>();
+        List<CatalogObjectMetadata> metadataList;
 
         if (kind.isPresent() && contentType.isPresent()) {
             metadataList = catalogObjectService.listCatalogObjectsByKindAndContentType(authorisedBucketsNames,
@@ -91,9 +90,9 @@ public class CatalogObjectReportService {
 
     private TreeSet<CatalogObjectMetadata> sortObjectsPerBucket(List<CatalogObjectMetadata> metadataList) {
 
-        Comparator<CatalogObjectMetadata> sortBasedOnName = Comparator.comparing(catalogObject -> catalogObject.getBucketName());
-        sortBasedOnName = sortBasedOnName.thenComparing(Comparator.comparing(catalogObject -> catalogObject.getProjectName()));
-        sortBasedOnName = sortBasedOnName.thenComparing(Comparator.comparing(catalogObject -> catalogObject.getName()));
+        Comparator<CatalogObjectMetadata> sortBasedOnName = Comparator.comparing(CatalogObjectMetadata::getBucketName);
+        sortBasedOnName = sortBasedOnName.thenComparing(Comparator.comparing(CatalogObjectMetadata::getProjectName));
+        sortBasedOnName = sortBasedOnName.thenComparing(Comparator.comparing(CatalogObjectMetadata::getName));
 
         TreeSet<CatalogObjectMetadata> sortedObjects = new TreeSet<CatalogObjectMetadata>(sortBasedOnName);
 

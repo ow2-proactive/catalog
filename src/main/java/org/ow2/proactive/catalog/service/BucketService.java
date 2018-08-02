@@ -171,7 +171,7 @@ public class BucketService {
         return bucketEntity;
     }
 
-    public List<BucketMetadata> getBucketsByGroups(String sessionId, String ownerName, Optional<String> kind,
+    public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
             Optional<String> contentType, Supplier<List<String>> authenticatedUserGroupsSupplier)
             throws NotAuthenticatedException, AccessDeniedException {
         List<String> groups;

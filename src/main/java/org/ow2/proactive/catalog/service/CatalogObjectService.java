@@ -265,7 +265,7 @@ public class CatalogObjectService {
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketNames) {
-        bucketNames.stream().forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames);
 
         return buildMetadataWithLink(result);
@@ -276,7 +276,7 @@ public class CatalogObjectService {
     }
 
     public List<CatalogObjectMetadata> listCatalogObjectsByKind(List<String> bucketNames, String kind) {
-        bucketNames.stream().forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindInBucket(bucketNames,
                                                                                                                            kind);
 
@@ -286,7 +286,7 @@ public class CatalogObjectService {
     // find catalog objects by kind and content type
     public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentType(List<String> bucketNames, String kind,
             String contentType) {
-        bucketNames.stream().forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeInBucket(bucketNames,
                                                                                                                                          kind,
                                                                                                                                          contentType);
@@ -296,7 +296,7 @@ public class CatalogObjectService {
 
     // find catalog objects by content type
     public List<CatalogObjectMetadata> listCatalogObjectsByContentType(List<String> bucketNames, String contentType) {
-        bucketNames.stream().forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfContentTypeInBucket(bucketNames,
                                                                                                                                   contentType);
 
@@ -417,7 +417,7 @@ public class CatalogObjectService {
         Set<String> allStoredKinds = catalogObjectRepository.findAllKinds();
         TreeSet<String> resultKinds = new TreeSet<>();
 
-        allStoredKinds.stream().forEach(kind -> {
+        allStoredKinds.forEach(kind -> {
             String[] splittedKinds = kind.split(kindSeparator);
             StringBuilder rootKinds = new StringBuilder();
             for (int i = 0; i < splittedKinds.length - 1; i++) {

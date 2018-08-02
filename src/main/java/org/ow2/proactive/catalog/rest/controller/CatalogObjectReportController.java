@@ -108,8 +108,7 @@ public class CatalogObjectReportController {
             RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
                                                                                                                                        ownerName);
 
-            authorisedBuckets = bucketService.getBucketsByGroups(sessionId,
-                                                                 ownerName,
+            authorisedBuckets = bucketService.getBucketsByGroups(ownerName,
                                                                  kind,
                                                                  contentType,
                                                                  () -> restApiAccessResponse.getAuthenticatedUser()

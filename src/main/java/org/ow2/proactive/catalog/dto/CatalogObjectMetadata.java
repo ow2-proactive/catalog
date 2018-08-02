@@ -112,16 +112,16 @@ public class CatalogObjectMetadata extends ResourceSupport {
         } else {
             this.metadataList = metadataList;
         }
-        this.projectName = getProjectNameIfExists();
+        this.projectName = getProjectNameIfExistsOrEmptyString();
 
     }
 
-    public String getProjectNameIfExists() {
+    private String getProjectNameIfExistsOrEmptyString() {
         Optional<Metadata> projectNameIfExists = metadataList.stream()
                                                              .filter(property -> property.getKey()
                                                                                          .equals("project_name"))
                                                              .findAny();
-        return projectNameIfExists.map(meta -> meta.getValue()).orElse("");
+        return projectNameIfExists.map(Metadata::getValue).orElse("");
     }
 
 }
