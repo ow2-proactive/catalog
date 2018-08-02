@@ -26,8 +26,8 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -139,7 +139,7 @@ public class CatalogObjectControllerTest {
         BucketEntity bucket = mock(BucketEntity.class);
         when(bucketRepository.findOneByBucketName("bucket-name")).thenReturn(bucket);
         catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.empty(), Optional.empty(), response);
-        verify(catalogObjectService, times(1)).listCatalogObjects(anyString());
+        verify(catalogObjectService, times(1)).listCatalogObjects(anyList());
     }
 
     @Test
