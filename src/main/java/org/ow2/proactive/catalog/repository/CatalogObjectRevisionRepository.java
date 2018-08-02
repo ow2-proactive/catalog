@@ -41,23 +41,25 @@ import org.springframework.data.jpa.repository.Query;
 public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogObjectRevisionEntity, UUID>,
         JpaSpecificationExecutor<CatalogObjectRevisionEntity> {
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsInBucket(String bucketName);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsInBucket(List<String> bucketNames);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND lower(cor.catalogObject.kind) LIKE lower(concat(?2, '%')) AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindInBucket(String bucketName, String kind);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND lower(cor.catalogObject.kind) LIKE lower(concat(?2, '%')) AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindInBucket(List<String> bucketNames, String kind);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND lower(cor.catalogObject.kind) LIKE lower(concat(?2, '%')) AND lower(cor.catalogObject.contentType) = ?3 AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindAndContentTypeInBucket(String bucketName,
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND lower(cor.catalogObject.kind) LIKE lower(concat(?2, '%')) AND lower(cor.catalogObject.contentType) = ?3 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindAndContentTypeInBucket(List<String> bucketNames,
             String kind, String contentType);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND lower(cor.catalogObject.contentType) = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfContentTypeInBucket(String bucketName,
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND lower(cor.catalogObject.contentType) = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfContentTypeInBucket(List<String> bucketNames,
             String contentType);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.id.name = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    CatalogObjectRevisionEntity findDefaultCatalogObjectByNameInBucket(String bucketName, String name);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND cor.catalogObject.id.name = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    CatalogObjectRevisionEntity findDefaultCatalogObjectByNameInBucket(List<String> bucketNames, String name);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.id.name = ?2 AND cor.commitTime = ?3")
-    CatalogObjectRevisionEntity findCatalogObjectRevisionByCommitTime(String bucketName, String name, long commitTime);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND cor.catalogObject.id.name = ?2 AND cor.commitTime = ?3")
+    CatalogObjectRevisionEntity findCatalogObjectRevisionByCommitTime(List<String> bucketNames, String name,
+            long commitTime);
+
 }

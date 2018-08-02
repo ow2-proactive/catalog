@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -163,7 +165,7 @@ public class CatalogObjectServiceTest {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
-        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(catalogObjectEntity);
 
         catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
@@ -185,7 +187,7 @@ public class CatalogObjectServiceTest {
     public void testUpdateObjectMetadataWithInvalidObjectName() {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
-        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(null);
         catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                   "wrong-name",
@@ -212,7 +214,7 @@ public class CatalogObjectServiceTest {
     @Test(expected = BucketNotFoundException.class)
     public void testGetCatalogObjectWithInvalidBucket() {
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
-        catalogObjectService.listCatalogObjects("wrong-bucket");
+        catalogObjectService.listCatalogObjects(Arrays.asList("wrong-bucket"));
     }
 
     @Test
@@ -221,7 +223,7 @@ public class CatalogObjectServiceTest {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
-        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(catalogObjectEntity);
         when(kindNameValidator.checkName(anyString())).thenReturn(true);
 
@@ -246,7 +248,7 @@ public class CatalogObjectServiceTest {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
-        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(catalogObjectEntity);
         when(kindNameValidator.checkName(anyString())).thenReturn(true);
 
@@ -286,11 +288,11 @@ public class CatalogObjectServiceTest {
         long now = System.currentTimeMillis();
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
-        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(catalogObjectEntity);
         CatalogObjectMetadata objectMetadata = catalogObjectService.getCatalogObjectMetadata("bucket", "name");
 
-        verify(catalogObjectRevisionRepository, times(1)).findDefaultCatalogObjectByNameInBucket(anyString(),
+        verify(catalogObjectRevisionRepository, times(1)).findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                                  anyString());
         assertThat(objectMetadata).isNotNull();
         assertThat(objectMetadata.getName()).isEqualTo(NAME);
@@ -349,7 +351,7 @@ public class CatalogObjectServiceTest {
 
     @Test(expected = CatalogObjectNotFoundException.class)
     public void testFindWorkflowInvalidId() throws Exception {
-        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(null);
         catalogObjectService.getCatalogObjectMetadata("bucket", "name");
     }
@@ -392,7 +394,7 @@ public class CatalogObjectServiceTest {
     @Test(expected = RevisionNotFoundException.class)
     public void testGetCatalogObjectRevisionNotFound() {
         long now = System.currentTimeMillis();
-        when(catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(anyString(),
+        when(catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(anyList(),
                                                                                    anyString(),
                                                                                    anyLong())).thenReturn(null);
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectService.getCatalogObjectRevisionEntityByCommitTime("bucket",
@@ -406,7 +408,7 @@ public class CatalogObjectServiceTest {
         long now = System.currentTimeMillis();
         BucketEntity bucketEntity = new BucketEntity("bucket", "owner");
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
-        when(catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(anyString(),
+        when(catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(anyList(),
                                                                                    anyString(),
                                                                                    anyLong())).thenReturn(catalogObjectEntity);
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectService.getCatalogObjectRevisionEntityByCommitTime("bucket",

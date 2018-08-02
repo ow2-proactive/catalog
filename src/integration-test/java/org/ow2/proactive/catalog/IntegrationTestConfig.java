@@ -85,6 +85,11 @@ public class IntegrationTestConfig {
     }
 
     @Bean
+    public OwnerGroupStringHelper ownerGroupStringHelper() {
+        return new OwnerGroupStringHelper();
+    }
+
+    @Bean
     public BucketService bucketService() {
         return new BucketService();
     }

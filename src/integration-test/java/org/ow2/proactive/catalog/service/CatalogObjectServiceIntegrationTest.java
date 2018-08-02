@@ -30,6 +30,7 @@ import static com.google.common.truth.Truth.assertThat;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -127,7 +128,7 @@ public class CatalogObjectServiceIntegrationTest {
 
     @Test
     public void testListCatalogObjectsInBucket() {
-        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjects(bucket.getName());
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjects(Arrays.asList(bucket.getName()));
         assertThat(catalogObjects).hasSize(3);
     }
 
@@ -181,7 +182,7 @@ public class CatalogObjectServiceIntegrationTest {
 
     @Test
     public void testListCatalogObjectsByKindInBucket() {
-        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKind(bucket.getName(),
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKind(Arrays.asList(bucket.getName()),
                                                                                                    "object");
         assertThat(catalogObjects).hasSize(2);
 
@@ -193,10 +194,11 @@ public class CatalogObjectServiceIntegrationTest {
                                                  keyValues,
                                                  workflowAsByteArray);
 
-        catalogObjects = catalogObjectService.listCatalogObjectsByKind(bucket.getName(), "workflow-general");
+        catalogObjects = catalogObjectService.listCatalogObjectsByKind(Arrays.asList(bucket.getName()),
+                                                                       "workflow-general");
         assertThat(catalogObjects).hasSize(1);
 
-        catalogObjects = catalogObjectService.listCatalogObjectsByKind(bucket.getName(), "WORKFLOW");
+        catalogObjects = catalogObjectService.listCatalogObjectsByKind(Arrays.asList(bucket.getName()), "WORKFLOW");
         assertThat(catalogObjects).hasSize(2);
     }
 

@@ -33,6 +33,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -248,17 +249,18 @@ public class CatalogObjectController {
         } else {
             List<CatalogObjectMetadata> metadataList;
             if (kind.isPresent() && contentType.isPresent()) {
-                metadataList = catalogObjectService.listCatalogObjectsByKindAndContentType(bucketName,
+                metadataList = catalogObjectService.listCatalogObjectsByKindAndContentType(Arrays.asList(bucketName),
                                                                                            kind.get(),
                                                                                            contentType.get());
             } else if (!kind.isPresent() && contentType.isPresent()) {
-                metadataList = catalogObjectService.listCatalogObjectsByContentType(bucketName, contentType.get());
+                metadataList = catalogObjectService.listCatalogObjectsByContentType(Arrays.asList(bucketName),
+                                                                                    contentType.get());
             } else if (kind.isPresent() && !contentType.isPresent()) {
-                metadataList = catalogObjectService.listCatalogObjectsByKind(bucketName, kind.get());
+                metadataList = catalogObjectService.listCatalogObjectsByKind(Arrays.asList(bucketName), kind.get());
             }
 
             else {
-                metadataList = catalogObjectService.listCatalogObjects(bucketName);
+                metadataList = catalogObjectService.listCatalogObjects(Arrays.asList(bucketName));
             }
 
             for (CatalogObjectMetadata catalogObject : metadataList) {
