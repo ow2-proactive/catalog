@@ -41,52 +41,52 @@ public class BucketNameValidatorTest {
 
     @Test
     public void testCheckBucketNameValid() {
-        assertThat(bucketNameValidator.checkName("valid-bucket-1")).isTrue();
-        assertThat(bucketNameValidator.checkName("bucket-name")).isTrue();
+        assertThat(bucketNameValidator.isValid("valid-bucket-1")).isTrue();
+        assertThat(bucketNameValidator.isValid("bucket-name")).isTrue();
     }
 
     @Test
     public void testCheckBucketNameStartWithNumber() {
-        assertThat(bucketNameValidator.checkName("1-bucket")).isFalse();
+        assertThat(bucketNameValidator.isValid("1-bucket")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameOnlyNumbers() {
-        assertThat(bucketNameValidator.checkName("123")).isFalse();
+        assertThat(bucketNameValidator.isValid("123")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameWithCapitals() {
-        assertThat(bucketNameValidator.checkName("bucketWithCapitals")).isFalse();
+        assertThat(bucketNameValidator.isValid("bucketWithCapitals")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameDashInEnd() {
-        assertThat(bucketNameValidator.checkName("bucket-")).isFalse();
+        assertThat(bucketNameValidator.isValid("bucket-")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameSmallLength() {
-        assertThat(bucketNameValidator.checkName("bu")).isFalse();
+        assertThat(bucketNameValidator.isValid("bu")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameWithDot() {
-        assertThat(bucketNameValidator.checkName("bucket.my")).isFalse();
+        assertThat(bucketNameValidator.isValid("bucket.my")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameWithSpace() {
-        assertThat(bucketNameValidator.checkName("bucket space")).isFalse();
+        assertThat(bucketNameValidator.isValid("bucket space")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameWithSpecialSymbols() {
-        assertThat(bucketNameValidator.checkName("bucket&test#'%new")).isFalse();
+        assertThat(bucketNameValidator.isValid("bucket&test#'%new")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameWithBackSlashSymbols() {
-        assertThat(bucketNameValidator.checkName("bucket/new/my")).isFalse();
+        assertThat(bucketNameValidator.isValid("bucket/new/my")).isFalse();
     }
 }

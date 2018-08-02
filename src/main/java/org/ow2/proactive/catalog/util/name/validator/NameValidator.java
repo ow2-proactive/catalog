@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * @author ActiveEon Team
  * @since 8/2/2018
  */
-abstract public class NameValidator {
+public abstract class NameValidator {
 
     protected String namePattern;
 
@@ -49,7 +49,7 @@ abstract public class NameValidator {
      * @param nameForCheck
      * @return true result if name is valid
      */
-    public boolean checkName(String nameForCheck) {
+    public boolean isValid(String nameForCheck) {
         Matcher matcher = validNamePattern.matcher(nameForCheck);
         return matcher.matches();
     }

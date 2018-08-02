@@ -89,17 +89,17 @@ public class BucketServiceTest {
     public void testCreateBucket() throws Exception {
         BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
-        when(bucketNameValidator.checkName(anyString())).thenReturn(true);
+        when(bucketNameValidator.isValid(anyString())).thenReturn(true);
         BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
         verify(bucketRepository, times(1)).save(any(BucketEntity.class));
-        verify(bucketNameValidator, times(1)).checkName(anyString());
+        verify(bucketNameValidator, times(1)).isValid(anyString());
         assertEquals(mockedBucket.getBucketName(), bucketMetadata.getName());
         assertEquals(mockedBucket.getOwner(), bucketMetadata.getOwner());
     }
 
     @Test(expected = BucketNameIsNotValidException.class)
     public void testCreateBucketWithInvalidName() {
-        when(bucketNameValidator.checkName(anyString())).thenReturn(false);
+        when(bucketNameValidator.isValid(anyString())).thenReturn(false);
         bucketService.createBucket("Bucket-Wrong.name");
 
     }

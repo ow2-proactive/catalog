@@ -103,7 +103,7 @@ public class CatalogObjectServiceTest {
 
     @Test(expected = BucketNotFoundException.class)
     public void testCreateCatalogObjectWithInvalidBucket() {
-        when(kindNameValidator.checkName(anyString())).thenReturn(true);
+        when(kindNameValidator.isValid(anyString())).thenReturn(true);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
         catalogObjectService.createCatalogObject("bucket", NAME, OBJECT, COMMIT_MESSAGE, APPLICATION_XML, null);
     }
@@ -133,7 +133,7 @@ public class CatalogObjectServiceTest {
     @Test
     public void testCreateCatalogObject() {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
-        when(kindNameValidator.checkName(anyString())).thenReturn(true);
+        when(kindNameValidator.isValid(anyString())).thenReturn(true);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity,
                                                                                          System.currentTimeMillis());
@@ -201,9 +201,9 @@ public class CatalogObjectServiceTest {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
-        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyString(),
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(catalogObjectEntity);
-        when(kindNameValidator.checkName(anyString())).thenReturn(false);
+        when(kindNameValidator.isValid(anyString())).thenReturn(false);
 
         CatalogObjectMetadata catalogObject = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                                                         NAME,
@@ -225,7 +225,7 @@ public class CatalogObjectServiceTest {
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
         when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(catalogObjectEntity);
-        when(kindNameValidator.checkName(anyString())).thenReturn(true);
+        when(kindNameValidator.isValid(anyString())).thenReturn(true);
 
         CatalogObjectMetadata catalogObject = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                                                         NAME,
@@ -250,7 +250,7 @@ public class CatalogObjectServiceTest {
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
         when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(catalogObjectEntity);
-        when(kindNameValidator.checkName(anyString())).thenReturn(true);
+        when(kindNameValidator.isValid(anyString())).thenReturn(true);
 
         // only kind should be updated without changing contentType
         CatalogObjectMetadata catalogObjectUpdatedKind = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),

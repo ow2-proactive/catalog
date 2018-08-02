@@ -42,81 +42,81 @@ public class KindNameValidatorTest {
 
     @Test
     public void testCheckNameValid() {
-        assertThat(kindNameValidator.checkName("valid-kind-1")).isTrue();
-        assertThat(kindNameValidator.checkName("kind-name.my")).isTrue();
-        assertThat(kindNameValidator.checkName("kind-name.my/n_ew")).isTrue();
+        assertThat(kindNameValidator.isValid("valid-kind-1")).isTrue();
+        assertThat(kindNameValidator.isValid("kind-name.my")).isTrue();
+        assertThat(kindNameValidator.isValid("kind-name.my/n_ew")).isTrue();
     }
 
     @Test
     public void testCheckNameStartWithUnderscores() {
-        assertThat(kindNameValidator.checkName("1-kind_my/m")).isTrue();
-        assertThat(kindNameValidator.checkName("_kind_m")).isTrue();
-        assertThat(kindNameValidator.checkName("_kind_")).isTrue();
+        assertThat(kindNameValidator.isValid("1-kind_my/m")).isTrue();
+        assertThat(kindNameValidator.isValid("_kind_m")).isTrue();
+        assertThat(kindNameValidator.isValid("_kind_")).isTrue();
     }
 
     @Test
     public void testCheckNameWithQuotes() {
-        assertThat(kindNameValidator.checkName("kind'm")).isFalse();
-        assertThat(kindNameValidator.checkName("kind\"b")).isFalse();
+        assertThat(kindNameValidator.isValid("kind'm")).isFalse();
+        assertThat(kindNameValidator.isValid("kind\"b")).isFalse();
     }
 
     @Test
     public void testCheckNameStartWithNumber() {
-        assertThat(kindNameValidator.checkName("1-kind")).isTrue();
+        assertThat(kindNameValidator.isValid("1-kind")).isTrue();
     }
 
     @Test
     public void testCheckNameOnlyNumbers() {
-        assertThat(kindNameValidator.checkName("123")).isTrue();
+        assertThat(kindNameValidator.isValid("123")).isTrue();
     }
 
     @Test
     public void testCheckNameWithCapitals() {
-        assertThat(kindNameValidator.checkName("kindWithCapitals")).isTrue();
+        assertThat(kindNameValidator.isValid("kindWithCapitals")).isTrue();
     }
 
     @Test
     public void testCheckNameDashInEnd() {
-        assertThat(kindNameValidator.checkName("kind-")).isTrue();
+        assertThat(kindNameValidator.isValid("kind-")).isTrue();
     }
 
     @Test
     public void testCheckNameSmallLength() {
-        assertThat(kindNameValidator.checkName("bu")).isTrue();
-        assertThat(kindNameValidator.checkName("k")).isTrue();
+        assertThat(kindNameValidator.isValid("bu")).isTrue();
+        assertThat(kindNameValidator.isValid("k")).isTrue();
     }
 
     @Test
     public void testCheckNameWithDot() {
-        assertThat(kindNameValidator.checkName("kind.my")).isTrue();
+        assertThat(kindNameValidator.isValid("kind.my")).isTrue();
     }
 
     @Test
     public void testCheckNameWithSpace() {
-        assertThat(kindNameValidator.checkName("kind space")).isFalse();
-        assertThat(kindNameValidator.checkName("  kind s")).isFalse();
+        assertThat(kindNameValidator.isValid("kind space")).isFalse();
+        assertThat(kindNameValidator.isValid("  kind s")).isFalse();
     }
 
     @Test
     public void testCheckNameWithSpecialSymbols() {
-        assertThat(kindNameValidator.checkName("kind&test#'%new")).isFalse();
+        assertThat(kindNameValidator.isValid("kind&test#'%new")).isFalse();
     }
 
     @Test
     public void testCheckNameWithBackSlashSymbols() {
-        assertThat(kindNameValidator.checkName("kind/new/my")).isTrue();
-        assertThat(kindNameValidator.checkName("kind/new/my/")).isTrue();
+        assertThat(kindNameValidator.isValid("kind/new/my")).isTrue();
+        assertThat(kindNameValidator.isValid("kind/new/my/")).isTrue();
     }
 
     @Test
     public void testCheckNameWithForwardSlashSymbols() {
-        assertThat(kindNameValidator.checkName("kind\\new")).isFalse();
-        assertThat(kindNameValidator.checkName("kind\\df\\")).isFalse();
+        assertThat(kindNameValidator.isValid("kind\\new")).isFalse();
+        assertThat(kindNameValidator.isValid("kind\\df\\")).isFalse();
     }
 
     @Test
     public void testCheckNameWithBackSlashSymbolsWrong() {
-        assertThat(kindNameValidator.checkName("/kind/new/my")).isFalse();
-        assertThat(kindNameValidator.checkName("kind//new/my/")).isFalse();
+        assertThat(kindNameValidator.isValid("/kind/new/my")).isFalse();
+        assertThat(kindNameValidator.isValid("kind//new/my/")).isFalse();
     }
 }

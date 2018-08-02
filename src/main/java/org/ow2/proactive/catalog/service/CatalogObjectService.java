@@ -174,7 +174,7 @@ public class CatalogObjectService {
         if (!kind.isPresent() && !contentType.isPresent()) {
             throw new WrongParametersException("at least one parameter should be present");
         }
-        if (kind.isPresent() && !kindNameValidator.checkName(kind.get())) {
+        if (kind.isPresent() && !kindNameValidator.isValid(kind.get())) {
             throw new KindNameIsNotValidException(kind.get());
         }
         CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
@@ -186,7 +186,7 @@ public class CatalogObjectService {
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
             String contentType, List<Metadata> metadataList, byte[] rawObject) {
-        if (!kindNameValidator.checkName(kind)) {
+        if (!kindNameValidator.isValid(kind)) {
             throw new KindNameIsNotValidException(kind);
         }
 
