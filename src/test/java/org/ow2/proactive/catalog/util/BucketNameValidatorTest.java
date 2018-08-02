@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.util;
 import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.Test;
+import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 
 
 /**
@@ -40,52 +41,52 @@ public class BucketNameValidatorTest {
 
     @Test
     public void testCheckBucketNameValid() {
-        assertThat(bucketNameValidator.checkBucketName("valid-bucket-1")).isTrue();
-        assertThat(bucketNameValidator.checkBucketName("bucket-name")).isTrue();
+        assertThat(bucketNameValidator.checkName("valid-bucket-1")).isTrue();
+        assertThat(bucketNameValidator.checkName("bucket-name")).isTrue();
     }
 
     @Test
     public void testCheckBucketNameStartWithNumber() {
-        assertThat(bucketNameValidator.checkBucketName("1-bucket")).isFalse();
+        assertThat(bucketNameValidator.checkName("1-bucket")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameOnlyNumbers() {
-        assertThat(bucketNameValidator.checkBucketName("123")).isFalse();
+        assertThat(bucketNameValidator.checkName("123")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameWithCapitals() {
-        assertThat(bucketNameValidator.checkBucketName("bucketWithCapitals")).isFalse();
+        assertThat(bucketNameValidator.checkName("bucketWithCapitals")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameDashInEnd() {
-        assertThat(bucketNameValidator.checkBucketName("bucket-")).isFalse();
+        assertThat(bucketNameValidator.checkName("bucket-")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameSmallLength() {
-        assertThat(bucketNameValidator.checkBucketName("bu")).isFalse();
+        assertThat(bucketNameValidator.checkName("bu")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameWithDot() {
-        assertThat(bucketNameValidator.checkBucketName("bucket.my")).isFalse();
+        assertThat(bucketNameValidator.checkName("bucket.my")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameWithSpace() {
-        assertThat(bucketNameValidator.checkBucketName("bucket space")).isFalse();
+        assertThat(bucketNameValidator.checkName("bucket space")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameWithSpecialSymbols() {
-        assertThat(bucketNameValidator.checkBucketName("bucket&test#'%new")).isFalse();
+        assertThat(bucketNameValidator.checkName("bucket&test#'%new")).isFalse();
     }
 
     @Test
     public void testCheckBucketNameWithBackSlashSymbols() {
-        assertThat(bucketNameValidator.checkBucketName("bucket/new/my")).isFalse();
+        assertThat(bucketNameValidator.checkName("bucket/new/my")).isFalse();
     }
 }
