@@ -202,7 +202,7 @@ dependencies {
     compile 'com.github.ben-manes.caffeine:caffeine'
 
 // library to build pdf reports
-    compile 'com.github.dhorions:boxable:1.5'
+    compile 'com.github.dhorions:boxable'
 
 //  Using the Scheduler Rest client as authentication service
     providedCompile "org.ow2.proactive_grid_cloud_portal:rest-client:$version"
