@@ -55,7 +55,7 @@ import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
-import org.ow2.proactive.catalog.util.BucketNameValidator;
+import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 
 
 /**
@@ -89,17 +89,17 @@ public class BucketServiceTest {
     public void testCreateBucket() throws Exception {
         BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
-        when(bucketNameValidator.checkBucketName(anyString())).thenReturn(true);
+        when(bucketNameValidator.isValid(anyString())).thenReturn(true);
         BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
         verify(bucketRepository, times(1)).save(any(BucketEntity.class));
-        verify(bucketNameValidator, times(1)).checkBucketName(anyString());
+        verify(bucketNameValidator, times(1)).isValid(anyString());
         assertEquals(mockedBucket.getBucketName(), bucketMetadata.getName());
         assertEquals(mockedBucket.getOwner(), bucketMetadata.getOwner());
     }
 
     @Test(expected = BucketNameIsNotValidException.class)
     public void testCreateBucketWithInvalidName() {
-        when(bucketNameValidator.checkBucketName(anyString())).thenReturn(false);
+        when(bucketNameValidator.isValid(anyString())).thenReturn(false);
         bucketService.createBucket("Bucket-Wrong.name");
 
     }

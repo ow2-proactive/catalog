@@ -286,7 +286,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
         IntegrationTestUtil.postDefaultWorkflowToBucket(bucketAdminOwnerWorkflowKindId);
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerOtherKindId,
-                                               "other kind",
+                                               "other-kind",
                                                "my workflow",
                                                "first commit",
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
@@ -294,14 +294,14 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
         IntegrationTestUtil.postDefaultWorkflowToBucket(BucketAdminOwnerMixedKindId);
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
-                                               "other kind",
+                                               "other-kind",
                                                "other object",
                                                "first commit",
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
-                                               "other kind",
+                                               "other-kind",
                                                "other new object",
                                                "first commit",
                                                "bucket-admin-owner-content-type",
