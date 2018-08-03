@@ -25,7 +25,7 @@
  */
 package org.ow2.proactive.catalog;
 
-import static springfox.documentation.schema.AlternateTypeRules.*;
+import static springfox.documentation.schema.AlternateTypeRules.newRule;
 
 import java.io.File;
 
@@ -91,6 +91,8 @@ public class Application extends WebMvcConfigurerAdapter {
     private String dataSourcePassword;
 
     public static void main(String[] args) {
+        //Important notice when using PDFBox with Java 8  :  https://pdfbox.apache.org/2.0/getting-started.html
+        System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
         SpringApplication.run(Application.class, args);
     }
 

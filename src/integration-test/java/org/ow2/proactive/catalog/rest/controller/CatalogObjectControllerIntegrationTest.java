@@ -51,6 +51,7 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.service.exception.KindNameIsNotValidException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
@@ -239,6 +240,22 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         allKindsWithRoots.add(newKindMy);
         allKindsWithRoots.add(newKindNotMine);
         given().when().get(kindsQuery).then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKindsWithRoots));
+    }
+
+    @Test
+    public void testCreateObjectWrongKind() {
+        String wrongKind = "workflow//my";
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", wrongKind)
+               .queryParam("name", "new workflow")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_BAD_REQUEST)
+               .body(ERROR_MESSAGE, equalTo(new KindNameIsNotValidException(wrongKind).getLocalizedMessage()));
     }
 
     @Test

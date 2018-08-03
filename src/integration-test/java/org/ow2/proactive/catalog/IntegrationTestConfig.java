@@ -46,9 +46,10 @@ import org.ow2.proactive.catalog.service.KeyValueLabelMetadataHelper;
 import org.ow2.proactive.catalog.service.OwnerGroupStringHelper;
 import org.ow2.proactive.catalog.service.WorkflowXmlManipulator;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
-import org.ow2.proactive.catalog.util.BucketNameValidator;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
+import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
+import org.ow2.proactive.catalog.util.name.validator.KindNameValidator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -81,6 +82,11 @@ public class IntegrationTestConfig {
         EmbeddedDatabase db = builder.setType(EmbeddedDatabaseType.HSQL).build();
 
         return db;
+    }
+
+    @Bean
+    public OwnerGroupStringHelper ownerGroupStringHelper() {
+        return new OwnerGroupStringHelper();
     }
 
     @Bean
@@ -161,6 +167,11 @@ public class IntegrationTestConfig {
     @Bean
     public BucketNameValidator bucketNameValidator() {
         return new BucketNameValidator();
+    }
+
+    @Bean
+    public KindNameValidator kindNameValidator() {
+        return new KindNameValidator();
     }
 
     @Bean
