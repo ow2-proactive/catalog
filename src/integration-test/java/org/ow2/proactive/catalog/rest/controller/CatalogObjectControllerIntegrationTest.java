@@ -34,6 +34,7 @@ import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PERCENT_2
 import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PLUS;
 import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_EXTENSION;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -97,7 +98,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         // Add an object of kind "workflow" into first bucket
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
-               .queryParam("name", "workflowname")
+               .queryParam("name", "workflowname.xml")
                .queryParam("commitMessage", "commit message")
                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -163,7 +164,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testUpdateObjectMetadataAndGetItSavedObjectFromCatalog() {
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "workflowname")
+               .pathParam("name", "workflowname.xml")
                .queryParam("kind", "updated-kind")
                .queryParam("contentType", "updated-contentType")
                .when()
@@ -176,7 +177,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("content_type", is("updated-contentType"));
 
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "workflowname")
+               .pathParam("name", "workflowname.xml")
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -346,10 +347,11 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
-    public void testCreatePCWRuleShouldReturnSavedRule() {
+    public void testCreatePCWRuleShouldReturnSavedRule() throws IOException {
+        String ruleName = "pcw-rule test.rule";
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "Rule/cpu")
-               .queryParam("name", "pcw-rule test")
+               .queryParam("name", ruleName)
                .queryParam("commitMessage", "first commit")
                .queryParam("objectContentType", MediaType.APPLICATION_JSON_VALUE)
                .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleExample.json"))
@@ -360,7 +362,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_CREATED)
                .body("object[0].bucket_name", is(bucket.getName()))
                .body("object[0].kind", is("Rule/cpu"))
-               .body("object[0].name", is("pcw-rule test"))
+               .body("object[0].name", is(ruleName))
 
                .body("object[0].object_key_values", hasSize(8))
                //check pcw metadata info
@@ -384,14 +386,31 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].object_key_values[5].key", is("NodeUrls"))
                .body("object[0].object_key_values[5].value",
                      is("[\"localhost\",\"service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode\"]"))
-               .body("object[0].content_type", is(MediaType.APPLICATION_JSON_VALUE));
+               .body("object[0].content_type", is(MediaType.APPLICATION_JSON_VALUE))
+               .header(HttpHeaders.CONTENT_DISPOSITION, is("attachment; filename=\"" + ruleName + "\""));
+
+        //check get the raw object, created on previous request with specific name
+        Response rawResponse = given().urlEncodingEnabled(true)
+                                      .pathParam("bucketName", bucket.getName())
+                                      .pathParam("name", ruleName)
+                                      .when()
+                                      .get(CATALOG_OBJECT_RESOURCE + "/raw");
+        Arrays.equals(ByteStreams.toByteArray(rawResponse.asInputStream()),
+                ByteStreams.toByteArray(new FileInputStream(IntegrationTestUtil.getPCWRule("pcwRuleExample.json"))));
+        rawResponse.then().assertThat().statusCode(HttpStatus.SC_OK).contentType(MediaType.APPLICATION_JSON.toString());
+        rawResponse.then()
+                   .assertThat()
+                   .header(HttpHeaders.CONTENT_DISPOSITION,
+                           is("attachment; filename=\"" + ruleName + "\""));
+        rawResponse.then().assertThat().header(HttpHeaders.CONTENT_TYPE,
+                                               is(MediaType.APPLICATION_JSON.toString() + ";charset=UTF-8"));
     }
 
     @Test
     public void testCreateObjectAlreadyExisting() {
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
-               .queryParam("name", "workflowname")
+               .queryParam("name", "workflowname.xml")
                .queryParam("commitMessage", "commit message")
                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -401,7 +420,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_CONFLICT)
                .body(ERROR_MESSAGE,
                      equalTo(new CatalogObjectAlreadyExistingException(bucket.getName(),
-                                                                       "workflowname").getLocalizedMessage()));
+                                                                       "workflowname.xml").getLocalizedMessage()));
     }
 
     @Test
@@ -449,7 +468,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     public void testGetWorkflowShouldReturnLatestSavedWorkflowRevision() throws IOException {
 
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "workflowname")
+               .pathParam("name", "workflowname.xml")
                .queryParam("commitMessage", "commit message2")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
@@ -458,7 +477,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_CREATED);
 
         HashMap<String, Object> thirdWFRevision = given().pathParam("bucketName", bucket.getName())
-                                                         .pathParam("name", "workflowname")
+                                                         .pathParam("name", "workflowname.xml")
                                                          .queryParam("commitMessage", "commit message3")
                                                          .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                                                          .when()
@@ -469,7 +488,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                                                          .path("");
 
         ValidatableResponse response = given().pathParam("bucketName", bucket.getName())
-                                              .pathParam("name", "workflowname")
+                                              .pathParam("name", "workflowname.xml")
                                               .when()
                                               .get(CATALOG_OBJECT_RESOURCE)
                                               .then()
@@ -518,7 +537,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testGetRawWorkflowShouldReturnSavedRawObject() throws IOException {
         Response response = given().pathParam("bucketName", bucket.getName())
-                                   .pathParam("name", "workflowname")
+                                   .pathParam("name", "workflowname.xml")
                                    .when()
                                    .get(CATALOG_OBJECT_RESOURCE + "/raw");
 
@@ -608,7 +627,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testDeleteExistingObject() {
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "workflowname")
+               .pathParam("name", "workflowname.xml")
                .when()
                .delete(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -617,7 +636,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
         // check that the object is really gone
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "workflowname")
+               .pathParam("name", "workflowname.xml")
                .when()
                .get(CATALOG_OBJECT_RESOURCE)
                .then()
@@ -625,7 +644,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_NOT_FOUND)
                .body(ERROR_MESSAGE,
                      equalTo(new CatalogObjectNotFoundException(bucket.getName(),
-                                                                "workflowname").getLocalizedMessage()));
+                                                                "workflowname.xml").getLocalizedMessage()));
     }
 
     @Test
@@ -659,7 +678,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
         given().pathParam("bucketName", bucket.getName())
                .when()
-               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,workflowname2")
+               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname.xml,workflowname2")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
@@ -668,7 +687,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testGetCatalogObjectWithSpecialSymbolsNamesAsArchive() {
-        String nameWithSpecialSymbols = "wf n:$ %ae";
+        String nameWithSpecialSymbols = "wf n:$ %ae.myextension";
         // Add an second object of kind "workflow" into first bucket
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
@@ -684,7 +703,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         //get zip file for workflow name's list separated by coma
         given().pathParam("bucketName", bucket.getName())
                .when()
-               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname," + nameWithSpecialSymbols)
+               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname.xml," + nameWithSpecialSymbols)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)

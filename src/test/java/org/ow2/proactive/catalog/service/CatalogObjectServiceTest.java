@@ -131,12 +131,6 @@ public class CatalogObjectServiceTest {
     }
 
     @Test
-    public void testGetKinds() {
-        catalogObjectRepository.findAllKinds();
-        verify(catalogObjectRepository, times(1)).findAllKinds();
-    }
-
-    @Test
     public void testCreateCatalogObject() {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         when(kindNameValidator.isValid(anyString())).thenReturn(true);
