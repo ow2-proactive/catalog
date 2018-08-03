@@ -23,28 +23,20 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository;
+package org.ow2.proactive.catalog.util.name.validator;
 
-import java.util.Set;
-
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.stereotype.Component;
 
 
 /**
- * @author ActiveEon Team
+ * According to this validator: the bucket name can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, and dashes.
+ A bucket name must start with a lowercase letter and cannot terminate with a dash.
  */
-public interface CatalogObjectRepository
-        extends JpaRepository<CatalogObjectEntity, CatalogObjectEntity.CatalogObjectEntityKey>,
-        JpaSpecificationExecutor<CatalogObjectEntity>, QueryDslPredicateExecutor<CatalogObjectEntity> {
+@Component
+public class BucketNameValidator extends NameValidator {
+    protected static final String VALID_BUCKET_NAME_PATTERN = "[a-z][a-z0-9-]{1,61}[a-z0-9]";
 
-    @EntityGraph("catalogObject.withRevisions")
-    CatalogObjectEntity readCatalogObjectRevisionsById(CatalogObjectEntity.CatalogObjectEntityKey key);
-
-    @Query(value = "SELECT DISTINCT cos.kind FROM CatalogObjectEntity cos")
-    Set<String> findAllKinds();
+    public BucketNameValidator() {
+        super(VALID_BUCKET_NAME_PATTERN);
+    }
 }

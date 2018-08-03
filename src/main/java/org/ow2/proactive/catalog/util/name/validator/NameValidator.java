@@ -23,28 +23,34 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository;
+package org.ow2.proactive.catalog.util.name.validator;
 
-import java.util.Set;
-
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
  * @author ActiveEon Team
+ * @since 8/2/2018
  */
-public interface CatalogObjectRepository
-        extends JpaRepository<CatalogObjectEntity, CatalogObjectEntity.CatalogObjectEntityKey>,
-        JpaSpecificationExecutor<CatalogObjectEntity>, QueryDslPredicateExecutor<CatalogObjectEntity> {
+public abstract class NameValidator {
 
-    @EntityGraph("catalogObject.withRevisions")
-    CatalogObjectEntity readCatalogObjectRevisionsById(CatalogObjectEntity.CatalogObjectEntityKey key);
+    protected String namePattern;
 
-    @Query(value = "SELECT DISTINCT cos.kind FROM CatalogObjectEntity cos")
-    Set<String> findAllKinds();
+    private Pattern validNamePattern;
+
+    public NameValidator(String namePattern) {
+        this.namePattern = namePattern;
+        validNamePattern = Pattern.compile(namePattern);
+    }
+
+    /**
+    * Please check the validator pattern in the specific class implementation of this abstract class
+     * @param nameForCheck
+     * @return true result if name is valid
+     */
+    public boolean isValid(String nameForCheck) {
+        Matcher matcher = validNamePattern.matcher(nameForCheck);
+        return matcher.matches();
+    }
 }

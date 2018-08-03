@@ -33,8 +33,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -75,9 +77,10 @@ import lombok.extern.log4j.Log4j2;
  */
 @RestController
 @Log4j2
+@RequestMapping(value = "/buckets")
 public class CatalogObjectController {
 
-    private static final String REQUEST_API_QUERY = "/buckets/{bucketName}/resources";
+    private static final String REQUEST_API_QUERY = "/{bucketName}/resources";
 
     @Autowired
     private CatalogObjectService catalogObjectService;
@@ -137,9 +140,8 @@ public class CatalogObjectController {
     @ApiOperation(value = "Lists all kinds for all objects")
     @RequestMapping(value = "/kinds", method = GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<String>> listKinds() {
-        List<String> allKinds = catalogObjectService.getKinds();
-        return ResponseEntity.ok(allKinds);
+    public Set<String> listKinds() {
+        return catalogObjectService.getKinds();
     }
 
     @ApiOperation(value = "Update a catalog object metadata, like kind and content type")
@@ -247,17 +249,18 @@ public class CatalogObjectController {
         } else {
             List<CatalogObjectMetadata> metadataList;
             if (kind.isPresent() && contentType.isPresent()) {
-                metadataList = catalogObjectService.listCatalogObjectsByKindAndContentType(bucketName,
+                metadataList = catalogObjectService.listCatalogObjectsByKindAndContentType(Arrays.asList(bucketName),
                                                                                            kind.get(),
                                                                                            contentType.get());
             } else if (!kind.isPresent() && contentType.isPresent()) {
-                metadataList = catalogObjectService.listCatalogObjectsByContentType(bucketName, contentType.get());
+                metadataList = catalogObjectService.listCatalogObjectsByContentType(Arrays.asList(bucketName),
+                                                                                    contentType.get());
             } else if (kind.isPresent() && !contentType.isPresent()) {
-                metadataList = catalogObjectService.listCatalogObjectsByKind(bucketName, kind.get());
+                metadataList = catalogObjectService.listCatalogObjectsByKind(Arrays.asList(bucketName), kind.get());
             }
 
             else {
-                metadataList = catalogObjectService.listCatalogObjects(bucketName);
+                metadataList = catalogObjectService.listCatalogObjects(Arrays.asList(bucketName));
             }
 
             for (CatalogObjectMetadata catalogObject : metadataList) {

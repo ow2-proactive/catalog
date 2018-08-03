@@ -23,28 +23,31 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository;
+package org.ow2.proactive.catalog.service.exception;
 
-import java.util.Set;
-
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.querydsl.QueryDslPredicateExecutor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 /**
+ * This Exception is thrown when a CREATE request for bucket has been
+ * received but the bucket name is not valid, according to next rules:
+ * the kind name can be between 1 and 61 characters long, and can contain only letters, numbers, underscores, dotes and dashes.
+ A kind names can be separated by slash symbol.
+ * The HTTP status is 400, "Bad Request"
+ *
  * @author ActiveEon Team
  */
-public interface CatalogObjectRepository
-        extends JpaRepository<CatalogObjectEntity, CatalogObjectEntity.CatalogObjectEntityKey>,
-        JpaSpecificationExecutor<CatalogObjectEntity>, QueryDslPredicateExecutor<CatalogObjectEntity> {
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+public class KindNameIsNotValidException extends RuntimeException {
 
-    @EntityGraph("catalogObject.withRevisions")
-    CatalogObjectEntity readCatalogObjectRevisionsById(CatalogObjectEntity.CatalogObjectEntityKey key);
+    public KindNameIsNotValidException(String kindName) {
+        super("The kind name: '" + kindName +
+              "' is not valid, please check the specification of kind parameter naming");
+    }
 
-    @Query(value = "SELECT DISTINCT cos.kind FROM CatalogObjectEntity cos")
-    Set<String> findAllKinds();
+    public KindNameIsNotValidException(Throwable cause) {
+        super(cause);
+    }
+
 }
