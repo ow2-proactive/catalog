@@ -136,18 +136,21 @@ public class CatalogObjectService {
 
         return filesContainedInArchive.stream().map(file -> {
             CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
-                                                                                                                               file.getName()));
+                                                                                                                               file.getFileNameWithExtension()));
             if (catalogObject == null) {
                 String contentTypeOfFile = getFileMimeType(file);
                 return this.createCatalogObject(bucketName,
-                                                file.getName(),
+                                                file.getFileNameWithExtension(),
                                                 kind,
                                                 commitMessage,
                                                 contentTypeOfFile,
                                                 Collections.emptyList(),
                                                 file.getContent());
             } else {
-                return this.createCatalogObjectRevision(bucketName, file.getName(), commitMessage, file.getContent());
+                return this.createCatalogObjectRevision(bucketName,
+                                                        file.getFileNameWithExtension(),
+                                                        commitMessage,
+                                                        file.getContent());
             }
         }).collect(Collectors.toList());
     }
