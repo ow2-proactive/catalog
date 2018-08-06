@@ -97,9 +97,7 @@ public class CatalogObjectReportPDFGenerator {
         List<List> data = new ArrayList();
         data.add(new ArrayList<>(HEADER));
 
-        String currentBucketName = "";
-
-        currentBucketName = addRowForEachObject(orderedObjectsPerBucket, data, currentBucketName);
+        addRowForEachObject(orderedObjectsPerBucket, data);
 
         DataTable t = new DataTable(dataTable, page);
         styleHeader(t);
@@ -108,8 +106,10 @@ public class CatalogObjectReportPDFGenerator {
 
     }
 
-    private String addRowForEachObject(SortedSet<CatalogObjectMetadata> orderedObjectsPerBucket, List<List> data,
-            String currentBucketName) {
+    private void addRowForEachObject(SortedSet<CatalogObjectMetadata> orderedObjectsPerBucket, List<List> data) {
+
+        String currentBucketName = "";
+
         for (CatalogObjectMetadata catalogObject : orderedObjectsPerBucket) {
 
             currentBucketName = separateBucketsWithEmptyRow(data, currentBucketName, catalogObject);
@@ -120,7 +120,6 @@ public class CatalogObjectReportPDFGenerator {
                                                    catalogObject.getKind(),
                                                    catalogObject.getContentType())));
         }
-        return currentBucketName;
     }
 
     private String separateBucketsWithEmptyRow(List<List> data, String currentBucketName,
