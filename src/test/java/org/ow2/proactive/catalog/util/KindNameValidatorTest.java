@@ -93,8 +93,8 @@ public class KindNameValidatorTest {
 
     @Test
     public void testCheckNameWithSpace() {
-        assertThat(kindNameValidator.isValid("kind space")).isFalse();
-        assertThat(kindNameValidator.isValid("  kind s")).isFalse();
+        assertThat(kindNameValidator.isValid("kind space")).isTrue();
+        assertThat(kindNameValidator.isValid("  kind s")).isTrue();
     }
 
     @Test
