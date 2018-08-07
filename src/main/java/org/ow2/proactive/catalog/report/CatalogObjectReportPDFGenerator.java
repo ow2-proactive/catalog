@@ -25,51 +25,71 @@
  */
 package org.ow2.proactive.catalog.report;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.SortedSet;
+
+import javax.imageio.ImageIO;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.service.exception.PDFGenerationException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import be.quodlibet.boxable.BaseTable;
-import be.quodlibet.boxable.datatable.DataTable;
+import be.quodlibet.boxable.Cell;
+import be.quodlibet.boxable.HorizontalAlignment;
+import be.quodlibet.boxable.Row;
+import be.quodlibet.boxable.image.Image;
 
 
 @Component
 public class CatalogObjectReportPDFGenerator {
 
-    private static final List<String> EMPTY_ROW = Arrays.asList("", "", "", "", "");
+    @Value("${pa.scheduler.url}")
+    private String schedulerUrl;
 
-    private static final List<String> HEADER = Arrays.asList("Bucket Name",
-                                                             "Project Name",
-                                                             "Object name",
-                                                             "Object kind",
-                                                             "Content Type");
+    private static final String ACTIVEEON_LOGO = "/automation-dashboard/styles/patterns/AE-Logo.png";
 
-    private static final PDRectangle PAGE_SHAPE_A4 = new PDRectangle(PDRectangle.A4.getHeight(),
-                                                                     PDRectangle.A4.getWidth());
+    private static final String MAIN_TITLE = "ProActive Catalog report";
 
     public byte[] generatePDF(SortedSet<CatalogObjectMetadata> orderedObjectsPerBucket) {
 
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 PDDocument doc = new PDDocument()) {
 
-            PDPage page = new PDPage();
-            //Create a landscape page
-            page.setMediaBox(PAGE_SHAPE_A4);
-            doc.addPage(page);
+            // Set margins
+            float margin = 10;
 
-            BaseTable dataTable = createAndIntitializeBaseTable(doc, page);
-            populateTable(page, dataTable, orderedObjectsPerBucket);
+            List<String[]> catalogObjects = getCatalogObjects(orderedObjectsPerBucket);
+
+            // Initialize Document
+            PDPage page = addNewPage(doc);
+
+            // Initialize table
+            BaseTable table = initializeTable(doc, margin, page);
+
+            // Create Header row
+            createMainHeader(table);
+
+            // Create 2 column row
+            createSecondaryHeader(table);
+
+            // Create data header row
+            createDataHeader(table);
+
+            // Add multiple rows with catalog object data
+            populateTable(catalogObjects, table);
+
+            table.draw();
 
             doc.save(byteArrayOutputStream);
 
@@ -80,62 +100,148 @@ public class CatalogObjectReportPDFGenerator {
         }
     }
 
-    private BaseTable createAndIntitializeBaseTable(PDDocument doc, PDPage page) throws IOException {
-        //Initialize table
-        float margin = 10;
+    private void populateTable(List<String[]> catalogObjects, BaseTable table) throws IOException {
+        for (String[] catalogObjectData : catalogObjects) {
+
+            Row<PDPage> dataRow = table.createRow(10f);
+            createDataCell(dataRow, (100 / 8f), catalogObjectData[0]);
+            createDataCell(dataRow, (100 / 8f), catalogObjectData[1]);
+            createDataCell(dataRow, (100 / 8f), catalogObjectData[2]);
+            createDataCell(dataRow, (100 / 8f) * 2, catalogObjectData[3]);
+            createDataCell(dataRow, (100 / 8f), catalogObjectData[4]);
+            createDataCell(dataRow, (100 / 8f), catalogObjectData[5]);
+
+            createIconCell(dataRow, catalogObjectData[6]);
+
+        }
+    }
+
+    private BaseTable initializeTable(PDDocument doc, float margin, PDPage page) throws IOException {
         float tableWidth = page.getMediaBox().getWidth() - (2 * margin);
         float yStartNewPage = page.getMediaBox().getHeight() - (2 * margin);
+        boolean drawContent = true;
+        boolean drawLines = true;
         float yStart = yStartNewPage;
-        float bottomMargin = 0;
-
-        return new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, doc, page, true, true);
+        float bottomMargin = 70;
+        return new BaseTable(yStart,
+                             yStartNewPage,
+                             bottomMargin,
+                             tableWidth,
+                             margin,
+                             doc,
+                             page,
+                             drawLines,
+                             drawContent);
     }
 
-    private void populateTable(PDPage page, BaseTable dataTable,
-            SortedSet<CatalogObjectMetadata> orderedObjectsPerBucket) throws IOException {
+    private void createIconCell(Row<PDPage> dataRow, String url_path) throws MalformedURLException, IOException {
+        if (url_path.isEmpty()) {
+            createDataCell(dataRow, (100 / 8f), "");
+        } else {
+            URL url = new URL(url_path);
+            BufferedImage imageFile = ImageIO.read(url);
+            dataRow.createImageCell((100 / 8f), new Image(imageFile));
+        }
+    }
+
+    private void createDataCell(Row<PDPage> row, float width, String catalogObjectData) {
+        Cell<PDPage> bucketNameCell = row.createCell(width, catalogObjectData);
+        bucketNameCell.setFontSize(6);
+        bucketNameCell.setAlign(HorizontalAlignment.CENTER);
+    }
+
+    private void createSecondaryHeader(BaseTable table) {
+        Row<PDPage> row = table.createRow(15f);
+        row.createCell(75, "Source:");
+        row.createCell(25, schedulerUrl + "/catalog");
+    }
+
+    private void createMainHeader(BaseTable table) throws IOException {
+        Row<PDPage> headerRow = table.createRow(15f);
+
+        URL url = new URL(schedulerUrl + ACTIVEEON_LOGO);
+        BufferedImage imageFile = ImageIO.read(url);
+        headerRow.createImageCell((100 / 8f), new Image(imageFile));
+
+        Cell<PDPage> cell = headerRow.createCell((100 / 8f) * 7, MAIN_TITLE);
+        cell.setFillColor(java.awt.Color.decode("#EE7939"));
+        cell.setTextColor(java.awt.Color.decode("#0E2C65"));
+
+        table.addHeaderRow(headerRow);
+    }
+
+    private void createDataHeader(BaseTable table) {
+        Row<PDPage> factHeaderrow = table.createRow(15f);
+        createDataHeaderCell(factHeaderrow, (100 / 8f), "Bucket Name");
+        createDataHeaderCell(factHeaderrow, (100 / 8f), "Project Name");
+        createDataHeaderCell(factHeaderrow, (100 / 8f), "Object Name");
+        createDataHeaderCell(factHeaderrow, (100 / 8f) * 2, "Description");
+        createDataHeaderCell(factHeaderrow, (100 / 8f), "Kind");
+        createDataHeaderCell(factHeaderrow, (100 / 8f), "Content Type");
+        createDataHeaderCell(factHeaderrow, (100 / 8f), "Icon");
+        table.addHeaderRow(factHeaderrow);
+    }
+
+    private void createDataHeaderCell(Row<PDPage> factHeaderrow, float width, String title) {
+        Cell<PDPage> cell;
+        cell = factHeaderrow.createCell(width, title);
+        cell.setFontSize(6);
+        cell.setFillColor(java.awt.Color.decode("#F3F3F4"));
+        cell.setAlign(HorizontalAlignment.CENTER);
+    }
+
+    private List<String[]> getCatalogObjects(SortedSet<CatalogObjectMetadata> orderedObjectsPerBucket)
+            throws IOException {
         //Create the data
-        List<List> data = new ArrayList();
-        data.add(new ArrayList<>(HEADER));
-
-        addRowForEachObject(orderedObjectsPerBucket, data);
-
-        DataTable t = new DataTable(dataTable, page);
-        styleHeader(t);
-        t.addListToTable(data, DataTable.HASHEADER);
-        dataTable.draw();
-
-    }
-
-    private void addRowForEachObject(SortedSet<CatalogObjectMetadata> orderedObjectsPerBucket, List<List> data) {
-
-        String currentBucketName = "";
-
+        List<String[]> data = new ArrayList<String[]>();
         for (CatalogObjectMetadata catalogObject : orderedObjectsPerBucket) {
 
-            currentBucketName = separateBucketsWithEmptyRow(data, currentBucketName, catalogObject);
+            data.add(new String[] { catalogObject.getBucketName(), getProjectName(catalogObject),
+                                    catalogObject.getName(), getDescription(catalogObject), catalogObject.getKind(),
+                                    catalogObject.getContentType(), getIcon(catalogObject) });
 
-            data.add(new ArrayList<>(Arrays.asList(catalogObject.getBucketName(),
-                                                   catalogObject.getProjectName(),
-                                                   catalogObject.getName(),
-                                                   catalogObject.getKind(),
-                                                   catalogObject.getContentType())));
         }
+
+        return data;
+
     }
 
-    private String separateBucketsWithEmptyRow(List<List> data, String currentBucketName,
-            CatalogObjectMetadata catalogObject) {
-        if (StringUtils.isEmpty(currentBucketName) || !currentBucketName.equals(catalogObject.getBucketName())) {
-            currentBucketName = catalogObject.getBucketName();
-            data.add(new ArrayList<>(EMPTY_ROW));
-        }
-        return currentBucketName;
+    private String getProjectName(CatalogObjectMetadata catalogObject) {
+        return Optional.ofNullable(catalogObject.getProjectName()).orElse("");
     }
 
-    private void styleHeader(DataTable t) {
-        t.getHeaderCellTemplate().setHeight(50.0f);
-        t.getHeaderCellTemplate().setFontSize(14.0f);
-        t.getHeaderCellTemplate().setFillColor(java.awt.Color.decode("#CD772E"));
-        t.getTable().removeAllBorders(true);
+    private String getDescription(CatalogObjectMetadata catalogObject) {
+        return catalogObject.getMetadataList()
+                            .stream()
+                            .filter(metadata -> metadata.getKey().equals("description"))
+                            .map(metadata -> metadata.getValue())
+                            .map(description -> description.replaceAll("\n", "").replace("\r", "").replace("\t", ""))
+                            .findAny()
+                            .orElse("");
+
+    }
+
+    private String getIcon(CatalogObjectMetadata catalogObject) {
+        return catalogObject.getMetadataList()
+                            .stream()
+                            .filter(metadata -> metadata.getKey().equals("workflow.icon"))
+                            .map(metadata -> metadata.getValue())
+                            .map(image_url -> {
+                                if (image_url.startsWith("/")) {
+                                    return schedulerUrl + image_url;
+                                } else {
+                                    return schedulerUrl;
+                                }
+                            })
+                            .findAny()
+                            .orElse("");
+
+    }
+
+    private PDPage addNewPage(PDDocument doc) {
+        PDPage page = new PDPage();
+        doc.addPage(page);
+        return page;
     }
 
 }
