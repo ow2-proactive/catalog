@@ -139,7 +139,7 @@ public class CatalogObjectReportPDFGenerator {
             BufferedImage imageFile = ImageIO.read(url);
             dataRow.createImageCell((100 / 8f), new Image(imageFile));
         } catch (Exception e) {
-            createDataCell(dataRow, (100 / 8f), "");
+            createDataCell(dataRow, (100 / 8f), url_path);
         }
     }
 
