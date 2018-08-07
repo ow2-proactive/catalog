@@ -28,7 +28,6 @@ package org.ow2.proactive.catalog.report;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -134,13 +133,13 @@ public class CatalogObjectReportPDFGenerator {
                              drawContent);
     }
 
-    private void createIconCell(Row<PDPage> dataRow, String url_path) throws MalformedURLException, IOException {
-        if (url_path.isEmpty()) {
-            createDataCell(dataRow, (100 / 8f), "");
-        } else {
+    private void createIconCell(Row<PDPage> dataRow, String url_path) {
+        try {
             URL url = new URL(url_path);
             BufferedImage imageFile = ImageIO.read(url);
             dataRow.createImageCell((100 / 8f), new Image(imageFile));
+        } catch (Exception e) {
+            createDataCell(dataRow, (100 / 8f), "");
         }
     }
 
