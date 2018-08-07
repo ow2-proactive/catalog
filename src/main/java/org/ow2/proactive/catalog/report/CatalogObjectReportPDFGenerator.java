@@ -100,8 +100,7 @@ public class CatalogObjectReportPDFGenerator {
         }
     }
 
-    private void populateTable(List<String[]> catalogObjects, BaseTable table)
-            throws MalformedURLException, IOException {
+    private void populateTable(List<String[]> catalogObjects, BaseTable table) throws IOException {
         for (String[] catalogObjectData : catalogObjects) {
 
             Row<PDPage> dataRow = table.createRow(10f);
@@ -124,16 +123,15 @@ public class CatalogObjectReportPDFGenerator {
         boolean drawLines = true;
         float yStart = yStartNewPage;
         float bottomMargin = 70;
-        BaseTable table = new BaseTable(yStart,
-                                        yStartNewPage,
-                                        bottomMargin,
-                                        tableWidth,
-                                        margin,
-                                        doc,
-                                        page,
-                                        drawLines,
-                                        drawContent);
-        return table;
+        return new BaseTable(yStart,
+                             yStartNewPage,
+                             bottomMargin,
+                             tableWidth,
+                             margin,
+                             doc,
+                             page,
+                             drawLines,
+                             drawContent);
     }
 
     private void createIconCell(Row<PDPage> dataRow, String url_path) throws MalformedURLException, IOException {
