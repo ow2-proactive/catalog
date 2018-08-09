@@ -44,14 +44,14 @@ public class KindNameValidatorTest {
     public void testCheckNameValid() {
         assertThat(kindNameValidator.isValid("valid-kind-1")).isTrue();
         assertThat(kindNameValidator.isValid("kind-name.my")).isTrue();
-        assertThat(kindNameValidator.isValid("kind-name.my/n_ew")).isTrue();
+        assertThat(kindNameValidator.isValid("kind-name.my/n_ew/my test")).isTrue();
+        assertThat(kindNameValidator.isValid("1-kind_my/mine")).isTrue();
     }
 
     @Test
     public void testCheckNameStartWithUnderscores() {
-        assertThat(kindNameValidator.isValid("1-kind_my/m")).isTrue();
-        assertThat(kindNameValidator.isValid("_kind_m")).isTrue();
-        assertThat(kindNameValidator.isValid("_kind_")).isTrue();
+        assertThat(kindNameValidator.isValid("_kind_m")).isFalse();
+        assertThat(kindNameValidator.isValid("_kind_")).isFalse();
     }
 
     @Test
@@ -77,13 +77,14 @@ public class KindNameValidatorTest {
 
     @Test
     public void testCheckNameDashInEnd() {
-        assertThat(kindNameValidator.isValid("kind-")).isTrue();
+        assertThat(kindNameValidator.isValid("kind-")).isFalse();
+        assertThat(kindNameValidator.isValid("-kind")).isFalse();
     }
 
     @Test
     public void testCheckNameSmallLength() {
-        assertThat(kindNameValidator.isValid("bu")).isTrue();
-        assertThat(kindNameValidator.isValid("k")).isTrue();
+        assertThat(kindNameValidator.isValid("bu")).isFalse();
+        assertThat(kindNameValidator.isValid("k")).isFalse();
     }
 
     @Test
@@ -93,8 +94,10 @@ public class KindNameValidatorTest {
 
     @Test
     public void testCheckNameWithSpace() {
-        assertThat(kindNameValidator.isValid("kind space")).isFalse();
-        assertThat(kindNameValidator.isValid("  kind s")).isFalse();
+        assertThat(kindNameValidator.isValid("kind space/")).isTrue();
+        assertThat(kindNameValidator.isValid("kind s")).isTrue();
+        assertThat(kindNameValidator.isValid("   kind")).isFalse();
+        assertThat(kindNameValidator.isValid("kind   ")).isFalse();
     }
 
     @Test
@@ -104,8 +107,8 @@ public class KindNameValidatorTest {
 
     @Test
     public void testCheckNameWithBackSlashSymbols() {
-        assertThat(kindNameValidator.isValid("kind/new/my")).isTrue();
-        assertThat(kindNameValidator.isValid("kind/new/my/")).isTrue();
+        assertThat(kindNameValidator.isValid("kind/new/my-k")).isTrue();
+        assertThat(kindNameValidator.isValid("kind/new/my-k/")).isTrue();
     }
 
     @Test

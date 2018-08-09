@@ -208,7 +208,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         allKinds.add(workflowKind);
         given().when().get(kindsQuery).then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
 
-        String newKindMy = "workflow/new_kind/my";
+        String newKindMy = "workflow/new_kind/mine";
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", newKindMy)
                .queryParam("name", "new object")
