@@ -151,7 +151,8 @@ public class CatalogObjectControllerTest {
                                                           1400343L,
                                                           "commit message",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          "xml");
         ResponseEntity responseEntity = ResponseEntity.ok().body(1);
         when(catalogObjectService.getCatalogRawObject(anyString(), anyString())).thenReturn(rawObject);
         when(rawObjectResponseCreator.createRawObjectResponse(rawObject)).thenReturn(responseEntity);
@@ -170,7 +171,8 @@ public class CatalogObjectControllerTest {
                                                                "application/xml",
                                                                1400343L,
                                                                "commit message",
-                                                               Collections.emptyList());
+                                                               Collections.emptyList(),
+                                                               "xml");
         when(catalogObjectService.delete(anyString(), anyString())).thenReturn(mock);
         CatalogObjectMetadata result = catalogObjectController.delete("", "bucket-name", "name");
         assertThat(mock).isEqualTo(result);

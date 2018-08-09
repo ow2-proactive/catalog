@@ -40,6 +40,7 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FilenameUtils;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
@@ -119,7 +120,9 @@ public class CatalogObjectController {
                                                                                            kind,
                                                                                            commitMessage,
                                                                                            objectContentType,
-                                                                                           file.getBytes());
+                                                                                           file.getBytes(),
+                                                                                           FilenameUtils.getExtension(file.getOriginalFilename()));
+
             catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
 
             return new CatalogObjectMetadataList(catalogObject);

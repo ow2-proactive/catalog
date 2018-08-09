@@ -56,7 +56,8 @@ public class RawObjectResponseCreatorTest {
                                                           1400343L,
                                                           "commit message",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          "xml");
         ResponseEntity responseEntity = rawObjectResponseCreator.createRawObjectResponse(rawObject);
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -80,7 +81,8 @@ public class RawObjectResponseCreatorTest {
                                                           1400343L,
                                                           "commit message",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          "xml");
         ResponseEntity responseEntity = rawObjectResponseCreator.createRawObjectResponse(rawObject);
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -101,7 +103,8 @@ public class RawObjectResponseCreatorTest {
                                                           1400343L,
                                                           "commit message",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          "xml");
         ResponseEntity responseEntity = rawObjectResponseCreator.createRawObjectResponse(rawObject);
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -120,7 +123,8 @@ public class RawObjectResponseCreatorTest {
                                                           1400343L,
                                                           "commit message",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          "xml");
         ResponseEntity responseEntity = rawObjectResponseCreator.createRawObjectResponse(rawObject);
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
