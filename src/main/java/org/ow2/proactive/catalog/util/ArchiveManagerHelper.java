@@ -127,8 +127,14 @@ public class ArchiveManagerHelper {
                     zipContent.setPartial(true);
                 }
                 return catalogObjectRevision != null;
-            }).map(catalogObjectRevision -> new ByteSource(catalogObjectRevision.getCatalogObject().getId().getName(),
-                                                           catalogObjectRevision.getRawObject()));
+            }).map(catalogObjectRevision -> {
+                String fileExtension = catalogObjectRevision.getCatalogObject().getExtension();
+                String fileNameWithExtension = catalogObjectRevision.getCatalogObject().getId().getName();
+                if (fileExtension != null) {
+                    fileNameWithExtension += "." + fileExtension;
+                }
+                return new ByteSource(fileNameWithExtension, catalogObjectRevision.getRawObject());
+            });
             ZipEntrySource[] sources = streamSources.toArray(size -> new ZipEntrySource[size]);
             ZipUtil.pack(sources, byteArrayOutputStream);
 

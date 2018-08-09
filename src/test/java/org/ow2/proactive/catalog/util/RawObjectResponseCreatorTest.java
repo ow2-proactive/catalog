@@ -48,7 +48,8 @@ public class RawObjectResponseCreatorTest {
     @Test
     public void testCreateRawObjectResponseGeneralKindRightContentType() {
         String objectName = "object name";
-        String contentDispositionFileName = "attachment; filename=\"" + objectName + "\"";
+        String fileExtension = "myextension";
+        String contentDispositionFileName = "attachment; filename=\"" + objectName + "." + fileExtension + "\"";
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
                                                           "object",
@@ -57,7 +58,7 @@ public class RawObjectResponseCreatorTest {
                                                           "commit message",
                                                           Collections.emptyList(),
                                                           new byte[0],
-                                                          "xml");
+                                                          fileExtension);
         ResponseEntity responseEntity = rawObjectResponseCreator.createRawObjectResponse(rawObject);
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -82,7 +83,7 @@ public class RawObjectResponseCreatorTest {
                                                           "commit message",
                                                           Collections.emptyList(),
                                                           new byte[0],
-                                                          "xml");
+                                                          null);
         ResponseEntity responseEntity = rawObjectResponseCreator.createRawObjectResponse(rawObject);
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -93,9 +94,10 @@ public class RawObjectResponseCreatorTest {
     }
 
     @Test
-    public void testCreateRawObjectResponseWorkflowKindWithExtension() {
-        String objectName = "object name.xml";
-        String contentDispositionFileName = "attachment; filename=\"" + objectName + "\"";
+    public void testCreateRawObjectResponseWorkflowKindWithExtensionInName() {
+        String objectName = "object name.json";
+        String contentDispositionFileName = "attachment; filename=\"" + objectName +
+                                            RawObjectResponseCreator.WORKFLOW_EXTENSION + "\"";
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
                                                           "workflow/specific-workflow-kind",

@@ -57,11 +57,17 @@ public class RawObjectResponseCreator {
 
         try {
             String contentDispositionFileName = name;
+            String fileExtension = rawObject.getExtension();
 
+            if (fileExtension != null) {
+                contentDispositionFileName += "." + fileExtension;
+            }
             //add the .xml extension to contentDispositionFileName for workflow if the extension was not yet in name
-            if (rawObject.getKind() != null && rawObject.getContentType() != null &&
-                rawObject.getKind().toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase()) &&
-                !name.endsWith(WORKFLOW_EXTENSION)) {
+            else if (rawObject.getKind() != null && rawObject.getContentType() != null &&
+                     rawObject.getKind()
+                              .toLowerCase()
+                              .startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase()) &&
+                     !name.endsWith(WORKFLOW_EXTENSION)) {
                 contentDispositionFileName += WORKFLOW_EXTENSION;
             }
             responseBodyBuilder.header(HttpHeaders.CONTENT_DISPOSITION,

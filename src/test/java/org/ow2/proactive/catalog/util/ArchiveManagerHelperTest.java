@@ -81,10 +81,11 @@ public class ArchiveManagerHelperTest {
         ZIP_FILE_DIFF_TYPES = ArchiveManagerHelperTest.class.getResource("/archives/archiveDiffTypes.zip").toURI();
     }
 
-    private CatalogObjectRevisionEntity getCatalogObjectRevisionEntity(String name, byte[] fileContent)
-            throws IOException {
+    private CatalogObjectRevisionEntity getCatalogObjectRevisionEntity(String name, byte[] fileContent,
+            String extension) throws IOException {
         CatalogObjectEntity object = new CatalogObjectEntity();
         object.setId(new CatalogObjectEntityKey(1L, name));
+        object.setExtension(extension);
 
         CatalogObjectRevisionEntity revision = new CatalogObjectRevisionEntity();
         revision.setCatalogObject(object);
@@ -101,8 +102,8 @@ public class ArchiveManagerHelperTest {
         byte[] workflowByteArray0 = convertFromURIToByteArray(XML_FILE_0);
         byte[] jsonByteArray1 = convertFromURIToByteArray(XML_FILE_1);
         List<CatalogObjectRevisionEntity> expectedFiles = new ArrayList<>();
-        expectedFiles.add(getCatalogObjectRevisionEntity("workflow_0", workflowByteArray0));
-        expectedFiles.add(getCatalogObjectRevisionEntity("array", jsonByteArray1));
+        expectedFiles.add(getCatalogObjectRevisionEntity("workflow_0", workflowByteArray0, "xml"));
+        expectedFiles.add(getCatalogObjectRevisionEntity("array", jsonByteArray1, "json"));
         //Compress
         ZipArchiveContent archive = archiveManager.compressZIP(expectedFiles);
         //Then extract
@@ -111,6 +112,8 @@ public class ArchiveManagerHelperTest {
 
         compare(workflowByteArray0, actualFiles.get(0).getContent());
         compare(jsonByteArray1, actualFiles.get(1).getContent());
+        assertEquals("workflow_0.xml", actualFiles.get(0).getFileNameWithExtension());
+        assertEquals("array.json", actualFiles.get(1).getFileNameWithExtension());
     }
 
     @Test
@@ -121,8 +124,8 @@ public class ArchiveManagerHelperTest {
         byte[] workflowByteArray0 = convertFromURIToByteArray(XML_FILE_0);
         byte[] workflowByteArray1 = convertFromURIToByteArray(XML_FILE_1);
         List<CatalogObjectRevisionEntity> expectedFiles = new ArrayList<>();
-        expectedFiles.add(getCatalogObjectRevisionEntity("workflow_0", workflowByteArray0));
-        expectedFiles.add(getCatalogObjectRevisionEntity("workflow_1", workflowByteArray1));
+        expectedFiles.add(getCatalogObjectRevisionEntity("workflow_0", workflowByteArray0, "xml"));
+        expectedFiles.add(getCatalogObjectRevisionEntity("workflow_1", workflowByteArray1, "xml"));
         //Compress
         ZipArchiveContent archive = archiveManager.compressZIP(expectedFiles);
         //Then extract
