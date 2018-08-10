@@ -29,6 +29,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -44,6 +45,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity.CatalogObjectEntityKey;
@@ -63,6 +65,9 @@ public class ArchiveManagerHelperTest {
     private static URI ZIP_FILE;
 
     private static URI ZIP_FILE_DIFF_TYPES;
+
+    @Mock
+    private RawObjectResponseCreator rawObjectResponseCreator;
 
     @InjectMocks
     private ArchiveManagerHelper archiveManager;
@@ -101,6 +106,8 @@ public class ArchiveManagerHelperTest {
 
         byte[] workflowByteArray0 = convertFromURIToByteArray(XML_FILE_0);
         byte[] jsonByteArray1 = convertFromURIToByteArray(XML_FILE_1);
+        when(rawObjectResponseCreator.getNameWithFileExtension("workflow_0", "xml", null)).thenReturn("workflow_0.xml");
+        when(rawObjectResponseCreator.getNameWithFileExtension("array", "json", null)).thenReturn("array.json");
         List<CatalogObjectRevisionEntity> expectedFiles = new ArrayList<>();
         expectedFiles.add(getCatalogObjectRevisionEntity("workflow_0", workflowByteArray0, "xml"));
         expectedFiles.add(getCatalogObjectRevisionEntity("array", jsonByteArray1, "json"));
@@ -126,6 +133,8 @@ public class ArchiveManagerHelperTest {
         List<CatalogObjectRevisionEntity> expectedFiles = new ArrayList<>();
         expectedFiles.add(getCatalogObjectRevisionEntity("workflow_0", workflowByteArray0, "xml"));
         expectedFiles.add(getCatalogObjectRevisionEntity("workflow_1", workflowByteArray1, "xml"));
+        when(rawObjectResponseCreator.getNameWithFileExtension("workflow_0", "xml", null)).thenReturn("workflow_0.xml");
+        when(rawObjectResponseCreator.getNameWithFileExtension("workflow_1", "xml", null)).thenReturn("array.json");
         //Compress
         ZipArchiveContent archive = archiveManager.compressZIP(expectedFiles);
         //Then extract

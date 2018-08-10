@@ -50,26 +50,15 @@ public class RawObjectResponseCreator {
 
     public ResponseEntity createRawObjectResponse(CatalogRawObject rawObject) {
         String name = rawObject.getName();
-
         byte[] bytes = rawObject.getRawObject();
 
         ResponseEntity.BodyBuilder responseBodyBuilder = ResponseEntity.ok().contentLength(bytes.length);
 
         try {
-            String contentDispositionFileName = name;
-            String fileExtension = rawObject.getExtension();
+            String contentDispositionFileName = getNameWithFileExtension(rawObject.getName(),
+                                                                         rawObject.getExtension(),
+                                                                         rawObject.getKind());
 
-            if (fileExtension != null) {
-                contentDispositionFileName += "." + fileExtension;
-            }
-            //add the .xml extension to contentDispositionFileName for workflow if the extension was not yet in name
-            else if (rawObject.getKind() != null && rawObject.getContentType() != null &&
-                     rawObject.getKind()
-                              .toLowerCase()
-                              .startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase()) &&
-                     !name.endsWith(WORKFLOW_EXTENSION)) {
-                contentDispositionFileName += WORKFLOW_EXTENSION;
-            }
             responseBodyBuilder.header(HttpHeaders.CONTENT_DISPOSITION,
                                        "attachment; filename=\"" + contentDispositionFileName + "\"");
         } catch (Exception e) {
@@ -85,5 +74,27 @@ public class RawObjectResponseCreator {
         }
 
         return responseBodyBuilder.body(new InputStreamResource(new ByteArrayInputStream(bytes)));
+    }
+
+    /**
+     *
+     * @param name
+     * @param fileExtension
+     * @param kind
+     * @return object's name with added extension
+     * if extension doesn't exist for workflow it will be added .xml
+     */
+    public String getNameWithFileExtension(String name, String fileExtension, String kind) {
+
+        if (fileExtension != null && !fileExtension.isEmpty()) {
+            name += "." + fileExtension;
+        }
+        //add the .xml extension to contentDispositionFileName for workflow if the extension was not yet in name
+        else if (kind != null &&
+                 kind.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase()) &&
+                 !name.endsWith(WORKFLOW_EXTENSION)) {
+            name += WORKFLOW_EXTENSION;
+        }
+        return name;
     }
 }

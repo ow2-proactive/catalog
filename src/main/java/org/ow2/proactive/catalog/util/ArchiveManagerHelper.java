@@ -35,7 +35,9 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
 import org.apache.commons.io.FilenameUtils;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.zeroturnaround.zip.ByteSource;
 import org.zeroturnaround.zip.ZipEntrySource;
@@ -44,6 +46,9 @@ import org.zeroturnaround.zip.ZipUtil;
 
 @Component
 public class ArchiveManagerHelper {
+
+    @Autowired
+    private RawObjectResponseCreator rawObjectResponseCreator;
 
     public static class ZipArchiveContent {
 
@@ -128,11 +133,11 @@ public class ArchiveManagerHelper {
                 }
                 return catalogObjectRevision != null;
             }).map(catalogObjectRevision -> {
-                String fileExtension = catalogObjectRevision.getCatalogObject().getExtension();
-                String fileNameWithExtension = catalogObjectRevision.getCatalogObject().getId().getName();
-                if (fileExtension != null) {
-                    fileNameWithExtension += "." + fileExtension;
-                }
+                CatalogObjectEntity catalogObjectEntity = catalogObjectRevision.getCatalogObject();
+                String fileNameWithExtension = rawObjectResponseCreator.getNameWithFileExtension(catalogObjectEntity.getId()
+                                                                                                                    .getName(),
+                                                                                                 catalogObjectEntity.getExtension(),
+                                                                                                 catalogObjectEntity.getKind());
                 return new ByteSource(fileNameWithExtension, catalogObjectRevision.getRawObject());
             });
             ZipEntrySource[] sources = streamSources.toArray(size -> new ZipEntrySource[size]);
