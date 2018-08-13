@@ -134,7 +134,7 @@ public class ArchiveManagerHelperTest {
         expectedFiles.add(getCatalogObjectRevisionEntity("workflow_0", workflowByteArray0, "xml"));
         expectedFiles.add(getCatalogObjectRevisionEntity("workflow_1", workflowByteArray1, "xml"));
         when(rawObjectResponseCreator.getNameWithFileExtension("workflow_0", "xml", null)).thenReturn("workflow_0.xml");
-        when(rawObjectResponseCreator.getNameWithFileExtension("workflow_1", "xml", null)).thenReturn("array.json");
+        when(rawObjectResponseCreator.getNameWithFileExtension("workflow_1", "xml", null)).thenReturn("workflow_1.xml");
         //Compress
         ZipArchiveContent archive = archiveManager.compressZIP(expectedFiles);
         //Then extract
@@ -143,6 +143,8 @@ public class ArchiveManagerHelperTest {
 
         compare(workflowByteArray0, actualFiles.get(0).getContent());
         compare(workflowByteArray1, actualFiles.get(1).getContent());
+        assertEquals("workflow_0.xml", actualFiles.get(0).getFileNameWithExtension());
+        assertEquals("workflow_1.xml", actualFiles.get(1).getFileNameWithExtension());
     }
 
     @Test
