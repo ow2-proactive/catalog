@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
@@ -114,14 +115,15 @@ public class CatalogObjectService {
     private AutoDetectParser mediaTypeFileParser = new AutoDetectParser();
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
-            String contentType, byte[] rawObject) {
+            String contentType, byte[] rawObject, String extension) {
         return this.createCatalogObject(bucketName,
                                         name,
                                         kind,
                                         commitMessage,
                                         contentType,
                                         Collections.emptyList(),
-                                        rawObject);
+                                        rawObject,
+                                        extension);
     }
 
     public List<CatalogObjectMetadata> createCatalogObjects(String bucketName, String kind, String commitMessage,
@@ -135,21 +137,55 @@ public class CatalogObjectService {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
 
         return filesContainedInArchive.stream().map(file -> {
+            String objectName = file.getName();
             CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
-                                                                                                                               file.getName()));
+                                                                                                                               objectName));
             if (catalogObject == null) {
                 String contentTypeOfFile = getFileMimeType(file);
                 return this.createCatalogObject(bucketName,
-                                                file.getName(),
+                                                objectName,
                                                 kind,
                                                 commitMessage,
                                                 contentTypeOfFile,
                                                 Collections.emptyList(),
-                                                file.getContent());
+                                                file.getContent(),
+                                                FilenameUtils.getExtension(file.getFileNameWithExtension()));
             } else {
-                return this.createCatalogObjectRevision(bucketName, file.getName(), commitMessage, file.getContent());
+                return this.createCatalogObjectRevision(bucketName, objectName, commitMessage, file.getContent());
             }
         }).collect(Collectors.toList());
+    }
+
+    public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
+            String contentType, List<Metadata> metadataList, byte[] rawObject, String extension) {
+        if (!kindNameValidator.isValid(kind)) {
+            throw new KindNameIsNotValidException(kind);
+        }
+
+        BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
+
+        CatalogObjectRevisionEntity catalogObjectEntityCheck = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
+                                                                                                                                      name);
+        if (catalogObjectEntityCheck != null) {
+            throw new CatalogObjectAlreadyExistingException(bucketName, name);
+        }
+
+        CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
+                                                                     .bucket(bucketEntity)
+                                                                     .contentType(contentType)
+                                                                     .kind(kind)
+                                                                     .extension(extension)
+                                                                     .id(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
+                                                                                                                        name))
+                                                                     .build();
+        bucketEntity.getCatalogObjects().add(catalogObjectEntity);
+
+        CatalogObjectRevisionEntity result = buildCatalogObjectRevisionEntity(commitMessage,
+                                                                              metadataList,
+                                                                              rawObject,
+                                                                              catalogObjectEntity);
+
+        return new CatalogObjectMetadata(result);
     }
 
     private String getFileMimeType(FileNameAndContent file) {
@@ -182,37 +218,6 @@ public class CatalogObjectService {
         contentType.ifPresent(catalogObjectEntity::setContentType);
         catalogObjectRepository.save(catalogObjectEntity);
         return new CatalogObjectMetadata(catalogObjectEntity);
-    }
-
-    public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
-            String contentType, List<Metadata> metadataList, byte[] rawObject) {
-        if (!kindNameValidator.isValid(kind)) {
-            throw new KindNameIsNotValidException(kind);
-        }
-
-        BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
-
-        CatalogObjectRevisionEntity catalogObjectEntityCheck = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
-                                                                                                                                      name);
-        if (catalogObjectEntityCheck != null) {
-            throw new CatalogObjectAlreadyExistingException(bucketName, name);
-        }
-
-        CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
-                                                                     .bucket(bucketEntity)
-                                                                     .contentType(contentType)
-                                                                     .kind(kind)
-                                                                     .id(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
-                                                                                                                        name))
-                                                                     .build();
-        bucketEntity.getCatalogObjects().add(catalogObjectEntity);
-
-        CatalogObjectRevisionEntity result = buildCatalogObjectRevisionEntity(commitMessage,
-                                                                              metadataList,
-                                                                              rawObject,
-                                                                              catalogObjectEntity);
-
-        return new CatalogObjectMetadata(result);
     }
 
     private BucketEntity findBucketByNameAndCheck(String bucketName) {

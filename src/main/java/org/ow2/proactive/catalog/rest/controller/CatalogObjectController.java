@@ -40,6 +40,7 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FilenameUtils;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
@@ -119,7 +120,9 @@ public class CatalogObjectController {
                                                                                            kind,
                                                                                            commitMessage,
                                                                                            objectContentType,
-                                                                                           file.getBytes());
+                                                                                           file.getBytes(),
+                                                                                           FilenameUtils.getExtension(file.getOriginalFilename()));
+
             catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
 
             return new CatalogObjectMetadataList(catalogObject);
@@ -149,7 +152,7 @@ public class CatalogObjectController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"),
                             @ApiResponse(code = 400, message = "Wrong specified parameters: at least one should be present") })
-    @RequestMapping(value = REQUEST_API_QUERY + "/{name}", method = PUT)
+    @RequestMapping(value = REQUEST_API_QUERY + "/{name:.+}", method = PUT)
     @ResponseStatus(HttpStatus.OK)
     public CatalogObjectMetadata updateObjectMetadata(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
@@ -168,7 +171,7 @@ public class CatalogObjectController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = REQUEST_API_QUERY + "/{name}", method = GET)
+    @RequestMapping(value = REQUEST_API_QUERY + "/{name:.+}", method = GET)
     public CatalogObjectMetadata get(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name) throws MalformedURLException,
@@ -189,7 +192,7 @@ public class CatalogObjectController {
                             @ApiResponse(code = 403, message = "Permission denied"),
                             @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found") })
 
-    @RequestMapping(value = REQUEST_API_QUERY + "/{name}/raw", method = GET, produces = MediaType.ALL_VALUE)
+    @RequestMapping(value = REQUEST_API_QUERY + "/{name:.+}/raw", method = GET, produces = MediaType.ALL_VALUE)
     public ResponseEntity<String> getRaw(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name)
@@ -276,7 +279,7 @@ public class CatalogObjectController {
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket or object not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
-    @RequestMapping(value = REQUEST_API_QUERY + "/{name}", method = DELETE)
+    @RequestMapping(value = REQUEST_API_QUERY + "/{name:.+}", method = DELETE)
     public CatalogObjectMetadata delete(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name)

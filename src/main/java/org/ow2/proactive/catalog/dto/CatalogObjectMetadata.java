@@ -63,6 +63,9 @@ public class CatalogObjectMetadata extends ResourceSupport {
     @JsonProperty
     protected final String name;
 
+    @JsonProperty
+    protected final String extension;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     @JsonProperty("commit_time")
     protected final LocalDateTime commitDateTime;
@@ -85,7 +88,8 @@ public class CatalogObjectMetadata extends ResourceSupport {
              catalogObject.getContentType(),
              catalogObject.getRevisions().first().getCommitTime(),
              catalogObject.getRevisions().first().getCommitMessage(),
-             KeyValueEntityToDtoTransformer.to(catalogObject.getRevisions().first().getKeyValueMetadataList()));
+             KeyValueEntityToDtoTransformer.to(catalogObject.getRevisions().first().getKeyValueMetadataList()),
+             catalogObject.getExtension());
     }
 
     public CatalogObjectMetadata(CatalogObjectRevisionEntity catalogObject) {
@@ -95,11 +99,12 @@ public class CatalogObjectMetadata extends ResourceSupport {
              catalogObject.getCatalogObject().getContentType(),
              catalogObject.getCommitTime(),
              catalogObject.getCommitMessage(),
-             KeyValueEntityToDtoTransformer.to(catalogObject.getKeyValueMetadataList()));
+             KeyValueEntityToDtoTransformer.to(catalogObject.getKeyValueMetadataList()),
+             catalogObject.getCatalogObject().getExtension());
     }
 
     public CatalogObjectMetadata(String bucketName, String name, String kind, String contentType, long commitTime,
-            String commitMessage, List<Metadata> metadataList) {
+            String commitMessage, List<Metadata> metadataList, String extension) {
         this.bucketName = bucketName;
         this.name = name;
         this.kind = kind;
@@ -113,6 +118,7 @@ public class CatalogObjectMetadata extends ResourceSupport {
             this.metadataList = metadataList;
         }
         this.projectName = getProjectNameIfExistsOrEmptyString();
+        this.extension = extension;
 
     }
 

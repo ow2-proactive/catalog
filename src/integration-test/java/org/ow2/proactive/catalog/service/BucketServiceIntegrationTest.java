@@ -95,6 +95,7 @@ public class BucketServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
+                                                 null,
                                                  null);
 
         BucketMetadata emptyBucket = bucketService.createBucket("bucketempty", "emptyBucketTest");
@@ -131,6 +132,7 @@ public class BucketServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
+                                                 null,
                                                  null);
 
         List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("owner", Optional.empty(), Optional.empty());
@@ -153,6 +155,7 @@ public class BucketServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
+                                                 null,
                                                  null);
 
         //create bucket with kind object workflow/standard inside
@@ -163,6 +166,7 @@ public class BucketServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
+                                                 null,
                                                  null);
 
         //create bucket with kind object workflow/pca inside
@@ -173,6 +177,7 @@ public class BucketServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
+                                                 null,
                                                  null);
 
         //create bucket with kind object not-workflow inside
@@ -183,6 +188,7 @@ public class BucketServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
+                                                 null,
                                                  null);
 
         // test filtering by owner

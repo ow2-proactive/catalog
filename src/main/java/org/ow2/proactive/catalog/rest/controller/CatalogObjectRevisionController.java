@@ -66,7 +66,7 @@ import lombok.extern.log4j.Log4j2;
  * @author ActiveEon Team
  */
 @RestController
-@RequestMapping("/buckets/{bucketName}/resources/{name}/revisions")
+@RequestMapping("/buckets/{bucketName}/resources/{name:.+}/revisions")
 @Log4j2
 public class CatalogObjectRevisionController {
 

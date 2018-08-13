@@ -34,6 +34,7 @@ import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PERCENT_2
 import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PLUS;
 import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_EXTENSION;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -129,6 +130,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].bucket_name", is(bucket.getName()))
                .body("object[0].kind", is("Workflow/specific-workflow-kind"))
                .body("object[0].name", is("workflow_test"))
+               .body("object[0].extension", is("xml"))
 
                .body("object[0].object_key_values", hasSize(9))
                //check job info
@@ -173,7 +175,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_OK)
                .body("bucket_name", is(bucket.getName()))
                .body("kind", is("updated-kind"))
-               .body("content_type", is("updated-contentType"));
+               .body("content_type", is("updated-contentType"))
+               .body("extension", is("xml"));
 
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "workflowname")
@@ -260,7 +263,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testCreateWorkflowWithSpecificSymbolsInNameAndCheckReturnSavedWorkflow() throws IOException {
-        String objectNameWithSpecificSymbols = "workflow$with&specific&symbols+in name:$&%ae";
+        String objectNameWithSpecificSymbols = "workflow$with&specific&symbols+in name:$&%ae.extension";
         String encodedObjectName = URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8")
                                              .replace(SPACE_ENCODED_AS_PLUS, SPACE_ENCODED_AS_PERCENT_20);
 
@@ -280,6 +283,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].bucket_name", is(bucket.getName()))
                .body("object[0].kind", is("workflow/specific-workflow-kind"))
                .body("object[0].name", is(objectNameWithSpecificSymbols))
+               .body("object[0].extension", is("xml"))
 
                .body("object[0].object_key_values", hasSize(9))
                //check job info
@@ -346,13 +350,15 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
-    public void testCreatePCWRuleShouldReturnSavedRule() {
+    public void testCreatePCWRuleShouldReturnSavedRule() throws IOException {
+        String ruleName = "pcw-rule test.rule";
+        String fileExtension = "json";
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "Rule/cpu")
-               .queryParam("name", "pcw-rule test")
+               .queryParam("name", ruleName)
                .queryParam("commitMessage", "first commit")
                .queryParam("objectContentType", MediaType.APPLICATION_JSON_VALUE)
-               .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleExample.json"))
+               .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleExample." + fileExtension))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
@@ -360,7 +366,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_CREATED)
                .body("object[0].bucket_name", is(bucket.getName()))
                .body("object[0].kind", is("Rule/cpu"))
-               .body("object[0].name", is("pcw-rule test"))
+               .body("object[0].name", is(ruleName))
+               .body("object[0].extension", is(fileExtension))
 
                .body("object[0].object_key_values", hasSize(8))
                //check pcw metadata info
@@ -385,6 +392,20 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].object_key_values[5].value",
                      is("[\"localhost\",\"service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode\"]"))
                .body("object[0].content_type", is(MediaType.APPLICATION_JSON_VALUE));
+
+        //check get the raw object, created on previous request with specific name
+        Response rawResponse = given().urlEncodingEnabled(true)
+                                      .pathParam("bucketName", bucket.getName())
+                                      .pathParam("name", ruleName)
+                                      .when()
+                                      .get(CATALOG_OBJECT_RESOURCE + "/raw");
+        Arrays.equals(ByteStreams.toByteArray(rawResponse.asInputStream()),
+                      ByteStreams.toByteArray(new FileInputStream(IntegrationTestUtil.getPCWRule("pcwRuleExample.json"))));
+        rawResponse.then().assertThat().statusCode(HttpStatus.SC_OK).contentType(MediaType.APPLICATION_JSON.toString());
+        rawResponse.then().assertThat().header(HttpHeaders.CONTENT_DISPOSITION,
+                                               is("attachment; filename=\"" + ruleName + "." + fileExtension + "\""));
+        rawResponse.then().assertThat().header(HttpHeaders.CONTENT_TYPE,
+                                               is(MediaType.APPLICATION_JSON.toString() + ";charset=UTF-8"));
     }
 
     @Test
@@ -668,7 +689,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testGetCatalogObjectWithSpecialSymbolsNamesAsArchive() {
-        String nameWithSpecialSymbols = "wf n:$ %ae";
+        String nameWithSpecialSymbols = "wf n:$ %ae.myextension";
         // Add an second object of kind "workflow" into first bucket
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
@@ -729,7 +750,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("commit_message", is(firstCommitMessage))
-               .body("content_type", is(MediaType.APPLICATION_XML.toString()));
+               .body("content_type", is(MediaType.APPLICATION_XML.toString()))
+               .body("extension", is("xml"));
 
         //Check that workflow_new has no revisions
         given().pathParam("bucketName", bucket.getName())
@@ -761,7 +783,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("commit_message", is(archiveCommitMessage))
-               .body("content_type", is(MediaType.APPLICATION_XML.toString()));
+               .body("content_type", is(MediaType.APPLICATION_XML.toString()))
+               .body("extension", is("xml"));
 
         //Check that workflow_new was created
         given().pathParam("bucketName", bucket.getName())
@@ -772,7 +795,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("commit_message", is(archiveCommitMessage))
-               .body("content_type", is(MediaType.APPLICATION_XML.toString()));
+               .body("content_type", is(MediaType.APPLICATION_XML.toString()))
+               .body("extension", is("xml"));
     }
 
     @Test
@@ -801,7 +825,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("commit_message", is(archiveCommitMessage))
-               .body("content_type", is("application/x-bat"));
+               .body("content_type", is("application/x-bat"))
+               .body("extension", is("bat"));
 
         //Check that the object was created
         given().pathParam("bucketName", bucket.getName())
@@ -812,7 +837,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("commit_message", is(archiveCommitMessage))
-               .body("content_type", is(MediaType.APPLICATION_JSON_VALUE));
+               .body("content_type", is(MediaType.APPLICATION_JSON_VALUE))
+               .body("extension", is("json"));
     }
 
     @Test

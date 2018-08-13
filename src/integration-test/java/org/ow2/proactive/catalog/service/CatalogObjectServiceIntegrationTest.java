@@ -93,7 +93,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                        "commit message",
                                                                                        "application/xml",
                                                                                        keyValues,
-                                                                                       workflowAsByteArray);
+                                                                                       workflowAsByteArray,
+                                                                                       null);
         firstCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
         Thread.sleep(1); // to be sure that a new revision time will be different from previous revision time
@@ -110,7 +111,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
-                                                 workflowAsByteArray);
+                                                 workflowAsByteArray,
+                                                 null);
 
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "object-name-3",
@@ -118,7 +120,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
-                                                 workflowAsByteArray);
+                                                 workflowAsByteArray,
+                                                 null);
     }
 
     @After
@@ -143,7 +146,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
-                                                 workflowAsByteArray);
+                                                 workflowAsByteArray,
+                                                 null);
         listKinds = catalogObjectService.getKinds();
         assertThat(listKinds).hasSize(3);
         assertThat(listKinds).contains("workflow/new");
@@ -177,7 +181,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
-                                                 workflowAsByteArray);
+                                                 workflowAsByteArray,
+                                                 null);
     }
 
     @Test
@@ -192,7 +197,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
-                                                 workflowAsByteArray);
+                                                 workflowAsByteArray,
+                                                 null);
 
         catalogObjects = catalogObjectService.listCatalogObjectsByKind(Arrays.asList(bucket.getName()),
                                                                        "workflow-general");

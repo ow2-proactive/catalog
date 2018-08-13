@@ -107,7 +107,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         // Add an object of kind "workflow" into first bucket
         catalogObjectRevisionAlone = given().pathParam("bucketName", bucket.getName())
                                             .queryParam("kind", "workflow")
-                                            .queryParam("name", "WF_1_Rev_1")
+                                            .queryParam("name", "WF_1_Rev_1.xml")
                                             .queryParam("commitMessage", "alone commit")
                                             .queryParam("objectContentType", objectContentType)
                                             .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -120,7 +120,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
         Thread.sleep(SLEEP_TIME);
         firstCatalogObjectRevision = given().pathParam("bucketName", bucket.getName())
-                                            .pathParam("name", "WF_1_Rev_1")
+                                            .pathParam("name", "WF_1_Rev_1.xml")
                                             .queryParam("commitMessage", "first commit")
                                             .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                                             .when()
@@ -132,7 +132,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
         Thread.sleep(SLEEP_TIME);
         secondCatalogObjectRevision = given().pathParam("bucketName", bucket.getName())
-                                             .pathParam("name", "WF_1_Rev_1")
+                                             .pathParam("name", "WF_1_Rev_1.xml")
                                              .queryParam("commitMessage", "second commit")
                                              .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-updated.xml"))
                                              .when()
@@ -156,7 +156,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testCreateWorkflowRevisionShouldReturnSavedWorkflow() {
 
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "WF_1_Rev_1")
+               .pathParam("name", "WF_1_Rev_1.xml")
                .queryParam("commitMessage", "first commit")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
@@ -165,13 +165,13 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED)
                .body("bucket_name", is(bucket.getName()))
-               .body("name", is("WF_1_Rev_1"));
+               .body("name", is("WF_1_Rev_1.xml"));
     }
 
     @Test
     public void testCreateWorkflowRevisionShouldReturnUnprocessableEntityIfInvalidSyntax() {
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "WF_1_Rev_1")
+               .pathParam("name", "WF_1_Rev_1.xml")
                .queryParam("commitMessage", "first commit")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-invalid-syntax.xml"))
                .when()
@@ -185,7 +185,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     @Test
     public void testCreateWorkflowRevisionShouldReturnCreatedIfNoProjectNameInXmlPayload() {
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "WF_1_Rev_1")
+               .pathParam("name", "WF_1_Rev_1.xml")
                .queryParam("commitMessage", "first commit")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-no-project-name.xml"))
                .when()
@@ -198,7 +198,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     @Test
     public void testCreateWorkflowRevisionShouldReturnUnsupportedMediaTypeWithoutBody() {
         given().pathParam("bucketName", bucket.getName())
-               .pathParam("name", "WF_1_Rev_1")
+               .pathParam("name", "WF_1_Rev_1.xml")
                .when()
                .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
                .then()
@@ -209,7 +209,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     @Test
     public void testCreateWorkflowRevisionShouldReturnNotFoundIfNonExistingBucketName() {
         given().pathParam("bucketName", "non-existing-bucket")
-               .pathParam("name", "WF_1_Rev_1")
+               .pathParam("name", "WF_1_Rev_1.xml")
                .queryParam("commitMessage", "first commit")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
@@ -223,7 +223,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     @Test
     public void testGetWorkflowRevisionShouldReturnSavedWorkflowRevision() throws UnsupportedEncodingException {
         ValidatableResponse validatableResponse = given().pathParam("bucketName", bucket.getName())
-                                                         .pathParam("name", "WF_1_Rev_1")
+                                                         .pathParam("name", "WF_1_Rev_1.xml")
                                                          .pathParam("commitTimeRaw",
                                                                     secondCatalogObjectRevisionCommitTime.atZone(ZoneId.systemDefault())
                                                                                                          .toInstant()
@@ -292,7 +292,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     @Test
     public void testGetWorkflowRevisionPayloadShouldReturnSavedRawObject() throws IOException {
         Response response = given().pathParam("bucketName", bucket.getName())
-                                   .pathParam("name", "WF_1_Rev_1")
+                                   .pathParam("name", "WF_1_Rev_1.xml")
                                    .pathParam("commitTimeRaw",
                                               secondCatalogObjectRevisionCommitTime.atZone(ZoneId.systemDefault())
                                                                                    .toInstant()
@@ -410,7 +410,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
             }
 
             given().pathParam("bucketName", bucket.getName())
-                   .pathParam("name", "WF_1_Rev_1")
+                   .pathParam("name", "WF_1_Rev_1.xml")
                    .queryParam("commitMessage", "commit message")
                    .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-updated.xml"))
                    .when()
@@ -420,7 +420,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         });
 
         Response response = given().pathParam("bucketName", bucket.getName())
-                                   .pathParam("name", "WF_1_Rev_1")
+                                   .pathParam("name", "WF_1_Rev_1.xml")
                                    .when()
                                    .get(CATALOG_OBJECT_REVISIONS_RESOURCE);
 

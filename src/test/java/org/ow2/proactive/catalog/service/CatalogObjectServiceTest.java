@@ -105,7 +105,7 @@ public class CatalogObjectServiceTest {
     public void testCreateCatalogObjectWithInvalidBucket() {
         when(kindNameValidator.isValid(anyString())).thenReturn(true);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
-        catalogObjectService.createCatalogObject("bucket", NAME, OBJECT, COMMIT_MESSAGE, APPLICATION_XML, null);
+        catalogObjectService.createCatalogObject("bucket", NAME, OBJECT, COMMIT_MESSAGE, APPLICATION_XML, null, null);
     }
 
     /**
@@ -149,6 +149,7 @@ public class CatalogObjectServiceTest {
                                                                                        COMMIT_MESSAGE,
                                                                                        APPLICATION_XML,
                                                                                        keyValues,
+                                                                                       null,
                                                                                        null);
         assertThat(catalogObject).isNotNull();
         assertThat(catalogObject.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);

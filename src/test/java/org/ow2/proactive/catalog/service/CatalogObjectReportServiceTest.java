@@ -201,7 +201,8 @@ public class CatalogObjectReportServiceTest {
                                                                                 "contentType",
                                                                                 System.currentTimeMillis(),
                                                                                 "commitMessage",
-                                                                                metadataList);
+                                                                                metadataList,
+                                                                                "xml");
         return catalogObjectMetadata;
     }
 }
