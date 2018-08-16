@@ -30,8 +30,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 /**
- * This Exception is thrown when a CREATE request for bucket has been
- * received but the bucket name is not valid, according to next rules:
+ * This Exception is thrown when a CREATE request for object has been
+ * received but the kind name is not valid, according to next rules:
  * the kind name can be between 1 and 61 characters long, and can contain only letters, numbers, underscores, dotes and dashes.
  A kind names can be separated by slash symbol.
  * The HTTP status is 400, "Bad Request"

@@ -147,6 +147,13 @@ public class CatalogObjectController {
         return catalogObjectService.getKinds();
     }
 
+    @ApiOperation(value = "Lists all content types for all objects")
+    @RequestMapping(value = "/content-types", method = GET, produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    public Set<String> listContentTypes() {
+        return catalogObjectService.getContentTypes();
+    }
+
     @ApiOperation(value = "Update a catalog object metadata, like kind and content type")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),

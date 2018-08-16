@@ -246,6 +246,31 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    public void testGetAllContentTypesFromCatalog() throws JsonProcessingException {
+        String contentTypesQuery = "/buckets/content-types";
+        String objectContentType = MediaType.APPLICATION_OCTET_STREAM.toString();
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", "my-kind")
+               .queryParam("name", "new object")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", objectContentType)
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+        List<String> allContentTypes = new ArrayList<>();
+        allContentTypes.add(objectContentType);
+        allContentTypes.add("application/xml"); // the object was pushed in the setup method
+        given().when()
+               .get(contentTypesQuery)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", is(allContentTypes));
+    }
+
+    @Test
     public void testCreateObjectWrongKind() {
         String wrongKind = "workflow//my";
         given().pathParam("bucketName", bucket.getName())

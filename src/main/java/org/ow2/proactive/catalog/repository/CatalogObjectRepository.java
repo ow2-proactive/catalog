@@ -47,4 +47,7 @@ public interface CatalogObjectRepository
 
     @Query(value = "SELECT DISTINCT cos.kind FROM CatalogObjectEntity cos")
     Set<String> findAllKinds();
+
+    @Query(value = "SELECT DISTINCT cos.contentType FROM CatalogObjectEntity cos")
+    Set<String> findAllContentTypes();
 }
