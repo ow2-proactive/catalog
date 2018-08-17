@@ -445,6 +445,13 @@ public class CatalogObjectService {
         return resultKinds;
     }
 
+    /**
+     * @return all ordered content types for all objects in catalog
+     */
+    public TreeSet<String> getContentTypes() {
+        return new TreeSet<>(catalogObjectRepository.findAllContentTypes());
+    }
+
     @VisibleForTesting
     protected CatalogObjectRevisionEntity getCatalogObjectRevisionEntityByCommitTime(String bucketName, String name,
             long commitTime) {

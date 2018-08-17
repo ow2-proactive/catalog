@@ -125,9 +125,19 @@ public class CatalogObjectServiceTest {
         storedKinds.add("a");
         storedKinds.add("d");
         storedKinds.add("d/f");
-        System.out.println(storedKinds);
-        System.out.println(returnedKinds);
         assertThat(storedKinds).isEqualTo(returnedKinds);
+    }
+
+    @Test
+    public void testGetContentTypes() {
+        TreeSet<String> storedContentTypes = new TreeSet<>();
+        storedContentTypes.add("application/xml");
+        storedContentTypes.add("application/json");
+        storedContentTypes.add("text");
+        when(catalogObjectRepository.findAllContentTypes()).thenReturn(storedContentTypes);
+        Set<String> returnedContentTypes = catalogObjectService.getContentTypes();
+        verify(catalogObjectRepository, times(1)).findAllContentTypes();
+        assertThat(storedContentTypes).isEqualTo(returnedContentTypes);
     }
 
     @Test
