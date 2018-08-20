@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -56,20 +57,21 @@ public class CatalogObjectReportService {
     public byte[] generateBytesReport(List<String> authorisedBucketsNames, Optional<String> kind,
             Optional<String> contentType) {
 
-        if (authorisedBucketsNames.isEmpty()) {
-            return new byte[0];
-        }
-
         List<CatalogObjectMetadata> metadataList = getListOfCatalogObjects(kind, contentType, authorisedBucketsNames);
 
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(metadataList);
 
-        return catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket);
+        return catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket, kind, contentType);
 
     }
 
     private List<CatalogObjectMetadata> getListOfCatalogObjects(Optional<String> kind, Optional<String> contentType,
             List<String> authorisedBucketsNames) {
+
+        if (authorisedBucketsNames.isEmpty()) {
+            return new ArrayList<>();
+        }
+
         List<CatalogObjectMetadata> metadataList;
 
         if (kind.isPresent() && contentType.isPresent()) {
