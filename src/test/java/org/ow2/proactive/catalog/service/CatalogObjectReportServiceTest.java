@@ -75,10 +75,19 @@ public class CatalogObjectReportServiceTest {
         List<String> authorisedBucketsNames = Lists.newArrayList();
         Optional<String> kind = Optional.empty();
         Optional<String> contentType = Optional.empty();
+
+        List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList();
+        when(catalogObjectService.listCatalogObjects(anyList())).thenReturn(objectsMetadata);
+
+        TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(objectsMetadata);
+
+        when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
+                                                         kind,
+                                                         contentType)).thenReturn("onetwothree".getBytes());
+
         byte[] content = catalogObjectReportService.generateBytesReport(authorisedBucketsNames, kind, contentType);
 
         assertThat(content).isNotNull();
-        assertThat(content.length).isEqualTo(0);
 
     }
 
@@ -97,7 +106,9 @@ public class CatalogObjectReportServiceTest {
 
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(objectsMetadata);
 
-        when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket)).thenReturn("onetwothree".getBytes());
+        when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
+                                                         kind,
+                                                         contentType)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectReportService.generateBytesReport(authorisedBucketsNames, kind, contentType);
 
@@ -121,7 +132,9 @@ public class CatalogObjectReportServiceTest {
 
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(objectsMetadata);
 
-        when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket)).thenReturn("onetwothree".getBytes());
+        when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
+                                                         kind,
+                                                         contentType)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectReportService.generateBytesReport(authorisedBucketsNames, kind, contentType);
 
@@ -145,7 +158,9 @@ public class CatalogObjectReportServiceTest {
 
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(objectsMetadata);
 
-        when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket)).thenReturn("onetwothree".getBytes());
+        when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
+                                                         kind,
+                                                         contentType)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectReportService.generateBytesReport(authorisedBucketsNames, kind, contentType);
 
@@ -171,7 +186,9 @@ public class CatalogObjectReportServiceTest {
 
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(objectsMetadata);
 
-        when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket)).thenReturn("onetwothree".getBytes());
+        when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
+                                                         kind,
+                                                         contentType)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectReportService.generateBytesReport(authorisedBucketsNames, kind, contentType);
 
