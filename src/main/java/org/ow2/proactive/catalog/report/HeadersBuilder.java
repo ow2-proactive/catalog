@@ -104,10 +104,6 @@ public class HeadersBuilder {
         return totalNumberOfBuckets;
     }
 
-    public void createEmptyTotalsHeader(Row<PDPage> totalsHeaderRow, int totalNumberOfBuckets) {
-
-    }
-
     private String getNowDate() {
         LocalDateTime localDateTime = LocalDateTime.now();
         return new StringBuilder().append(localDateTime.getYear())

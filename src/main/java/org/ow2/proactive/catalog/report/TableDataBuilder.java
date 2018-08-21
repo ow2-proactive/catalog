@@ -48,8 +48,11 @@ import be.quodlibet.boxable.image.Image;
 public class TableDataBuilder {
 
     private static final String LIGHT_GRAY = "#D3D3D3";
+
     private static final String LIGHT_CYAN = "#F3F3F4";
+
     private static final String WHITE = "#ffffff";
+
     @Value("${pa.scheduler.url}")
     private String schedulerUrl;
 
@@ -105,11 +108,10 @@ public class TableDataBuilder {
     }
 
     private void createDataCell(Row<PDPage> row, float width, String catalogObjectData, int size) {
-        createDataCell(row, width, catalogObjectData, 6, WHITE);
+        createDataCell(row, width, catalogObjectData, size, WHITE);
     }
 
-    private void createDataCell(Row<PDPage> row, float width, String catalogObjectData, int size,
-            String color) {
+    private void createDataCell(Row<PDPage> row, float width, String catalogObjectData, int size, String color) {
         Cell<PDPage> bucketNameCell = row.createCell(width, catalogObjectData);
         bucketNameCell.setFontSize(size);
         bucketNameCell.setAlign(HorizontalAlignment.CENTER);
@@ -125,24 +127,30 @@ public class TableDataBuilder {
     }
 
     private String getDescription(CatalogObjectMetadata catalogObject) {
-        return catalogObject.getMetadataList().stream()
-                .filter(metadata -> metadata.getKey().equals("description"))
-                .map(metadata -> metadata.getValue())
-                .map(description -> description.replaceAll("\n", "").replace("\r", "").replace("\t", ""))
-                .findAny().orElse("");
+        return catalogObject.getMetadataList()
+                            .stream()
+                            .filter(metadata -> metadata.getKey().equals("description"))
+                            .map(metadata -> metadata.getValue())
+                            .map(description -> description.replaceAll("\n", "").replace("\r", "").replace("\t", ""))
+                            .findAny()
+                            .orElse("");
 
     }
 
     private String getIcon(CatalogObjectMetadata catalogObject) {
-        return catalogObject.getMetadataList().stream()
-                .filter(metadata -> metadata.getKey().equals("workflow.icon"))
-                .map(metadata -> metadata.getValue()).map(image_url -> {
-                    if (image_url.startsWith("/")) {
-                        return schedulerUrl + image_url;
-                    } else {
-                        return schedulerUrl;
-                    }
-                }).findAny().orElse("");
+        return catalogObject.getMetadataList()
+                            .stream()
+                            .filter(metadata -> metadata.getKey().equals("workflow.icon"))
+                            .map(metadata -> metadata.getValue())
+                            .map(image_url -> {
+                                if (image_url.startsWith("/")) {
+                                    return schedulerUrl + image_url;
+                                } else {
+                                    return schedulerUrl;
+                                }
+                            })
+                            .findAny()
+                            .orElse("");
 
     }
 
