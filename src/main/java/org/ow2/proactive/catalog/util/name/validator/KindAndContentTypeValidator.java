@@ -29,15 +29,14 @@ import org.springframework.stereotype.Component;
 
 
 /**
- * According to this validator: the kind name can be between 3 and 63 characters long, and can contain only letters, numbers, underscores, dotes and dashes.
- A kind name must start and terminate with a letter or numbers. So kind name cannot start and terminate with a dash, space, dot or underscore.
- A kind names can be separated by slash symbol.
+ * According to this validator: the name can be between 3 and 63 characters long, and can contain only letters, numbers and set of next characters _. ;=+-
+ A name must start and terminate with a letter or numbers.  The names can be separated by slash symbol.
  */
 @Component
-public class KindNameValidator extends NameValidator {
-    protected static final String VALID_KIND_NAME_PATTERN = "^([a-zA-Z0-9][a-zA-Z0-9_\\. -]{1,61}[a-zA-Z0-9]\\/?)+$";
+public class KindAndContentTypeValidator extends NameValidator {
+    protected static final String VALID_KIND_NAME_PATTERN = "^([a-zA-Z0-9][a-zA-Z0-9_\\. ;=\\+\\-]{1,61}[a-zA-Z0-9]\\/?)+$";
 
-    public KindNameValidator() {
+    public KindAndContentTypeValidator() {
         super(VALID_KIND_NAME_PATTERN);
     }
 }
