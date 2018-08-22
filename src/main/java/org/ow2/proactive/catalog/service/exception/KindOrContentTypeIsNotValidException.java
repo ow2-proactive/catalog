@@ -31,22 +31,22 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * This Exception is thrown when a CREATE request for object has been
- * received but the kind name is not valid, according to next rules:
- * the kind name can be between 1 and 61 characters long, and can contain only letters, numbers, underscores, dotes and dashes.
- A kind names can be separated by slash symbol.
+ * received but the kind or content type name is not valid, according to next rules:
+ * the name can be between 3 and 63 characters long, and can contain only letters, numbers and set of next characters _. ;=+-
+ A name must start and terminate with a letter or numbers.  The names can be separated by slash symbol.
  * The HTTP status is 400, "Bad Request"
  *
  * @author ActiveEon Team
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class KindNameIsNotValidException extends RuntimeException {
+public class KindOrContentTypeIsNotValidException extends RuntimeException {
 
-    public KindNameIsNotValidException(String kindName) {
-        super("The kind name: '" + kindName +
-              "' is not valid, please check the specification of kind parameter naming");
+    public KindOrContentTypeIsNotValidException(String parameterName, String parameterType) {
+        super("The " + parameterType + " name: '" + parameterName +
+              "' is not valid, please check the specification of the " + parameterType + " parameter naming");
     }
 
-    public KindNameIsNotValidException(Throwable cause) {
+    public KindOrContentTypeIsNotValidException(Throwable cause) {
         super(cause);
     }
 

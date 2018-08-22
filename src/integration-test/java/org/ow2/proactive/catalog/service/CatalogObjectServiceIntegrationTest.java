@@ -45,7 +45,7 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.dto.Metadata;
-import org.ow2.proactive.catalog.service.exception.KindNameIsNotValidException;
+import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -165,7 +165,7 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("updated-kind");
     }
 
-    @Test(expected = KindNameIsNotValidException.class)
+    @Test(expected = KindOrContentTypeIsNotValidException.class)
     public void testUpdateObjectMetadataWrongKind() {
         CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucket.getName(),
                                                                                                 "object-name-1",
@@ -173,7 +173,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                 Optional.of("updated-contentType"));
     }
 
-    @Test(expected = KindNameIsNotValidException.class)
+    @Test(expected = KindOrContentTypeIsNotValidException.class)
     public void testCreateObjectWrongKind() {
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "object-name-2",
