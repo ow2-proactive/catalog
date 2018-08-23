@@ -29,6 +29,7 @@ import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -46,6 +47,8 @@ import be.quodlibet.boxable.image.Image;
 
 @Component
 public class TableDataBuilder {
+
+    private static final float TOTAL_NUMBER_OF_COLUMNS = 12f;
 
     private static final String LIGHT_GRAY = "#D3D3D3";
 
@@ -72,12 +75,17 @@ public class TableDataBuilder {
             }
 
             Row<PDPage> dataRow = table.createRow(10f);
-            createDataCell(dataRow, (100 / 8f), catalogObject.getBucketName());
-            createDataCell(dataRow, (100 / 8f), getProjectName(catalogObject));
-            createDataCell(dataRow, (100 / 8f), catalogObject.getName());
-            createDataCell(dataRow, (100 / 8f) * 2, getDescription(catalogObject));
-            createDataCell(dataRow, (100 / 8f), catalogObject.getKind());
-            createDataCell(dataRow, (100 / 8f), catalogObject.getContentType());
+            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), catalogObject.getBucketName());
+            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), getProjectName(catalogObject));
+            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), catalogObject.getName());
+            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, getDescription(catalogObject));
+            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), catalogObject.getKind());
+            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), catalogObject.getContentType());
+            createKeyValueContentDataCell(dataRow,
+                                          (100 / TOTAL_NUMBER_OF_COLUMNS) * 2,
+                                          getGenericInfo(catalogObject),
+                                          4);
+            createKeyValueContentDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, getVariable(catalogObject), 4);
             createIconCell(dataRow, getIcon(catalogObject));
 
         }
@@ -87,15 +95,35 @@ public class TableDataBuilder {
 
     }
 
+    private String getGenericInfo(CatalogObjectMetadata catalogObject) {
+        return catalogObject.getMetadataList()
+                            .stream()
+                            .filter(metadata -> metadata.getLabel().equals("generic_information"))
+                            .map(metadata -> "<li><b>" + metadata.getKey() + "</b> = " + metadata.getValue() + "</li>")
+                            .collect(Collectors.joining(""));
+
+    }
+
+    private String getVariable(CatalogObjectMetadata catalogObject) {
+        return catalogObject.getMetadataList()
+                            .stream()
+                            .filter(metadata -> metadata.getLabel().equals("variable"))
+                            .map(metadata -> "<li><b>" + metadata.getKey() + "</b> = " + metadata.getValue() + "</li>")
+                            .collect(Collectors.joining(""));
+
+    }
+
     private void createDataHeader(BaseTable table) {
         Row<PDPage> factHeaderrow = table.createRow(15f);
-        createDataHeaderCell(factHeaderrow, (100 / 8f), "Bucket Name");
-        createDataHeaderCell(factHeaderrow, (100 / 8f), "Project Name");
-        createDataHeaderCell(factHeaderrow, (100 / 8f), "Object Name");
-        createDataHeaderCell(factHeaderrow, (100 / 8f) * 2, "Description");
-        createDataHeaderCell(factHeaderrow, (100 / 8f), "Kind");
-        createDataHeaderCell(factHeaderrow, (100 / 8f), "Content Type");
-        createDataHeaderCell(factHeaderrow, (100 / 8f), "Icon");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Bucket Name");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Project Name");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Object Name");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "Description");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Kind");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Content Type");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "Generic Info");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "Variables");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Icon");
         table.addHeaderRow(factHeaderrow);
     }
 
@@ -118,6 +146,12 @@ public class TableDataBuilder {
         bucketNameCell.setFillColor(java.awt.Color.decode(color));
     }
 
+    private void createKeyValueContentDataCell(Row<PDPage> row, float width, String catalogObjectData, int size) {
+        Cell<PDPage> cell2 = row.createCell(width, "<ul>" + catalogObjectData + "</ul>");
+        cell2.setFontSize(size);
+        cell2.setAlign(HorizontalAlignment.LEFT);
+    }
+
     private void createDataCell(Row<PDPage> row, float width, String catalogObjectData) {
         createDataCell(row, width, catalogObjectData, 6);
     }
@@ -129,9 +163,10 @@ public class TableDataBuilder {
     private String getDescription(CatalogObjectMetadata catalogObject) {
         return catalogObject.getMetadataList()
                             .stream()
-                            .filter(metadata -> metadata.getKey().equals("description"))
+                            .filter(metadata -> metadata.getLabel().equals("General") &&
+                                                metadata.getKey().equals("description"))
                             .map(metadata -> metadata.getValue())
-                            .map(description -> description.replaceAll("\n", "").replace("\r", "").replace("\t", ""))
+                            .map(description -> description.replaceAll("\n", " ").replace("\r", "").replace("\t", ""))
                             .findAny()
                             .orElse("");
 
@@ -156,22 +191,25 @@ public class TableDataBuilder {
 
     private void createEmptyTableRow(BaseTable table) {
         Row<PDPage> dataRow = table.createRow(10f);
-        createDataCell(dataRow, (100 / 8f), "");
-        createDataCell(dataRow, (100 / 8f), "");
-        createDataCell(dataRow, (100 / 8f), "");
-        createDataCell(dataRow, (100 / 8f) * 2, "");
-        createDataCell(dataRow, (100 / 8f), "");
-        createDataCell(dataRow, (100 / 8f), "");
-        createDataCell(dataRow, (100 / 8f), "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), "");
+
     }
 
     private void createIconCell(Row<PDPage> dataRow, String url_path) {
         try {
             URL url = new URL(url_path);
             BufferedImage imageFile = ImageIO.read(url);
-            dataRow.createImageCell((100 / 8f), new Image(imageFile));
+            dataRow.createImageCell((100 / TOTAL_NUMBER_OF_COLUMNS), new Image(imageFile));
         } catch (Exception e) {
-            createDataCell(dataRow, (100 / 8f), url_path, 6, LIGHT_GRAY);
+            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), url_path, 6, LIGHT_GRAY);
         }
     }
 
