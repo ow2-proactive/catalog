@@ -91,7 +91,8 @@ public class KindAndContentTypeValidatorTest {
 
     @Test
     public void testCheckNameSmallLength() {
-        assertThat(kindAndContentTypeNameValidator.isValid("bu")).isFalse();
+        assertThat(kindAndContentTypeNameValidator.isValid("abc")).isTrue();
+        assertThat(kindAndContentTypeNameValidator.isValid("bu")).isTrue();
         assertThat(kindAndContentTypeNameValidator.isValid("k")).isFalse();
     }
 
