@@ -43,6 +43,7 @@ import be.quodlibet.boxable.BaseTable;
 import be.quodlibet.boxable.Cell;
 import be.quodlibet.boxable.HorizontalAlignment;
 import be.quodlibet.boxable.Row;
+import be.quodlibet.boxable.VerticalAlignment;
 import be.quodlibet.boxable.image.Image;
 
 
@@ -65,12 +66,14 @@ public class HeadersBuilder {
 
         URL url = new URL(schedulerUrl + ACTIVEEON_LOGO);
         BufferedImage imageFile = ImageIO.read(url);
-        headerRow.createImageCell((100 / 8f), new Image(imageFile));
+        headerRow.createImageCell((100 / 12f) * 3, new Image(imageFile));
 
-        Cell<PDPage> cell = headerRow.createCell((100 / 8f) * 7, MAIN_TITLE);
+        Cell<PDPage> cell = headerRow.createCell((100 / 12f) * 9, MAIN_TITLE);
         cell.setFillColor(java.awt.Color.decode(ACTIVEEON_ORANGE));
         cell.setTextColor(java.awt.Color.decode(ACTIVEEON_BLUE));
+        cell.setFontSize(10f);
         cell.setAlign(HorizontalAlignment.CENTER);
+        cell.setValign(VerticalAlignment.MIDDLE);
 
         table.addHeaderRow(headerRow);
     }
@@ -79,12 +82,14 @@ public class HeadersBuilder {
             Optional<String> kind, Optional<String> contentType) {
         Row<PDPage> infoHeaderRow = table.createRow(15f);
 
-        String infoHeaderMessage = "Objects Kind: " + kind.orElse("All") + ", Content Type: " +
-                                   contentType.orElse("All") + ", Bucket Number: " +
-                                   calculateTotalBuckets(orderedObjectsPerBucket) + ",  Object Number: " +
-                                   orderedObjectsPerBucket.size() + ", Generated: " + getNowDate();
+        String infoHeaderMessage = "Objects Kind: " + kind.orElse("All") + " -  Content Type: " +
+                                   contentType.orElse("All") + " -  Bucket Number: " +
+                                   calculateTotalBuckets(orderedObjectsPerBucket) + " -   Object Number: " +
+                                   orderedObjectsPerBucket.size() + " -  Generated: " + getNowDate();
 
-        infoHeaderRow.createCell(100, infoHeaderMessage);
+        Cell<PDPage> cell = infoHeaderRow.createCell(100, infoHeaderMessage);
+        cell.setFontSize(6f);
+        cell.setAlign(HorizontalAlignment.CENTER);
 
     }
 
