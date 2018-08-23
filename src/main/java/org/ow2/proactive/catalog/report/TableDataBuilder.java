@@ -29,6 +29,7 @@ import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
 
@@ -46,6 +47,14 @@ import be.quodlibet.boxable.image.Image;
 
 @Component
 public class TableDataBuilder {
+
+    private static final int MEDIUM_FONT = 6;
+
+    private static final int BIG_FONT = 8;
+
+    private static final int SMALL_FONT = 4;
+
+    private static final float TOTAL_NUMBER_OF_COLUMNS = 12f;
 
     private static final String LIGHT_GRAY = "#D3D3D3";
 
@@ -68,16 +77,30 @@ public class TableDataBuilder {
             if (!currentBucketName.equals(catalogObject.getBucketName())) {
                 currentBucketName = catalogObject.getBucketName();
                 Row<PDPage> dataRow = table.createRow(10f);
-                createDataCell(dataRow, (100), currentBucketName, 8);
+                createDataCell(dataRow, (100), currentBucketName, BIG_FONT);
             }
 
             Row<PDPage> dataRow = table.createRow(10f);
-            createDataCell(dataRow, (100 / 8f), catalogObject.getBucketName());
-            createDataCell(dataRow, (100 / 8f), getProjectName(catalogObject));
-            createDataCell(dataRow, (100 / 8f), catalogObject.getName());
-            createDataCell(dataRow, (100 / 8f) * 2, getDescription(catalogObject));
-            createDataCell(dataRow, (100 / 8f), catalogObject.getKind());
-            createDataCell(dataRow, (100 / 8f), catalogObject.getContentType());
+            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), catalogObject.getBucketName());
+            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), getProjectName(catalogObject));
+            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), catalogObject.getName());
+            createDataCell(dataRow,
+                           (100 / TOTAL_NUMBER_OF_COLUMNS) * 2,
+                           getDescription(catalogObject),
+                           MEDIUM_FONT,
+                           WHITE,
+                           HorizontalAlignment.LEFT);
+            createKeyValueContentDataCell(dataRow,
+                                          (100 / TOTAL_NUMBER_OF_COLUMNS) * 2,
+                                          getKeyValuesAsUnorderedHTMLList(catalogObject, "variable"),
+                                          SMALL_FONT);
+            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), catalogObject.getKind());
+            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), catalogObject.getContentType());
+
+            createKeyValueContentDataCell(dataRow,
+                                          (100 / TOTAL_NUMBER_OF_COLUMNS) * 2,
+                                          getKeyValuesAsUnorderedHTMLList(catalogObject, "generic_information"),
+                                          SMALL_FONT);
             createIconCell(dataRow, getIcon(catalogObject));
 
         }
@@ -87,39 +110,58 @@ public class TableDataBuilder {
 
     }
 
+    private String getKeyValuesAsUnorderedHTMLList(CatalogObjectMetadata catalogObject, String key) {
+        return catalogObject.getMetadataList()
+                            .stream()
+                            .filter(metadata -> metadata.getLabel().equals(key))
+                            .map(metadata -> "<li><b>" + metadata.getKey() + "</b> = " + metadata.getValue() + "</li>")
+                            .collect(Collectors.joining(""));
+
+    }
+
     private void createDataHeader(BaseTable table) {
         Row<PDPage> factHeaderrow = table.createRow(15f);
-        createDataHeaderCell(factHeaderrow, (100 / 8f), "Bucket Name");
-        createDataHeaderCell(factHeaderrow, (100 / 8f), "Project Name");
-        createDataHeaderCell(factHeaderrow, (100 / 8f), "Object Name");
-        createDataHeaderCell(factHeaderrow, (100 / 8f) * 2, "Description");
-        createDataHeaderCell(factHeaderrow, (100 / 8f), "Kind");
-        createDataHeaderCell(factHeaderrow, (100 / 8f), "Content Type");
-        createDataHeaderCell(factHeaderrow, (100 / 8f), "Icon");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Bucket Name");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Project Name");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Object Name");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "Description");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "Variables");
+
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Kind");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Content Type");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "Generic Info");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Icon");
         table.addHeaderRow(factHeaderrow);
     }
 
     private void createDataHeaderCell(Row<PDPage> factHeaderrow, float width, String title) {
         Cell<PDPage> cell;
         cell = factHeaderrow.createCell(width, title);
-        cell.setFontSize(8);
+        cell.setFontSize(BIG_FONT);
         cell.setFillColor(java.awt.Color.decode(LIGHT_CYAN));
         cell.setAlign(HorizontalAlignment.CENTER);
     }
 
-    private void createDataCell(Row<PDPage> row, float width, String catalogObjectData, int size) {
-        createDataCell(row, width, catalogObjectData, size, WHITE);
+    private void createDataCell(Row<PDPage> row, float width, String catalogObjectData, int fontSize) {
+        createDataCell(row, width, catalogObjectData, fontSize, WHITE, HorizontalAlignment.CENTER);
     }
 
-    private void createDataCell(Row<PDPage> row, float width, String catalogObjectData, int size, String color) {
+    private void createDataCell(Row<PDPage> row, float width, String catalogObjectData, int fontSize, String color,
+            HorizontalAlignment align) {
         Cell<PDPage> bucketNameCell = row.createCell(width, catalogObjectData);
-        bucketNameCell.setFontSize(size);
-        bucketNameCell.setAlign(HorizontalAlignment.CENTER);
+        bucketNameCell.setFontSize(fontSize);
+        bucketNameCell.setAlign(align);
         bucketNameCell.setFillColor(java.awt.Color.decode(color));
     }
 
+    private void createKeyValueContentDataCell(Row<PDPage> row, float width, String catalogObjectData, int fontSize) {
+        Cell<PDPage> cell = row.createCell(width, "<ul>" + catalogObjectData + "</ul>");
+        cell.setFontSize(fontSize);
+        cell.setAlign(HorizontalAlignment.LEFT);
+    }
+
     private void createDataCell(Row<PDPage> row, float width, String catalogObjectData) {
-        createDataCell(row, width, catalogObjectData, 6);
+        createDataCell(row, width, catalogObjectData, MEDIUM_FONT);
     }
 
     private String getProjectName(CatalogObjectMetadata catalogObject) {
@@ -129,9 +171,10 @@ public class TableDataBuilder {
     private String getDescription(CatalogObjectMetadata catalogObject) {
         return catalogObject.getMetadataList()
                             .stream()
-                            .filter(metadata -> metadata.getKey().equals("description"))
+                            .filter(metadata -> metadata.getLabel().equals("General") &&
+                                                metadata.getKey().equals("description"))
                             .map(metadata -> metadata.getValue())
-                            .map(description -> description.replaceAll("\n", "").replace("\r", "").replace("\t", ""))
+                            .map(description -> description.replace("\n", " ").replace("\r", "").replace("\t", ""))
                             .findAny()
                             .orElse("");
 
@@ -156,22 +199,30 @@ public class TableDataBuilder {
 
     private void createEmptyTableRow(BaseTable table) {
         Row<PDPage> dataRow = table.createRow(10f);
-        createDataCell(dataRow, (100 / 8f), "");
-        createDataCell(dataRow, (100 / 8f), "");
-        createDataCell(dataRow, (100 / 8f), "");
-        createDataCell(dataRow, (100 / 8f) * 2, "");
-        createDataCell(dataRow, (100 / 8f), "");
-        createDataCell(dataRow, (100 / 8f), "");
-        createDataCell(dataRow, (100 / 8f), "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "");
+        createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), "");
+
     }
 
     private void createIconCell(Row<PDPage> dataRow, String url_path) {
         try {
             URL url = new URL(url_path);
             BufferedImage imageFile = ImageIO.read(url);
-            dataRow.createImageCell((100 / 8f), new Image(imageFile));
+            dataRow.createImageCell((100 / TOTAL_NUMBER_OF_COLUMNS), new Image(imageFile));
         } catch (Exception e) {
-            createDataCell(dataRow, (100 / 8f), url_path, 6, LIGHT_GRAY);
+            createDataCell(dataRow,
+                           (100 / TOTAL_NUMBER_OF_COLUMNS),
+                           url_path,
+                           MEDIUM_FONT,
+                           LIGHT_GRAY,
+                           HorizontalAlignment.LEFT);
         }
     }
 
