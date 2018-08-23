@@ -52,7 +52,7 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
-import org.ow2.proactive.catalog.service.exception.KindNameIsNotValidException;
+import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
@@ -283,7 +283,26 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
                .statusCode(HttpStatus.SC_BAD_REQUEST)
-               .body(ERROR_MESSAGE, equalTo(new KindNameIsNotValidException(wrongKind).getLocalizedMessage()));
+               .body(ERROR_MESSAGE,
+                     equalTo(new KindOrContentTypeIsNotValidException(wrongKind, "kind").getLocalizedMessage()));
+    }
+
+    @Test
+    public void testCreateObjectWrongContentType() {
+        String wrongContentType = "app/json-/";
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", "workflow/pca")
+               .queryParam("name", "new workflow")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", wrongContentType)
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_BAD_REQUEST)
+               .body(ERROR_MESSAGE,
+                     equalTo(new KindOrContentTypeIsNotValidException(wrongContentType,
+                                                                      "content type").getLocalizedMessage()));
     }
 
     @Test

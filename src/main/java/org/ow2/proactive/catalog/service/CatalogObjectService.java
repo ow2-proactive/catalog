@@ -56,7 +56,7 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
-import org.ow2.proactive.catalog.service.exception.KindNameIsNotValidException;
+import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
 import org.ow2.proactive.catalog.service.exception.WrongParametersException;
@@ -65,7 +65,7 @@ import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
-import org.ow2.proactive.catalog.util.name.validator.KindNameValidator;
+import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -107,7 +107,7 @@ public class CatalogObjectService {
     private RevisionCommitMessageBuilder revisionCommitMessageBuilder;
 
     @Autowired
-    private KindNameValidator kindNameValidator;
+    private KindAndContentTypeValidator kindAndContentTypeValidator;
 
     @Value("${kind.separator}")
     protected String kindSeparator;
@@ -158,8 +158,11 @@ public class CatalogObjectService {
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
             String contentType, List<Metadata> metadataList, byte[] rawObject, String extension) {
-        if (!kindNameValidator.isValid(kind)) {
-            throw new KindNameIsNotValidException(kind);
+        if (!kindAndContentTypeValidator.isValid(kind)) {
+            throw new KindOrContentTypeIsNotValidException(kind, "kind");
+        }
+        if (!kindAndContentTypeValidator.isValid(contentType)) {
+            throw new KindOrContentTypeIsNotValidException(contentType, "content type");
         }
 
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
@@ -210,8 +213,11 @@ public class CatalogObjectService {
         if (!kind.isPresent() && !contentType.isPresent()) {
             throw new WrongParametersException("at least one parameter should be present");
         }
-        if (kind.isPresent() && !kindNameValidator.isValid(kind.get())) {
-            throw new KindNameIsNotValidException(kind.get());
+        if (kind.isPresent() && !kindAndContentTypeValidator.isValid(kind.get())) {
+            throw new KindOrContentTypeIsNotValidException(kind.get(), "kind");
+        }
+        if (contentType.isPresent() && !kindAndContentTypeValidator.isValid(contentType.get())) {
+            throw new KindOrContentTypeIsNotValidException(contentType.get(), "content type");
         }
         CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
         kind.ifPresent(catalogObjectEntity::setKind);
