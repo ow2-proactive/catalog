@@ -32,8 +32,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * This Exception is thrown when a CREATE request for object has been
  * received but the kind or content type name is not valid, according to next rules:
- * the name can be between 3 and 63 characters long, and can contain only letters, numbers and set of next characters _. ;=+-
- A name must start and terminate with a letter or numbers.  The names can be separated by slash symbol.
+ * the name can be between 2 and 63 characters long, and can contain only letters, numbers and set of next characters _. ;=+-
+ A name must start and terminate with a letter or number.  The names can be separated by slash symbol.
  * The HTTP status is 400, "Bad Request"
  *
  * @author ActiveEon Team
