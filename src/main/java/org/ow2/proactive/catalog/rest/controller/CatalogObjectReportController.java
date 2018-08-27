@@ -118,22 +118,23 @@ public class CatalogObjectReportController {
             restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
         }
 
+        byte[] content = new byte[0];
         if (catalogObjectsNames.isPresent()) {
 
-            byte[] content = catalogObjectReportService.generateBytesReportForSelectedObjects(bucketName,
-                                                                                              catalogObjectsNames.get(),
-                                                                                              kind,
-                                                                                              contentType);
+            content = catalogObjectReportService.generateBytesReportForSelectedObjects(bucketName,
+                                                                                       catalogObjectsNames.get(),
+                                                                                       kind,
+                                                                                       contentType);
 
-            flushResponse(response, content);
         } else {
 
-            byte[] content = catalogObjectReportService.generateBytesReport(Collections.singletonList(bucketName),
-                                                                            kind,
-                                                                            contentType);
+            content = catalogObjectReportService.generateBytesReport(Collections.singletonList(bucketName),
+                                                                     kind,
+                                                                     contentType);
 
-            flushResponse(response, content);
         }
+
+        flushResponse(response, content);
 
     }
 
