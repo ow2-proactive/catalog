@@ -54,14 +54,29 @@ public class CatalogObjectReportService {
     @Autowired
     private CatalogObjectReportPDFGenerator catalogObjectReportPDFGenerator;
 
+    public byte[] generateBytesReportForSelectedObjects(String bucketName, List<String> catalogObjectsNames,
+            Optional<String> kind, Optional<String> contentType) {
+
+        List<CatalogObjectMetadata> metadataList = catalogObjectService.listSelectedCatalogObjects(bucketName,
+                                                                                                   catalogObjectsNames);
+
+        return orderCatalogObjectsByBucketAndProjectName(kind, contentType, metadataList);
+
+    }
+
+    private byte[] orderCatalogObjectsByBucketAndProjectName(Optional<String> kind, Optional<String> contentType,
+            List<CatalogObjectMetadata> metadataList) {
+        TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(metadataList);
+
+        return catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket, kind, contentType);
+    }
+
     public byte[] generateBytesReport(List<String> authorisedBucketsNames, Optional<String> kind,
             Optional<String> contentType) {
 
         List<CatalogObjectMetadata> metadataList = getListOfCatalogObjects(kind, contentType, authorisedBucketsNames);
 
-        TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(metadataList);
-
-        return catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket, kind, contentType);
+        return orderCatalogObjectsByBucketAndProjectName(kind, contentType, metadataList);
 
     }
 
