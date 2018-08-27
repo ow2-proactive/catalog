@@ -325,13 +325,23 @@ public class CatalogObjectService {
     }
 
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {
+        List<CatalogObjectRevisionEntity> revisions = getCatalogObjects(bucketName, catalogObjectsNames);
+
+        return archiveManager.compressZIP(revisions);
+    }
+
+    public List<CatalogObjectMetadata> listSelectedCatalogObjects(String bucketName, List<String> catalogObjectsNames) {
+        List<CatalogObjectRevisionEntity> result = getCatalogObjects(bucketName, catalogObjectsNames);
+        return buildMetadataWithLink(result);
+    }
+
+    private List<CatalogObjectRevisionEntity> getCatalogObjects(String bucketName, List<String> catalogObjectsNames) {
         findBucketByNameAndCheck(bucketName);
         List<CatalogObjectRevisionEntity> revisions = catalogObjectsNames.stream()
                                                                          .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
                                                                                                                                                              name))
                                                                          .collect(Collectors.toList());
-
-        return archiveManager.compressZIP(revisions);
+        return revisions;
     }
 
     public CatalogObjectMetadata delete(String bucketName, String name) throws CatalogObjectNotFoundException {

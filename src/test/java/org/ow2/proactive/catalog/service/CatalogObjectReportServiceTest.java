@@ -92,6 +92,36 @@ public class CatalogObjectReportServiceTest {
     }
 
     @Test
+    public void testGenerateBytesReportForSelectedObjects() {
+        String bucketsName = "bucket3";
+        Optional<String> kind = Optional.empty();
+        Optional<String> contentType = Optional.empty();
+
+        List<String> objectsName = Lists.newArrayList("one", "two");
+
+        CatalogObjectMetadata one = createObjectMetadata(bucketsName, "one");
+        CatalogObjectMetadata two = createObjectMetadata(bucketsName, "two");
+
+        List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two);
+        when(catalogObjectService.listSelectedCatalogObjects(anyString(), anyList())).thenReturn(objectsMetadata);
+
+        TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(objectsMetadata);
+
+        when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
+                                                         kind,
+                                                         contentType)).thenReturn("onetwo".getBytes());
+
+        byte[] content = catalogObjectReportService.generateBytesReportForSelectedObjects(bucketsName,
+                                                                                          objectsName,
+                                                                                          kind,
+                                                                                          contentType);
+
+        assertThat(content).isNotNull();
+        assertThat(content.length).isEqualTo("onetwo".length());
+
+    }
+
+    @Test
     public void testGenerateBytesReport() {
         List<String> authorisedBucketsNames = Lists.newArrayList("bucket3", "bucket6");
         Optional<String> kind = Optional.empty();
