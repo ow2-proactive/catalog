@@ -74,6 +74,7 @@ public class CatalogObjectReportPDFGenerator {
             // Create Header row
             headersBuilder.createInfoHeader(table, orderedObjectsPerBucket, kind, contentType);
 
+            // Create table data
             tableDataBuilder.buildTableData(orderedObjectsPerBucket, table);
 
             table.draw();
