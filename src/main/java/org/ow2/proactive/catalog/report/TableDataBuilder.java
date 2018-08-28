@@ -48,13 +48,15 @@ import be.quodlibet.boxable.image.Image;
 @Component
 public class TableDataBuilder {
 
+    private static final String KEY_VALUE_SEPARATOR = " = ";
+
     private static final int MEDIUM_FONT = 6;
 
     private static final int BIG_FONT = 8;
 
     private static final int SMALL_FONT = 4;
 
-    private static final float TOTAL_NUMBER_OF_COLUMNS = 12f;
+    private static final float TOTAL_NUMBER_OF_COLUMNS = 11f;
 
     private static final String LIGHT_GRAY = "#D3D3D3";
 
@@ -94,8 +96,12 @@ public class TableDataBuilder {
                                           (100 / TOTAL_NUMBER_OF_COLUMNS) * 2,
                                           getKeyValuesAsUnorderedHTMLList(catalogObject, "variable"),
                                           SMALL_FONT);
-            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), catalogObject.getKind());
-            createDataCell(dataRow, (100 / TOTAL_NUMBER_OF_COLUMNS), catalogObject.getContentType());
+            createDataCell(dataRow,
+                           (100 / TOTAL_NUMBER_OF_COLUMNS),
+                           getKindPlusContentType(catalogObject),
+                           SMALL_FONT,
+                           WHITE,
+                           HorizontalAlignment.LEFT);
 
             createKeyValueContentDataCell(dataRow,
                                           (100 / TOTAL_NUMBER_OF_COLUMNS) * 2,
@@ -110,11 +116,17 @@ public class TableDataBuilder {
 
     }
 
+    private String getKindPlusContentType(CatalogObjectMetadata catalogObject) {
+        return "<p>" + "<b>Kind</b>" + KEY_VALUE_SEPARATOR + catalogObject.getKind() + "</p>" + "<p>" +
+               "<b>Content Type</b>" + KEY_VALUE_SEPARATOR + catalogObject.getContentType() + "</p>";
+    }
+
     private String getKeyValuesAsUnorderedHTMLList(CatalogObjectMetadata catalogObject, String key) {
         return catalogObject.getMetadataList()
                             .stream()
                             .filter(metadata -> metadata.getLabel().equals(key))
-                            .map(metadata -> "<li><b>" + metadata.getKey() + "</b> = " + metadata.getValue() + "</li>")
+                            .map(metadata -> "<p><b>" + metadata.getKey() + "</b>" + KEY_VALUE_SEPARATOR +
+                                             metadata.getValue() + "</p>")
                             .collect(Collectors.joining(""));
 
     }
@@ -127,8 +139,7 @@ public class TableDataBuilder {
         createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "Description");
         createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "Variables");
 
-        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Kind");
-        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Content Type");
+        createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Info");
         createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS) * 2, "Generic Info");
         createDataHeaderCell(factHeaderrow, (100 / TOTAL_NUMBER_OF_COLUMNS), "Icon");
         table.addHeaderRow(factHeaderrow);
@@ -155,7 +166,7 @@ public class TableDataBuilder {
     }
 
     private void createKeyValueContentDataCell(Row<PDPage> row, float width, String catalogObjectData, int fontSize) {
-        Cell<PDPage> cell = row.createCell(width, "<ul>" + catalogObjectData + "</ul>");
+        Cell<PDPage> cell = row.createCell(width, catalogObjectData);
         cell.setFontSize(fontSize);
         cell.setAlign(HorizontalAlignment.LEFT);
     }
@@ -175,6 +186,7 @@ public class TableDataBuilder {
                                                 metadata.getKey().equals("description"))
                             .map(metadata -> metadata.getValue())
                             .map(description -> description.replace("\n", " ").replace("\r", "").replace("\t", ""))
+                            .map(description -> "<p>" + description + "</p>")
                             .findAny()
                             .orElse("");
 
