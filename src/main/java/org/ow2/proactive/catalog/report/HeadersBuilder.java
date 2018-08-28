@@ -50,6 +50,10 @@ import be.quodlibet.boxable.image.Image;
 @Component
 public class HeadersBuilder {
 
+    private static final String SPACE_BETWEEN_INFO = "          ";
+
+    private static final float MAIN_TITLE_FONT_SIZE = 20f;
+
     private static final String ACTIVEEON_BLUE = "#0E2C65";
 
     private static final String ACTIVEEON_ORANGE = "#EE7939";
@@ -59,7 +63,7 @@ public class HeadersBuilder {
 
     private static final String ACTIVEEON_LOGO = "/automation-dashboard/styles/patterns/AE-Logo.png";
 
-    private static final String MAIN_TITLE = "ProActive Catalog report";
+    private static final String MAIN_TITLE = "ProActive Catalog Report";
 
     public void createMainHeader(BaseTable table) throws IOException {
         Row<PDPage> headerRow = table.createRow(15f);
@@ -71,7 +75,7 @@ public class HeadersBuilder {
         Cell<PDPage> cell = headerRow.createCell((100 / 12f) * 9, MAIN_TITLE);
         cell.setFillColor(java.awt.Color.decode(ACTIVEEON_ORANGE));
         cell.setTextColor(java.awt.Color.decode(ACTIVEEON_BLUE));
-        cell.setFontSize(10f);
+        cell.setFontSize(MAIN_TITLE_FONT_SIZE);
         cell.setAlign(HorizontalAlignment.CENTER);
         cell.setValign(VerticalAlignment.MIDDLE);
 
@@ -83,9 +87,10 @@ public class HeadersBuilder {
         Row<PDPage> infoHeaderRow = table.createRow(15f);
 
         String infoHeaderMessage = "Objects Kind: " + kind.orElse("All") + " -  Content Type: " +
-                                   contentType.orElse("All") + " -  Bucket Number: " +
-                                   calculateTotalBuckets(orderedObjectsPerBucket) + " -   Object Number: " +
-                                   orderedObjectsPerBucket.size() + " -  Generated: " + getNowDate();
+                                   contentType.orElse("All") + SPACE_BETWEEN_INFO + " Bucket Number: " +
+                                   calculateTotalBuckets(orderedObjectsPerBucket) + SPACE_BETWEEN_INFO +
+                                   " Object Number: " + orderedObjectsPerBucket.size() + SPACE_BETWEEN_INFO +
+                                   " Generated: " + getNowDate();
 
         Cell<PDPage> cell = infoHeaderRow.createCell(100, infoHeaderMessage);
         cell.setFontSize(6f);
