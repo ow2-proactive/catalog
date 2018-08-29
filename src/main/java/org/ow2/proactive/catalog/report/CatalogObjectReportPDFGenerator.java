@@ -102,7 +102,7 @@ public class CatalogObjectReportPDFGenerator {
 
             return byteArrayOutputStream.toByteArray();
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new PDFGenerationException(e);
         }
     }
