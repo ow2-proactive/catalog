@@ -131,6 +131,7 @@ public class CellFactory {
         Cell<PDPage> cell = row.createCell(width, data);
         cell.setFontSize(fontSize);
         cell.setAlign(align);
+        cell.setValign(valign);
         cell.setFillColor(java.awt.Color.decode(fillColor));
         cell.setTextColor(java.awt.Color.decode(textColor));
 
