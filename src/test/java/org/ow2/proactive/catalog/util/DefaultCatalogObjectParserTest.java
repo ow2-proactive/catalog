@@ -48,7 +48,10 @@ public class DefaultCatalogObjectParserTest {
 
         List<KeyValueLabelMetadataEntity> result = parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/objects/workflow.json"));
 
-        assertThat(result).hasSize(0);
+        assertThat(result).hasSize(1);
+
+        assertThat(result.get(0).getKey().equals("main.icon")).isTrue();
+        ;
     }
 
 }
