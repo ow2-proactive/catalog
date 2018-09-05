@@ -32,6 +32,7 @@ import java.util.List;
 import javax.xml.stream.XMLStreamException;
 
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import org.springframework.stereotype.Component;
 
 
 /**
@@ -39,9 +40,23 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
  *
  * @author ActiveEon Team
  */
-public final class DefaultCatalogObjectParser implements CatalogObjectParserInterface {
+@Component
+public final class DefaultCatalogObjectParser extends AbstractCatalogObjectParser {
 
-    public List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException {
+    private static final String DEFAULT_ICON = "/automation-dashboard/styles/patterns/img/wf-icons/wf-default-icon.png";
+
+    @Override
+    public boolean isMyKind(String kind) {
+        return false;
+    }
+
+    @Override
+    public String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities) {
+        return DEFAULT_ICON;
+    }
+
+    @Override
+    List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) throws XMLStreamException {
         return new ArrayList<>();
     }
 }

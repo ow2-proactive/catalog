@@ -69,14 +69,13 @@ public class CatalogObjectReportPDFGenerator {
     @Autowired
     private HeadersBuilder headersBuilder;
 
+    private final float MARGIN = 10;
+
     public byte[] generatePDF(Set<CatalogObjectMetadata> orderedObjectsPerBucket, Optional<String> kind,
             Optional<String> contentType) {
 
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 PDDocument doc = new PDDocument();) {
-
-            // Set margins
-            float margin = 10;
 
             //Load font for all languages
             setFontToUse(doc);
@@ -85,7 +84,7 @@ public class CatalogObjectReportPDFGenerator {
             PDPage page = addNewPage(doc);
 
             // Initialize table
-            BaseTable table = initializeTable(doc, margin, page);
+            BaseTable table = initializeTable(doc, MARGIN, page);
 
             // Create Header row
             headersBuilder.createMainHeader(table);

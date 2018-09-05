@@ -39,8 +39,8 @@ import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.DefaultCatalogObjectParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -59,11 +59,15 @@ public class KeyValueLabelMetadataHelper {
     @SuppressWarnings("FieldCanBeLocal")
     private static final String BUCKET_NAME_KEY = "bucketName";
 
+    private final List<AbstractCatalogObjectParser> parsers;
+
     private final OwnerGroupStringHelper ownerGroupStringHelper;
 
     @Autowired
-    public KeyValueLabelMetadataHelper(OwnerGroupStringHelper ownerGroupStringHelper) {
+    public KeyValueLabelMetadataHelper(OwnerGroupStringHelper ownerGroupStringHelper,
+            List<AbstractCatalogObjectParser> parsers) {
         this.ownerGroupStringHelper = ownerGroupStringHelper;
+        this.parsers = parsers;
     }
 
     public static List<KeyValueLabelMetadataEntity> convertToEntity(List<Metadata> source) {
@@ -81,7 +85,10 @@ public class KeyValueLabelMetadataHelper {
 
     public List<KeyValueLabelMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {
         try {
-            CatalogObjectParserInterface catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
+            AbstractCatalogObjectParser catalogObjectParser = parsers.stream()
+                                                                     .filter(parser -> parser.isMyKind(kind))
+                                                                     .findFirst()
+                                                                     .orElse(new DefaultCatalogObjectParser());
             return catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
         } catch (XMLStreamException e) {
             throw new ParsingObjectException(e);

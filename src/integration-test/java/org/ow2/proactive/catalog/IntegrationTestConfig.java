@@ -27,6 +27,8 @@ package org.ow2.proactive.catalog;
 
 import static org.mockito.Mockito.spy;
 
+import java.util.List;
+
 import javax.sql.DataSource;
 
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
@@ -50,6 +52,9 @@ import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.PCWRuleParser;
+import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
@@ -58,6 +63,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+
+import com.google.common.collect.Lists;
 
 import graphql.schema.DataFetcher;
 
@@ -145,8 +152,19 @@ public class IntegrationTestConfig {
     }
 
     @Bean
+    public WorkflowParser workflowParser() {
+        return new WorkflowParser();
+    }
+
+    @Bean
+    public PCWRuleParser pcwRuleParser() {
+        return new PCWRuleParser();
+    }
+
+    @Bean
     public KeyValueLabelMetadataHelper keyValueMetadataHelper() {
-        return new KeyValueLabelMetadataHelper(new OwnerGroupStringHelper());
+        List<AbstractCatalogObjectParser> parsers = Lists.newArrayList(workflowParser(), pcwRuleParser());
+        return new KeyValueLabelMetadataHelper(new OwnerGroupStringHelper(), parsers);
     }
 
     @Bean

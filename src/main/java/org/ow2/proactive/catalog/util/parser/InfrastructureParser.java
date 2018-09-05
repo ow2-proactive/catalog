@@ -25,53 +25,40 @@
  */
 package org.ow2.proactive.catalog.util.parser;
 
-import java.util.Objects;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
 
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableList;
+import lombok.extern.log4j.Log4j2;
 
 
 /**
- *
- * @see AbstractCatalogObjectParser
+ * DefaultObjectParser is the default parser for object.
  *
  * @author ActiveEon Team
  */
-public final class CatalogObjectParserResult {
+@Log4j2
+@Component
 
-    private final String kind;
+public final class InfrastructureParser extends AbstractCatalogObjectParser {
 
-    private final String projectName;
-
-    private final String name;
-
-    private final ImmutableList<KeyValueLabelMetadataEntity> keyValueList;
-
-    public CatalogObjectParserResult(String kind, String projectName, String name,
-            ImmutableList<KeyValueLabelMetadataEntity> keyValueMap) {
-        Objects.requireNonNull(keyValueMap);
-
-        this.kind = kind;
-        this.projectName = projectName;
-        this.name = name;
-        this.keyValueList = keyValueMap;
+    @Override
+    public boolean isMyKind(String kind) {
+        return kind.toLowerCase().startsWith(SupportedParserKinds.INFRASTRUCTURE.toString().toLowerCase());
     }
 
-    public String getKind() {
-        return kind;
+    @Override
+    public String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities) {
+        return SupportedParserKinds.INFRASTRUCTURE.getDefaultIcon();
     }
 
-    public String getProjectName() {
-        return projectName;
+    @Override
+    List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) throws XMLStreamException {
+        return new ArrayList<>();
     }
-
-    public String getJobName() {
-        return name;
-    }
-
-    public ImmutableList<KeyValueLabelMetadataEntity> getKeyValueList() {
-        return keyValueList;
-    }
-
 }

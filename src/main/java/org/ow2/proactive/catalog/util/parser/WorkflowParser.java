@@ -36,6 +36,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
 
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
 
@@ -55,7 +56,8 @@ import lombok.extern.log4j.Log4j2;
  */
 @Log4j2
 @NoArgsConstructor
-public final class WorkflowParser implements CatalogObjectParserInterface {
+@Component
+public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private static final String JOB_NAME_KEY = "name";
 
@@ -95,8 +97,6 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
 
     private static final String ELEMENT_VARIABLES = "variables";
 
-    private static final String GENERAL_LABEL = "General";
-
     private static final String ELEMENT_JOB_DESCRIPTION = "description";
 
     private static final String JOB_DESCRIPTION_KEY = "description";
@@ -116,15 +116,14 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
 
     /* Below are instance variables containing values which are extracted */
 
-    private ImmutableList<KeyValueLabelMetadataEntity> keyValueMap;
-
     private static final class XmlInputFactoryLazyHolder {
 
         private static final XMLInputFactory INSTANCE = XMLInputFactory.newInstance();
 
     }
 
-    public List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException {
+    @Override
+    List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) throws XMLStreamException {
 
         XMLStreamReader xmlStreamReader = XmlInputFactoryLazyHolder.INSTANCE.createXMLStreamReader(inputStream);
         int eventType;
@@ -193,12 +192,16 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
                 }
             }
 
-            this.keyValueMap = keyValueMapBuilder.build();
+            return keyValueMapBuilder.build();
 
-            return getKeyValueMap();
         } finally {
             xmlStreamReader.close();
         }
+    }
+
+    @Override
+    public boolean isMyKind(String kind) {
+        return kind.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase());
     }
 
     private void handleGenericInformationElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
@@ -304,8 +307,16 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
         return this.jobHandled && this.genericInformationHandled && this.variablesHandled && this.descriptionHandled;
     }
 
-    private ImmutableList<KeyValueLabelMetadataEntity> getKeyValueMap() {
-        return keyValueMap;
+    @Override
+    public String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities) {
+        return keyValueMetadataEntities.stream()
+                                       .filter(keyValue -> keyValue.getLabel()
+                                                                   .equals(ATTRIBUTE_GENERIC_INFORMATION_LABEL) &&
+                                                           keyValue.getKey().equals("workflow.icon"))
+                                       .map(keyValue -> keyValue.getValue())
+                                       .findAny()
+                                       .orElse(SupportedParserKinds.WORKFLOW.getDefaultIcon());
+
     }
 
 }

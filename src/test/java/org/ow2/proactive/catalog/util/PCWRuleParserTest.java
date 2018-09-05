@@ -34,8 +34,8 @@ import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.PCWRuleParser;
 
 
 /**
@@ -154,7 +154,7 @@ public final class PCWRuleParserTest {
     }
 
     private List<KeyValueLabelMetadataEntity> parseRule(String filename) throws XMLStreamException {
-        CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("rule");
+        AbstractCatalogObjectParser parser = new PCWRuleParser();
 
         return parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/pcw-rules/" + filename));
     }

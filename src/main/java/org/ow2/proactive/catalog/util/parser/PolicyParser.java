@@ -25,27 +25,40 @@
  */
 package org.ow2.proactive.catalog.util.parser;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
+
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.log4j.Log4j2;
+
+
 /**
- * CatalogObjectParserFactory return the right Parser for the given type of object
+ * DefaultObjectParser is the default parser for object.
  *
  * @author ActiveEon Team
  */
-public enum CatalogObjectParserFactory {
+@Log4j2
+@Component
 
-    INSTANCE;
+public final class PolicyParser extends AbstractCatalogObjectParser {
 
-    public static CatalogObjectParserFactory get() {
-        return INSTANCE;
+    @Override
+    public boolean isMyKind(String kind) {
+        return kind.toLowerCase().startsWith(SupportedParserKinds.POLICY.toString().toLowerCase());
     }
 
-    public CatalogObjectParserInterface getParser(String type) {
-        if (type != null) {
-            if (type.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase()))
-                return new WorkflowParser();
-            if (type.toLowerCase().startsWith(SupportedParserKinds.PCW_RULE.toString().toLowerCase()))
-                return new PCWRuleParser();
-        }
-        return new DefaultCatalogObjectParser();
+    @Override
+    public String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities) {
+        return SupportedParserKinds.POLICY.getDefaultIcon();
     }
 
+    @Override
+    List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) throws XMLStreamException {
+        return new ArrayList<>();
+    }
 }

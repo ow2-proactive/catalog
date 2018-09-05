@@ -36,6 +36,7 @@ import javax.xml.stream.XMLStreamException;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.util.parser.pcw.rule.model.PollConfiguration;
 import org.ow2.proactive.catalog.util.parser.pcw.rule.model.Rule;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,18 +50,19 @@ import lombok.extern.log4j.Log4j2;
  * @author ActiveEon Team
  */
 @Log4j2
-public final class PCWRuleParser implements CatalogObjectParserInterface {
+@Component
 
-    private static final String GENERAL_LABEL = "General";
+public final class PCWRuleParser extends AbstractCatalogObjectParser {
 
     private static final String POLL_CONFIGURATION_LABEL = "PollConfiguration";
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException {
-        Rule pcwRule = parseToPCWRuleContent(inputStream);
+    public List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) throws XMLStreamException {
 
         List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = new ArrayList<>();
+
+        Rule pcwRule = parseToPCWRuleContent(inputStream);
 
         PollConfiguration pollConfiguration = checkAndGetPollConfiguration(pcwRule);
 
@@ -86,6 +88,16 @@ public final class PCWRuleParser implements CatalogObjectParserInterface {
                                                                      POLL_CONFIGURATION_LABEL));
 
         return keyValueMetadataEntities;
+    }
+
+    @Override
+    public boolean isMyKind(String kind) {
+        return kind.toLowerCase().startsWith(SupportedParserKinds.PCW_RULE.toString().toLowerCase());
+    }
+
+    @Override
+    public String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities) {
+        return SupportedParserKinds.PCW_RULE.getDefaultIcon();
     }
 
     private Rule parseToPCWRuleContent(InputStream inputStream) {
@@ -128,4 +140,5 @@ public final class PCWRuleParser implements CatalogObjectParserInterface {
         }
         return kpisListAsJson;
     }
+
 }

@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.util.parser;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
@@ -38,8 +39,27 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
  *
  * @author ActiveEon Team
  */
-public interface CatalogObjectParserInterface {
+public abstract class AbstractCatalogObjectParser {
 
-    List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException;
+    protected static final String GENERAL_LABEL = "General";
+
+    public List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException {
+
+        List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = new ArrayList<>();
+
+        keyValueMetadataEntities.addAll(getMetadataKeyValues(inputStream));
+
+        keyValueMetadataEntities.add(new KeyValueLabelMetadataEntity("main.icon",
+                                                                     getIconPath(keyValueMetadataEntities),
+                                                                     GENERAL_LABEL));
+
+        return keyValueMetadataEntities;
+    }
+
+    public abstract String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities);
+
+    abstract List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) throws XMLStreamException;
+
+    public abstract boolean isMyKind(String kind);
 
 }

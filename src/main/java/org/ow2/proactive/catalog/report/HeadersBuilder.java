@@ -36,14 +36,12 @@ import javax.imageio.ImageIO;
 
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import be.quodlibet.boxable.BaseTable;
-import be.quodlibet.boxable.Cell;
-import be.quodlibet.boxable.HorizontalAlignment;
 import be.quodlibet.boxable.Row;
-import be.quodlibet.boxable.VerticalAlignment;
 import be.quodlibet.boxable.image.Image;
 
 
@@ -52,14 +50,11 @@ public class HeadersBuilder {
 
     private static final String SPACE_BETWEEN_INFO = "          ";
 
-    private static final float MAIN_TITLE_FONT_SIZE = 20f;
-
-    private static final String ACTIVEEON_BLUE = "#0E2C65";
-
-    private static final String ACTIVEEON_ORANGE = "#EE7939";
-
     @Value("${pa.scheduler.url}")
     private String schedulerUrl;
+
+    @Autowired
+    private CellFactory cellFactory;
 
     private static final String ACTIVEEON_LOGO = "/automation-dashboard/styles/patterns/AE-Logo.png";
 
@@ -72,12 +67,7 @@ public class HeadersBuilder {
         BufferedImage imageFile = ImageIO.read(url);
         headerRow.createImageCell((100 / 12f) * 3, new Image(imageFile));
 
-        Cell<PDPage> cell = headerRow.createCell((100 / 12f) * 9, MAIN_TITLE);
-        cell.setFillColor(java.awt.Color.decode(ACTIVEEON_ORANGE));
-        cell.setTextColor(java.awt.Color.decode(ACTIVEEON_BLUE));
-        cell.setFontSize(MAIN_TITLE_FONT_SIZE);
-        cell.setAlign(HorizontalAlignment.CENTER);
-        cell.setValign(VerticalAlignment.MIDDLE);
+        cellFactory.addMainTitleCell(headerRow, MAIN_TITLE);
 
         table.addHeaderRow(headerRow);
     }
@@ -92,9 +82,7 @@ public class HeadersBuilder {
                                    " Object Number: " + orderedObjectsPerBucket.size() + SPACE_BETWEEN_INFO +
                                    " Generated: " + getNowDate();
 
-        Cell<PDPage> cell = infoHeaderRow.createCell(100, infoHeaderMessage);
-        cell.setFontSize(6f);
-        cell.setAlign(HorizontalAlignment.CENTER);
+        cellFactory.addSecondaryHeaderCell(infoHeaderRow, infoHeaderMessage);
 
     }
 
