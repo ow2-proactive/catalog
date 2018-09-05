@@ -563,20 +563,26 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                 .body("object_key_values[4].label", is("generic_information"))
                 .body("object_key_values[4].key", is("group"))
                 .body("object_key_values[4].value", is("BucketControllerIntegrationTestUser"))
+
+                .body("object_key_values[5].label", is("General"))
+                .body("object_key_values[5].key", is("main.icon"))
+                .body("object_key_values[5].value",
+                      is("/automation-dashboard/styles/patterns/img/wf-icons/wf-default-icon.png"))
+
                 //check job info
-                .body("object_key_values[5].label", is("job_information"))
-                .body("object_key_values[5].key", is("name"))
-                .body("object_key_values[5].value", is("Valid Workflow"))
                 .body("object_key_values[6].label", is("job_information"))
-                .body("object_key_values[6].key", is("project_name"))
-                .body("object_key_values[6].value", is("Project Name"))
+                .body("object_key_values[6].key", is("name"))
+                .body("object_key_values[6].value", is("Valid Workflow"))
+                .body("object_key_values[7].label", is("job_information"))
+                .body("object_key_values[7].key", is("project_name"))
+                .body("object_key_values[7].value", is("Project Name"))
                 //check variables label
-                .body("object_key_values[7].label", is("variable"))
-                .body("object_key_values[7].key", is("var1"))
-                .body("object_key_values[7].value", is("var1Value"))
                 .body("object_key_values[8].label", is("variable"))
-                .body("object_key_values[8].key", is("var2"))
-                .body("object_key_values[8].value", is("var2Value"))
+                .body("object_key_values[8].key", is("var1"))
+                .body("object_key_values[8].value", is("var1Value"))
+                .body("object_key_values[9].label", is("variable"))
+                .body("object_key_values[9].key", is("var2"))
+                .body("object_key_values[9].value", is("var2Value"))
                 .body("content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 

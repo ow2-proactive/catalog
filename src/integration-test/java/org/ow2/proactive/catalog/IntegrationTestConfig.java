@@ -153,6 +153,7 @@ public class IntegrationTestConfig {
 
     @Bean
     public WorkflowParser workflowParser() {
+
         return new WorkflowParser();
     }
 

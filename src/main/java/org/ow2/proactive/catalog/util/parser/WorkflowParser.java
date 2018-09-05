@@ -101,19 +101,6 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private static final String JOB_DESCRIPTION_KEY = "description";
 
-    /*
-     * Variables indicating which parts of the document have been parsed. Thanks to these
-     * information, parsing can be stopped once required information have been extracted.
-     */
-
-    private boolean jobHandled = false;
-
-    private boolean variablesHandled = false;
-
-    private boolean genericInformationHandled = false;
-
-    private boolean descriptionHandled = false;
-
     /* Below are instance variables containing values which are extracted */
 
     private static final class XmlInputFactoryLazyHolder {
@@ -125,13 +112,27 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     @Override
     List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) throws XMLStreamException {
 
+        /*
+         * Variables indicating which parts of the document have been parsed. Thanks to these
+         * information, parsing can be stopped once required information have been extracted.
+         */
+
+        boolean jobHandled = false;
+
+        boolean variablesHandled = false;
+
+        boolean genericInformationHandled = false;
+
+        boolean descriptionHandled = false;
+
         XMLStreamReader xmlStreamReader = XmlInputFactoryLazyHolder.INSTANCE.createXMLStreamReader(inputStream);
         int eventType;
 
         ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableList.builder();
         boolean isTaskFlow = false;
         try {
-            while (xmlStreamReader.hasNext() && !allElementHandled()) {
+            while (xmlStreamReader.hasNext() &&
+                   !(jobHandled && variablesHandled && genericInformationHandled && descriptionHandled)) {
                 eventType = xmlStreamReader.next();
 
                 switch (eventType) {
@@ -141,6 +142,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
                         switch (elementLocalPart) {
                             case ELEMENT_JOB:
                                 handleJobElement(keyValueMapBuilder, xmlStreamReader);
+                                jobHandled = true;
                                 break;
                             case ELEMENT_TASK_FLOW:
                                 isTaskFlow = true;
@@ -158,6 +160,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
                             case ELEMENT_JOB_DESCRIPTION:
                                 if (!isTaskFlow) {
                                     handleDescriptionElement(keyValueMapBuilder, xmlStreamReader);
+                                    descriptionHandled = true;
                                 }
                                 break;
                             default: // all the other workflow tags should be ignored for parsing
@@ -174,12 +177,12 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
                                 break;
                             case ELEMENT_GENERIC_INFORMATION:
                                 if (!isTaskFlow) {
-                                    this.genericInformationHandled = true;
+                                    genericInformationHandled = true;
                                 }
                                 break;
                             case ELEMENT_VARIABLES:
                                 if (!isTaskFlow) {
-                                    this.variablesHandled = true;
+                                    variablesHandled = true;
                                 }
                                 break;
                             default: // all the other workflow tags should be ignored for parsing
@@ -229,7 +232,6 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         if (checkIfNotNull(jobNameValue)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY, jobNameValue, JOB_AND_PROJECT_LABEL));
         }
-        jobHandled = true;
     }
 
     private void handleDescriptionElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
@@ -243,7 +245,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
             throw new RuntimeException("Unable to parse the workflow description", e);
         }
         keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_DESCRIPTION_KEY, descriptionContent, GENERAL_LABEL));
-        descriptionHandled = true;
+
     }
 
     private void handleVariableElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
@@ -301,10 +303,6 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         }
 
         return Arrays.asList(result);
-    }
-
-    private boolean allElementHandled() {
-        return this.jobHandled && this.genericInformationHandled && this.variablesHandled && this.descriptionHandled;
     }
 
     @Override
