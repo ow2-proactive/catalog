@@ -23,40 +23,36 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser;
+package org.ow2.proactive.catalog.util;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import static com.google.common.truth.Truth.assertThat;
 
-import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
-import org.springframework.stereotype.Component;
+import org.junit.Test;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.PolicyParser;
+import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
 
-import lombok.extern.log4j.Log4j2;
+import com.google.common.collect.Lists;
 
 
-/**
- * DefaultObjectParser is the default parser for object.
- *
- * @author ActiveEon Team
- */
-@Log4j2
-@Component
+public class PolicyParserTest {
 
-public final class InfrastructureParser extends AbstractCatalogObjectParser {
+    private AbstractCatalogObjectParser parser = new PolicyParser();
 
-    @Override
-    public boolean isMyKind(String kind) {
-        return kind.toLowerCase().startsWith(SupportedParserKinds.INFRASTRUCTURE.toString().toLowerCase());
+    private SupportedParserKinds kind = SupportedParserKinds.POLICY;
+
+    @Test
+    public void testIsMyKind() {
+        assertThat(parser.isMyKind("")).isFalse();
+        assertThat(parser.isMyKind(kind.toString())).isTrue();
+        assertThat(parser.isMyKind(kind.toString() + "/12343534563456346346")).isTrue();
+        assertThat(parser.isMyKind("sfdfasfa")).isFalse();
     }
 
-    @Override
-    public String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities) {
-        return SupportedParserKinds.INFRASTRUCTURE.getDefaultIcon();
+    @Test
+    public void testGetIconPath() {
+        assertThat(parser.getIconPath(Lists.newArrayList())).isEqualTo(kind.getDefaultIcon());
+
     }
 
-    @Override
-    List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
-        return new ArrayList<>();
-    }
 }

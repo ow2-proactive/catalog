@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -130,7 +131,7 @@ public class TableDataBuilder {
     private String getDescription(CatalogObjectMetadata catalogObject) {
         return catalogObject.getMetadataList()
                             .stream()
-                            .filter(metadata -> metadata.getLabel().equals("General") &&
+                            .filter(metadata -> metadata.getLabel().equals(AbstractCatalogObjectParser.GENERAL_LABEL) &&
                                                 metadata.getKey().equals("description"))
                             .map(metadata -> metadata.getValue())
                             .map(description -> description.replace("\n", " ").replace("\r", "").replace("\t", ""))
@@ -143,7 +144,7 @@ public class TableDataBuilder {
     private String getIcon(CatalogObjectMetadata catalogObject) {
         return catalogObject.getMetadataList()
                             .stream()
-                            .filter(metadata -> metadata.getLabel().equals("General") &&
+                            .filter(metadata -> metadata.getLabel().equals(AbstractCatalogObjectParser.GENERAL_LABEL) &&
                                                 metadata.getKey().equals("main.icon"))
                             .map(metadata -> metadata.getValue())
                             .map(image_url -> {

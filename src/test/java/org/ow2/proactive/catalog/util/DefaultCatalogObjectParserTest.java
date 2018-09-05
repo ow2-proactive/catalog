@@ -51,7 +51,7 @@ public class DefaultCatalogObjectParserTest {
         assertThat(result).hasSize(1);
 
         assertThat(result.get(0).getKey().equals("main.icon")).isTrue();
-        ;
+
     }
 
 }

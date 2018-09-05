@@ -33,11 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.xml.stream.XMLStreamException;
-
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
-import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
 import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
 import org.ow2.proactive.catalog.util.parser.DefaultCatalogObjectParser;
@@ -84,15 +81,12 @@ public class KeyValueLabelMetadataHelper {
     }
 
     public List<KeyValueLabelMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {
-        try {
-            AbstractCatalogObjectParser catalogObjectParser = parsers.stream()
-                                                                     .filter(parser -> parser.isMyKind(kind))
-                                                                     .findFirst()
-                                                                     .orElse(new DefaultCatalogObjectParser());
-            return catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
-        } catch (XMLStreamException e) {
-            throw new ParsingObjectException(e);
-        }
+        AbstractCatalogObjectParser catalogObjectParser = parsers.stream()
+                                                                 .filter(parser -> parser.isMyKind(kind))
+                                                                 .findFirst()
+                                                                 .orElse(new DefaultCatalogObjectParser());
+        return catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
+
     }
 
     public List<Metadata> convertFromEntity(List<KeyValueLabelMetadataEntity> source) {

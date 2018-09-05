@@ -36,6 +36,7 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
 
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
@@ -110,27 +111,29 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     }
 
     @Override
-    List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) throws XMLStreamException {
+    List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
 
         /*
          * Variables indicating which parts of the document have been parsed. Thanks to these
          * information, parsing can be stopped once required information have been extracted.
          */
 
-        boolean jobHandled = false;
-
-        boolean variablesHandled = false;
-
-        boolean genericInformationHandled = false;
-
-        boolean descriptionHandled = false;
-
-        XMLStreamReader xmlStreamReader = XmlInputFactoryLazyHolder.INSTANCE.createXMLStreamReader(inputStream);
-        int eventType;
-
         ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableList.builder();
-        boolean isTaskFlow = false;
+        XMLStreamReader xmlStreamReader = null;
         try {
+            boolean jobHandled = false;
+
+            boolean variablesHandled = false;
+
+            boolean genericInformationHandled = false;
+
+            boolean descriptionHandled = false;
+
+            xmlStreamReader = XmlInputFactoryLazyHolder.INSTANCE.createXMLStreamReader(inputStream);
+            int eventType;
+
+            boolean isTaskFlow = false;
+
             while (xmlStreamReader.hasNext() &&
                    !(jobHandled && variablesHandled && genericInformationHandled && descriptionHandled)) {
                 eventType = xmlStreamReader.next();
@@ -195,11 +198,19 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
                 }
             }
 
-            return keyValueMapBuilder.build();
-
+        } catch (XMLStreamException e) {
+            throw new ParsingObjectException(e);
         } finally {
-            xmlStreamReader.close();
+            if (xmlStreamReader != null) {
+                try {
+                    xmlStreamReader.close();
+                } catch (XMLStreamException e) {
+                    throw new ParsingObjectException(e);
+                }
+            }
         }
+
+        return keyValueMapBuilder.build();
     }
 
     @Override

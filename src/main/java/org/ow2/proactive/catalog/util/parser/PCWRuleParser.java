@@ -31,8 +31,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.xml.stream.XMLStreamException;
-
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.util.parser.pcw.rule.model.PollConfiguration;
 import org.ow2.proactive.catalog.util.parser.pcw.rule.model.Rule;
@@ -58,7 +56,7 @@ public final class PCWRuleParser extends AbstractCatalogObjectParser {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) throws XMLStreamException {
+    public List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
 
         List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = new ArrayList<>();
 
