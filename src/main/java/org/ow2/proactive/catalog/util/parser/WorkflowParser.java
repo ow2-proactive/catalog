@@ -204,8 +204,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
             if (xmlStreamReader != null) {
                 try {
                     xmlStreamReader.close();
-                } catch (XMLStreamException e) {
-                    throw new ParsingObjectException(e);
+                } catch (Exception e) {
                 }
             }
         }
