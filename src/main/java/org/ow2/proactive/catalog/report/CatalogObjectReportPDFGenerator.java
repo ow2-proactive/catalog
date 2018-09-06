@@ -48,6 +48,8 @@ import be.quodlibet.boxable.utils.FontUtils;
 @Component
 public class CatalogObjectReportPDFGenerator {
 
+    private final static float MARGIN = 10;
+
     @Value("${pa.scheduler.url}")
     private String schedulerUrl;
 
@@ -75,9 +77,6 @@ public class CatalogObjectReportPDFGenerator {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 PDDocument doc = new PDDocument();) {
 
-            // Set margins
-            float margin = 10;
-
             //Load font for all languages
             setFontToUse(doc);
 
@@ -85,7 +84,7 @@ public class CatalogObjectReportPDFGenerator {
             PDPage page = addNewPage(doc);
 
             // Initialize table
-            BaseTable table = initializeTable(doc, margin, page);
+            BaseTable table = initializeTable(doc, MARGIN, page);
 
             // Create Header row
             headersBuilder.createMainHeader(table);

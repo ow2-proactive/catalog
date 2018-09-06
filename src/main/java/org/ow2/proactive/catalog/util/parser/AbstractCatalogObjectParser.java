@@ -25,53 +25,39 @@
  */
 package org.ow2.proactive.catalog.util.parser;
 
-import java.util.Objects;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 
-import com.google.common.collect.ImmutableList;
-
 
 /**
- *
- * @see AbstractCatalogObjectParser
+ * CatalogObjectParser is a generic class for objects parsing
  *
  * @author ActiveEon Team
  */
-public final class CatalogObjectParserResult {
+public abstract class AbstractCatalogObjectParser {
 
-    private final String kind;
+    public static final String GENERAL_LABEL = "General";
 
-    private final String projectName;
+    public List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) {
 
-    private final String name;
+        List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = new ArrayList<>();
 
-    private final ImmutableList<KeyValueLabelMetadataEntity> keyValueList;
+        keyValueMetadataEntities.addAll(getMetadataKeyValues(inputStream));
 
-    public CatalogObjectParserResult(String kind, String projectName, String name,
-            ImmutableList<KeyValueLabelMetadataEntity> keyValueMap) {
-        Objects.requireNonNull(keyValueMap);
+        keyValueMetadataEntities.add(new KeyValueLabelMetadataEntity("main.icon",
+                                                                     getIconPath(keyValueMetadataEntities),
+                                                                     GENERAL_LABEL));
 
-        this.kind = kind;
-        this.projectName = projectName;
-        this.name = name;
-        this.keyValueList = keyValueMap;
+        return keyValueMetadataEntities;
     }
 
-    public String getKind() {
-        return kind;
-    }
+    public abstract String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities);
 
-    public String getProjectName() {
-        return projectName;
-    }
+    abstract List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream);
 
-    public String getJobName() {
-        return name;
-    }
-
-    public ImmutableList<KeyValueLabelMetadataEntity> getKeyValueList() {
-        return keyValueList;
-    }
+    public abstract boolean isMyKind(String kind);
 
 }

@@ -34,8 +34,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 
 
@@ -50,7 +49,7 @@ public class ProActiveCatalogObjectParserTest {
     public void testParseWorkflow() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow.xml");
 
-        assertThat(result).hasSize(7);
+        assertThat(result).hasSize(8);
         assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
         assertKeyValueDataAre(result.get(1), "name", "Valid Workflow", "job_information");
         assertKeyValueDataAre(result.get(2), "var1", "var1Value", "variable");
@@ -68,7 +67,7 @@ public class ProActiveCatalogObjectParserTest {
     public void testParseWorkflowWithModelVariables() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_variables_with_model.xml");
 
-        assertThat(result).hasSize(6);
+        assertThat(result).hasSize(7);
         assertKeyValueDataAre(result.get(0), "name", "test_variables", "job_information");
         assertKeyValueDataAre(result.get(1), "keyWithoutModel", "valueWithoutModel", "variable");
         assertKeyValueDataAre(result.get(2), "keyInteger", "1", "variable");
@@ -86,7 +85,7 @@ public class ProActiveCatalogObjectParserTest {
     public void testParseWorkflowContainingNoName() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-name.xml");
 
-        assertThat(result).hasSize(6);
+        assertThat(result).hasSize(7);
         assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
         assertKeyValueDataAre(result.get(1), "var1", "var1Value", "variable");
         assertKeyValueDataAre(result.get(2), "var2", "var2Value", "variable");
@@ -102,7 +101,7 @@ public class ProActiveCatalogObjectParserTest {
     public void testParseWorkflowContainingNoProjectName() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-project-name.xml");
 
-        assertThat(result).hasSize(6);
+        assertThat(result).hasSize(7);
         assertKeyValueDataAre(result.get(0), "name", "Valid Workflow", "job_information");
         assertKeyValueDataAre(result.get(1), "var1", "var1Value", "variable");
         assertKeyValueDataAre(result.get(2), "var2", "var2Value", "variable");
@@ -112,13 +111,17 @@ public class ProActiveCatalogObjectParserTest {
                               "General");
         assertKeyValueDataAre(result.get(4), "genericInfo1", "genericInfo1Value", "generic_information");
         assertKeyValueDataAre(result.get(5), "genericInfo2", "genericInfo2Value", "generic_information");
+        assertKeyValueDataAre(result.get(6),
+                              "main.icon",
+                              "/automation-dashboard/styles/patterns/img/wf-icons/wf-default-icon.png",
+                              "General");
     }
 
     @Test
     public void testParseWorkflowContainingNoGenericInformationAndNoVariable() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-generic-information-no-variable.xml");
 
-        assertThat(result).hasSize(3);
+        assertThat(result).hasSize(4);
         assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
         assertKeyValueDataAre(result.get(1), "name", "Valid Workflow", "job_information");
         assertKeyValueDataAre(result.get(2),
@@ -128,7 +131,7 @@ public class ProActiveCatalogObjectParserTest {
     }
 
     private List<KeyValueLabelMetadataEntity> parseWorkflow(String xmlFilename) throws XMLStreamException {
-        CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("workflow");
+        AbstractCatalogObjectParser parser = new WorkflowParser();
 
         return parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/workflows/" + xmlFilename));
     }

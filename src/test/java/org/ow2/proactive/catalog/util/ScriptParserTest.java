@@ -27,30 +27,31 @@ package org.ow2.proactive.catalog.util;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import java.util.List;
-
 import org.junit.Test;
-import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
-import org.ow2.proactive.catalog.util.parser.DefaultCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.ScriptParser;
+import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
+
+import com.google.common.collect.Lists;
 
 
-/**
- * Unit tests associated to {@link DefaultCatalogObjectParser}.
- *
- * @author ActiveEon Team
- */
-public class DefaultCatalogObjectParserTest {
+public class ScriptParserTest {
+
+    private AbstractCatalogObjectParser parser = new ScriptParser();
+
+    private SupportedParserKinds kind = SupportedParserKinds.SCRIPT;
 
     @Test
-    public void testParseDefaultObject() throws Exception {
-        AbstractCatalogObjectParser parser = new DefaultCatalogObjectParser();
+    public void testIsMyKind() {
+        assertThat(parser.isMyKind("")).isFalse();
+        assertThat(parser.isMyKind(kind.toString())).isTrue();
+        assertThat(parser.isMyKind(kind.toString() + "/12343534563456346346")).isTrue();
+        assertThat(parser.isMyKind("sfdfasfa")).isFalse();
+    }
 
-        List<KeyValueLabelMetadataEntity> result = parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/objects/workflow.json"));
-
-        assertThat(result).hasSize(1);
-
-        assertThat(result.get(0).getKey().equals("main.icon")).isTrue();
+    @Test
+    public void testGetIconPath() {
+        assertThat(parser.getIconPath(Lists.newArrayList())).isEqualTo(kind.getDefaultIcon());
 
     }
 

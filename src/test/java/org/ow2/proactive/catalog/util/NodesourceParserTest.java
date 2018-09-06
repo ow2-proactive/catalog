@@ -23,23 +23,36 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser;
+package org.ow2.proactive.catalog.util;
 
-import java.io.InputStream;
-import java.util.List;
+import static com.google.common.truth.Truth.assertThat;
 
-import javax.xml.stream.XMLStreamException;
+import org.junit.Test;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.NodeSourceParser;
+import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
 
-import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import com.google.common.collect.Lists;
 
 
-/**
- * CatalogObjectParser is a generic class for objects parsing
- *
- * @author ActiveEon Team
- */
-public interface CatalogObjectParserInterface {
+public class NodesourceParserTest {
 
-    List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException;
+    private AbstractCatalogObjectParser parser = new NodeSourceParser();
+
+    private SupportedParserKinds kind = SupportedParserKinds.NODE_SOURCE;
+
+    @Test
+    public void testIsMyKind() {
+        assertThat(parser.isMyKind("")).isFalse();
+        assertThat(parser.isMyKind(kind.toString())).isTrue();
+        assertThat(parser.isMyKind(kind.toString() + "/12343534563456346346")).isTrue();
+        assertThat(parser.isMyKind("sfdfasfa")).isFalse();
+    }
+
+    @Test
+    public void testGetIconPath() {
+        assertThat(parser.getIconPath(Lists.newArrayList())).isEqualTo(kind.getDefaultIcon());
+
+    }
 
 }

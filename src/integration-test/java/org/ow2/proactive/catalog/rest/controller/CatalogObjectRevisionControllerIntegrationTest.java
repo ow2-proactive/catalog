@@ -245,7 +245,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                            .body("bucket_name", is(secondCatalogObjectRevision.get("bucket_name")))
                            .body("name", is(secondCatalogObjectRevision.get("name")))
                            .body("commit_time", is(secondCatalogObjectRevision.get("commit_time")))
-                           .body("object_key_values", hasSize(9))
+                           .body("object_key_values", hasSize(10))
                            //check generic_information label
                            .body("object_key_values[0].label", is("generic_information"))
                            .body("object_key_values[0].key", is("bucketName"))
@@ -264,20 +264,25 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                            .body("object_key_values[4].key", is("group"))
                            .body("object_key_values[4].value", is("WorkflowRevisionControllerIntegrationTestUser"))
 
+                           .body("object_key_values[5].label", is("General"))
+                           .body("object_key_values[5].key", is("main.icon"))
+                           .body("object_key_values[5].value",
+                                 is("/automation-dashboard/styles/patterns/img/wf-icons/wf-default-icon.png"))
+
                            //check job info
-                           .body("object_key_values[5].label", is("job_information"))
-                           .body("object_key_values[5].key", is("name"))
-                           .body("object_key_values[5].value", is("Valid Workflow Updated"))
                            .body("object_key_values[6].label", is("job_information"))
-                           .body("object_key_values[6].key", is("project_name"))
-                           .body("object_key_values[6].value", is("Project Name Updated"))
+                           .body("object_key_values[6].key", is("name"))
+                           .body("object_key_values[6].value", is("Valid Workflow Updated"))
+                           .body("object_key_values[7].label", is("job_information"))
+                           .body("object_key_values[7].key", is("project_name"))
+                           .body("object_key_values[7].value", is("Project Name Updated"))
                            //check variables label
-                           .body("object_key_values[7].label", is("variable"))
-                           .body("object_key_values[7].key", is("var1"))
-                           .body("object_key_values[7].value", is("var1ValueUpdated"))
                            .body("object_key_values[8].label", is("variable"))
-                           .body("object_key_values[8].key", is("var2"))
-                           .body("object_key_values[8].value", is("var2ValueUpdated"))
+                           .body("object_key_values[8].key", is("var1"))
+                           .body("object_key_values[8].value", is("var1ValueUpdated"))
+                           .body("object_key_values[9].label", is("variable"))
+                           .body("object_key_values[9].key", is("var2"))
+                           .body("object_key_values[9].value", is("var2ValueUpdated"))
                            //check link references
                            .body("_links.content.href",
                                  containsString("/buckets/" + bucket.getName() + "/resources/" + encodedObjectName +
