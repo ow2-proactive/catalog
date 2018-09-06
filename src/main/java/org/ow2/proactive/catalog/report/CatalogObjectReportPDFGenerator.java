@@ -48,6 +48,8 @@ import be.quodlibet.boxable.utils.FontUtils;
 @Component
 public class CatalogObjectReportPDFGenerator {
 
+    private final static float MARGIN = 10;
+
     @Value("${pa.scheduler.url}")
     private String schedulerUrl;
 
@@ -68,8 +70,6 @@ public class CatalogObjectReportPDFGenerator {
 
     @Autowired
     private HeadersBuilder headersBuilder;
-
-    private final float MARGIN = 10;
 
     public byte[] generatePDF(Set<CatalogObjectMetadata> orderedObjectsPerBucket, Optional<String> kind,
             Optional<String> contentType) {
