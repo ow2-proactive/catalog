@@ -198,6 +198,8 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
                 }
             }
 
+            return keyValueMapBuilder.build();
+
         } catch (XMLStreamException e) {
             throw new ParsingObjectException(e);
         } finally {
@@ -205,11 +207,11 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
                 try {
                     xmlStreamReader.close();
                 } catch (Exception e) {
+                    log.error("Unable to close xmlStreamReader", e);
                 }
             }
         }
 
-        return keyValueMapBuilder.build();
     }
 
     @Override

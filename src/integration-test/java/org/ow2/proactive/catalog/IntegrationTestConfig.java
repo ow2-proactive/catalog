@@ -53,7 +53,12 @@ import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
 import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.CalendarDefinitionParser;
+import org.ow2.proactive.catalog.util.parser.InfrastructureParser;
+import org.ow2.proactive.catalog.util.parser.NodeSourceParser;
 import org.ow2.proactive.catalog.util.parser.PCWRuleParser;
+import org.ow2.proactive.catalog.util.parser.PolicyParser;
+import org.ow2.proactive.catalog.util.parser.ScriptParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
@@ -153,7 +158,6 @@ public class IntegrationTestConfig {
 
     @Bean
     public WorkflowParser workflowParser() {
-
         return new WorkflowParser();
     }
 
@@ -163,8 +167,39 @@ public class IntegrationTestConfig {
     }
 
     @Bean
+    public PolicyParser policyParser() {
+        return new PolicyParser();
+    }
+
+    @Bean
+    public InfrastructureParser infrastructureParser() {
+        return new InfrastructureParser();
+    }
+
+    @Bean
+    public NodeSourceParser nodeSourceParser() {
+        return new NodeSourceParser();
+    }
+
+    @Bean
+    public ScriptParser scriptParser() {
+        return new ScriptParser();
+    }
+
+    @Bean
+    public CalendarDefinitionParser calendarDefinitionParser() {
+        return new CalendarDefinitionParser();
+    }
+
+    @Bean
     public KeyValueLabelMetadataHelper keyValueMetadataHelper() {
-        List<AbstractCatalogObjectParser> parsers = Lists.newArrayList(workflowParser(), pcwRuleParser());
+        List<AbstractCatalogObjectParser> parsers = Lists.newArrayList(workflowParser(),
+                                                                       pcwRuleParser(),
+                                                                       policyParser(),
+                                                                       calendarDefinitionParser(),
+                                                                       infrastructureParser(),
+                                                                       nodeSourceParser(),
+                                                                       scriptParser());
         return new KeyValueLabelMetadataHelper(new OwnerGroupStringHelper(), parsers);
     }
 
