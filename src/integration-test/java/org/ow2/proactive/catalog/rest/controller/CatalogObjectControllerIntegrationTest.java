@@ -54,6 +54,7 @@ import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingE
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
+import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpHeaders;
@@ -396,13 +397,13 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testCreatePCWRuleShouldReturnSavedRule() throws IOException {
         String ruleName = "pcw-rule test.rule";
-        String fileExtension = "json";
+        String fileExtension = "xml";
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "Rule/cpu")
                .queryParam("name", ruleName)
                .queryParam("commitMessage", "first commit")
-               .queryParam("objectContentType", MediaType.APPLICATION_JSON_VALUE)
-               .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleExample." + fileExtension))
+               .queryParam("objectContentType", MediaType.APPLICATION_XML_VALUE)
+               .multiPart(IntegrationTestUtil.getPCWRule("CPURule." + fileExtension))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
@@ -413,29 +414,11 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].name", is(ruleName))
                .body("object[0].extension", is(fileExtension))
 
-               .body("object[0].object_key_values", hasSize(9))
+               .body("object[0].object_key_values", hasSize(3))
                //check pcw metadata info
                .body("object[0].object_key_values[0].label", is("General"))
-               .body("object[0].object_key_values[0].key", is("name"))
-               .body("object[0].object_key_values[0].value", is("ruleNodeIsUpMetric"))
-               .body("object[0].object_key_values[1].label", is("PollConfiguration"))
-               .body("object[0].object_key_values[1].key", is("PollType"))
-               .body("object[0].object_key_values[1].value", is("Ping"))
-               .body("object[0].object_key_values[2].label", is("PollConfiguration"))
-               .body("object[0].object_key_values[2].key", is("pollingPeriodInSeconds"))
-               .body("object[0].object_key_values[2].value", is("100"))
-               .body("object[0].object_key_values[3].label", is("PollConfiguration"))
-               .body("object[0].object_key_values[3].key", is("calmPeriodInSeconds"))
-               .body("object[0].object_key_values[3].value", is("50"))
-               .body("object[0].object_key_values[4].label", is("PollConfiguration"))
-               .body("object[0].object_key_values[4].key", is("kpis"))
-               .body("object[0].object_key_values[4].value",
-                     is("[\"upAndRunning\",\"sigar:Type=Cpu Total\",\"sigar:Type=FileSystem,Name=/ Free\"]"))
-               .body("object[0].object_key_values[5].label", is("PollConfiguration"))
-               .body("object[0].object_key_values[5].key", is("NodeUrls"))
-               .body("object[0].object_key_values[5].value",
-                     is("[\"localhost\",\"service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode\"]"))
-               .body("object[0].content_type", is(MediaType.APPLICATION_JSON_VALUE));
+               .body("object[0].object_key_values[0].key", is("main.icon"))
+               .body("object[0].object_key_values[0].value", is(SupportedParserKinds.PCW_RULE.getDefaultIcon()));
 
         //check get the raw object, created on previous request with specific name
         Response rawResponse = given().urlEncodingEnabled(true)
@@ -444,12 +427,12 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                                       .when()
                                       .get(CATALOG_OBJECT_RESOURCE + "/raw");
         Arrays.equals(ByteStreams.toByteArray(rawResponse.asInputStream()),
-                      ByteStreams.toByteArray(new FileInputStream(IntegrationTestUtil.getPCWRule("pcwRuleExample.json"))));
-        rawResponse.then().assertThat().statusCode(HttpStatus.SC_OK).contentType(MediaType.APPLICATION_JSON.toString());
+                      ByteStreams.toByteArray(new FileInputStream(IntegrationTestUtil.getPCWRule("CPURule.xml"))));
+        rawResponse.then().assertThat().statusCode(HttpStatus.SC_OK).contentType(MediaType.APPLICATION_XML.toString());
         rawResponse.then().assertThat().header(HttpHeaders.CONTENT_DISPOSITION,
                                                is("attachment; filename=\"" + ruleName + "." + fileExtension + "\""));
         rawResponse.then().assertThat().header(HttpHeaders.CONTENT_TYPE,
-                                               is(MediaType.APPLICATION_JSON.toString() + ";charset=UTF-8"));
+                                               is(MediaType.APPLICATION_XML.toString() + ";charset=UTF-8"));
     }
 
     @Test
@@ -467,21 +450,6 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body(ERROR_MESSAGE,
                      equalTo(new CatalogObjectAlreadyExistingException(bucket.getName(),
                                                                        "workflowname").getLocalizedMessage()));
-    }
-
-    @Test
-    public void testCreateWrongPCWRuleShouldReturnError() {
-        given().pathParam("bucketName", bucket.getName())
-               .queryParam("kind", "Rule")
-               .queryParam("name", "pcw-rule test")
-               .queryParam("commitMessage", "first commit")
-               .queryParam("objectContentType", MediaType.APPLICATION_JSON_VALUE)
-               .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleWrongToParse.json"))
-               .when()
-               .post(CATALOG_OBJECTS_RESOURCE)
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
     @Test
