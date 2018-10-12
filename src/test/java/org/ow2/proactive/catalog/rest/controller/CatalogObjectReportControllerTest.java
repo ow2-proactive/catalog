@@ -47,6 +47,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.CatalogObjectReportService;
+import org.ow2.proactive.catalog.service.RestApiAccessService;
 
 import com.google.common.collect.Lists;
 
@@ -65,6 +66,9 @@ public class CatalogObjectReportControllerTest {
 
     @Mock
     private BucketService bucketService;
+
+    @Mock
+    private RestApiAccessService restApiAccessService;
 
     @Test
     public void getReport() throws Exception {

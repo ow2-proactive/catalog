@@ -55,15 +55,16 @@ public class RestApiAccessService {
         this.schedulerUserAuthenticationService = schedulerUserAuthenticationService;
     }
 
-    public RestApiAccessResponse checkAccessBySessionIdForBucketAndThrowIfDeclined(String sessionId, String bucketName)
-            throws NotAuthenticatedException, AccessDeniedException {
-        RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionForBucketToOwnerOrGroup(sessionId,
-                                                                                                       bucketName);
-        if (!restApiAccessResponse.isAuthorized()) {
-            throw new AccessDeniedException("SessionId: " + sessionId + " is not allowed to access buckets with id " +
-                                            bucketName);
+    public void checkAccessBySessionIdForBucketAndThrowIfDeclined(boolean sessionIdRequired, String sessionId,
+            String bucketName) throws NotAuthenticatedException, AccessDeniedException {
+        if (!isAPublicBucket(bucketName) && sessionIdRequired) {
+            RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionForBucketToOwnerOrGroup(sessionId,
+                                                                                                           bucketName);
+            if (!restApiAccessResponse.isAuthorized()) {
+                throw new AccessDeniedException("SessionId: " + sessionId +
+                                                " is not allowed to access buckets with id " + bucketName);
+            }
         }
-        return restApiAccessResponse;
     }
 
     public RestApiAccessResponse checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(String sessionId,
@@ -80,6 +81,10 @@ public class RestApiAccessService {
     private RestApiAccessResponse checkAccessBySessionForBucketToOwnerOrGroup(String sessionId, String bucketName)
             throws NotAuthenticatedException {
         return checkAccessBySessionIdToOwnerOrGroup(sessionId, bucketService.getBucketMetadata(bucketName).getOwner());
+    }
+
+    public boolean isAPublicBucket(String bucketName) {
+        return BucketService.DEFAULT_BUCKET_OWNER.equals(bucketService.getBucketMetadata(bucketName).getOwner());
     }
 
     private RestApiAccessResponse checkAccessBySessionIdToOwnerOrGroup(String sessionId, String ownerOrGroup)
