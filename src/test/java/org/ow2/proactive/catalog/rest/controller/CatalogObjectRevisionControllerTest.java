@@ -83,7 +83,8 @@ public class CatalogObjectRevisionControllerTest {
                                                           1400343L,
                                                           "commit message",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          "xml");
         ResponseEntity responseEntity = ResponseEntity.ok().body(1);
 
         when(restApiAccessService.isAPublicBucket(anyString())).thenReturn(true);

@@ -30,9 +30,11 @@ import static com.google.common.truth.Truth.assertThat;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
@@ -43,6 +45,7 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.dto.Metadata;
+import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -90,7 +93,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                        "commit message",
                                                                                        "application/xml",
                                                                                        keyValues,
-                                                                                       workflowAsByteArray);
+                                                                                       workflowAsByteArray,
+                                                                                       null);
         firstCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
         Thread.sleep(1); // to be sure that a new revision time will be different from previous revision time
@@ -107,7 +111,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
-                                                 workflowAsByteArray);
+                                                 workflowAsByteArray,
+                                                 null);
 
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "object-name-3",
@@ -115,7 +120,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
-                                                 workflowAsByteArray);
+                                                 workflowAsByteArray,
+                                                 null);
     }
 
     @After
@@ -125,8 +131,26 @@ public class CatalogObjectServiceIntegrationTest {
 
     @Test
     public void testListCatalogObjectsInBucket() {
-        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjects(bucket.getName());
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjects(Arrays.asList(bucket.getName()));
         assertThat(catalogObjects).hasSize(3);
+    }
+
+    @Test
+    public void testGetAllKinds() {
+        Set<String> listKinds = catalogObjectService.getKinds();
+        assertThat(listKinds).hasSize(2);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "object-name-4",
+                                                 "workflow/new",
+                                                 "commit message",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+        listKinds = catalogObjectService.getKinds();
+        assertThat(listKinds).hasSize(3);
+        assertThat(listKinds).contains("workflow/new");
     }
 
     @Test
@@ -141,9 +165,29 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("updated-kind");
     }
 
+    @Test(expected = KindOrContentTypeIsNotValidException.class)
+    public void testUpdateObjectMetadataWrongKind() {
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucket.getName(),
+                                                                                                "object-name-1",
+                                                                                                Optional.of("updated-kind//a asdf"),
+                                                                                                Optional.of("updated-contentType"));
+    }
+
+    @Test(expected = KindOrContentTypeIsNotValidException.class)
+    public void testCreateObjectWrongKind() {
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "object-name-2",
+                                                 "updated-kind//a asdf",
+                                                 "commit message",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+    }
+
     @Test
     public void testListCatalogObjectsByKindInBucket() {
-        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKind(bucket.getName(),
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKind(Arrays.asList(bucket.getName()),
                                                                                                    "object");
         assertThat(catalogObjects).hasSize(2);
 
@@ -153,12 +197,14 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "commit message",
                                                  "application/xml",
                                                  keyValues,
-                                                 workflowAsByteArray);
+                                                 workflowAsByteArray,
+                                                 null);
 
-        catalogObjects = catalogObjectService.listCatalogObjectsByKind(bucket.getName(), "workflow-general");
+        catalogObjects = catalogObjectService.listCatalogObjectsByKind(Arrays.asList(bucket.getName()),
+                                                                       "workflow-general");
         assertThat(catalogObjects).hasSize(1);
 
-        catalogObjects = catalogObjectService.listCatalogObjectsByKind(bucket.getName(), "WORKFLOW");
+        catalogObjects = catalogObjectService.listCatalogObjectsByKind(Arrays.asList(bucket.getName()), "WORKFLOW");
         assertThat(catalogObjects).hasSize(2);
     }
 

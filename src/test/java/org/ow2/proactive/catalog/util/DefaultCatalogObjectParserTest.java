@@ -31,8 +31,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
 import org.ow2.proactive.catalog.util.parser.DefaultCatalogObjectParser;
 
 
@@ -45,11 +44,14 @@ public class DefaultCatalogObjectParserTest {
 
     @Test
     public void testParseDefaultObject() throws Exception {
-        CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("default object");
+        AbstractCatalogObjectParser parser = new DefaultCatalogObjectParser();
 
         List<KeyValueLabelMetadataEntity> result = parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/objects/workflow.json"));
 
-        assertThat(result).hasSize(0);
+        assertThat(result).hasSize(1);
+
+        assertThat(result.get(0).getKey().equals("main.icon")).isTrue();
+
     }
 
 }

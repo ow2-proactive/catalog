@@ -22,7 +22,7 @@ A single Bucket can store multiple kinds of objects
 You can build a WAR file as follows:
 
 ```
-$ gradle clean build war
+$ ./gradlew clean build war
 ```
 
 Then, you can directly deploy the service with embedded Tomcat:

@@ -23,20 +23,40 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser.pcw.rule.model;
+package org.ow2.proactive.catalog.util.parser;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.log4j.Log4j2;
 
 
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
-public class RuleContent {
+/**
+ * DefaultObjectParser is the default parser for object.
+ *
+ * @author ActiveEon Team
+ */
+@Log4j2
+@Component
 
-    private String drl;
+public final class InfrastructureParser extends AbstractCatalogObjectParser {
 
+    @Override
+    public boolean isMyKind(String kind) {
+        return kind.toLowerCase().startsWith(SupportedParserKinds.INFRASTRUCTURE.toString().toLowerCase());
+    }
+
+    @Override
+    public String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities) {
+        return SupportedParserKinds.INFRASTRUCTURE.getDefaultIcon();
+    }
+
+    @Override
+    List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
+        return new ArrayList<>();
+    }
 }

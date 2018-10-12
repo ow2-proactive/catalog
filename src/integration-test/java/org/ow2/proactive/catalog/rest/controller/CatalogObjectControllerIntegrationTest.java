@@ -34,10 +34,13 @@ import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PERCENT_2
 import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PLUS;
 import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_EXTENSION;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -49,7 +52,9 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
+import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpHeaders;
@@ -57,6 +62,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.io.ByteStreams;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.response.ValidatableResponse;
@@ -125,8 +131,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].bucket_name", is(bucket.getName()))
                .body("object[0].kind", is("Workflow/specific-workflow-kind"))
                .body("object[0].name", is("workflow_test"))
+               .body("object[0].extension", is("xml"))
 
-               .body("object[0].object_key_values", hasSize(9))
+               .body("object[0].object_key_values", hasSize(10))
                //check job info
                .body("object[0].object_key_values[0].label", is("job_information"))
                .body("object[0].object_key_values[0].key", is("project_name"))
@@ -169,7 +176,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_OK)
                .body("bucket_name", is(bucket.getName()))
                .body("kind", is("updated-kind"))
-               .body("content_type", is("updated-contentType"));
+               .body("content_type", is("updated-contentType"))
+               .body("extension", is("xml"));
 
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "workflowname")
@@ -184,8 +192,123 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    public void testGetAllKindsFromCatalog() throws JsonProcessingException {
+        // Add an object of kind "workflow" into first bucket
+        // The object with same kind should be already present in catalog
+        String kindsQuery = "/buckets/kinds";
+        String workflowKind = "workflow";
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", workflowKind)
+               .queryParam("name", "new workflow")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+        List<String> allKinds = new ArrayList<>();
+        allKinds.add(workflowKind);
+        given().when().get(kindsQuery).then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
+
+        String newKindMy = "workflow/new_kind/mine";
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", newKindMy)
+               .queryParam("name", "new object")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+        allKinds.add("workflow/new_kind");
+        allKinds.add(newKindMy);
+        given().when().get(kindsQuery).then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
+
+        String newKindNotMine = "workflow/new_kind/not-my";
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", newKindNotMine)
+               .queryParam("name", "new not my object")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        List<String> allKindsWithRoots = new ArrayList<>();
+        allKindsWithRoots.add(workflowKind);
+        allKindsWithRoots.add("workflow/new_kind");
+        allKindsWithRoots.add(newKindMy);
+        allKindsWithRoots.add(newKindNotMine);
+        given().when().get(kindsQuery).then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKindsWithRoots));
+    }
+
+    @Test
+    public void testGetAllContentTypesFromCatalog() throws JsonProcessingException {
+        String contentTypesQuery = "/buckets/content-types";
+        String objectContentType = MediaType.APPLICATION_OCTET_STREAM.toString();
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", "my-kind")
+               .queryParam("name", "new object")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", objectContentType)
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+        List<String> allContentTypes = new ArrayList<>();
+        allContentTypes.add(objectContentType);
+        allContentTypes.add("application/xml"); // the object was pushed in the setup method
+        given().when()
+               .get(contentTypesQuery)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", is(allContentTypes));
+    }
+
+    @Test
+    public void testCreateObjectWrongKind() {
+        String wrongKind = "workflow//my";
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", wrongKind)
+               .queryParam("name", "new workflow")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_BAD_REQUEST)
+               .body(ERROR_MESSAGE,
+                     equalTo(new KindOrContentTypeIsNotValidException(wrongKind, "kind").getLocalizedMessage()));
+    }
+
+    @Test
+    public void testCreateObjectWrongContentType() {
+        String wrongContentType = "app/json-/";
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("kind", "workflow/pca")
+               .queryParam("name", "new workflow")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", wrongContentType)
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_BAD_REQUEST)
+               .body(ERROR_MESSAGE,
+                     equalTo(new KindOrContentTypeIsNotValidException(wrongContentType,
+                                                                      "content type").getLocalizedMessage()));
+    }
+
+    @Test
     public void testCreateWorkflowWithSpecificSymbolsInNameAndCheckReturnSavedWorkflow() throws IOException {
-        String objectNameWithSpecificSymbols = "workflow$with&specific&symbols+in name:$&%ae";
+        String objectNameWithSpecificSymbols = "workflow$with&specific&symbols+in name:$&%ae.extension";
         String encodedObjectName = URLEncoder.encode(objectNameWithSpecificSymbols, "UTF-8")
                                              .replace(SPACE_ENCODED_AS_PLUS, SPACE_ENCODED_AS_PERCENT_20);
 
@@ -205,8 +328,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].bucket_name", is(bucket.getName()))
                .body("object[0].kind", is("workflow/specific-workflow-kind"))
                .body("object[0].name", is(objectNameWithSpecificSymbols))
+               .body("object[0].extension", is("xml"))
 
-               .body("object[0].object_key_values", hasSize(9))
+               .body("object[0].object_key_values", hasSize(10))
                //check job info
                .body("object[0].object_key_values[0].label", is("job_information"))
                .body("object[0].object_key_values[0].key", is("project_name"))
@@ -271,13 +395,15 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
-    public void testCreatePCWRuleShouldReturnSavedRule() {
+    public void testCreatePCWRuleShouldReturnSavedRule() throws IOException {
+        String ruleName = "pcw-rule test.rule";
+        String fileExtension = "xml";
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "Rule/cpu")
-               .queryParam("name", "pcw-rule test")
+               .queryParam("name", ruleName)
                .queryParam("commitMessage", "first commit")
-               .queryParam("objectContentType", MediaType.APPLICATION_JSON_VALUE)
-               .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleExample.json"))
+               .queryParam("objectContentType", MediaType.APPLICATION_XML_VALUE)
+               .multiPart(IntegrationTestUtil.getPCWRule("CPURule." + fileExtension))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
@@ -285,31 +411,28 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_CREATED)
                .body("object[0].bucket_name", is(bucket.getName()))
                .body("object[0].kind", is("Rule/cpu"))
-               .body("object[0].name", is("pcw-rule test"))
+               .body("object[0].name", is(ruleName))
+               .body("object[0].extension", is(fileExtension))
 
-               .body("object[0].object_key_values", hasSize(8))
+               .body("object[0].object_key_values", hasSize(3))
                //check pcw metadata info
                .body("object[0].object_key_values[0].label", is("General"))
-               .body("object[0].object_key_values[0].key", is("name"))
-               .body("object[0].object_key_values[0].value", is("ruleNodeIsUpMetric"))
-               .body("object[0].object_key_values[1].label", is("PollConfiguration"))
-               .body("object[0].object_key_values[1].key", is("PollType"))
-               .body("object[0].object_key_values[1].value", is("Ping"))
-               .body("object[0].object_key_values[2].label", is("PollConfiguration"))
-               .body("object[0].object_key_values[2].key", is("pollingPeriodInSeconds"))
-               .body("object[0].object_key_values[2].value", is("100"))
-               .body("object[0].object_key_values[3].label", is("PollConfiguration"))
-               .body("object[0].object_key_values[3].key", is("calmPeriodInSeconds"))
-               .body("object[0].object_key_values[3].value", is("50"))
-               .body("object[0].object_key_values[4].label", is("PollConfiguration"))
-               .body("object[0].object_key_values[4].key", is("kpis"))
-               .body("object[0].object_key_values[4].value",
-                     is("[\"upAndRunning\",\"sigar:Type=Cpu Total\",\"sigar:Type=FileSystem,Name=/ Free\"]"))
-               .body("object[0].object_key_values[5].label", is("PollConfiguration"))
-               .body("object[0].object_key_values[5].key", is("NodeUrls"))
-               .body("object[0].object_key_values[5].value",
-                     is("[\"localhost\",\"service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode\"]"))
-               .body("object[0].content_type", is(MediaType.APPLICATION_JSON_VALUE));
+               .body("object[0].object_key_values[0].key", is("main.icon"))
+               .body("object[0].object_key_values[0].value", is(SupportedParserKinds.PCW_RULE.getDefaultIcon()));
+
+        //check get the raw object, created on previous request with specific name
+        Response rawResponse = given().urlEncodingEnabled(true)
+                                      .pathParam("bucketName", bucket.getName())
+                                      .pathParam("name", ruleName)
+                                      .when()
+                                      .get(CATALOG_OBJECT_RESOURCE + "/raw");
+        Arrays.equals(ByteStreams.toByteArray(rawResponse.asInputStream()),
+                      ByteStreams.toByteArray(new FileInputStream(IntegrationTestUtil.getPCWRule("CPURule.xml"))));
+        rawResponse.then().assertThat().statusCode(HttpStatus.SC_OK).contentType(MediaType.APPLICATION_XML.toString());
+        rawResponse.then().assertThat().header(HttpHeaders.CONTENT_DISPOSITION,
+                                               is("attachment; filename=\"" + ruleName + "." + fileExtension + "\""));
+        rawResponse.then().assertThat().header(HttpHeaders.CONTENT_TYPE,
+                                               is(MediaType.APPLICATION_XML.toString() + ";charset=UTF-8"));
     }
 
     @Test
@@ -327,21 +450,6 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body(ERROR_MESSAGE,
                      equalTo(new CatalogObjectAlreadyExistingException(bucket.getName(),
                                                                        "workflowname").getLocalizedMessage()));
-    }
-
-    @Test
-    public void testCreateWrongPCWRuleShouldReturnError() {
-        given().pathParam("bucketName", bucket.getName())
-               .queryParam("kind", "Rule")
-               .queryParam("name", "pcw-rule test")
-               .queryParam("commitMessage", "first commit")
-               .queryParam("objectContentType", MediaType.APPLICATION_JSON_VALUE)
-               .multiPart(IntegrationTestUtil.getPCWRule("pcwRuleWrongToParse.json"))
-               .when()
-               .post(CATALOG_OBJECTS_RESOURCE)
-               .then()
-               .assertThat()
-               .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
     @Test
@@ -404,7 +512,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         response.body("bucket_name", is(thirdWFRevision.get("bucket_name")))
                 .body("name", is(thirdWFRevision.get("name")))
                 .body("commit_time", is(thirdWFRevision.get("commit_time")))
-                .body("object_key_values", hasSize(9))
+                .body("object_key_values", hasSize(10))
                 //check generic_information label
                 .body("object_key_values[0].label", is("generic_information"))
                 .body("object_key_values[0].key", is("bucketName"))
@@ -423,20 +531,26 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                 .body("object_key_values[4].label", is("generic_information"))
                 .body("object_key_values[4].key", is("group"))
                 .body("object_key_values[4].value", is("BucketControllerIntegrationTestUser"))
+
+                .body("object_key_values[5].label", is("General"))
+                .body("object_key_values[5].key", is("main.icon"))
+                .body("object_key_values[5].value",
+                      is("/automation-dashboard/styles/patterns/img/wf-icons/wf-default-icon.png"))
+
                 //check job info
-                .body("object_key_values[5].label", is("job_information"))
-                .body("object_key_values[5].key", is("name"))
-                .body("object_key_values[5].value", is("Valid Workflow"))
                 .body("object_key_values[6].label", is("job_information"))
-                .body("object_key_values[6].key", is("project_name"))
-                .body("object_key_values[6].value", is("Project Name"))
+                .body("object_key_values[6].key", is("name"))
+                .body("object_key_values[6].value", is("Valid Workflow"))
+                .body("object_key_values[7].label", is("job_information"))
+                .body("object_key_values[7].key", is("project_name"))
+                .body("object_key_values[7].value", is("Project Name"))
                 //check variables label
-                .body("object_key_values[7].label", is("variable"))
-                .body("object_key_values[7].key", is("var1"))
-                .body("object_key_values[7].value", is("var1Value"))
                 .body("object_key_values[8].label", is("variable"))
-                .body("object_key_values[8].key", is("var2"))
-                .body("object_key_values[8].value", is("var2Value"))
+                .body("object_key_values[8].key", is("var1"))
+                .body("object_key_values[8].value", is("var1Value"))
+                .body("object_key_values[9].label", is("variable"))
+                .body("object_key_values[9].key", is("var2"))
+                .body("object_key_values[9].value", is("var2Value"))
                 .body("content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 
@@ -591,7 +705,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testGetCatalogObjectWithSpecialSymbolsNamesAsArchive() {
-        String nameWithSpecialSymbols = "wf n:$ %ae";
+        String nameWithSpecialSymbols = "wf n:$ %ae.myextension";
         // Add an second object of kind "workflow" into first bucket
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
@@ -652,7 +766,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("commit_message", is(firstCommitMessage))
-               .body("content_type", is(MediaType.APPLICATION_XML.toString()));
+               .body("content_type", is(MediaType.APPLICATION_XML.toString()))
+               .body("extension", is("xml"));
 
         //Check that workflow_new has no revisions
         given().pathParam("bucketName", bucket.getName())
@@ -684,7 +799,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("commit_message", is(archiveCommitMessage))
-               .body("content_type", is(MediaType.APPLICATION_XML.toString()));
+               .body("content_type", is(MediaType.APPLICATION_XML.toString()))
+               .body("extension", is("xml"));
 
         //Check that workflow_new was created
         given().pathParam("bucketName", bucket.getName())
@@ -695,7 +811,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("commit_message", is(archiveCommitMessage))
-               .body("content_type", is(MediaType.APPLICATION_XML.toString()));
+               .body("content_type", is(MediaType.APPLICATION_XML.toString()))
+               .body("extension", is("xml"));
     }
 
     @Test
@@ -724,7 +841,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("commit_message", is(archiveCommitMessage))
-               .body("content_type", is("application/x-bat"));
+               .body("content_type", is("application/x-bat"))
+               .body("extension", is("bat"));
 
         //Check that the object was created
         given().pathParam("bucketName", bucket.getName())
@@ -735,7 +853,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("commit_message", is(archiveCommitMessage))
-               .body("content_type", is(MediaType.APPLICATION_JSON_VALUE));
+               .body("content_type", is(MediaType.APPLICATION_JSON_VALUE))
+               .body("extension", is("json"));
     }
 
     @Test

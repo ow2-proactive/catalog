@@ -23,31 +23,20 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser.pcw.rule.model;
+package org.ow2.proactive.catalog.util.name.validator;
 
-import java.util.Set;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.experimental.Wither;
+import org.springframework.stereotype.Component;
 
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Wither
-@Getter
-@ToString
-public class PollConfiguration {
+/**
+ * According to this validator: the bucket name can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, and dashes.
+ A bucket name must start with a lowercase letter and cannot terminate with a dash.
+ */
+@Component
+public class BucketNameValidator extends NameValidator {
+    protected static final String VALID_BUCKET_NAME_PATTERN = "[a-z][a-z0-9-]{1,61}[a-z0-9]";
 
-    private String pollType;
-
-    private Set<NodeInformation> nodeInformations;
-
-    private Set<String> kpis;
-
-    private long pollingPeriodInSeconds;
-
-    private long calmPeriodInSeconds;
+    public BucketNameValidator() {
+        super(VALID_BUCKET_NAME_PATTERN);
+    }
 }
