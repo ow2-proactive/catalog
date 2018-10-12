@@ -106,9 +106,9 @@ public class CatalogObjectController {
             @ApiParam(value = "The content type of CatalogRawObject - MIME type", required = true) @RequestParam String objectContentType,
             @ApiParam(value = "The content of CatalogRawObject", required = true) @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
-        if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
-        }
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
+                                                                               sessionId,
+                                                                               bucketName);
         if (name.isPresent()) {
             CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketName,
                                                                                            name.get(),
@@ -146,9 +146,9 @@ public class CatalogObjectController {
             @ApiParam(value = "The new kind of an object", required = false) @RequestParam(value = "kind", required = false) Optional<String> kind,
             @ApiParam(value = "The new content type of an object - MIME type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
-        if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
-        }
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
+                                                                               sessionId,
+                                                                               bucketName);
         return catalogObjectService.updateObjectMetadata(bucketName, name, kind, contentType);
     }
 
@@ -162,9 +162,9 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name) throws MalformedURLException,
             UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
-        if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
-        }
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
+                                                                               sessionId,
+                                                                               bucketName);
 
         CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketName, name);
         metadata.add(LinkUtil.createLink(bucketName, metadata.getName()));
@@ -183,9 +183,9 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
-        if (!restApiAccessService.isAPublicBucket(bucketName) && sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
-        }
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
+                                                                               sessionId,
+                                                                               bucketName);
 
         CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucketName, name);
         return rawObjectResponseCreator.createRawObjectResponse(rawObject);
@@ -207,10 +207,9 @@ public class CatalogObjectController {
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
-        if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
-        }
-
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
+                                                                               sessionId,
+                                                                               bucketName);
         if (names.isPresent()) {
 
             ZipArchiveContent zipArchiveContent = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName,
@@ -269,9 +268,9 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
-        if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
-        }
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
+                                                                               sessionId,
+                                                                               bucketName);
 
         return catalogObjectService.delete(bucketName, name);
     }

@@ -44,7 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -109,9 +108,9 @@ public class BucketController {
     public BucketMetadata getMetadata(
             @SuppressWarnings("DefaultAnnotationParam") @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
-        if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
-        }
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
+                                                                               sessionId,
+                                                                               bucketName);
         return bucketService.getBucketMetadata(bucketName);
     }
 
@@ -164,9 +163,9 @@ public class BucketController {
     public BucketMetadata delete(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
-        if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
-        }
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
+                                                                               sessionId,
+                                                                               bucketName);
         return bucketService.deleteEmptyBucket(bucketName);
     }
 }
