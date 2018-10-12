@@ -23,41 +23,31 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser;
+package org.ow2.proactive.catalog.service.exception;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
-import org.springframework.stereotype.Component;
-
-import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 /**
- * DefaultObjectParser is the default parser for object.
+ * This Exception is thrown when a CREATE request for object has been
+ * received but the kind or content type name is not valid, according to next rules:
+ * the name can be between 2 and 63 characters long, and can contain only letters, numbers and set of next characters _. ;=+-
+ A name must start and terminate with a letter or number.  The names can be separated by slash symbol.
+ * The HTTP status is 400, "Bad Request"
  *
  * @author ActiveEon Team
  */
-@Log4j2
-@Component
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+public class KindOrContentTypeIsNotValidException extends RuntimeException {
 
-public final class PCWRuleParser extends AbstractCatalogObjectParser {
-
-    @Override
-    List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
-        return new ArrayList<>();
+    public KindOrContentTypeIsNotValidException(String parameterName, String parameterType) {
+        super("The " + parameterType + " name: '" + parameterName +
+              "' is not valid, please check the specification of the " + parameterType + " parameter naming");
     }
 
-    @Override
-    public boolean isMyKind(String kind) {
-        return kind.toLowerCase().startsWith(SupportedParserKinds.PCW_RULE.toString().toLowerCase());
-    }
-
-    @Override
-    public String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities) {
-        return SupportedParserKinds.PCW_RULE.getDefaultIcon();
+    public KindOrContentTypeIsNotValidException(Throwable cause) {
+        super(cause);
     }
 
 }

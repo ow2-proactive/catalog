@@ -34,8 +34,9 @@ import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.PCWRuleParser;
+import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
 
 
 /**
@@ -46,22 +47,10 @@ import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
 public final class PCWRuleParserTest {
     @Test
     public void testParseCpuRule() throws XMLStreamException {
-        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRuleExample.json");
+        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRule.xml");
 
-        assertThat(result.size(), is(6));
-        assertKeyValueDataAre(result.get(0), "name", "ruleNodeIsUpMetric", "General");
-        assertKeyValueDataAre(result.get(1), "PollType", "Ping", "PollConfiguration");
-        assertKeyValueDataAre(result.get(2), "pollingPeriodInSeconds", "100", "PollConfiguration");
-        assertKeyValueDataAre(result.get(3), "calmPeriodInSeconds", "50", "PollConfiguration");
-        assertKeyValueDataAre(result.get(4),
-                              "kpis",
-                              "[\"upAndRunning\",\"sigar:Type=Cpu Total\",\"sigar:Type=FileSystem,Name=/ Free\"]",
-                              "PollConfiguration");
-        assertKeyValueDataAre(result.get(5),
-                              "NodeUrls",
-                              "[\"localhost\",\"service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode\"]",
-                              "PollConfiguration");
-
+        assertThat(result.size(), is(1));
+        assertKeyValueDataAre(result.get(0), "main.icon", SupportedParserKinds.PCW_RULE.getDefaultIcon(), "General");
     }
 
     private static void assertKeyValueDataAre(KeyValueLabelMetadataEntity data, String key, String value, String type) {
@@ -70,91 +59,8 @@ public final class PCWRuleParserTest {
         assertThat(data.getLabel(), is(type));
     }
 
-    @Test
-    public void testParseRuleContainingNoName() throws Exception {
-        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRuleNoName.json");
-
-        assertThat(result.size(), is(6));
-        assertKeyValueDataAre(result.get(0), "name", "", "General");
-        assertKeyValueDataAre(result.get(1), "PollType", "Ping", "PollConfiguration");
-        assertKeyValueDataAre(result.get(2), "pollingPeriodInSeconds", "100", "PollConfiguration");
-        assertKeyValueDataAre(result.get(3), "calmPeriodInSeconds", "50", "PollConfiguration");
-        assertKeyValueDataAre(result.get(4),
-                              "kpis",
-                              "[\"upAndRunning\",\"sigar:Type=Cpu Total\",\"sigar:Type=FileSystem,Name=/ Free\"]",
-                              "PollConfiguration");
-        assertKeyValueDataAre(result.get(5),
-                              "NodeUrls",
-                              "[\"localhost\",\"service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode\"]",
-                              "PollConfiguration");
-    }
-
-    @Test
-    public void testParseRuleContainingNoType() throws Exception {
-        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRuleNoType.json");
-
-        assertThat(result.size(), is(6));
-        assertKeyValueDataAre(result.get(0), "name", "ruleNodeIsUpMetric", "General");
-        assertKeyValueDataAre(result.get(1), "PollType", "", "PollConfiguration");
-        assertKeyValueDataAre(result.get(2), "pollingPeriodInSeconds", "100", "PollConfiguration");
-        assertKeyValueDataAre(result.get(3), "calmPeriodInSeconds", "50", "PollConfiguration");
-        assertKeyValueDataAre(result.get(4),
-                              "kpis",
-                              "[\"upAndRunning\",\"sigar:Type=Cpu Total\",\"sigar:Type=FileSystem,Name=/ Free\"]",
-                              "PollConfiguration");
-        assertKeyValueDataAre(result.get(5),
-                              "NodeUrls",
-                              "[\"localhost\",\"service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode\"]",
-                              "PollConfiguration");
-    }
-
-    @Test
-    public void testParseRuleContainingNoPollingPeriod() throws Exception {
-        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRuleNoPollingPeriod.json");
-
-        assertThat(result.size(), is(6));
-        assertKeyValueDataAre(result.get(0), "name", "ruleNodeIsUpMetric", "General");
-        assertKeyValueDataAre(result.get(1), "PollType", "Ping", "PollConfiguration");
-        assertKeyValueDataAre(result.get(2), "pollingPeriodInSeconds", "0", "PollConfiguration");
-        assertKeyValueDataAre(result.get(3), "calmPeriodInSeconds", "50", "PollConfiguration");
-        assertKeyValueDataAre(result.get(4),
-                              "kpis",
-                              "[\"upAndRunning\",\"sigar:Type=Cpu Total\",\"sigar:Type=FileSystem,Name=/ Free\"]",
-                              "PollConfiguration");
-        assertKeyValueDataAre(result.get(5),
-                              "NodeUrls",
-                              "[\"localhost\",\"service:jmx:rmi:///jndi/rmi://192.168.1.122:52304/rmnode\"]",
-                              "PollConfiguration");
-    }
-
-    @Test
-    public void testParseRuleContainingNoUrl() throws Exception {
-        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRuleNoNodeUrl.json");
-
-        assertThat(result.size(), is(6));
-        assertKeyValueDataAre(result.get(0), "name", "ruleNodeIsUpMetric", "General");
-        assertKeyValueDataAre(result.get(1), "PollType", "Ping", "PollConfiguration");
-        assertKeyValueDataAre(result.get(2), "pollingPeriodInSeconds", "100", "PollConfiguration");
-        assertKeyValueDataAre(result.get(3), "calmPeriodInSeconds", "50", "PollConfiguration");
-        assertKeyValueDataAre(result.get(4),
-                              "kpis",
-                              "[\"upAndRunning\",\"sigar:Type=Cpu Total\",\"sigar:Type=FileSystem,Name=/ Free\"]",
-                              "PollConfiguration");
-        assertKeyValueDataAre(result.get(5), "NodeUrls", "[]", "PollConfiguration");
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void testParseRuleContainingNoPollingConfiguration() throws Exception {
-        List<KeyValueLabelMetadataEntity> result = parseRule("pcwRuleNoPollingConfiguration.json");
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void testLoadFromNotValidFolderException() throws XMLStreamException {
-        parseRule("pcwRuleWrongToParse.json");
-    }
-
     private List<KeyValueLabelMetadataEntity> parseRule(String filename) throws XMLStreamException {
-        CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("rule");
+        AbstractCatalogObjectParser parser = new PCWRuleParser();
 
         return parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/pcw-rules/" + filename));
     }

@@ -48,7 +48,8 @@ public class RawObjectResponseCreatorTest {
     @Test
     public void testCreateRawObjectResponseGeneralKindRightContentType() {
         String objectName = "object name";
-        String contentDispositionFileName = "attachment; filename=\"" + objectName + "\"";
+        String fileExtension = "myextension";
+        String contentDispositionFileName = "attachment; filename=\"" + objectName + "." + fileExtension + "\"";
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
                                                           "object",
@@ -56,7 +57,33 @@ public class RawObjectResponseCreatorTest {
                                                           1400343L,
                                                           "commit message",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          fileExtension);
+        ResponseEntity responseEntity = rawObjectResponseCreator.createRawObjectResponse(rawObject);
+        assertThat(responseEntity).isNotNull();
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_XML);
+        assertThat(responseEntity.getHeaders().containsKey(HttpHeaders.CONTENT_DISPOSITION)).isTrue();
+        assertThat(responseEntity.getHeaders()
+                                 .getFirst(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(contentDispositionFileName);
+        assertThat(responseEntity.getHeaders()
+                                 .getFirst(HttpHeaders.CONTENT_LENGTH)).isEqualTo(String.valueOf(rawObject.getRawObject().length));
+    }
+
+    @Test
+    public void testCreateRawObjectResponseWorkflowKindWithXMLExtension() {
+        String objectName = "object name";
+        String fileExtension = "xml";
+        String contentDispositionFileName = "attachment; filename=\"" + objectName + "." + fileExtension + "\"";
+        CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
+                                                          objectName,
+                                                          "workflow",
+                                                          "application/xml",
+                                                          1400343L,
+                                                          "commit message",
+                                                          Collections.emptyList(),
+                                                          new byte[0],
+                                                          fileExtension);
         ResponseEntity responseEntity = rawObjectResponseCreator.createRawObjectResponse(rawObject);
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -80,7 +107,8 @@ public class RawObjectResponseCreatorTest {
                                                           1400343L,
                                                           "commit message",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          null);
         ResponseEntity responseEntity = rawObjectResponseCreator.createRawObjectResponse(rawObject);
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -91,9 +119,10 @@ public class RawObjectResponseCreatorTest {
     }
 
     @Test
-    public void testCreateRawObjectResponseWorkflowKindWithExtension() {
-        String objectName = "object name.xml";
-        String contentDispositionFileName = "attachment; filename=\"" + objectName + "\"";
+    public void testCreateRawObjectResponseWorkflowKindWithEmptyExtension() {
+        String objectName = "object name";
+        String contentDispositionFileName = "attachment; filename=\"" + objectName +
+                                            RawObjectResponseCreator.WORKFLOW_EXTENSION + "\"";
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
                                                           "workflow/specific-workflow-kind",
@@ -101,7 +130,31 @@ public class RawObjectResponseCreatorTest {
                                                           1400343L,
                                                           "commit message",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          "");
+        ResponseEntity responseEntity = rawObjectResponseCreator.createRawObjectResponse(rawObject);
+        assertThat(responseEntity).isNotNull();
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_XML);
+        assertThat(responseEntity.getHeaders().containsKey(HttpHeaders.CONTENT_DISPOSITION)).isTrue();
+        assertThat(responseEntity.getHeaders()
+                                 .getFirst(HttpHeaders.CONTENT_DISPOSITION)).isEqualTo(contentDispositionFileName);
+    }
+
+    @Test
+    public void testCreateRawObjectResponseWorkflowKindWithExtensionInName() {
+        String objectName = "object name.xml";
+        String contentDispositionFileName = "attachment; filename=\"" + objectName +
+                                            RawObjectResponseCreator.WORKFLOW_EXTENSION + "\"";
+        CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
+                                                          objectName,
+                                                          "workflow/specific-workflow-kind",
+                                                          "application/xml",
+                                                          1400343L,
+                                                          "commit message",
+                                                          Collections.emptyList(),
+                                                          new byte[0],
+                                                          "xml");
         ResponseEntity responseEntity = rawObjectResponseCreator.createRawObjectResponse(rawObject);
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -120,7 +173,8 @@ public class RawObjectResponseCreatorTest {
                                                           1400343L,
                                                           "commit message",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          "xml");
         ResponseEntity responseEntity = rawObjectResponseCreator.createRawObjectResponse(rawObject);
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);

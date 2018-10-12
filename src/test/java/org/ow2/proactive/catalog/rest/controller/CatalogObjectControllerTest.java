@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -142,7 +143,7 @@ public class CatalogObjectControllerTest {
         BucketEntity bucket = mock(BucketEntity.class);
         when(bucketRepository.findOneByBucketName("bucket-name")).thenReturn(bucket);
         catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.empty(), Optional.empty(), response);
-        verify(catalogObjectService, times(1)).listCatalogObjects(anyString());
+        verify(catalogObjectService, times(1)).listCatalogObjects(anyList());
     }
 
     @Test
@@ -154,7 +155,8 @@ public class CatalogObjectControllerTest {
                                                           1400343L,
                                                           "commit message",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          "xml");
         ResponseEntity responseEntity = ResponseEntity.ok().body(1);
 
         when(restApiAccessService.isAPublicBucket(anyString())).thenReturn(true);
@@ -176,7 +178,8 @@ public class CatalogObjectControllerTest {
                                                                "application/xml",
                                                                1400343L,
                                                                "commit message",
-                                                               Collections.emptyList());
+                                                               Collections.emptyList(),
+                                                               "xml");
         when(catalogObjectService.delete(anyString(), anyString())).thenReturn(mock);
         CatalogObjectMetadata result = catalogObjectController.delete("", "bucket-name", "name");
         assertThat(mock).isEqualTo(result);
