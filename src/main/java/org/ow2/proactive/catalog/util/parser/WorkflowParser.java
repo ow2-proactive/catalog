@@ -26,17 +26,13 @@
 package org.ow2.proactive.catalog.util.parser;
 
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.events.XMLEvent;
 
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
+import org.ow2.proactive.scheduler.common.exception.JobCreationException;
+import org.ow2.proactive.scheduler.common.job.Job;
+import org.ow2.proactive.scheduler.common.job.factories.JobFactory;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
@@ -66,49 +62,13 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private static final String JOB_AND_PROJECT_LABEL = "job_information";
 
-    private static final String ATTRIBUTE_JOB_NAME = "name";
-
-    private static final String ATTRIBUTE_JOB_PROJECT_NAME = "projectName";
-
     public static final String ATTRIBUTE_GENERIC_INFORMATION_LABEL = "generic_information";
-
-    private static final String ATTRIBUTE_GENERIC_INFORMATION_NAME = "name";
-
-    private static final String ATTRIBUTE_GENERIC_INFORMATION_VALUE = "value";
 
     private static final String ATTRIBUTE_VARIABLE_LABEL = "variable";
 
-    private static final String ATTRIBUTE_VARIABLE_NAME = "name";
-
-    private static final String ATTRIBUTE_VARIABLE_VALUE = "value";
-
     private static final String ATTRIBUTE_VARIABLE_MODEL_LABEL = "variable_model";
 
-    private static final String ATTRIBUTE_VARIABLE_MODEL = "model";
-
-    private static final String ELEMENT_GENERIC_INFORMATION = "genericInformation";
-
-    private static final String ELEMENT_GENERIC_INFORMATION_INFO = "info";
-
-    private static final String ELEMENT_JOB = "job";
-
-    private static final String ELEMENT_TASK_FLOW = "taskFlow";
-
-    private static final String ELEMENT_VARIABLE = "variable";
-
-    private static final String ELEMENT_VARIABLES = "variables";
-
-    private static final String ELEMENT_JOB_DESCRIPTION = "description";
-
     private static final String JOB_DESCRIPTION_KEY = "description";
-
-    /* Below are instance variables containing values which are extracted */
-
-    private static final class XmlInputFactoryLazyHolder {
-
-        private static final XMLInputFactory INSTANCE = XMLInputFactory.newInstance();
-
-    }
 
     @Override
     List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
@@ -117,204 +77,37 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
          * Variables indicating which parts of the document have been parsed. Thanks to these
          * information, parsing can be stopped once required information have been extracted.
          */
-
-        ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableList.builder();
-        XMLStreamReader xmlStreamReader = null;
+        Job job;
         try {
-            boolean jobHandled = false;
-
-            boolean variablesHandled = false;
-
-            boolean genericInformationHandled = false;
-
-            boolean descriptionHandled = false;
-
-            xmlStreamReader = XmlInputFactoryLazyHolder.INSTANCE.createXMLStreamReader(inputStream);
-            int eventType;
-
-            boolean isTaskFlow = false;
-
-            while (xmlStreamReader.hasNext() &&
-                   !(jobHandled && variablesHandled && genericInformationHandled && descriptionHandled)) {
-                eventType = xmlStreamReader.next();
-
-                switch (eventType) {
-                    case XMLEvent.START_ELEMENT:
-                        String elementLocalPart = xmlStreamReader.getName().getLocalPart();
-
-                        switch (elementLocalPart) {
-                            case ELEMENT_JOB:
-                                handleJobElement(keyValueMapBuilder, xmlStreamReader);
-                                jobHandled = true;
-                                break;
-                            case ELEMENT_TASK_FLOW:
-                                isTaskFlow = true;
-                                break;
-                            case ELEMENT_GENERIC_INFORMATION_INFO:
-                                if (!isTaskFlow) {
-                                    handleGenericInformationElement(keyValueMapBuilder, xmlStreamReader);
-                                }
-                                break;
-                            case ELEMENT_VARIABLE:
-                                if (!isTaskFlow) {
-                                    handleVariableElement(keyValueMapBuilder, xmlStreamReader);
-                                }
-                                break;
-                            case ELEMENT_JOB_DESCRIPTION:
-                                if (!isTaskFlow) {
-                                    handleDescriptionElement(keyValueMapBuilder, xmlStreamReader);
-                                    descriptionHandled = true;
-                                }
-                                break;
-                            default: // all the other workflow tags should be ignored for parsing
-                                break;
-                        }
-                        break;
-
-                    case XMLEvent.END_ELEMENT:
-                        elementLocalPart = xmlStreamReader.getName().getLocalPart();
-
-                        switch (elementLocalPart) {
-                            case ELEMENT_TASK_FLOW:
-                                isTaskFlow = false;
-                                break;
-                            case ELEMENT_GENERIC_INFORMATION:
-                                if (!isTaskFlow) {
-                                    genericInformationHandled = true;
-                                }
-                                break;
-                            case ELEMENT_VARIABLES:
-                                if (!isTaskFlow) {
-                                    variablesHandled = true;
-                                }
-                                break;
-                            default: // all the other workflow tags should be ignored for parsing
-                                break;
-                        }
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-
-            return keyValueMapBuilder.build();
-
-        } catch (XMLStreamException e) {
+            job = JobFactory.getFactory().createJob(inputStream);
+        } catch (JobCreationException e) {
             throw new ParsingObjectException(e);
-        } finally {
-            if (xmlStreamReader != null) {
-                try {
-                    xmlStreamReader.close();
-                } catch (Exception e) {
-                    log.error("Unable to close xmlStreamReader", e);
-                }
-            }
         }
 
+        ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableList.builder();
+
+        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(PROJECT_NAME_KEY,
+                job.getProjectName(),
+                JOB_AND_PROJECT_LABEL));
+
+        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY, job.getName(), JOB_AND_PROJECT_LABEL));
+
+        job.getGenericInformation().forEach((name, value) ->
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, value, ATTRIBUTE_GENERIC_INFORMATION_LABEL)));
+
+        job.getVariables().forEach((jobVariableName, jobVariable) -> {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(jobVariable.getName(), jobVariable.getValue(), ATTRIBUTE_VARIABLE_LABEL));
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(jobVariable.getName(), jobVariable.getModel(), ATTRIBUTE_VARIABLE_MODEL_LABEL));
+        });
+
+        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_DESCRIPTION_KEY, job.getDescription(), GENERAL_LABEL));
+
+        return keyValueMapBuilder.build();
     }
 
     @Override
     public boolean isMyKind(String kind) {
         return kind.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase());
-    }
-
-    private void handleGenericInformationElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            XMLStreamReader xmlStreamReader) {
-        handleElementWithMultipleValues(keyValueMapBuilder,
-                                        ATTRIBUTE_GENERIC_INFORMATION_LABEL,
-                                        ATTRIBUTE_GENERIC_INFORMATION_NAME,
-                                        ATTRIBUTE_GENERIC_INFORMATION_VALUE,
-                                        xmlStreamReader,
-                                        true);
-    }
-
-    private void handleJobElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            XMLStreamReader xmlStreamReader) {
-
-        List<String> strings = orderedSearch(xmlStreamReader, ATTRIBUTE_JOB_NAME, ATTRIBUTE_JOB_PROJECT_NAME);
-        String jobNameValue = strings.get(0);
-        String projectNameValue = strings.get(1);
-
-        if (checkIfNotNull(projectNameValue)) {
-            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(PROJECT_NAME_KEY,
-                                                                   projectNameValue,
-                                                                   JOB_AND_PROJECT_LABEL));
-        }
-        if (checkIfNotNull(jobNameValue)) {
-            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY, jobNameValue, JOB_AND_PROJECT_LABEL));
-        }
-    }
-
-    private void handleDescriptionElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            XMLStreamReader xmlStreamReader) {
-
-        String descriptionContent = "";
-        try {
-            descriptionContent = xmlStreamReader.getElementText(); //returns the text content of CDATA for description tag in our case
-        } catch (XMLStreamException e) {
-            log.error("Unable to parse the workflow description", e);
-            throw new RuntimeException("Unable to parse the workflow description", e);
-        }
-        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_DESCRIPTION_KEY, descriptionContent, GENERAL_LABEL));
-
-    }
-
-    private void handleVariableElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            XMLStreamReader xmlStreamReader) {
-
-        handleElementWithMultipleValues(keyValueMapBuilder,
-                                        ATTRIBUTE_VARIABLE_LABEL,
-                                        ATTRIBUTE_VARIABLE_NAME,
-                                        ATTRIBUTE_VARIABLE_VALUE,
-                                        xmlStreamReader,
-                                        true);
-        //for variables model
-        handleElementWithMultipleValues(keyValueMapBuilder,
-                                        ATTRIBUTE_VARIABLE_MODEL_LABEL,
-                                        ATTRIBUTE_VARIABLE_NAME,
-                                        ATTRIBUTE_VARIABLE_MODEL,
-                                        xmlStreamReader,
-                                        false);
-
-    }
-
-    private void handleElementWithMultipleValues(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            String attributeLabel, String attributeNameForKey, String attributeNameForValue,
-            XMLStreamReader xmlStreamReader, boolean allowEmptyValues) {
-        List<String> strings = orderedSearch(xmlStreamReader, attributeNameForKey, attributeNameForValue);
-
-        String key = strings.get(0);
-        String value = strings.get(1);
-
-        if (checkIfNotNull(key, value) && (allowEmptyValues || checkIfNotEmpty(key, value))) {
-            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(key, value, attributeLabel));
-        }
-    }
-
-    private boolean checkIfNotNull(String... values) {
-        return Arrays.stream(values).noneMatch(Objects::isNull);
-
-    }
-
-    private boolean checkIfNotEmpty(String... values) {
-        return Arrays.stream(values).noneMatch(String::isEmpty);
-
-    }
-
-    private List<String> orderedSearch(XMLStreamReader xmlStreamReader, String... names) {
-        List<String> listNames = Arrays.asList(names);
-        String[] result = new String[names.length];
-
-        for (int i = 0; i < xmlStreamReader.getAttributeCount(); i++) {
-            String attributeName = xmlStreamReader.getAttributeName(i).getLocalPart();
-            int index = listNames.indexOf(attributeName);
-            if (index != -1) {
-                result[index] = xmlStreamReader.getAttributeValue(i);
-            }
-        }
-
-        return Arrays.asList(result);
     }
 
     @Override
