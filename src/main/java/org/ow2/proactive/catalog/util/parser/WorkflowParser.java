@@ -81,7 +81,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         try {
             job = JobFactory.getFactory().createJob(inputStream);
         } catch (JobCreationException e) {
-            throw new ParsingObjectException(e);
+            throw new ParsingObjectException(e.getMessage());
         }
 
         ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableList.builder();
