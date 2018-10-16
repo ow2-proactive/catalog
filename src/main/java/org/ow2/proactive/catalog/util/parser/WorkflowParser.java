@@ -26,12 +26,15 @@
 package org.ow2.proactive.catalog.util.parser;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.ow2.proactive.scheduler.common.exception.JobCreationException;
 import org.ow2.proactive.scheduler.common.job.Job;
+import org.ow2.proactive.scheduler.common.job.JobVariable;
 import org.ow2.proactive.scheduler.common.job.factories.JobFactory;
 import org.springframework.stereotype.Component;
 
@@ -86,23 +89,70 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
         ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableList.builder();
 
-        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(PROJECT_NAME_KEY,
-                job.getProjectName(),
-                JOB_AND_PROJECT_LABEL));
-
-        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY, job.getName(), JOB_AND_PROJECT_LABEL));
-
-        job.getGenericInformation().forEach((name, value) ->
-            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, value, ATTRIBUTE_GENERIC_INFORMATION_LABEL)));
-
-        job.getVariables().forEach((jobVariableName, jobVariable) -> {
-            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(jobVariable.getName(), jobVariable.getValue(), ATTRIBUTE_VARIABLE_LABEL));
-            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(jobVariable.getName(), jobVariable.getModel(), ATTRIBUTE_VARIABLE_MODEL_LABEL));
-        });
-
-        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_DESCRIPTION_KEY, job.getDescription(), GENERAL_LABEL));
+        addProjectNameIfNotNull(keyValueMapBuilder, job);
+        addJobNameIfNotNull(keyValueMapBuilder, job);
+        job.getGenericInformation()
+           .forEach((name, value) -> addGenericInformationIfNotNull(keyValueMapBuilder, name, value));
+        job.getVariables().forEach((jobVariableName,
+                jobVariable) -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
+        addJobDescriptionIfNotNull(keyValueMapBuilder, job);
 
         return keyValueMapBuilder.build();
+    }
+
+    private void addProjectNameIfNotNull(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
+            Job job) {
+        String projectName = job.getProjectName();
+        if (checkIfNotNull(projectName)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(PROJECT_NAME_KEY,
+                                                                   projectName,
+                                                                   JOB_AND_PROJECT_LABEL));
+        }
+    }
+
+    private void addJobNameIfNotNull(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
+        String name = job.getName();
+        if (checkIfNotNull(name)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY, name, JOB_AND_PROJECT_LABEL));
+        }
+    }
+
+    private void addJobDescriptionIfNotNull(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
+            Job job) {
+        String description = job.getDescription();
+        if (checkIfNotNull(description)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_DESCRIPTION_KEY, description, GENERAL_LABEL));
+        }
+    }
+
+    private void addGenericInformationIfNotNull(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
+            String name, String value) {
+        if (checkIfNotNull(name, value)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, value, ATTRIBUTE_GENERIC_INFORMATION_LABEL));
+        }
+    }
+
+    private void addVariableIfNotNullAndModelIfNotEmpty(
+            ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, JobVariable jobVariable) {
+        String name = jobVariable.getName();
+        String value = jobVariable.getValue();
+        String model = jobVariable.getModel();
+        if (checkIfNotNull(name, value)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, value, ATTRIBUTE_VARIABLE_LABEL));
+        }
+        if (checkIfNotNull(name, model) && checkIfNotEmpty(name, model)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, model, ATTRIBUTE_VARIABLE_MODEL_LABEL));
+        }
+    }
+
+    private boolean checkIfNotNull(String... values) {
+        return Arrays.stream(values).noneMatch(Objects::isNull);
+
+    }
+
+    private boolean checkIfNotEmpty(String... values) {
+        return Arrays.stream(values).noneMatch(String::isEmpty);
+
     }
 
     @Override
