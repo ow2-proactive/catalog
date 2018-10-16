@@ -45,12 +45,9 @@ import lombok.extern.log4j.Log4j2;
 
 
 /**
- * ProActiveWorkflowParser aims to parse a ProActive XML workflow (whatever the schema version is)
+ * Parse a ProActive XML workflow (whatever the schema version is)
  * in order to extract some specific values (job name, project name, generic
  * information and variables).
- * <p>
- * No validation is applied for now. Besides parsing stop once required information have
- * been extracted, mainly for performance reasons.
  *
  * @author ActiveEon Team
  */
@@ -117,14 +114,6 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         }
     }
 
-    private void addJobDescriptionIfNotNull(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            Job job) {
-        String description = job.getDescription();
-        if (checkIfNotNull(description)) {
-            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_DESCRIPTION_KEY, description, GENERAL_LABEL));
-        }
-    }
-
     private void addGenericInformationIfNotNull(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
             String name, String value) {
         if (checkIfNotNull(name, value)) {
@@ -142,6 +131,14 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         }
         if (checkIfNotNull(name, model) && checkIfNotEmpty(name, model)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, model, ATTRIBUTE_VARIABLE_MODEL_LABEL));
+        }
+    }
+
+    private void addJobDescriptionIfNotNull(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
+            Job job) {
+        String description = job.getDescription();
+        if (checkIfNotNull(description)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_DESCRIPTION_KEY, description, GENERAL_LABEL));
         }
     }
 
