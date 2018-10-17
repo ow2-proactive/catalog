@@ -70,13 +70,10 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private static final String JOB_DESCRIPTION_KEY = "description";
 
+    private static final String JOB_VISUALIZATION_KEY = "visualization";
+
     @Override
     List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
-
-        /*
-         * Variables indicating which parts of the document have been parsed. Thanks to these
-         * information, parsing can be stopped once required information have been extracted.
-         */
         Job job;
         try {
             job = JobFactory.getFactory().createJob(inputStream);
@@ -93,6 +90,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         job.getVariables().forEach((jobVariableName,
                 jobVariable) -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
         addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+        addJobVizualisationIfNotNullAndNotEmpty(keyValueMapBuilder, job);
 
         return keyValueMapBuilder.build();
     }
@@ -142,6 +140,16 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         }
     }
 
+    private void addJobVizualisationIfNotNullAndNotEmpty(
+            ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
+        String vizualisation = job.getVisualization();
+        if (checkIfNotNull(vizualisation) && checkIfNotEmpty(vizualisation)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_VISUALIZATION_KEY,
+                                                                   vizualisation,
+                                                                   JOB_AND_PROJECT_LABEL));
+        }
+    }
+
     private boolean checkIfNotNull(String... values) {
         return Arrays.stream(values).noneMatch(Objects::isNull);
 
@@ -163,7 +171,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
                                        .filter(keyValue -> keyValue.getLabel()
                                                                    .equals(ATTRIBUTE_GENERIC_INFORMATION_LABEL) &&
                                                            keyValue.getKey().equals("workflow.icon"))
-                                       .map(keyValue -> keyValue.getValue())
+                                       .map(KeyValueLabelMetadataEntity::getValue)
                                        .findAny()
                                        .orElse(SupportedParserKinds.WORKFLOW.getDefaultIcon());
 

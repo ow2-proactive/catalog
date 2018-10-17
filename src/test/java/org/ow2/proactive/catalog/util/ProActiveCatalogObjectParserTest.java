@@ -26,9 +26,7 @@
 package org.ow2.proactive.catalog.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
@@ -38,7 +36,6 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
-import org.ow2.proactive.scheduler.common.exception.JobCreationException;
 
 
 /**
@@ -124,6 +121,22 @@ public class ProActiveCatalogObjectParserTest {
                                                                                         "    ");
     }
 
+    @Test
+    public void testParseWorkflowContainingVisualization() throws Exception {
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-visualization.xml");
+
+        assertThat(result).hasSize(5);
+
+        assertThat(findValueForKeyAndLabel(result, "project_name", "job_information")).isEqualTo("Project Name");
+        assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("Valid Workflow");
+        assertThat(findValueForKeyAndLabel(result, "description", "General")).isEqualTo("\n" +
+                                                                                        "         A catalogObject that executes cmd in JVM. \n" +
+                                                                                        "    ");
+        assertThat(findValueForKeyAndLabel(result,
+                                           "visualization",
+                                           "job_information").trim()).isEqualTo(getJobVisualizationExpectedContent());
+    }
+
     private List<KeyValueLabelMetadataEntity> parseWorkflow(String xmlFilename) throws XMLStreamException {
         AbstractCatalogObjectParser parser = new WorkflowParser();
 
@@ -136,6 +149,16 @@ public class ProActiveCatalogObjectParserTest {
                      .findAny()
                      .get()
                      .getValue();
+    }
+
+    private String getJobVisualizationExpectedContent() {
+        return "<html><head><link rel=\"stylesheet\" href=\"/studio/styles/studio-standalone.css\"><style>\n" +
+               "        #workflow-designer {\n" + "            left:0 !important;\n" +
+               "            top:0 !important;\n" + "            width:1427px;\n" + "            height:905px;\n" +
+               "            }\n" +
+               "        </style></head><body><div style=\"position:relative;top:-259px;left:-350.5px\"><div class=\"task _jsPlumb_endpoint_anchor_ ui-draggable active-task\" id=\"jsPlumb_1_1\" style=\"top: 309px; left: 450.5px;\"><a class=\"task-name\"><img src=\"/studio/images/Groovy.png\" width=\"20px\">&nbsp;<span class=\"name\">Groovy_Task</span></a></div><div class=\"_jsPlumb_endpoint source-endpoint dependency-source-endpoint connected _jsPlumb_endpoint_anchor_ ui-draggable ui-droppable\" style=\"position: absolute; height: 20px; width: 20px; left: 491px; top: 339px;\"><svg style=\"position:absolute;left:0px;top:0px\" width=\"20\" height=\"20\" pointer-events=\"all\" position=\"absolute\" version=\"1.1\"\n" +
+               "      xmlns=\"http://www.w3.org/1999/xhtml\"><circle cx=\"10\" cy=\"10\" r=\"10\" version=\"1.1\"\n" +
+               "      xmlns=\"http://www.w3.org/1999/xhtml\" fill=\"#666\" stroke=\"none\" style=\"\"></circle></svg></div></div></body></html>";
     }
 
 }

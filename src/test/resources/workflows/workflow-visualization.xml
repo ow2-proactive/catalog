@@ -7,26 +7,14 @@
         name="Valid Workflow"
         priority="normal"
 >
-    <variables>
-        <variable name="var1" value="var1Value"/>
-        <variable value="var2Value" name="var2"/>
-    </variables>
     <description>
-        <![CDATA[ A workflow that executes cmd in JVM. ]]>
+        <![CDATA[ A catalogObject that executes cmd in JVM. ]]>
     </description>
-    <genericInformation>
-        <info value="genericInfo1Value" name="genericInfo1"/>
-        <info name="genericInfo2" value="genericInfo2Value"/>
-    </genericInformation>
     <taskFlow>
         <task name="Windows_Cmd_Task">
             <description>
                 <![CDATA[ The simplest task, ran by a cmd engine. ]]>
             </description>
-            <variables>
-		        <variable name="var1" value="task_var1Value"/>
-		        <variable value="var2Value" name="task_var2"/>
-		    </variables>
             <scriptExecutable>
                 <script>
                     <code language="cmd">
