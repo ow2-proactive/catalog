@@ -26,10 +26,7 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PERCENT_20;
 import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PLUS;
 import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_EXTENSION;
@@ -41,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -117,6 +115,12 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testCreateWorkflowShouldReturnSavedWorkflow() {
+
+        Map<String, Object> expected = new HashMap<>();
+        expected.put("label", "job_information");
+        expected.put("key", "project_name");
+        expected.put("value", "Project Name");
+
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "Workflow/specific-workflow-kind")
                .queryParam("name", "workflow_test")
@@ -133,33 +137,27 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].name", is("workflow_test"))
                .body("object[0].extension", is("xml"))
 
-               .body("object[0].object_key_values", hasSize(10))
+               .body("object[0].object_key_values", hasSize(11))
                //check job info
-               .body("object[0].object_key_values[0].label", is("job_information"))
-               .body("object[0].object_key_values[0].key", is("project_name"))
-               .body("object[0].object_key_values[0].value", is("Project Name"))
-               .body("object[0].object_key_values[1].label", is("job_information"))
-               .body("object[0].object_key_values[1].key", is("name"))
-               .body("object[0].object_key_values[1].value", is("Valid Workflow"))
+               .body("object[0].object_key_values.find { it.label == 'job_information' && it.key == 'project_name' }.value",
+                     is("Project Name"))
+               .body("object[0].object_key_values.find { it.label == 'job_information' && it.key == 'name' }.value",
+                     is("Valid Workflow"))
                //check variables label
-               .body("object[0].object_key_values[2].label", is("variable"))
-               .body("object[0].object_key_values[2].key", is("var1"))
-               .body("object[0].object_key_values[2].value", is("var1Value"))
-               .body("object[0].object_key_values[3].label", is("variable"))
-               .body("object[0].object_key_values[3].key", is("var2"))
-               .body("object[0].object_key_values[3].value", is("var2Value"))
+               .body("object[0].object_key_values.find { it.label == 'variable' && it.key == 'var1' }.value",
+                     is("var1Value"))
+               .body("object[0].object_key_values.find { it.label == 'variable' && it.key == 'var2' }.value",
+                     is("var2Value"))
                //check General label
-               .body("object[0].object_key_values[4].label", is("General"))
-               .body("object[0].object_key_values[4].key", is("description"))
-               .body("object[0].object_key_values[4].value",
+               .body("object[0].object_key_values.find { it.label == 'General' && it.key == 'description' }.value",
                      is("\n" + "         A workflow that executes cmd in JVM. \n" + "    "))
                //check generic_information label
-               .body("object[0].object_key_values[5].label", is("generic_information"))
-               .body("object[0].object_key_values[5].key", is("genericInfo1"))
-               .body("object[0].object_key_values[5].value", is("genericInfo1Value"))
-               .body("object[0].object_key_values[6].label", is("generic_information"))
-               .body("object[0].object_key_values[6].key", is("genericInfo2"))
-               .body("object[0].object_key_values[6].value", is("genericInfo2Value"))
+               .body("object[0].object_key_values.find { it.label == 'generic_information' && it.key == 'genericInfo1' }.value",
+                     is("genericInfo1Value"))
+               .body("object[0].object_key_values.find { it.label == 'generic_information' && it.key == 'genericInfo2' }.value",
+                     is("genericInfo2Value"))
+               .body("object[0].object_key_values.find { it.label == 'job_information' && it.key == 'visualization' }.value",
+                     equalToIgnoringWhiteSpace(getJobVisualizationExpectedContent()))
                .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 
@@ -330,33 +328,27 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].name", is(objectNameWithSpecificSymbols))
                .body("object[0].extension", is("xml"))
 
-               .body("object[0].object_key_values", hasSize(10))
+               .body("object[0].object_key_values", hasSize(11))
                //check job info
-               .body("object[0].object_key_values[0].label", is("job_information"))
-               .body("object[0].object_key_values[0].key", is("project_name"))
-               .body("object[0].object_key_values[0].value", is("Project Name"))
-               .body("object[0].object_key_values[1].label", is("job_information"))
-               .body("object[0].object_key_values[1].key", is("name"))
-               .body("object[0].object_key_values[1].value", is("Valid Workflow"))
+               .body("object[0].object_key_values.find { it.label == 'job_information' && it.key == 'project_name' }.value",
+                     is("Project Name"))
+               .body("object[0].object_key_values.find { it.label == 'job_information' && it.key == 'name' }.value",
+                     is("Valid Workflow"))
                //check variables label
-               .body("object[0].object_key_values[2].label", is("variable"))
-               .body("object[0].object_key_values[2].key", is("var1"))
-               .body("object[0].object_key_values[2].value", is("var1Value"))
-               .body("object[0].object_key_values[3].label", is("variable"))
-               .body("object[0].object_key_values[3].key", is("var2"))
-               .body("object[0].object_key_values[3].value", is("var2Value"))
+               .body("object[0].object_key_values.find { it.label == 'variable' && it.key == 'var1' }.value",
+                     is("var1Value"))
+               .body("object[0].object_key_values.find { it.label == 'variable' && it.key == 'var2' }.value",
+                     is("var2Value"))
                //check General label
-               .body("object[0].object_key_values[4].label", is("General"))
-               .body("object[0].object_key_values[4].key", is("description"))
-               .body("object[0].object_key_values[4].value",
+               .body("object[0].object_key_values.find { it.label == 'General' && it.key == 'description' }.value",
                      is("\n" + "         A workflow that executes cmd in JVM. \n" + "    "))
                //check generic_information label
-               .body("object[0].object_key_values[5].label", is("generic_information"))
-               .body("object[0].object_key_values[5].key", is("genericInfo1"))
-               .body("object[0].object_key_values[5].value", is("genericInfo1Value"))
-               .body("object[0].object_key_values[6].label", is("generic_information"))
-               .body("object[0].object_key_values[6].key", is("genericInfo2"))
-               .body("object[0].object_key_values[6].value", is("genericInfo2Value"))
+               .body("object[0].object_key_values.find { it.label == 'generic_information' && it.key == 'genericInfo1' }.value",
+                     is("genericInfo1Value"))
+               .body("object[0].object_key_values.find { it.label == 'generic_information' && it.key == 'genericInfo2' }.value",
+                     is("genericInfo2Value"))
+               .body("object[0].object_key_values.find { it.label == 'job_information' && it.key == 'visualization' }.value",
+                     equalToIgnoringWhiteSpace(getJobVisualizationExpectedContent()))
                .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()))
                //check link references
                .body("object[0].links[0].href",
@@ -512,7 +504,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         response.body("bucket_name", is(thirdWFRevision.get("bucket_name")))
                 .body("name", is(thirdWFRevision.get("name")))
                 .body("commit_time", is(thirdWFRevision.get("commit_time")))
-                .body("object_key_values", hasSize(10))
+                .body("object_key_values", hasSize(11))
                 //check generic_information label
                 .body("object_key_values[0].label", is("generic_information"))
                 .body("object_key_values[0].key", is("bucketName"))
@@ -551,6 +543,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                 .body("object_key_values[9].label", is("variable"))
                 .body("object_key_values[9].key", is("var2"))
                 .body("object_key_values[9].value", is("var2Value"))
+                .body("object_key_values.find { it.label == 'job_information' && it.key == 'visualization' }.value",
+                      equalToIgnoringWhiteSpace(getJobVisualizationExpectedContent()))
                 .body("content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 
@@ -867,6 +861,16 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+    }
+
+    private String getJobVisualizationExpectedContent() {
+        return "<html><head><link rel=\"stylesheet\" href=\"/studio/styles/studio-standalone.css\"><style>\n" +
+               "        #workflow-designer {\n" + "            left:0 !important;\n" +
+               "            top:0 !important;\n" + "            width:1427px;\n" + "            height:905px;\n" +
+               "            }\n" +
+               "        </style></head><body><div style=\"position:relative;top:-259px;left:-350.5px\"><div class=\"task _jsPlumb_endpoint_anchor_ ui-draggable active-task\" id=\"jsPlumb_1_1\" style=\"top: 309px; left: 450.5px;\"><a class=\"task-name\"><img src=\"/studio/images/Groovy.png\" width=\"20px\">&nbsp;<span class=\"name\">Groovy_Task</span></a></div><div class=\"_jsPlumb_endpoint source-endpoint dependency-source-endpoint connected _jsPlumb_endpoint_anchor_ ui-draggable ui-droppable\" style=\"position: absolute; height: 20px; width: 20px; left: 491px; top: 339px;\"><svg style=\"position:absolute;left:0px;top:0px\" width=\"20\" height=\"20\" pointer-events=\"all\" position=\"absolute\" version=\"1.1\"\n" +
+               "      xmlns=\"http://www.w3.org/1999/xhtml\"><circle cx=\"10\" cy=\"10\" r=\"10\" version=\"1.1\"\n" +
+               "      xmlns=\"http://www.w3.org/1999/xhtml\" fill=\"#666\" stroke=\"none\" style=\"\"></circle></svg></div></div></body></html>";
     }
 
 }
