@@ -81,26 +81,26 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         try {
             job = JobFactory.getFactory().createJob(inputStream);
         } catch (JobCreationException e) {
-            throw new ParsingObjectException(e.getMessage());
+            throw new ParsingObjectException(e.getMessage(), e);
         }
 
         ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableList.builder();
 
-        addProjectNameIfNotNull(keyValueMapBuilder, job);
+        addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobNameIfNotNull(keyValueMapBuilder, job);
         job.getGenericInformation()
            .forEach((name, value) -> addGenericInformationIfNotNull(keyValueMapBuilder, name, value));
         job.getVariables().forEach((jobVariableName,
                 jobVariable) -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
-        addJobDescriptionIfNotNull(keyValueMapBuilder, job);
+        addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
 
         return keyValueMapBuilder.build();
     }
 
-    private void addProjectNameIfNotNull(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            Job job) {
+    private void addProjectNameIfNotNullAndNotEmpty(
+            ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
         String projectName = job.getProjectName();
-        if (checkIfNotNull(projectName)) {
+        if (checkIfNotNull(projectName) && checkIfNotEmpty(projectName)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(PROJECT_NAME_KEY,
                                                                    projectName,
                                                                    JOB_AND_PROJECT_LABEL));
@@ -134,10 +134,10 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         }
     }
 
-    private void addJobDescriptionIfNotNull(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            Job job) {
+    private void addJobDescriptionIfNotNullAndNotEmpty(
+            ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
         String description = job.getDescription();
-        if (checkIfNotNull(description)) {
+        if (checkIfNotNull(description) && checkIfNotEmpty(description)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_DESCRIPTION_KEY, description, GENERAL_LABEL));
         }
     }

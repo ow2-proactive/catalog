@@ -26,10 +26,7 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PERCENT_20;
 import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PLUS;
 import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_EXTENSION;
@@ -41,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -117,6 +115,12 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testCreateWorkflowShouldReturnSavedWorkflow() {
+
+        Map<String, Object> expected = new HashMap<>();
+        expected.put("label", "job_information");
+        expected.put("key", "project_name");
+        expected.put("value", "Project Name");
+
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "Workflow/specific-workflow-kind")
                .queryParam("name", "workflow_test")
@@ -135,31 +139,23 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
                .body("object[0].object_key_values", hasSize(10))
                //check job info
-               .body("object[0].object_key_values[0].label", is("job_information"))
-               .body("object[0].object_key_values[0].key", is("project_name"))
-               .body("object[0].object_key_values[0].value", is("Project Name"))
-               .body("object[0].object_key_values[1].label", is("job_information"))
-               .body("object[0].object_key_values[1].key", is("name"))
-               .body("object[0].object_key_values[1].value", is("Valid Workflow"))
+               .body("object[0].object_key_values.find { it.label == 'job_information' && it.key == 'project_name' }.value",
+                     is("Project Name"))
+               .body("object[0].object_key_values.find { it.label == 'job_information' && it.key == 'name' }.value",
+                     is("Valid Workflow"))
                //check variables label
-               .body("object[0].object_key_values[2].label", is("variable"))
-               .body("object[0].object_key_values[2].key", is("var1"))
-               .body("object[0].object_key_values[2].value", is("var1Value"))
-               .body("object[0].object_key_values[3].label", is("variable"))
-               .body("object[0].object_key_values[3].key", is("var2"))
-               .body("object[0].object_key_values[3].value", is("var2Value"))
+               .body("object[0].object_key_values.find { it.label == 'variable' && it.key == 'var1' }.value",
+                     is("var1Value"))
+               .body("object[0].object_key_values.find { it.label == 'variable' && it.key == 'var2' }.value",
+                     is("var2Value"))
                //check General label
-               .body("object[0].object_key_values[4].label", is("General"))
-               .body("object[0].object_key_values[4].key", is("description"))
-               .body("object[0].object_key_values[4].value",
+               .body("object[0].object_key_values.find { it.label == 'General' && it.key == 'description' }.value",
                      is("\n" + "         A workflow that executes cmd in JVM. \n" + "    "))
                //check generic_information label
-               .body("object[0].object_key_values[5].label", is("generic_information"))
-               .body("object[0].object_key_values[5].key", is("genericInfo1"))
-               .body("object[0].object_key_values[5].value", is("genericInfo1Value"))
-               .body("object[0].object_key_values[6].label", is("generic_information"))
-               .body("object[0].object_key_values[6].key", is("genericInfo2"))
-               .body("object[0].object_key_values[6].value", is("genericInfo2Value"))
+               .body("object[0].object_key_values.find { it.label == 'generic_information' && it.key == 'genericInfo1' }.value",
+                     is("genericInfo1Value"))
+               .body("object[0].object_key_values.find { it.label == 'generic_information' && it.key == 'genericInfo2' }.value",
+                     is("genericInfo2Value"))
                .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()));
     }
 
@@ -332,31 +328,23 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
                .body("object[0].object_key_values", hasSize(10))
                //check job info
-               .body("object[0].object_key_values[0].label", is("job_information"))
-               .body("object[0].object_key_values[0].key", is("project_name"))
-               .body("object[0].object_key_values[0].value", is("Project Name"))
-               .body("object[0].object_key_values[1].label", is("job_information"))
-               .body("object[0].object_key_values[1].key", is("name"))
-               .body("object[0].object_key_values[1].value", is("Valid Workflow"))
+               .body("object[0].object_key_values.find { it.label == 'job_information' && it.key == 'project_name' }.value",
+                     is("Project Name"))
+               .body("object[0].object_key_values.find { it.label == 'job_information' && it.key == 'name' }.value",
+                     is("Valid Workflow"))
                //check variables label
-               .body("object[0].object_key_values[2].label", is("variable"))
-               .body("object[0].object_key_values[2].key", is("var1"))
-               .body("object[0].object_key_values[2].value", is("var1Value"))
-               .body("object[0].object_key_values[3].label", is("variable"))
-               .body("object[0].object_key_values[3].key", is("var2"))
-               .body("object[0].object_key_values[3].value", is("var2Value"))
+               .body("object[0].object_key_values.find { it.label == 'variable' && it.key == 'var1' }.value",
+                     is("var1Value"))
+               .body("object[0].object_key_values.find { it.label == 'variable' && it.key == 'var2' }.value",
+                     is("var2Value"))
                //check General label
-               .body("object[0].object_key_values[4].label", is("General"))
-               .body("object[0].object_key_values[4].key", is("description"))
-               .body("object[0].object_key_values[4].value",
+               .body("object[0].object_key_values.find { it.label == 'General' && it.key == 'description' }.value",
                      is("\n" + "         A workflow that executes cmd in JVM. \n" + "    "))
                //check generic_information label
-               .body("object[0].object_key_values[5].label", is("generic_information"))
-               .body("object[0].object_key_values[5].key", is("genericInfo1"))
-               .body("object[0].object_key_values[5].value", is("genericInfo1Value"))
-               .body("object[0].object_key_values[6].label", is("generic_information"))
-               .body("object[0].object_key_values[6].key", is("genericInfo2"))
-               .body("object[0].object_key_values[6].value", is("genericInfo2Value"))
+               .body("object[0].object_key_values.find { it.label == 'generic_information' && it.key == 'genericInfo1' }.value",
+                     is("genericInfo1Value"))
+               .body("object[0].object_key_values.find { it.label == 'generic_information' && it.key == 'genericInfo2' }.value",
+                     is("genericInfo2Value"))
                .body("object[0].content_type", is(MediaType.APPLICATION_XML.toString()))
                //check link references
                .body("object[0].links[0].href",

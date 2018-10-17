@@ -45,4 +45,8 @@ public class ParsingObjectException extends RuntimeException {
         super(ERROR_MESSAGE + cause);
     }
 
+    public ParsingObjectException(String message, Throwable cause) {
+        super(ERROR_MESSAGE + message, cause);
+    }
+
 }

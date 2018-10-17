@@ -28,14 +28,17 @@ package org.ow2.proactive.catalog.util;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.ow2.proactive.scheduler.common.exception.JobCreationException;
 
 
 /**
@@ -50,17 +53,20 @@ public class ProActiveCatalogObjectParserTest {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow.xml");
 
         assertThat(result).hasSize(8);
-        assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
-        assertKeyValueDataAre(result.get(1), "name", "Valid Workflow", "job_information");
-        assertKeyValueDataAre(result.get(2), "var1", "var1Value", "variable");
-        assertKeyValueDataAre(result.get(3), "var2", "var2Value", "variable");
-        assertKeyValueDataAre(result.get(4),
-                              "description",
-                              "\n" + "         A catalogObject that executes cmd in JVM. \n" + "    ",
-                              "General");
-        assertKeyValueDataAre(result.get(5), "genericInfo1", "genericInfo1Value", "generic_information");
-        assertKeyValueDataAre(result.get(6), "genericInfo2", "genericInfo2Value", "generic_information");
 
+        assertThat(findValueForKeyAndLabel(result, "project_name", "job_information")).isEqualTo("Project Name");
+        assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("Valid Workflow");
+        assertThat(findValueForKeyAndLabel(result, "var1", "variable")).isEqualTo("var1Value");
+        assertThat(findValueForKeyAndLabel(result, "var2", "variable")).isEqualTo("var2Value");
+        assertThat(findValueForKeyAndLabel(result, "description", "General")).isEqualTo("\n" +
+                                                                                        "         A catalogObject that executes cmd in JVM. \n" +
+                                                                                        "    ");
+        assertThat(findValueForKeyAndLabel(result,
+                                           "genericInfo1",
+                                           "generic_information")).isEqualTo("genericInfo1Value");
+        assertThat(findValueForKeyAndLabel(result,
+                                           "genericInfo2",
+                                           "generic_information")).isEqualTo("genericInfo2Value");
     }
 
     @Test
@@ -68,33 +74,18 @@ public class ProActiveCatalogObjectParserTest {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_variables_with_model.xml");
 
         assertThat(result).hasSize(7);
-        assertKeyValueDataAre(result.get(0), "name", "test_variables", "job_information");
-        assertKeyValueDataAre(result.get(1), "keyWithoutModel", "valueWithoutModel", "variable");
-        assertKeyValueDataAre(result.get(2), "keyInteger", "1", "variable");
-        assertKeyValueDataAre(result.get(3), "keyInteger", "PA:Integer", "variable_model");
-        assertKeyValueDataAre(result.get(4), "keyGeneral", "valueGeneral", "variable");
-        assertKeyValueDataAre(result.get(5), "emptyValue", "", "variable");
+
+        assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("test_variables");
+        assertThat(findValueForKeyAndLabel(result, "keyWithoutModel", "variable")).isEqualTo("valueWithoutModel");
+        assertThat(findValueForKeyAndLabel(result, "keyInteger", "variable")).isEqualTo("1");
+        assertThat(findValueForKeyAndLabel(result, "keyInteger", "variable_model")).isEqualTo("PA:Integer");
+        assertThat(findValueForKeyAndLabel(result, "keyGeneral", "variable")).isEqualTo("valueGeneral");
+        assertThat(findValueForKeyAndLabel(result, "emptyValue", "variable")).isEqualTo("");
     }
 
-    private static void assertKeyValueDataAre(KeyValueLabelMetadataEntity data, String key, String value,
-            String label) {
-        assertTrue(data.getKey().equals(key) && data.getValue().equals(value) && data.getLabel().equals(label));
-    }
-
-    @Test
+    @Test(expected = ParsingObjectException.class)
     public void testParseWorkflowContainingNoName() throws Exception {
-        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-name.xml");
-
-        assertThat(result).hasSize(7);
-        assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
-        assertKeyValueDataAre(result.get(1), "var1", "var1Value", "variable");
-        assertKeyValueDataAre(result.get(2), "var2", "var2Value", "variable");
-        assertKeyValueDataAre(result.get(3),
-                              "description",
-                              "\n" + "         A catalogObject that executes cmd in JVM. \n" + "    ",
-                              "General");
-        assertKeyValueDataAre(result.get(4), "genericInfo1", "genericInfo1Value", "generic_information");
-        assertKeyValueDataAre(result.get(5), "genericInfo2", "genericInfo2Value", "generic_information");
+        parseWorkflow("workflow-no-name.xml");
     }
 
     @Test
@@ -102,19 +93,22 @@ public class ProActiveCatalogObjectParserTest {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-project-name.xml");
 
         assertThat(result).hasSize(7);
-        assertKeyValueDataAre(result.get(0), "name", "Valid Workflow", "job_information");
-        assertKeyValueDataAre(result.get(1), "var1", "var1Value", "variable");
-        assertKeyValueDataAre(result.get(2), "var2", "var2Value", "variable");
-        assertKeyValueDataAre(result.get(3),
-                              "description",
-                              "\n" + "         A catalogObject that executes cmd in JVM. \n" + "    ",
-                              "General");
-        assertKeyValueDataAre(result.get(4), "genericInfo1", "genericInfo1Value", "generic_information");
-        assertKeyValueDataAre(result.get(5), "genericInfo2", "genericInfo2Value", "generic_information");
-        assertKeyValueDataAre(result.get(6),
-                              "main.icon",
-                              "/automation-dashboard/styles/patterns/img/wf-icons/wf-default-icon.png",
-                              "General");
+
+        assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("Valid Workflow");
+        assertThat(findValueForKeyAndLabel(result, "var1", "variable")).isEqualTo("var1Value");
+        assertThat(findValueForKeyAndLabel(result, "var2", "variable")).isEqualTo("var2Value");
+        assertThat(findValueForKeyAndLabel(result, "description", "General")).isEqualTo("\n" +
+                                                                                        "         A catalogObject that executes cmd in JVM. \n" +
+                                                                                        "    ");
+        assertThat(findValueForKeyAndLabel(result,
+                                           "genericInfo1",
+                                           "generic_information")).isEqualTo("genericInfo1Value");
+        assertThat(findValueForKeyAndLabel(result,
+                                           "genericInfo2",
+                                           "generic_information")).isEqualTo("genericInfo2Value");
+        assertThat(findValueForKeyAndLabel(result,
+                                           "main.icon",
+                                           "General")).isEqualTo("/automation-dashboard/styles/patterns/img/wf-icons/wf-default-icon.png");
     }
 
     @Test
@@ -122,18 +116,26 @@ public class ProActiveCatalogObjectParserTest {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-generic-information-no-variable.xml");
 
         assertThat(result).hasSize(4);
-        assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
-        assertKeyValueDataAre(result.get(1), "name", "Valid Workflow", "job_information");
-        assertKeyValueDataAre(result.get(2),
-                              "description",
-                              "\n" + "         A catalogObject that executes cmd in JVM. \n" + "    ",
-                              "General");
+
+        assertThat(findValueForKeyAndLabel(result, "project_name", "job_information")).isEqualTo("Project Name");
+        assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("Valid Workflow");
+        assertThat(findValueForKeyAndLabel(result, "description", "General")).isEqualTo("\n" +
+                                                                                        "         A catalogObject that executes cmd in JVM. \n" +
+                                                                                        "    ");
     }
 
     private List<KeyValueLabelMetadataEntity> parseWorkflow(String xmlFilename) throws XMLStreamException {
         AbstractCatalogObjectParser parser = new WorkflowParser();
 
         return parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/workflows/" + xmlFilename));
+    }
+
+    private String findValueForKeyAndLabel(List<KeyValueLabelMetadataEntity> result, String key, String label) {
+        return result.stream()
+                     .filter(metadata -> metadata.getKey().equals(key) && metadata.getLabel().equals(label))
+                     .findAny()
+                     .get()
+                     .getValue();
     }
 
 }
