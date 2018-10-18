@@ -37,12 +37,14 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Type;
 import org.ow2.proactive.catalog.dto.Metadata;
 
 import lombok.AllArgsConstructor;
@@ -74,7 +76,9 @@ public class KeyValueLabelMetadataEntity implements Serializable {
     @Column(name = "PA_KEY", nullable = false)
     protected String key;
 
-    @Column(name = "PA_VALUE", nullable = false, length = 10000)
+    @Lob
+    @Column(name = "PA_VALUE", nullable = false, length = Integer.MAX_VALUE)
+    @Type(type = "org.hibernate.type.TextType")
     protected String value;
 
     @SuppressWarnings("DefaultAnnotationParam")
