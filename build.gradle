@@ -1,6 +1,7 @@
 buildscript {
     repositories {
         jcenter()
+        mavenCentral()
         maven {
             url "http://repository.activeeon.com/content/groups/proactive/"
         }
@@ -9,18 +10,19 @@ buildscript {
         }
     }
 
+    //configurations.maybeCreate("pitest")
+
     dependencies {
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.3.5.RELEASE'
         classpath 'com.diffplug.gradle.spotless:spotless:2.4.0'
         classpath 'org.ow2.proactive:coding-rules:1.0.0'
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.5.0'
-        classpath "io.spring.gradle:dependency-management-plugin:0.3.0.RELEASE"
+        classpath "io.spring.gradle:dependency-management-plugin:0.6.0.RELEASE"
         classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1"
-    }
-
-    dependencies {
+        classpath "info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0"
         delete "gradle/ext"
         ant.unjar src: configurations.classpath.find { it.name.startsWith("coding-rules") }, dest: 'gradle/ext'
+        //pitest 'eu.stamp-project:descartes:1.2'
     }
 }
 
@@ -37,6 +39,17 @@ apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'war'
 apply plugin: 'org.sonarqube'
+apply plugin: 'info.solidsoft.pitest'
+
+pitest {
+    targetClasses = ['org.ow2.proactive.catalog.*']
+    threads = 2
+    outputFormats = ['XML', 'HTML']
+    timestampedReports = false
+    testSourceSets = [sourceSets.test]
+    mainSourceSets = [sourceSets.main]
+    //mutationEngine = "descartes"
+}
 
 
 group = 'org.ow2.proactive'
@@ -254,7 +267,7 @@ task generateQueryDSL(type: JavaCompile, group: 'build', description: 'Generates
     // generated code goes into the generated code directory.
     destinationDir = outputDir
 
-    dependencyCacheDir = compileJava.dependencyCacheDir
+    //dependencyCacheDir = compileJava.dependencyCacheDir
 
 }
 
