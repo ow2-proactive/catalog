@@ -57,6 +57,8 @@ public final class CatalogObjectJSONParser {
 
         private String commitMessage;
 
+        private String username;
+
         private String objectFileName;
 
         private String contentType;
@@ -83,6 +85,14 @@ public final class CatalogObjectJSONParser {
 
         public void setCommitMessage(String commitMessage) {
             this.commitMessage = commitMessage;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
         }
 
         public String getObjectFileName() {

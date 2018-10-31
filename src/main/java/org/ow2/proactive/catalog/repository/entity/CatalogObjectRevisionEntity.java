@@ -80,6 +80,9 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
     @Column(name = "COMMIT_MESSAGE")
     private String commitMessage;
 
+    @Column(name = "USERNAME")
+    private String username;
+
     @Column(name = "COMMIT_TIME", nullable = false)
     private long commitTime;
 
@@ -139,7 +142,7 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
 
     @Override
     public String toString() {
-        return "CatalogObjectRevisionRepository{" + "commitMessage='" + commitMessage + '\'' + ", commitTime=" +
-               commitTime + ", metadataList=" + keyValueMetadataList + '}';
+        return "CatalogObjectRevisionRepository{" + "commitMessage='" + commitMessage + '\'' + ", username='" +
+               username + '\'' + ", commitTime=" + commitTime + ", metadataList=" + keyValueMetadataList + '}';
     }
 }

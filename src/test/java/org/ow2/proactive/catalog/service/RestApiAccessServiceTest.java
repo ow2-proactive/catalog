@@ -67,7 +67,13 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined("testSessionId", "test");
+        when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
+
+        BucketMetadata bucketMetadata = new BucketMetadata("name", BucketService.DEFAULT_BUCKET_OWNER);
+
+        when(bucketService.getBucketMetadata(any())).thenReturn(bucketMetadata);
+
+        restApiAccessService.getUserDataFromSessionidAndCheckAccess("testSessionId", "test");
 
         verify(schedulerUserAuthenticationService).authenticateBySessionId("testSessionId");
 
@@ -81,21 +87,14 @@ public class RestApiAccessServiceTest {
 
         when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
 
-        restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined("testSessionId", null);
+        BucketMetadata bucketMetadata = new BucketMetadata("name", BucketService.DEFAULT_BUCKET_OWNER);
+
+        when(bucketService.getBucketMetadata(any())).thenReturn(bucketMetadata);
+
+        restApiAccessService.getUserDataFromSessionidAndCheckAccess("testSessionId", null);
 
         verify(schedulerUserAuthenticationService).authenticateBySessionId("testSessionId");
 
-    }
-
-    @Test(expected = AccessDeniedException.class)
-    public void testThatNotAuthorizedExceptionIsThrownIfAuthorizationServiceReturnsFalse()
-            throws NotAuthenticatedException, AccessDeniedException {
-
-        when(schedulerUserAuthenticationService.authenticateBySessionId(any())).thenReturn(AuthenticatedUser.EMPTY);
-
-        when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(false);
-
-        restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined("testSessionId", "test");
     }
 
     @Test

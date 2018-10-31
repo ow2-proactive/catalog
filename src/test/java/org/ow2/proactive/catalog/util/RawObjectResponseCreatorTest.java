@@ -56,6 +56,7 @@ public class RawObjectResponseCreatorTest {
                                                           "application/xml",
                                                           1400343L,
                                                           "commit message",
+                                                          "username",
                                                           Collections.emptyList(),
                                                           new byte[0],
                                                           fileExtension);
@@ -81,6 +82,7 @@ public class RawObjectResponseCreatorTest {
                                                           "application/xml",
                                                           1400343L,
                                                           "commit message",
+                                                          "username",
                                                           Collections.emptyList(),
                                                           new byte[0],
                                                           fileExtension);
@@ -106,6 +108,7 @@ public class RawObjectResponseCreatorTest {
                                                           "application/xml",
                                                           1400343L,
                                                           "commit message",
+                                                          "username",
                                                           Collections.emptyList(),
                                                           new byte[0],
                                                           null);
@@ -129,6 +132,7 @@ public class RawObjectResponseCreatorTest {
                                                           "application/xml",
                                                           1400343L,
                                                           "commit message",
+                                                          "username",
                                                           Collections.emptyList(),
                                                           new byte[0],
                                                           "");
@@ -152,6 +156,7 @@ public class RawObjectResponseCreatorTest {
                                                           "application/xml",
                                                           1400343L,
                                                           "commit message",
+                                                          "username",
                                                           Collections.emptyList(),
                                                           new byte[0],
                                                           "xml");
@@ -172,6 +177,7 @@ public class RawObjectResponseCreatorTest {
                                                           "testContentType",
                                                           1400343L,
                                                           "commit message",
+                                                          "username",
                                                           Collections.emptyList(),
                                                           new byte[0],
                                                           "xml");

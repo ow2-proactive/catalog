@@ -82,6 +82,7 @@ public class CatalogObjectRevisionControllerTest {
                                                           "application/xml",
                                                           1400343L,
                                                           "commit message",
+                                                          "username",
                                                           Collections.emptyList(),
                                                           new byte[0],
                                                           "xml");

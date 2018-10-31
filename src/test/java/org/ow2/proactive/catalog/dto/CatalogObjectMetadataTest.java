@@ -72,6 +72,7 @@ public class CatalogObjectMetadataTest {
                                                                                 "contentType",
                                                                                 123546587L,
                                                                                 "commitMessage",
+                                                                                "username",
                                                                                 metadataList,
                                                                                 "xml");
         return catalogObjectMetadata;
