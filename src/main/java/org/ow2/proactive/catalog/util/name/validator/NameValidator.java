@@ -23,29 +23,34 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser;
+package org.ow2.proactive.catalog.util.name.validator;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 /**
- * CatalogObjectParserFactory return the right Parser for the given type of object
- *
  * @author ActiveEon Team
+ * @since 8/2/2018
  */
-public enum CatalogObjectParserFactory {
+public abstract class NameValidator {
 
-    INSTANCE;
+    protected String namePattern;
 
-    public static CatalogObjectParserFactory get() {
-        return INSTANCE;
+    private Pattern validNamePattern;
+
+    public NameValidator(String namePattern) {
+        this.namePattern = namePattern;
+        validNamePattern = Pattern.compile(namePattern);
     }
 
-    public CatalogObjectParserInterface getParser(String type) {
-        if (type != null) {
-            if (type.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase()))
-                return new WorkflowParser();
-            if (type.toLowerCase().startsWith(SupportedParserKinds.PCW_RULE.toString().toLowerCase()))
-                return new PCWRuleParser();
-        }
-        return new DefaultCatalogObjectParser();
+    /**
+    * Please check the validator pattern in the specific class implementation of this abstract class
+     * @param nameForCheck
+     * @return true result if name is valid
+     */
+    public boolean isValid(String nameForCheck) {
+        Matcher matcher = validNamePattern.matcher(nameForCheck);
+        return matcher.matches();
     }
-
 }

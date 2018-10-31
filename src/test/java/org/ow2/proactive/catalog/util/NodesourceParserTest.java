@@ -25,31 +25,34 @@
  */
 package org.ow2.proactive.catalog.util;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import static com.google.common.truth.Truth.assertThat;
 
-import org.springframework.stereotype.Component;
+import org.junit.Test;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.NodeSourceParser;
+import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
+
+import com.google.common.collect.Lists;
 
 
-/**
- * @author ActiveEon Team
- * @since 11/13/2017
- */
-@Component
-public class BucketNameValidator {
-    protected final static String VALID_BUCKET_NAME_PATTERN = "[a-z][a-z0-9-]{1,61}[a-z0-9]";
+public class NodesourceParserTest {
 
-    private final static Pattern validBucketNamePattern = Pattern.compile(VALID_BUCKET_NAME_PATTERN);
+    private AbstractCatalogObjectParser parser = new NodeSourceParser();
 
-    /**
-     * According to this check: the bucket name can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, and dashes.
-     A bucket name must start with a lowercase letter and cannot terminate with a dash.
-     *
-     * @param bucketNameForCheck
-     * @return true result if bucket name is valid
-     */
-    public boolean checkBucketName(String bucketNameForCheck) {
-        Matcher matcher = validBucketNamePattern.matcher(bucketNameForCheck);
-        return matcher.matches();
+    private SupportedParserKinds kind = SupportedParserKinds.NODE_SOURCE;
+
+    @Test
+    public void testIsMyKind() {
+        assertThat(parser.isMyKind("")).isFalse();
+        assertThat(parser.isMyKind(kind.toString())).isTrue();
+        assertThat(parser.isMyKind(kind.toString() + "/12343534563456346346")).isTrue();
+        assertThat(parser.isMyKind("sfdfasfa")).isFalse();
     }
+
+    @Test
+    public void testGetIconPath() {
+        assertThat(parser.getIconPath(Lists.newArrayList())).isEqualTo(kind.getDefaultIcon());
+
+    }
+
 }

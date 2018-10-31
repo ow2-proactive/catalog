@@ -118,6 +118,9 @@ public class CatalogObjectEntity implements Serializable {
     @Column(name = "KIND", nullable = false)
     private String kind;
 
+    @Column(name = "EXTENSION")
+    private String extension;
+
     @OneToMany(mappedBy = "catalogObject", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST,
                                                                                CascadeType.REMOVE }, orphanRemoval = true)
     @OrderBy("commitTime DESC")

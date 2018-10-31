@@ -35,6 +35,19 @@ import com.jayway.restassured.RestAssured;
  * @author ActiveEon Team
  */
 public abstract class AbstractRestAssuredTest {
+    protected static final String BUCKET_RESOURCE = "/buckets/{bucketName}";
+
+    protected static final String BUCKETS_RESOURCE = "/buckets";
+
+    protected static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketName}/resources/{name}";
+
+    protected static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketName}/resources/";
+
+    protected static final String CATALOG_OBJECT_REVISIONS_RESOURCE = "/buckets/{bucketName}/resources/{name}/revisions";
+
+    protected static final String CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME = "/buckets/{bucketName}/resources/{name}/revisions/{commitTimeRaw}";
+
+    protected final static String ERROR_MESSAGE = "errorMessage";
 
     @Value("${local.server.port}")
     private int serverPort;

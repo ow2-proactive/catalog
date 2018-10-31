@@ -29,12 +29,11 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.BucketService;
-import org.ow2.proactive.catalog.service.OwnerGroupStringHelper;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
@@ -44,7 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -70,9 +68,6 @@ public class BucketController {
 
     @Autowired
     private RestApiAccessService restApiAccessService;
-
-    @Autowired
-    private OwnerGroupStringHelper ownerGroupStringHelper;
 
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
@@ -105,12 +100,13 @@ public class BucketController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}", method = GET)
+    @ResponseStatus(HttpStatus.OK)
     public BucketMetadata getMetadata(
             @SuppressWarnings("DefaultAnnotationParam") @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
-        if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
-        }
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
+                                                                               sessionId,
+                                                                               bucketName);
         return bucketService.getBucketMetadata(bucketName);
     }
 
@@ -118,32 +114,31 @@ public class BucketController {
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(method = GET)
+    @ResponseStatus(HttpStatus.OK)
     public List<BucketMetadata> list(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
-            @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) String kind)
+            @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @ApiParam(value = "The content type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
             throws NotAuthenticatedException, AccessDeniedException {
+
         if (sessionIdRequired) {
             RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
                                                                                                                                        ownerName);
-            List<String> groups;
-            if (ownerName == null) {
-                groups = ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(restApiAccessResponse.getAuthenticatedUser()
-                                                                                                      .getGroups());
-                groups.add(BucketService.DEFAULT_BUCKET_OWNER);
-            } else {
-                groups = Collections.singletonList(ownerName);
-            }
 
-            return bucketService.listBuckets(groups, kind);
+            return bucketService.getBucketsByGroups(ownerName,
+                                                    kind,
+                                                    contentType,
+                                                    () -> restApiAccessResponse.getAuthenticatedUser().getGroups());
 
         } else {
-            return bucketService.listBuckets(ownerName, kind);
+            return bucketService.listBuckets(ownerName, kind, contentType);
         }
     }
 
     @ApiOperation(value = "Delete the empty buckets")
     @RequestMapping(method = DELETE)
+    @ResponseStatus(HttpStatus.OK)
     public void cleanEmpty() {
         bucketService.cleanAllEmptyBuckets();
     }
@@ -154,14 +149,13 @@ public class BucketController {
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}", method = DELETE)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseEntity<?> delete(
+    @ResponseStatus(HttpStatus.OK)
+    public BucketMetadata delete(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
-        if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionId, bucketName);
-        }
-        BucketMetadata deletedBucketMetadata = bucketService.deleteEmptyBucket(bucketName);
-        return ResponseEntity.ok(deletedBucketMetadata);
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
+                                                                               sessionId,
+                                                                               bucketName);
+        return bucketService.deleteEmptyBucket(bucketName);
     }
 }

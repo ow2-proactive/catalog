@@ -23,23 +23,20 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser;
+package org.ow2.proactive.catalog.util.name.validator;
 
-import java.io.InputStream;
-import java.util.List;
-
-import javax.xml.stream.XMLStreamException;
-
-import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import org.springframework.stereotype.Component;
 
 
 /**
- * CatalogObjectParser is a generic class for objects parsing
- *
- * @author ActiveEon Team
+ * According to this validator: the name can be between 2 and 63 characters long, and can contain only letters, numbers and set of next characters _. ;=+-
+ A name must start and terminate with a letter or number.  The names can be separated by slash symbol.
  */
-public interface CatalogObjectParserInterface {
+@Component
+public class KindAndContentTypeValidator extends NameValidator {
+    protected static final String VALID_KIND_NAME_PATTERN = "^([a-zA-Z0-9][a-zA-Z0-9_\\. ;=\\+\\-]{0,61}[a-zA-Z0-9]\\/?)+$";
 
-    List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException;
-
+    public KindAndContentTypeValidator() {
+        super(VALID_KIND_NAME_PATTERN);
+    }
 }

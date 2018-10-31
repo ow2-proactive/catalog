@@ -34,8 +34,12 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
@@ -52,14 +56,18 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
+import org.ow2.proactive.catalog.service.exception.WrongParametersException;
 import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
+import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,7 +85,6 @@ import lombok.extern.log4j.Log4j2;
 @Service
 @Transactional
 public class CatalogObjectService {
-
     @Autowired
     private CatalogObjectRepository catalogObjectRepository;
 
@@ -99,17 +106,24 @@ public class CatalogObjectService {
     @Autowired
     private RevisionCommitMessageBuilder revisionCommitMessageBuilder;
 
+    @Autowired
+    private KindAndContentTypeValidator kindAndContentTypeValidator;
+
+    @Value("${kind.separator}")
+    protected String kindSeparator;
+
     private AutoDetectParser mediaTypeFileParser = new AutoDetectParser();
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
-            String contentType, byte[] rawObject) {
+            String contentType, byte[] rawObject, String extension) {
         return this.createCatalogObject(bucketName,
                                         name,
                                         kind,
                                         commitMessage,
                                         contentType,
                                         Collections.emptyList(),
-                                        rawObject);
+                                        rawObject,
+                                        extension);
     }
 
     public List<CatalogObjectMetadata> createCatalogObjects(String bucketName, String kind, String commitMessage,
@@ -123,21 +137,58 @@ public class CatalogObjectService {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
 
         return filesContainedInArchive.stream().map(file -> {
+            String objectName = file.getName();
             CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
-                                                                                                                               file.getName()));
+                                                                                                                               objectName));
             if (catalogObject == null) {
                 String contentTypeOfFile = getFileMimeType(file);
                 return this.createCatalogObject(bucketName,
-                                                file.getName(),
+                                                objectName,
                                                 kind,
                                                 commitMessage,
                                                 contentTypeOfFile,
                                                 Collections.emptyList(),
-                                                file.getContent());
+                                                file.getContent(),
+                                                FilenameUtils.getExtension(file.getFileNameWithExtension()));
             } else {
-                return this.createCatalogObjectRevision(bucketName, file.getName(), commitMessage, file.getContent());
+                return this.createCatalogObjectRevision(bucketName, objectName, commitMessage, file.getContent());
             }
         }).collect(Collectors.toList());
+    }
+
+    public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
+            String contentType, List<Metadata> metadataList, byte[] rawObject, String extension) {
+        if (!kindAndContentTypeValidator.isValid(kind)) {
+            throw new KindOrContentTypeIsNotValidException(kind, "kind");
+        }
+        if (!kindAndContentTypeValidator.isValid(contentType)) {
+            throw new KindOrContentTypeIsNotValidException(contentType, "content type");
+        }
+
+        BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
+
+        CatalogObjectRevisionEntity catalogObjectEntityCheck = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
+                                                                                                                                      name);
+        if (catalogObjectEntityCheck != null) {
+            throw new CatalogObjectAlreadyExistingException(bucketName, name);
+        }
+
+        CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
+                                                                     .bucket(bucketEntity)
+                                                                     .contentType(contentType)
+                                                                     .kind(kind)
+                                                                     .extension(extension)
+                                                                     .id(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
+                                                                                                                        name))
+                                                                     .build();
+        bucketEntity.getCatalogObjects().add(catalogObjectEntity);
+
+        CatalogObjectRevisionEntity result = buildCatalogObjectRevisionEntity(commitMessage,
+                                                                              metadataList,
+                                                                              rawObject,
+                                                                              catalogObjectEntity);
+
+        return new CatalogObjectMetadata(result);
     }
 
     private String getFileMimeType(FileNameAndContent file) {
@@ -154,32 +205,25 @@ public class CatalogObjectService {
         return mediaType.toString();
     }
 
-    public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
-            String contentType, List<Metadata> metadataList, byte[] rawObject) {
-
-        BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
-
-        CatalogObjectRevisionEntity catalogObjectEntityCheck = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketName,
-                                                                                                                                      name);
-        if (catalogObjectEntityCheck != null) {
-            throw new CatalogObjectAlreadyExistingException(bucketName, name);
+    public CatalogObjectMetadata updateObjectMetadata(String bucketName, String name, Optional<String> kind,
+            Optional<String> contentType) {
+        findBucketByNameAndCheck(bucketName);
+        CatalogObjectRevisionEntity catalogObjectRevisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName,
+                                                                                                           name);
+        if (!kind.isPresent() && !contentType.isPresent()) {
+            throw new WrongParametersException("at least one parameter should be present");
         }
-
-        CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
-                                                                     .bucket(bucketEntity)
-                                                                     .contentType(contentType)
-                                                                     .kind(kind)
-                                                                     .id(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
-                                                                                                                        name))
-                                                                     .build();
-        bucketEntity.getCatalogObjects().add(catalogObjectEntity);
-
-        CatalogObjectRevisionEntity result = buildCatalogObjectRevisionEntity(commitMessage,
-                                                                              metadataList,
-                                                                              rawObject,
-                                                                              catalogObjectEntity);
-
-        return new CatalogObjectMetadata(result);
+        if (kind.isPresent() && !kindAndContentTypeValidator.isValid(kind.get())) {
+            throw new KindOrContentTypeIsNotValidException(kind.get(), "kind");
+        }
+        if (contentType.isPresent() && !kindAndContentTypeValidator.isValid(contentType.get())) {
+            throw new KindOrContentTypeIsNotValidException(contentType.get(), "content type");
+        }
+        CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
+        kind.ifPresent(catalogObjectEntity::setKind);
+        contentType.ifPresent(catalogObjectEntity::setContentType);
+        catalogObjectRepository.save(catalogObjectEntity);
+        return new CatalogObjectMetadata(catalogObjectEntity);
     }
 
     private BucketEntity findBucketByNameAndCheck(String bucketName) {
@@ -191,7 +235,7 @@ public class CatalogObjectService {
     }
 
     private CatalogObjectRevisionEntity findCatalogObjectByNameAndBucketAndCheck(String bucketName, String name) {
-        CatalogObjectRevisionEntity catalogObject = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketName,
+        CatalogObjectRevisionEntity catalogObject = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
                                                                                                                            name);
         if (catalogObject == null) {
             throw new CatalogObjectNotFoundException(bucketName, name);
@@ -241,9 +285,9 @@ public class CatalogObjectService {
         return GenericInfoBucketData.builder().bucketName(bucket.getBucketName()).group(bucket.getOwner()).build();
     }
 
-    public List<CatalogObjectMetadata> listCatalogObjects(String bucketName) {
-        findBucketByNameAndCheck(bucketName);
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketName);
+    public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketNames) {
+        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames);
 
         return buildMetadataWithLink(result);
     }
@@ -252,32 +296,64 @@ public class CatalogObjectService {
         return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
-    public List<CatalogObjectMetadata> listCatalogObjectsByKind(String bucketName, String kind) {
-        findBucketByNameAndCheck(bucketName);
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindInBucket(bucketName,
+    public List<CatalogObjectMetadata> listCatalogObjectsByKind(List<String> bucketNames, String kind) {
+        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindInBucket(bucketNames,
                                                                                                                            kind);
 
         return buildMetadataWithLink(result);
     }
 
+    // find catalog objects by kind and content type
+    public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentType(List<String> bucketNames, String kind,
+            String contentType) {
+        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeInBucket(bucketNames,
+                                                                                                                                         kind,
+                                                                                                                                         contentType);
+
+        return buildMetadataWithLink(result);
+    }
+
+    // find catalog objects by content type
+    public List<CatalogObjectMetadata> listCatalogObjectsByContentType(List<String> bucketNames, String contentType) {
+        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfContentTypeInBucket(bucketNames,
+                                                                                                                                  contentType);
+
+        return buildMetadataWithLink(result);
+    }
+
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {
-        findBucketByNameAndCheck(bucketName);
-        List<CatalogObjectRevisionEntity> revisions = catalogObjectsNames.stream()
-                                                                         .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketName,
-                                                                                                                                                             name))
-                                                                         .collect(Collectors.toList());
+        List<CatalogObjectRevisionEntity> revisions = getCatalogObjects(bucketName, catalogObjectsNames);
 
         return archiveManager.compressZIP(revisions);
     }
 
-    public void delete(String bucketName, String name) throws CatalogObjectNotFoundException {
+    public List<CatalogObjectMetadata> listSelectedCatalogObjects(String bucketName, List<String> catalogObjectsNames) {
+        List<CatalogObjectRevisionEntity> result = getCatalogObjects(bucketName, catalogObjectsNames);
+        return buildMetadataWithLink(result);
+    }
+
+    private List<CatalogObjectRevisionEntity> getCatalogObjects(String bucketName, List<String> catalogObjectsNames) {
+        findBucketByNameAndCheck(bucketName);
+        List<CatalogObjectRevisionEntity> revisions = catalogObjectsNames.stream()
+                                                                         .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
+                                                                                                                                                             name))
+                                                                         .collect(Collectors.toList());
+        return revisions;
+    }
+
+    public CatalogObjectMetadata delete(String bucketName, String name) throws CatalogObjectNotFoundException {
+        BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
+        CatalogObjectMetadata catalogObjectMetadata = getCatalogObjectMetadata(bucketName, name);
         try {
-            BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
             catalogObjectRepository.delete(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(), name));
         } catch (EmptyResultDataAccessException emptyResultDataAccessException) {
             log.warn("CatalogObject {} does not exist in bucket {}", name, bucketName);
             throw new CatalogObjectNotFoundException(bucketName, name);
         }
+        return catalogObjectMetadata;
     }
 
     public CatalogObjectMetadata getCatalogObjectMetadata(String bucketName, String name) {
@@ -343,7 +419,7 @@ public class CatalogObjectService {
     }
 
     public CatalogObjectMetadata restore(String bucketName, String name, Long commitTime) {
-        CatalogObjectRevisionEntity catalogObjectRevision = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(bucketName,
+        CatalogObjectRevisionEntity catalogObjectRevision = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(Collections.singletonList(bucketName),
                                                                                                                                   name,
                                                                                                                                   commitTime);
 
@@ -362,10 +438,40 @@ public class CatalogObjectService {
         return new CatalogObjectMetadata(restoredRevision);
     }
 
+    /**
+     * Method returns all ordered stored kinds for all objects in catalog
+     * @return unique set of kinds with root kind
+     * for example kinds: a/b, a/c, d/f/g
+     * should return a, a/b, a/c, d, d/f, d/f/g
+     */
+    public TreeSet<String> getKinds() {
+        Set<String> allStoredKinds = catalogObjectRepository.findAllKinds();
+        TreeSet<String> resultKinds = new TreeSet<>();
+
+        allStoredKinds.forEach(kind -> {
+            String[] splittedKinds = kind.split(kindSeparator);
+            StringBuilder rootKinds = new StringBuilder();
+            for (int i = 0; i < splittedKinds.length - 1; i++) {
+                rootKinds.append(splittedKinds[i]);
+                resultKinds.add(rootKinds.toString());
+                rootKinds.append(kindSeparator);
+            }
+            resultKinds.add(kind);
+        });
+        return resultKinds;
+    }
+
+    /**
+     * @return all ordered content types for all objects in catalog
+     */
+    public TreeSet<String> getContentTypes() {
+        return new TreeSet<>(catalogObjectRepository.findAllContentTypes());
+    }
+
     @VisibleForTesting
     protected CatalogObjectRevisionEntity getCatalogObjectRevisionEntityByCommitTime(String bucketName, String name,
             long commitTime) {
-        CatalogObjectRevisionEntity revisionEntity = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(bucketName,
+        CatalogObjectRevisionEntity revisionEntity = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(Collections.singletonList(bucketName),
                                                                                                                            name,
                                                                                                                            commitTime);
         if (revisionEntity == null) {

@@ -25,12 +25,10 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +39,6 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
-import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
 
 
 /**
@@ -110,9 +107,9 @@ public class RestApiAccessServiceTest {
 
         when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata("bucket-name", "owner"));
 
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-name");
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(true, "testSessionId", "bucket-name");
 
-        verify(bucketService).getBucketMetadata("bucket-name");
+        verify(bucketService, times(2)).getBucketMetadata("bucket-name");
 
     }
 
@@ -126,9 +123,7 @@ public class RestApiAccessServiceTest {
 
         when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata("bucket-name", "owner"));
 
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-name");
-
-        verify(bucketService).getBucketMetadata("bucket-name");
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(true, "testSessionId", "bucket-name");
 
         verify(authorizationService).askUserAuthorizationByBucketOwner(AuthenticatedUser.EMPTY, "owner");
 
@@ -144,33 +139,8 @@ public class RestApiAccessServiceTest {
 
         when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata("bucket-name", "owner"));
 
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId", "bucket-name");
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(true, "testSessionId", "bucket-name");
 
-    }
-
-    @Test
-    public void testThatRestApiResponseObjectContainsAllValidInformation()
-            throws NotAuthenticatedException, AccessDeniedException {
-
-        when(schedulerUserAuthenticationService.authenticateBySessionId(any())).thenReturn(AuthenticatedUser.builder()
-                                                                                                            .name("Pb is lead")
-                                                                                                            .groups(Arrays.asList("admin",
-                                                                                                                                  "user",
-                                                                                                                                  "chemistry"))
-                                                                                                            .build());
-
-        when(authorizationService.askUserAuthorizationByBucketOwner(any(), any())).thenReturn(true);
-
-        when(bucketService.getBucketMetadata("bucket-name")).thenReturn(new BucketMetadata("bucket-name", "owner"));
-
-        RestApiAccessResponse response = restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined("testSessionId",
-                                                                                                                "bucket-name");
-
-        assertThat(response.isAuthorized()).isTrue();
-        assertThat(response.getAuthenticatedUser().getGroups()).containsAllIn(Arrays.asList("admin",
-                                                                                            "chemistry",
-                                                                                            "user"));
-        assertThat(response.getAuthenticatedUser().getName()).isEqualTo("Pb is lead");
     }
 
 }

@@ -23,25 +23,36 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser.pcw.rule.model;
+package org.ow2.proactive.catalog.util;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import static com.google.common.truth.Truth.assertThat;
+
+import org.junit.Test;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.PolicyParser;
+import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
+
+import com.google.common.collect.Lists;
 
 
-@EqualsAndHashCode(of = "name")
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
-public class Rule {
+public class PolicyParserTest {
 
-    private String name;
+    private AbstractCatalogObjectParser parser = new PolicyParser();
 
-    private RuleContent ruleContent;
+    private SupportedParserKinds kind = SupportedParserKinds.POLICY;
 
-    private PollConfiguration pollConfiguration;
+    @Test
+    public void testIsMyKind() {
+        assertThat(parser.isMyKind("")).isFalse();
+        assertThat(parser.isMyKind(kind.toString())).isTrue();
+        assertThat(parser.isMyKind(kind.toString() + "/12343534563456346346")).isTrue();
+        assertThat(parser.isMyKind("sfdfasfa")).isFalse();
+    }
+
+    @Test
+    public void testGetIconPath() {
+        assertThat(parser.getIconPath(Lists.newArrayList())).isEqualTo(kind.getDefaultIcon());
+
+    }
+
 }
