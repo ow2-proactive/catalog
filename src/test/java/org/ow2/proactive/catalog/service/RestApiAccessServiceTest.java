@@ -73,7 +73,7 @@ public class RestApiAccessServiceTest {
 
         when(bucketService.getBucketMetadata(any())).thenReturn(bucketMetadata);
 
-        restApiAccessService.getUserDataFromSessionidAndCheckAccess("testSessionId", "test");
+        restApiAccessService.getUserDataFromSessionidAndCheckAccess(true, "testSessionId", "test");
 
         verify(schedulerUserAuthenticationService).authenticateBySessionId("testSessionId");
 
@@ -91,7 +91,7 @@ public class RestApiAccessServiceTest {
 
         when(bucketService.getBucketMetadata(any())).thenReturn(bucketMetadata);
 
-        restApiAccessService.getUserDataFromSessionidAndCheckAccess("testSessionId", null);
+        restApiAccessService.getUserDataFromSessionidAndCheckAccess(true, "testSessionId", null);
 
         verify(schedulerUserAuthenticationService).authenticateBySessionId("testSessionId");
 

@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @since 27/07/2017
  */
 @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
-public class NotAuthenticatedException extends Exception {
+public class NotAuthenticatedException extends RuntimeException {
 
     public NotAuthenticatedException(String message) {
         super(message);

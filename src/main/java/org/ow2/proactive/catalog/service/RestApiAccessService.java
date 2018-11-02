@@ -54,20 +54,34 @@ public class RestApiAccessService {
         this.schedulerUserAuthenticationService = schedulerUserAuthenticationService;
     }
 
-    public RestApiAccessResponse getUserDataFromSessionidAndCheckAccess(String sessionId, String bucketName)
-            throws NotAuthenticatedException, AccessDeniedException {
-        if (!isAPublicBucket(bucketName)) {
+    public RestApiAccessResponse getUserDataFromSessionidAndCheckAccess(boolean sessionIdRequired, String sessionId,
+            String bucketName) {
+        if (!isAPublicBucket(bucketName) && sessionIdRequired) {
             return checkBucketPermission(sessionId, bucketName);
         } else {
-            AuthenticatedUser authenticatedUser = schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
-            return RestApiAccessResponse.builder().authorized(true).authenticatedUser(authenticatedUser).build();
+            return RestApiAccessResponse.builder()
+                                        .authorized(true)
+                                        .authenticatedUser(getAuthenticatedUser(sessionIdRequired, sessionId))
+                                        .build();
 
         }
 
     }
 
+    private AuthenticatedUser getAuthenticatedUser(boolean sessionIdRequired, String sessionId) {
+        try {
+            return schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
+        } catch (NotAuthenticatedException nae) {
+            if (sessionIdRequired) {
+                throw nae;
+            }
+        }
+        return AuthenticatedUser.EMPTY;
+
+    }
+
     public void checkAccessBySessionIdForBucketAndThrowIfDeclined(boolean sessionIdRequired, String sessionId,
-            String bucketName) throws NotAuthenticatedException, AccessDeniedException {
+            String bucketName) {
         if (!isAPublicBucket(bucketName) && sessionIdRequired) {
             checkBucketPermission(sessionId, bucketName);
 
@@ -75,8 +89,7 @@ public class RestApiAccessService {
 
     }
 
-    private RestApiAccessResponse checkBucketPermission(String sessionId, String bucketName)
-            throws NotAuthenticatedException, AccessDeniedException {
+    private RestApiAccessResponse checkBucketPermission(String sessionId, String bucketName) {
         RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionForBucketToOwnerOrGroup(sessionId,
                                                                                                        bucketName);
         if (!restApiAccessResponse.isAuthorized()) {

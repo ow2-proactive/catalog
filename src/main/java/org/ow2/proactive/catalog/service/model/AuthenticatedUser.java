@@ -27,6 +27,8 @@ package org.ow2.proactive.catalog.service.model;
 
 import java.util.List;
 
+import com.google.common.collect.Lists;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -39,7 +41,10 @@ import lombok.Data;
 @Builder
 public class AuthenticatedUser {
 
-    public final static AuthenticatedUser EMPTY = AuthenticatedUser.builder().build();
+    public final static AuthenticatedUser EMPTY = AuthenticatedUser.builder()
+                                                                   .name("")
+                                                                   .groups(Lists.newArrayList())
+                                                                   .build();
 
     private String name;
 

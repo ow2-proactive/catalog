@@ -210,14 +210,14 @@ dependencies {
     // scheduler-api for parsing workflows
     providedCompile "org.ow2.proactive:scheduler-api:$version"
 
-    compile 'com.google.truth:truth'
-    compile 'junit:junit'
-    compile 'nl.jqno.equalsverifier:equalsverifier'
-    compile 'org.mockito:mockito-core'
+    testCompile 'com.google.truth:truth'
+    testCompile 'junit:junit'
+    testCompile 'nl.jqno.equalsverifier:equalsverifier'
+    testCompile 'org.mockito:mockito-core'
 
-    compile 'com.google.code.gson:gson'
-    compile 'com.jayway.restassured:rest-assured'
-    compile 'org.springframework.boot:spring-boot-starter-test'
+    integrationTestCompile 'com.google.code.gson:gson'
+    integrationTestCompile 'com.jayway.restassured:rest-assured'
+    integrationTestCompile 'org.springframework.boot:spring-boot-starter-test'
 }
 
 test {
