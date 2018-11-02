@@ -115,11 +115,12 @@ public class CatalogObjectService {
     private AutoDetectParser mediaTypeFileParser = new AutoDetectParser();
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
-            String contentType, byte[] rawObject, String extension) {
+            String username, String contentType, byte[] rawObject, String extension) {
         return this.createCatalogObject(bucketName,
                                         name,
                                         kind,
                                         commitMessage,
+                                        username,
                                         contentType,
                                         Collections.emptyList(),
                                         rawObject,
@@ -127,7 +128,7 @@ public class CatalogObjectService {
     }
 
     public List<CatalogObjectMetadata> createCatalogObjects(String bucketName, String kind, String commitMessage,
-            byte[] zipArchive) {
+            String username, byte[] zipArchive) {
 
         List<FileNameAndContent> filesContainedInArchive = archiveManager.extractZIP(zipArchive);
 
@@ -146,18 +147,23 @@ public class CatalogObjectService {
                                                 objectName,
                                                 kind,
                                                 commitMessage,
+                                                username,
                                                 contentTypeOfFile,
                                                 Collections.emptyList(),
                                                 file.getContent(),
                                                 FilenameUtils.getExtension(file.getFileNameWithExtension()));
             } else {
-                return this.createCatalogObjectRevision(bucketName, objectName, commitMessage, file.getContent());
+                return this.createCatalogObjectRevision(bucketName,
+                                                        objectName,
+                                                        commitMessage,
+                                                        username,
+                                                        file.getContent());
             }
         }).collect(Collectors.toList());
     }
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
-            String contentType, List<Metadata> metadataList, byte[] rawObject, String extension) {
+            String username, String contentType, List<Metadata> metadataList, byte[] rawObject, String extension) {
         if (!kindAndContentTypeValidator.isValid(kind)) {
             throw new KindOrContentTypeIsNotValidException(kind, "kind");
         }
@@ -184,6 +190,7 @@ public class CatalogObjectService {
         bucketEntity.getCatalogObjects().add(catalogObjectEntity);
 
         CatalogObjectRevisionEntity result = buildCatalogObjectRevisionEntity(commitMessage,
+                                                                              username,
                                                                               metadataList,
                                                                               rawObject,
                                                                               catalogObjectEntity);
@@ -244,8 +251,8 @@ public class CatalogObjectService {
     }
 
     private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(final String commitMessage,
-            final List<org.ow2.proactive.catalog.dto.Metadata> metadataList, final byte[] rawObject,
-            final CatalogObjectEntity catalogObjectEntity) {
+            final String username, final List<org.ow2.proactive.catalog.dto.Metadata> metadataList,
+            final byte[] rawObject, final CatalogObjectEntity catalogObjectEntity) {
 
         List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = KeyValueLabelMetadataHelper.convertToEntity(metadataList);
 
@@ -262,6 +269,7 @@ public class CatalogObjectService {
 
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)
+                                                                                             .username(username)
                                                                                              .commitTime(LocalDateTime.now()
                                                                                                                       .atZone(ZoneId.systemDefault())
                                                                                                                       .toInstant()
@@ -367,12 +375,17 @@ public class CatalogObjectService {
     /** ####################  Revision Operations ###################**/
 
     public CatalogObjectMetadata createCatalogObjectRevision(String bucketName, String name, String commitMessage,
-            byte[] rawObject) {
-        return this.createCatalogObjectRevision(bucketName, name, commitMessage, Collections.emptyList(), rawObject);
+            String username, byte[] rawObject) {
+        return this.createCatalogObjectRevision(bucketName,
+                                                name,
+                                                commitMessage,
+                                                username,
+                                                Collections.emptyList(),
+                                                rawObject);
     }
 
     public CatalogObjectMetadata createCatalogObjectRevision(String bucketName, String name, String commitMessage,
-            List<Metadata> metadataListParsed, byte[] rawObject) {
+            String username, List<Metadata> metadataListParsed, byte[] rawObject) {
 
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
         CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
@@ -383,6 +396,7 @@ public class CatalogObjectService {
         }
 
         CatalogObjectRevisionEntity revisionEntity = buildCatalogObjectRevisionEntity(commitMessage,
+                                                                                      username,
                                                                                       metadataListParsed,
                                                                                       rawObject,
                                                                                       catalogObject);
@@ -431,6 +445,7 @@ public class CatalogObjectService {
                                                                          commitTime);
 
         CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(restoreCommitMessage,
+                                                                                        catalogObjectRevision.getUsername(),
                                                                                         keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
                                                                                         catalogObjectRevision.getRawObject(),
                                                                                         catalogObjectRevision.getCatalogObject());

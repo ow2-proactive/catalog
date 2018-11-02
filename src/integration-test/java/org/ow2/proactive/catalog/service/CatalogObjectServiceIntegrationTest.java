@@ -91,6 +91,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                        "object-name-1",
                                                                                        "object",
                                                                                        "commit message",
+                                                                                       "username",
                                                                                        "application/xml",
                                                                                        keyValues,
                                                                                        workflowAsByteArray,
@@ -101,6 +102,7 @@ public class CatalogObjectServiceIntegrationTest {
         catalogObject = catalogObjectService.createCatalogObjectRevision(bucket.getName(),
                                                                          "object-name-1",
                                                                          "commit message 2",
+                                                                         "username",
                                                                          keyValues,
                                                                          workflowAsByteArrayUpdated);
         secondCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -109,6 +111,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "object-name-2",
                                                  "object",
                                                  "commit message",
+                                                 "username",
                                                  "application/xml",
                                                  keyValues,
                                                  workflowAsByteArray,
@@ -118,6 +121,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "object-name-3",
                                                  "workflow",
                                                  "commit message",
+                                                 "username",
                                                  "application/xml",
                                                  keyValues,
                                                  workflowAsByteArray,
@@ -144,6 +148,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "object-name-4",
                                                  "workflow/new",
                                                  "commit message",
+                                                 "username",
                                                  "application/xml",
                                                  keyValues,
                                                  workflowAsByteArray,
@@ -160,6 +165,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                 Optional.of("updated-kind"),
                                                                                                 Optional.of("updated-contentType"));
         assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("commit message 2");
+        assertThat(catalogObjectMetadata.getUsername()).isEqualTo("username");
         assertThat(catalogObjectMetadata.getMetadataList()).hasSize(3);
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("updated-contentType");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("updated-kind");
@@ -179,6 +185,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "object-name-2",
                                                  "updated-kind//a asdf",
                                                  "commit message",
+                                                 "username",
                                                  "application/xml",
                                                  keyValues,
                                                  workflowAsByteArray,
@@ -195,6 +202,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "catalog4",
                                                  "workflow-general",
                                                  "commit message",
+                                                 "username",
                                                  "application/xml",
                                                  keyValues,
                                                  workflowAsByteArray,

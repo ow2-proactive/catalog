@@ -79,7 +79,7 @@ public class BucketController {
     @RequestMapping(method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public BucketMetadata create(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The unique name of the Bucket. /n " +
                               "The name of bucket can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, and dashes. /n" +
                               "A bucket's name must start with a lowercase letter and cannot terminate with a dash") @RequestParam(value = "name", required = true) String bucketName,
@@ -151,7 +151,7 @@ public class BucketController {
     @RequestMapping(value = "/{bucketName}", method = DELETE)
     @ResponseStatus(HttpStatus.OK)
     public BucketMetadata delete(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
         restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
                                                                                sessionId,

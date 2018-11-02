@@ -76,6 +76,9 @@ public class CatalogObjectMetadata extends ResourceSupport {
     @JsonProperty("commit_message")
     protected final String commitMessage;
 
+    @JsonProperty("username")
+    protected final String username;
+
     @JsonProperty("object_key_values")
     protected final List<Metadata> metadataList;
 
@@ -88,6 +91,7 @@ public class CatalogObjectMetadata extends ResourceSupport {
              catalogObject.getContentType(),
              catalogObject.getRevisions().first().getCommitTime(),
              catalogObject.getRevisions().first().getCommitMessage(),
+             catalogObject.getRevisions().first().getUsername(),
              KeyValueEntityToDtoTransformer.to(catalogObject.getRevisions().first().getKeyValueMetadataList()),
              catalogObject.getExtension());
     }
@@ -99,12 +103,13 @@ public class CatalogObjectMetadata extends ResourceSupport {
              catalogObject.getCatalogObject().getContentType(),
              catalogObject.getCommitTime(),
              catalogObject.getCommitMessage(),
+             catalogObject.getUsername(),
              KeyValueEntityToDtoTransformer.to(catalogObject.getKeyValueMetadataList()),
              catalogObject.getCatalogObject().getExtension());
     }
 
     public CatalogObjectMetadata(String bucketName, String name, String kind, String contentType, long commitTime,
-            String commitMessage, List<Metadata> metadataList, String extension) {
+            String commitMessage, String username, List<Metadata> metadataList, String extension) {
         this.bucketName = bucketName;
         this.name = name;
         this.kind = kind;
@@ -112,6 +117,7 @@ public class CatalogObjectMetadata extends ResourceSupport {
         this.commitTimeRaw = String.valueOf(commitTime);
         this.commitDateTime = Instant.ofEpochMilli(commitTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
         this.commitMessage = commitMessage;
+        this.username = username;
         if (metadataList == null) {
             this.metadataList = new ArrayList<>();
         } else {

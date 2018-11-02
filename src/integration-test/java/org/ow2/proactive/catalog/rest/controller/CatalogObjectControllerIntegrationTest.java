@@ -26,7 +26,11 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PERCENT_20;
 import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PLUS;
 import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_EXTENSION;
@@ -81,7 +85,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Before
     public void setup() throws IOException {
-        HashMap<String, Object> result = given().parameters("name",
+        HashMap<String, Object> result = given().header("sessionID", "12345")
+                                                .parameters("name",
                                                             "my-bucket",
                                                             "owner",
                                                             "BucketControllerIntegrationTestUser")
@@ -95,7 +100,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         bucket = new BucketMetadata((String) result.get("name"), (String) result.get("owner"));
 
         // Add an object of kind "workflow" into first bucket
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
                .queryParam("name", "workflowname")
                .queryParam("commitMessage", "commit message")
@@ -121,7 +127,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         expected.put("key", "project_name");
         expected.put("value", "Project Name");
 
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "Workflow/specific-workflow-kind")
                .queryParam("name", "workflow_test")
                .queryParam("commitMessage", "first commit")
@@ -163,7 +170,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testUpdateObjectMetadataAndGetItSavedObjectFromCatalog() {
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "workflowname")
                .queryParam("kind", "updated-kind")
                .queryParam("contentType", "updated-contentType")
@@ -195,7 +203,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         // The object with same kind should be already present in catalog
         String kindsQuery = "/buckets/kinds";
         String workflowKind = "workflow";
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", workflowKind)
                .queryParam("name", "new workflow")
                .queryParam("commitMessage", "commit message")
@@ -210,7 +219,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().when().get(kindsQuery).then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
 
         String newKindMy = "workflow/new_kind/mine";
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", newKindMy)
                .queryParam("name", "new object")
                .queryParam("commitMessage", "commit message")
@@ -225,7 +235,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         given().when().get(kindsQuery).then().assertThat().statusCode(HttpStatus.SC_OK).body("", is(allKinds));
 
         String newKindNotMine = "workflow/new_kind/not-my";
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", newKindNotMine)
                .queryParam("name", "new not my object")
                .queryParam("commitMessage", "commit message")
@@ -248,7 +259,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     public void testGetAllContentTypesFromCatalog() throws JsonProcessingException {
         String contentTypesQuery = "/buckets/content-types";
         String objectContentType = MediaType.APPLICATION_OCTET_STREAM.toString();
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "my-kind")
                .queryParam("name", "new object")
                .queryParam("commitMessage", "commit message")
@@ -272,7 +284,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testCreateObjectWrongKind() {
         String wrongKind = "workflow//my";
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", wrongKind)
                .queryParam("name", "new workflow")
                .queryParam("commitMessage", "commit message")
@@ -289,7 +302,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testCreateObjectWrongContentType() {
         String wrongContentType = "app/json-/";
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow/pca")
                .queryParam("name", "new workflow")
                .queryParam("commitMessage", "commit message")
@@ -311,7 +325,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                                              .replace(SPACE_ENCODED_AS_PLUS, SPACE_ENCODED_AS_PERCENT_20);
 
         //create the workflow and check returned metadata
-        given().urlEncodingEnabled(true)
+        given().header("sessionID", "12345")
+               .urlEncodingEnabled(true)
                .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow/specific-workflow-kind")
                .queryParam("name", objectNameWithSpecificSymbols)
@@ -390,7 +405,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     public void testCreatePCWRuleShouldReturnSavedRule() throws IOException {
         String ruleName = "pcw-rule test.rule";
         String fileExtension = "xml";
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "Rule/cpu")
                .queryParam("name", ruleName)
                .queryParam("commitMessage", "first commit")
@@ -429,7 +445,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testCreateObjectAlreadyExisting() {
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
                .queryParam("name", "workflowname")
                .queryParam("commitMessage", "commit message")
@@ -446,7 +463,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testCreateWorkflowShouldReturnUnsupportedMediaTypeWithoutBody() {
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
@@ -456,7 +474,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testCreateWorkflowShouldReturnNotFoundIfNonExistingBucketName() {
-        given().pathParam("bucketName", "non-existing-bucket")
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", "non-existing-bucket")
                .queryParam("kind", "workflow")
                .queryParam("name", "workflow_test")
                .queryParam("commitMessage", "first commit")
@@ -473,7 +492,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     @Test
     public void testGetWorkflowShouldReturnLatestSavedWorkflowRevision() throws IOException {
 
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "workflowname")
                .queryParam("commitMessage", "commit message2")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -482,7 +502,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .statusCode(HttpStatus.SC_CREATED);
 
-        HashMap<String, Object> thirdWFRevision = given().pathParam("bucketName", bucket.getName())
+        HashMap<String, Object> thirdWFRevision = given().header("sessionID", "12345")
+                                                         .pathParam("bucketName", bucket.getName())
                                                          .pathParam("name", "workflowname")
                                                          .queryParam("commitMessage", "commit message3")
                                                          .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -636,7 +657,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testDeleteExistingObject() {
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "workflowname")
                .when()
                .delete(CATALOG_OBJECT_RESOURCE)
@@ -659,7 +681,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testDeleteNonExistingWorkflow() {
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "non-existing-object")
                .when()
                .delete(CATALOG_OBJECT_RESOURCE)
@@ -675,7 +698,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     public void testGetCatalogObjectsAsArchive() {
 
         // Add an second object of kind "workflow" into first bucket
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
                .queryParam("name", "workflowname2")
                .queryParam("commitMessage", "commit message")
@@ -699,7 +723,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     public void testGetCatalogObjectWithSpecialSymbolsNamesAsArchive() {
         String nameWithSpecialSymbols = "wf n:$ %ae.myextension";
         // Add an second object of kind "workflow" into first bucket
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
                .queryParam("name", nameWithSpecialSymbols)
                .queryParam("commitMessage", "commit message")
@@ -737,7 +762,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         String archiveCommitMessage = "Import from archive";
 
         //Create a workflow with the bucketName of a workflow of the archive
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
                .queryParam("name", "workflow_existing")
                .queryParam("commitMessage", firstCommitMessage)
@@ -771,7 +797,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_NOT_FOUND);
 
         //Create workflows from the archive
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
                .queryParam("commitMessage", archiveCommitMessage)
                .queryParam("objectContentType", MediaType.MULTIPART_FORM_DATA.toString())
@@ -812,7 +839,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         String archiveCommitMessage = "Import from archive";
 
         //Create objects from the archive
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "my-kind")
                .queryParam("commitMessage", archiveCommitMessage)
                .queryParam("objectContentType", MediaType.MULTIPART_FORM_DATA.toString())
@@ -851,7 +879,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
     @Test
     public void testCreateWorkflowsFromArchiveWithBadArchive() {
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
                .queryParam("commitMessage", "Import from archive")
                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())

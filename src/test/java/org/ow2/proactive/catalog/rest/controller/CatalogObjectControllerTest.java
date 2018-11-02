@@ -154,6 +154,7 @@ public class CatalogObjectControllerTest {
                                                           "application/xml",
                                                           1400343L,
                                                           "commit message",
+                                                          "username",
                                                           Collections.emptyList(),
                                                           new byte[0],
                                                           "xml");
@@ -178,6 +179,7 @@ public class CatalogObjectControllerTest {
                                                                "application/xml",
                                                                1400343L,
                                                                "commit message",
+                                                               "username",
                                                                Collections.emptyList(),
                                                                "xml");
         when(catalogObjectService.delete(anyString(), anyString())).thenReturn(mock);
