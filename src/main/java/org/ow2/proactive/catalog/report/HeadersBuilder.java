@@ -73,7 +73,7 @@ public class HeadersBuilder {
             headerRow.createImageCell((100 / 12f) * 3, new Image(imageFile));
         } catch (Exception e) {
             headerRow.createCell((100 / 12f) * 3, "Activeeon", HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE);
-            log.error("Impossible to create the image from the url: " + schedulerUrl + ACTIVEEON_LOGO,e);
+            log.error("Impossible to create the image from the url: " + schedulerUrl + ACTIVEEON_LOGO, e);
         }
         cellFactory.addMainTitleCell(headerRow, MAIN_TITLE);
 

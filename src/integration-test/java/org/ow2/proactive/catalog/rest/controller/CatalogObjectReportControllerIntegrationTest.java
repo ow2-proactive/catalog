@@ -56,7 +56,9 @@ public class CatalogObjectReportControllerIntegrationTest extends AbstractRestAs
 
     @Before
     public void setup() throws IOException {
-        HashMap<String, Object> result = given().parameters("name",
+
+        HashMap<String, Object> result = given().header("sessionID", "12345")
+                                                .parameters("name",
                                                             "my-bucket",
                                                             "owner",
                                                             "BucketControllerIntegrationTestUser")
@@ -70,7 +72,8 @@ public class CatalogObjectReportControllerIntegrationTest extends AbstractRestAs
         bucket = new BucketMetadata((String) result.get("name"), (String) result.get("owner"));
 
         // Add an object of kind "workflow" into first bucket
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
                .queryParam("name", "workflowname")
                .queryParam("commitMessage", "commit message")
