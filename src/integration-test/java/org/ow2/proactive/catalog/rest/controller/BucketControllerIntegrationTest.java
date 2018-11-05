@@ -79,7 +79,10 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String bucketName = "test";
         final String bucketOwner = "BucketControllerIntegrationTest";
 
-        Response response = given().parameters("name", bucketName, "owner", bucketOwner).when().post(BUCKETS_RESOURCE);
+        Response response = given().header("sessionID", "12345")
+                                   .parameters("name", bucketName, "owner", bucketOwner)
+                                   .when()
+                                   .post(BUCKETS_RESOURCE);
 
         response.then()
                 .assertThat()
@@ -95,7 +98,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testCreateBucketWrongName() {
-        Response response = given().parameters("name", "bucket.Wrong.Name-", "bucket-owner", "bucketOwner")
+        Response response = given().header("sessionID", "12345")
+                                   .parameters("name", "bucket.Wrong.Name-", "bucket-owner", "bucketOwner")
                                    .when()
                                    .post(BUCKETS_RESOURCE);
         response.then()
@@ -111,12 +115,14 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String bucketNameKey = "name";
         final String ownerValue = "newowner";
         final String bucketNameValue = "newbucket";
-        given().parameters(ownerKey, ownerValue, bucketNameKey, bucketNameValue)
+        given().header("sessionID", "12345")
+               .parameters(ownerKey, ownerValue, bucketNameKey, bucketNameValue)
                .post(BUCKETS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED);
-        given().parameters(ownerKey, ownerValue, bucketNameKey, bucketNameValue)
+        given().header("sessionID", "12345")
+               .parameters(ownerKey, ownerValue, bucketNameKey, bucketNameValue)
                .post(BUCKETS_RESOURCE)
                .then()
                .assertThat()
@@ -132,12 +138,14 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String ownerValue1 = "newowner1";
         final String ownerValue2 = "newowner2";
         final String bucketNameValue = "newbucket";
-        given().parameters(ownerKey, ownerValue1, bucketNameKey, bucketNameValue)
+        given().header("sessionID", "12345")
+               .parameters(ownerKey, ownerValue1, bucketNameKey, bucketNameValue)
                .post(BUCKETS_RESOURCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED);
-        given().parameters(ownerKey, ownerValue2, bucketNameKey, bucketNameValue)
+        given().header("sessionID", "12345")
+               .parameters(ownerKey, ownerValue2, bucketNameKey, bucketNameValue)
                .post(BUCKETS_RESOURCE)
                .then()
                .assertThat()
@@ -170,7 +178,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                               .collect(Collectors.toList());
 
         buckets.stream()
-               .forEach(bucket -> given().parameters("name", bucket.getBucketName(), "owner", bucket.getOwner())
+               .forEach(bucket -> given().header("sessionID", "12345")
+                                         .parameters("name", bucket.getBucketName(), "owner", bucket.getOwner())
                                          .when()
                                          .post(BUCKETS_RESOURCE));
 
@@ -184,7 +193,10 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testListBucketsOwnerShouldReturnNothing() {
-        given().parameters("name", "TotosBucket", "owner", "toto").when().post(BUCKETS_RESOURCE);
+        given().header("sessionID", "12345")
+               .parameters("name", "TotosBucket", "owner", "toto")
+               .when()
+               .post(BUCKETS_RESOURCE);
 
         given().param("owner", "nonExistingUser")
                .get(BUCKETS_RESOURCE)
@@ -199,8 +211,14 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String bucketName1 = "bucket-of-love";
         final String bucketName2 = "bucket-of-pain";
         final String userAlice = "Alice";
-        given().parameters("name", bucketName1, "owner", userAlice).when().post(BUCKETS_RESOURCE);
-        given().parameters("name", bucketName2, "owner", userAlice).when().post(BUCKETS_RESOURCE);
+        given().header("sessionID", "12345")
+               .parameters("name", bucketName1, "owner", userAlice)
+               .when()
+               .post(BUCKETS_RESOURCE);
+        given().header("sessionID", "12345")
+               .parameters("name", bucketName2, "owner", userAlice)
+               .when()
+               .post(BUCKETS_RESOURCE);
 
         // list alice buckets -> should return buckets
         given().param("owner", userAlice)
@@ -382,14 +400,16 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     @Test
     public void testDeleteEmptyBucket() {
         // Get bucket ID from response to create an object in it
-        String bucketName = given().parameters("name", "bucket-name", "owner", "owner")
+        String bucketName = given().header("sessionID", "12345")
+                                   .parameters("name", "bucket-name", "owner", "owner")
                                    .when()
                                    .post(BUCKETS_RESOURCE)
                                    .then()
                                    .extract()
                                    .path("name");
 
-        given().pathParam("bucketName", bucketName)
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucketName)
                .when()
                .delete(BUCKET_RESOURCE)
                .then()
@@ -410,7 +430,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         final String bucketName = "bucket-with-object";
 
         // Get bucket name from response to create an object in it
-        given().parameters("name", bucketName, "owner", "owner")
+        given().header("sessionID", "12345")
+               .parameters("name", bucketName, "owner", "owner")
                .when()
                .post(BUCKETS_RESOURCE)
                .then()
@@ -418,7 +439,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .path("name");
 
         // Add an object of kind "workflow" into first bucket
-        given().pathParam("bucketName", bucketName)
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucketName)
                .queryParam("kind", "myobjectkind")
                .queryParam("name", "myTestName")
                .queryParam("commitMessage", "first commit")
@@ -427,7 +449,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .when()
                .post(CATALOG_OBJECTS_RESOURCE);
 
-        given().pathParam("bucketName", bucketName)
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucketName)
                .when()
                .delete(BUCKET_RESOURCE)
                .then()
@@ -446,7 +469,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testDeleteNonExistingBucket() {
-        given().pathParam("bucketName", "some-bucket")
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", "some-bucket")
                .when()
                .delete(BUCKET_RESOURCE)
                .then()

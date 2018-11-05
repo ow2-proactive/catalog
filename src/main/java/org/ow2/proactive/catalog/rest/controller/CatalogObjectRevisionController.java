@@ -39,6 +39,7 @@ import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
+import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,17 +91,19 @@ public class CatalogObjectRevisionController {
     @RequestMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public CatalogObjectMetadata create(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String name,
             @ApiParam(value = "The commit message of the CatalogRawObject Revision", required = true) @RequestParam String commitMessage,
             @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
-                                                                               sessionId,
-                                                                               bucketName);
+        RestApiAccessResponse restApiAccessResponse = restApiAccessService.getUserDataFromSessionidAndCheckAccess(sessionIdRequired,
+                                                                                                                  sessionId,
+                                                                                                                  bucketName);
         CatalogObjectMetadata catalogObjectRevision = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                                        name,
                                                                                                        commitMessage,
+                                                                                                       restApiAccessResponse.getAuthenticatedUser()
+                                                                                                                            .getName(),
                                                                                                        file.getBytes());
         catalogObjectRevision.add(LinkUtil.createLink(bucketName,
                                                       catalogObjectRevision.getName(),
@@ -186,7 +189,7 @@ public class CatalogObjectRevisionController {
     @RequestMapping(value = "/{commitTimeRaw}", method = PUT)
     @ResponseStatus(HttpStatus.OK)
     public CatalogObjectMetadata restore(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String name, @PathVariable Long commitTimeRaw)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
         restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,

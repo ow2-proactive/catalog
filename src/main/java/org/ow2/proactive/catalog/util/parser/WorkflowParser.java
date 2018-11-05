@@ -85,9 +85,9 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
         addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobNameIfNotNull(keyValueMapBuilder, job);
-        job.getGenericInformation()
+        job.getUnresolvedGenericInformation()
            .forEach((name, value) -> addGenericInformationIfNotNull(keyValueMapBuilder, name, value));
-        job.getVariables().forEach((jobVariableName,
+        job.getUnresolvedVariables().forEach((jobVariableName,
                 jobVariable) -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
         addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobVizualisationIfNotNullAndNotEmpty(keyValueMapBuilder, job);

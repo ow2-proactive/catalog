@@ -91,7 +91,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     @Before
     public void setup() throws IOException, InterruptedException {
 
-        HashMap<String, Object> result = given().parameters("name",
+        HashMap<String, Object> result = given().header("sessionID", "12345")
+                                                .parameters("name",
                                                             "bucket",
                                                             "owner",
                                                             "WorkflowRevisionControllerIntegrationTestUser")
@@ -105,7 +106,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         bucket = new BucketMetadata((String) result.get("name"), (String) result.get("owner"));
 
         // Add an object of kind "workflow" into first bucket
-        catalogObjectRevisionAlone = given().pathParam("bucketName", bucket.getName())
+        catalogObjectRevisionAlone = given().header("sessionID", "12345")
+                                            .pathParam("bucketName", bucket.getName())
                                             .queryParam("kind", "workflow")
                                             .queryParam("name", "WF_1_Rev_1.xml")
                                             .queryParam("commitMessage", "alone commit")
@@ -119,7 +121,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                                             .path("");
 
         Thread.sleep(SLEEP_TIME);
-        firstCatalogObjectRevision = given().pathParam("bucketName", bucket.getName())
+        firstCatalogObjectRevision = given().header("sessionID", "12345")
+                                            .pathParam("bucketName", bucket.getName())
                                             .pathParam("name", "WF_1_Rev_1.xml")
                                             .queryParam("commitMessage", "first commit")
                                             .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -131,7 +134,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                                             .path("");
 
         Thread.sleep(SLEEP_TIME);
-        secondCatalogObjectRevision = given().pathParam("bucketName", bucket.getName())
+        secondCatalogObjectRevision = given().header("sessionID", "12345")
+                                             .pathParam("bucketName", bucket.getName())
                                              .pathParam("name", "WF_1_Rev_1.xml")
                                              .queryParam("commitMessage", "second commit")
                                              .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-updated.xml"))
@@ -155,7 +159,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     @Test
     public void testCreateWorkflowRevisionShouldReturnSavedWorkflow() {
 
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "WF_1_Rev_1.xml")
                .queryParam("commitMessage", "first commit")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -170,7 +175,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     @Test
     public void testCreateWorkflowRevisionShouldReturnUnprocessableEntityIfInvalidSyntax() {
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "WF_1_Rev_1.xml")
                .queryParam("commitMessage", "first commit")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-invalid-syntax.xml"))
@@ -184,7 +190,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     @Test
     public void testCreateWorkflowRevisionShouldReturnCreatedIfNoProjectNameInXmlPayload() {
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "WF_1_Rev_1.xml")
                .queryParam("commitMessage", "first commit")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-no-project-name.xml"))
@@ -197,7 +204,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     @Test
     public void testCreateWorkflowRevisionShouldReturnUnsupportedMediaTypeWithoutBody() {
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "WF_1_Rev_1.xml")
                .when()
                .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
@@ -208,7 +216,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
     @Test
     public void testCreateWorkflowRevisionShouldReturnNotFoundIfNonExistingBucketName() {
-        given().pathParam("bucketName", "non-existing-bucket")
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", "non-existing-bucket")
                .pathParam("name", "WF_1_Rev_1.xml")
                .queryParam("commitMessage", "first commit")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -412,7 +421,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                 e.printStackTrace();
             }
 
-            given().pathParam("bucketName", bucket.getName())
+            given().header("sessionID", "12345")
+                   .pathParam("bucketName", bucket.getName())
                    .pathParam("name", "WF_1_Rev_1.xml")
                    .queryParam("commitMessage", "commit message")
                    .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-updated.xml"))
@@ -434,7 +444,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     public void testRestoreVersion() {
         String firstCommitMessage = "First commit message";
         // Create a new object in the bucket
-        Response response = given().pathParam("bucketName", bucket.getName())
+        Response response = given().header("sessionID", "12345")
+                                   .pathParam("bucketName", bucket.getName())
                                    .queryParam("name", "restoredworkflow")
                                    .queryParam("kind", "workflow")
                                    .queryParam("commitMessage", firstCommitMessage)
@@ -450,7 +461,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         String commitTime = response.path("object[0].commit_time_raw");
 
         //Add a new revision to the created object
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "restoredworkflow")
                .queryParam("commitMessage", "Second commit message")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -460,7 +472,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .statusCode(HttpStatus.SC_CREATED);
 
         //Restore the first version
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "restoredworkflow")
                .pathParam("commitTimeRaw", commitTime)
                .when()
@@ -484,7 +497,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
     @Test
     public void testRestoreVersionWithWrongParam() {
         // Create a new object in the bucket
-        Response response = given().pathParam("bucketName", bucket.getName())
+        Response response = given().header("sessionID", "12345")
+                                   .pathParam("bucketName", bucket.getName())
                                    .queryParam("kind", "workflow")
                                    .queryParam("name", "restoredworkflow")
                                    .queryParam("commitMessage", "First commit")
@@ -500,7 +514,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
         String commitTime = response.path("object[0].commit_time_raw");
 
         //Add a new revision to the created object
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "restoredworkflow")
                .queryParam("commitMessage", "Second commit message")
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -510,7 +525,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .statusCode(HttpStatus.SC_CREATED);
 
         //Check wrong bucket
-        given().pathParam("bucketName", bucket.getName() + 1)
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName() + 1)
                .pathParam("name", "restoredworkflow")
                .pathParam("commitTimeRaw", 0)
                .when()
@@ -521,7 +537,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .body(ERROR_MESSAGE, equalTo(new BucketNotFoundException(bucket.getName() + 1).getLocalizedMessage()));
 
         //Check wrong bucketName
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "wrongrestoredworkflow")
                .pathParam("commitTimeRaw", commitTime)
                .when()
@@ -535,7 +552,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                                                            Long.valueOf(commitTime)).getLocalizedMessage()));
 
         //Check wrong time
-        given().pathParam("bucketName", bucket.getName())
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
                .pathParam("name", "restoredworkflow")
                .pathParam("commitTimeRaw", commitTime + 1)
                .when()

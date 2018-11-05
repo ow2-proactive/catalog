@@ -74,6 +74,8 @@ public class CatalogObjectServiceTest {
 
     public static final String COMMIT_MESSAGE = "commit message";
 
+    public static final String USERNAME = "username";
+
     public static final String APPLICATION_XML = "application/xml";
 
     public static final String OBJECT = "object";
@@ -105,7 +107,14 @@ public class CatalogObjectServiceTest {
     public void testCreateCatalogObjectWithInvalidBucket() {
         when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
-        catalogObjectService.createCatalogObject("bucket", NAME, OBJECT, COMMIT_MESSAGE, APPLICATION_XML, null, null);
+        catalogObjectService.createCatalogObject("bucket",
+                                                 NAME,
+                                                 OBJECT,
+                                                 COMMIT_MESSAGE,
+                                                 USERNAME,
+                                                 APPLICATION_XML,
+                                                 null,
+                                                 null);
     }
 
     /**
@@ -157,12 +166,14 @@ public class CatalogObjectServiceTest {
                                                                                        NAME,
                                                                                        OBJECT,
                                                                                        COMMIT_MESSAGE,
+                                                                                       USERNAME,
                                                                                        APPLICATION_XML,
                                                                                        keyValues,
                                                                                        null,
                                                                                        null);
         assertThat(catalogObject).isNotNull();
         assertThat(catalogObject.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
+        assertThat(catalogObject.getUsername()).isEqualTo(USERNAME);
         assertThat(catalogObject.getContentType()).isEqualTo(APPLICATION_XML);
         assertThat(catalogObject.getKind()).isEqualTo(OBJECT);
         assertThat(catalogObject.getName()).isEqualTo(NAME);
@@ -245,6 +256,8 @@ public class CatalogObjectServiceTest {
 
         assertThat(catalogObject).isNotNull();
         assertThat(catalogObject.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
+        assertThat(catalogObject.getUsername()).isEqualTo(USERNAME);
+
         assertThat(catalogObject.getContentType()).isEqualTo("updated-contentType");
         assertThat(catalogObject.getKind()).isEqualTo("updated-kind");
         assertThat(catalogObject.getName()).isEqualTo(NAME);
@@ -271,6 +284,8 @@ public class CatalogObjectServiceTest {
 
         assertThat(catalogObjectUpdatedKind).isNotNull();
         assertThat(catalogObjectUpdatedKind.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
+        assertThat(catalogObjectUpdatedKind.getUsername()).isEqualTo(USERNAME);
+
         assertThat(catalogObjectUpdatedKind.getContentType()).isEqualTo(APPLICATION_XML);
         assertThat(catalogObjectUpdatedKind.getKind()).isEqualTo("updated-kind");
         assertThat(catalogObjectUpdatedKind.getName()).isEqualTo(NAME);
@@ -286,6 +301,8 @@ public class CatalogObjectServiceTest {
 
         assertThat(catalogObjectUpdatedContentType).isNotNull();
         assertThat(catalogObjectUpdatedContentType.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
+        assertThat(catalogObjectUpdatedContentType.getUsername()).isEqualTo(USERNAME);
+
         assertThat(catalogObjectUpdatedContentType.getContentType()).isEqualTo("updated-contentType");
         assertThat(catalogObjectUpdatedContentType.getKind()).isEqualTo("updated-kind");
         assertThat(catalogObjectUpdatedContentType.getName()).isEqualTo(NAME);
@@ -314,6 +331,7 @@ public class CatalogObjectServiceTest {
                                  .toInstant()
                                  .toEpochMilli() == now).isTrue();
         assertThat(objectMetadata.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
+        assertThat(objectMetadata.getUsername()).isEqualTo(USERNAME);
 
     }
 
@@ -353,6 +371,7 @@ public class CatalogObjectServiceTest {
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(COMMIT_MESSAGE)
                                                                                              .commitTime(now)
+                                                                                             .username(USERNAME)
                                                                                              .catalogObject(catalogObjectEntity)
                                                                                              .build();
         catalogObjectRevisionEntity.addKeyValueList(keyvalues);
@@ -373,7 +392,7 @@ public class CatalogObjectServiceTest {
         List<KeyValueLabelMetadataEntity> keyvalues = ImmutableList.of(new KeyValueLabelMetadataEntity("key",
                                                                                                        "value",
                                                                                                        null));
-        catalogObjectService.createCatalogObjectRevision("bucket", NAME, COMMIT_MESSAGE, null);
+        catalogObjectService.createCatalogObjectRevision("bucket", NAME, COMMIT_MESSAGE, USERNAME, null);
     }
 
     @Test
@@ -391,10 +410,12 @@ public class CatalogObjectServiceTest {
         CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObjectRevision("bucket",
                                                                                                NAME,
                                                                                                COMMIT_MESSAGE,
+                                                                                               USERNAME,
                                                                                                keyvalues,
                                                                                                null);
         assertThat(catalogObject).isNotNull();
         assertThat(catalogObject.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
+        assertThat(catalogObject.getUsername()).isEqualTo(USERNAME);
         assertThat(catalogObject.getContentType()).isEqualTo(APPLICATION_XML);
         assertThat(catalogObject.getKind()).isEqualTo(OBJECT);
         assertThat(catalogObject.getName()).isEqualTo(NAME);

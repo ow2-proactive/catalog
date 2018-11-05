@@ -48,6 +48,7 @@ import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
+import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
@@ -103,7 +104,7 @@ public class CatalogObjectController {
     @RequestMapping(value = REQUEST_API_QUERY, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public CatalogObjectMetadataList create(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName,
             @ApiParam(value = "Name of the object or empty when a ZIP archive is uploaded (All objects inside the archive are stored inside the catalog).") @RequestParam(required = false) Optional<String> name,
             @ApiParam(value = "Kind of the new object", required = true) @RequestParam String kind,
@@ -111,14 +112,16 @@ public class CatalogObjectController {
             @ApiParam(value = "The content type of CatalogRawObject - MIME type", required = true) @RequestParam String objectContentType,
             @ApiParam(value = "The content of CatalogRawObject", required = true) @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
-                                                                               sessionId,
-                                                                               bucketName);
+        RestApiAccessResponse restApiAccessResponse = restApiAccessService.getUserDataFromSessionidAndCheckAccess(sessionIdRequired,
+                                                                                                                  sessionId,
+                                                                                                                  bucketName);
         if (name.isPresent()) {
             CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketName,
                                                                                            name.get(),
                                                                                            kind,
                                                                                            commitMessage,
+                                                                                           restApiAccessResponse.getAuthenticatedUser()
+                                                                                                                .getName(),
                                                                                            objectContentType,
                                                                                            file.getBytes(),
                                                                                            FilenameUtils.getExtension(file.getOriginalFilename()));
@@ -130,6 +133,8 @@ public class CatalogObjectController {
             List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketName,
                                                                                                    kind,
                                                                                                    commitMessage,
+                                                                                                   restApiAccessResponse.getAuthenticatedUser()
+                                                                                                                        .getName(),
                                                                                                    file.getBytes());
 
             for (CatalogObjectMetadata catalogObject : catalogObjects) {
@@ -162,7 +167,7 @@ public class CatalogObjectController {
     @RequestMapping(value = REQUEST_API_QUERY + "/{name:.+}", method = PUT)
     @ResponseStatus(HttpStatus.OK)
     public CatalogObjectMetadata updateObjectMetadata(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String name,
             @ApiParam(value = "The new kind of an object", required = false) @RequestParam(value = "kind", required = false) Optional<String> kind,
             @ApiParam(value = "The new content type of an object - MIME type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType)
@@ -287,7 +292,7 @@ public class CatalogObjectController {
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(value = REQUEST_API_QUERY + "/{name:.+}", method = DELETE)
     public CatalogObjectMetadata delete(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
         restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
