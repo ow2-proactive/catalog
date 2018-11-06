@@ -47,6 +47,10 @@ public abstract class AbstractRestAssuredTest {
 
     protected static final String CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME = "/buckets/{bucketName}/resources/{name}/revisions/{commitTimeRaw}";
 
+    protected static final String CATALOG_OBJECT_REPORT = "/buckets/report/";
+
+    protected static final String CATALOG_OBJECT_BUCKET_REPORT = "/buckets/report/selected/{bucketName}";
+
     protected final static String ERROR_MESSAGE = "errorMessage";
 
     @Value("${local.server.port}")

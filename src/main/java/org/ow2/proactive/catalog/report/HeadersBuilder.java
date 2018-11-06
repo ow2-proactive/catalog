@@ -41,11 +41,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import be.quodlibet.boxable.BaseTable;
+import be.quodlibet.boxable.HorizontalAlignment;
 import be.quodlibet.boxable.Row;
+import be.quodlibet.boxable.VerticalAlignment;
 import be.quodlibet.boxable.image.Image;
+import lombok.extern.log4j.Log4j2;
 
 
 @Component
+@Log4j2
 public class HeadersBuilder {
 
     private static final String SPACE_BETWEEN_INFO = "          ";
@@ -63,10 +67,14 @@ public class HeadersBuilder {
     public void createMainHeader(BaseTable table) throws IOException {
         Row<PDPage> headerRow = table.createRow(15f);
 
-        URL url = new URL(schedulerUrl + ACTIVEEON_LOGO);
-        BufferedImage imageFile = ImageIO.read(url);
-        headerRow.createImageCell((100 / 12f) * 3, new Image(imageFile));
-
+        try {
+            URL url = new URL(schedulerUrl + ACTIVEEON_LOGO);
+            BufferedImage imageFile = ImageIO.read(url);
+            headerRow.createImageCell((100 / 12f) * 3, new Image(imageFile));
+        } catch (Exception e) {
+            headerRow.createCell((100 / 12f) * 3, "Activeeon", HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE);
+            log.error("Impossible to create the image from the url: " + schedulerUrl + ACTIVEEON_LOGO, e);
+        }
         cellFactory.addMainTitleCell(headerRow, MAIN_TITLE);
 
         table.addHeaderRow(headerRow);
