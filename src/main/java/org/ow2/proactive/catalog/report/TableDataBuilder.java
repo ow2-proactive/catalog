@@ -25,6 +25,9 @@
  */
 package org.ow2.proactive.catalog.report;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -74,14 +77,15 @@ public class TableDataBuilder {
             }
 
             Row<PDPage> dataRow = table.createRow(10f);
-            cellFactory.createDataCell(dataRow, SINGLE_COLUMN, catalogObject.getBucketName());
-            cellFactory.createDataCell(dataRow, SINGLE_COLUMN, getProjectName(catalogObject));
-            cellFactory.createDataCell(dataRow, SINGLE_COLUMN, catalogObject.getName());
+            cellFactory.createDataCell(dataRow, DOUBLE_COLUMN, catalogObject.getName());
+
+            cellFactory.createKeyValueContentDataCell(dataRow, DOUBLE_COLUMN, getAllObjectInfo(catalogObject));
+
             cellFactory.createDataCell(dataRow, DOUBLE_COLUMN, getDescription(catalogObject), HorizontalAlignment.LEFT);
             cellFactory.createKeyValueContentDataCell(dataRow,
                                                       DOUBLE_COLUMN,
                                                       getKeyValuesAsUnorderedHTMLList(catalogObject, "variable"));
-            cellFactory.createKeyValueContentDataCell(dataRow, SINGLE_COLUMN, getKindPlusContentType(catalogObject));
+
             cellFactory.createKeyValueContentDataCell(dataRow,
                                                       DOUBLE_COLUMN,
                                                       getKeyValuesAsUnorderedHTMLList(catalogObject,
@@ -95,9 +99,40 @@ public class TableDataBuilder {
 
     }
 
+    private String getAllObjectInfo(CatalogObjectMetadata catalogObject) {
+        return "<p>" + "<b>Bucket Name</b>" + KEY_VALUE_SEPARATOR + catalogObject.getBucketName() + "</p>" + "<p>" +
+               "<b>Project Name</b>" + KEY_VALUE_SEPARATOR + getProjectName(catalogObject) + "</p>" +
+               getCommittedDetails(catalogObject) + getKindPlusContentType(catalogObject);
+    }
+
+    private String getCommittedDetails(CatalogObjectMetadata catalogObject) {
+        return "<p>" + "<b>Last updated date</b>" + KEY_VALUE_SEPARATOR +
+               getHumanReadableDate(catalogObject.getCommitTimeRaw()) + "</p>" + "<p>" + "<b>Committed by</b>" +
+               KEY_VALUE_SEPARATOR + catalogObject.getUsername() + "</p>";
+    }
+
     private String getKindPlusContentType(CatalogObjectMetadata catalogObject) {
         return "<p>" + "<b>Kind</b>" + KEY_VALUE_SEPARATOR + catalogObject.getKind() + "</p>" + "<p>" +
                "<b>Content Type</b>" + KEY_VALUE_SEPARATOR + catalogObject.getContentType() + "</p>";
+    }
+
+    private String getHumanReadableDate(String rawDate) {
+        LocalDateTime localDateTime = Instant.ofEpochMilli(Long.parseLong(rawDate))
+                                             .atZone(ZoneId.systemDefault())
+                                             .toLocalDateTime();
+        return new StringBuilder().append(localDateTime.getYear())
+                                  .append("-")
+                                  .append(localDateTime.getMonthValue())
+                                  .append("-")
+                                  .append(localDateTime.getDayOfMonth())
+                                  .append(" ")
+                                  .append(localDateTime.getHour())
+                                  .append(":")
+                                  .append(localDateTime.getMinute())
+                                  .append(":")
+                                  .append(localDateTime.getSecond())
+                                  .toString();
+
     }
 
     private String getKeyValuesAsUnorderedHTMLList(CatalogObjectMetadata catalogObject, String key) {
@@ -112,13 +147,10 @@ public class TableDataBuilder {
 
     private void createDataHeader(BaseTable table) {
         Row<PDPage> factHeaderrow = table.createRow(15f);
-        cellFactory.createDataHeaderCell(factHeaderrow, SINGLE_COLUMN, "Bucket Name");
-        cellFactory.createDataHeaderCell(factHeaderrow, SINGLE_COLUMN, "Project Name");
-        cellFactory.createDataHeaderCell(factHeaderrow, SINGLE_COLUMN, "Object Name");
+        cellFactory.createDataHeaderCell(factHeaderrow, DOUBLE_COLUMN, "Object Name");
+        cellFactory.createDataHeaderCell(factHeaderrow, DOUBLE_COLUMN, "Info");
         cellFactory.createDataHeaderCell(factHeaderrow, DOUBLE_COLUMN, "Description");
         cellFactory.createDataHeaderCell(factHeaderrow, DOUBLE_COLUMN, "Variables");
-
-        cellFactory.createDataHeaderCell(factHeaderrow, SINGLE_COLUMN, "Info");
         cellFactory.createDataHeaderCell(factHeaderrow, DOUBLE_COLUMN, "Generic Info");
         cellFactory.createDataHeaderCell(factHeaderrow, SINGLE_COLUMN, "Icon");
         table.addHeaderRow(factHeaderrow);
@@ -161,12 +193,9 @@ public class TableDataBuilder {
 
     private void createEmptyTableRow(BaseTable table) {
         Row<PDPage> dataRow = table.createRow(10f);
-        cellFactory.createDataCell(dataRow, SINGLE_COLUMN, "");
-        cellFactory.createDataCell(dataRow, SINGLE_COLUMN, "");
-        cellFactory.createDataCell(dataRow, SINGLE_COLUMN, "");
         cellFactory.createDataCell(dataRow, DOUBLE_COLUMN, "");
-        cellFactory.createDataCell(dataRow, SINGLE_COLUMN, "");
-        cellFactory.createDataCell(dataRow, SINGLE_COLUMN, "");
+        cellFactory.createDataCell(dataRow, DOUBLE_COLUMN, "");
+        cellFactory.createDataCell(dataRow, DOUBLE_COLUMN, "");
         cellFactory.createDataCell(dataRow, DOUBLE_COLUMN, "");
         cellFactory.createDataCell(dataRow, DOUBLE_COLUMN, "");
         cellFactory.createDataCell(dataRow, SINGLE_COLUMN, "");
