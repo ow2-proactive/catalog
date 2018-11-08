@@ -47,7 +47,7 @@ import be.quodlibet.boxable.Row;
 @Component
 public class TableDataBuilder {
 
-    private static final String KEY_VALUE_SEPARATOR = " = ";
+    private static final String KEY_VALUE_SEPARATOR = " : ";
 
     private static final float TOTAL_NUMBER_OF_COLUMNS = 11f;
 
@@ -79,17 +79,16 @@ public class TableDataBuilder {
             Row<PDPage> dataRow = table.createRow(10f);
             cellFactory.createDataCell(dataRow, DOUBLE_COLUMN, catalogObject.getName());
 
-            cellFactory.createKeyValueContentDataCell(dataRow, DOUBLE_COLUMN, getAllObjectInfo(catalogObject));
+            cellFactory.createKeyValueContentDataCell(dataRow, DOUBLE_COLUMN,
+                    getAllObjectInfo(catalogObject));
 
-            cellFactory.createDataCell(dataRow, DOUBLE_COLUMN, getDescription(catalogObject), HorizontalAlignment.LEFT);
-            cellFactory.createKeyValueContentDataCell(dataRow,
-                                                      DOUBLE_COLUMN,
-                                                      getKeyValuesAsUnorderedHTMLList(catalogObject, "variable"));
+            cellFactory.createDataCell(dataRow, DOUBLE_COLUMN, getDescription(catalogObject),
+                    HorizontalAlignment.LEFT);
+            cellFactory.createKeyValueContentDataCell(dataRow, DOUBLE_COLUMN,
+                    getKeyValuesAsUnorderedHTMLList(catalogObject, "variable"));
 
-            cellFactory.createKeyValueContentDataCell(dataRow,
-                                                      DOUBLE_COLUMN,
-                                                      getKeyValuesAsUnorderedHTMLList(catalogObject,
-                                                                                      "generic_information"));
+            cellFactory.createKeyValueContentDataCell(dataRow, DOUBLE_COLUMN,
+                    getKeyValuesAsUnorderedHTMLList(catalogObject, "generic_information"));
             cellFactory.createIconCell(dataRow, SINGLE_COLUMN, getIcon(catalogObject));
 
         }
@@ -100,48 +99,37 @@ public class TableDataBuilder {
     }
 
     private String getAllObjectInfo(CatalogObjectMetadata catalogObject) {
-        return "<p>" + "<b>Bucket Name</b>" + KEY_VALUE_SEPARATOR + catalogObject.getBucketName() + "</p>" + "<p>" +
-               "<b>Project Name</b>" + KEY_VALUE_SEPARATOR + getProjectName(catalogObject) + "</p>" +
-               getCommittedDetails(catalogObject) + getKindPlusContentType(catalogObject);
+        return "<p>" + "<b>Bucket Name</b>" + KEY_VALUE_SEPARATOR + catalogObject.getBucketName() + "</p>" +
+            "<p>" + "<b>Project Name</b>" + KEY_VALUE_SEPARATOR + getProjectName(catalogObject) + "</p>" +
+            getCommittedDetails(catalogObject) + getKindPlusContentType(catalogObject);
     }
 
     private String getCommittedDetails(CatalogObjectMetadata catalogObject) {
-        return "<p>" + "<b>Last updated date</b>" + KEY_VALUE_SEPARATOR +
-               getHumanReadableDate(catalogObject.getCommitTimeRaw()) + "</p>" + "<p>" + "<b>Committed by</b>" +
-               KEY_VALUE_SEPARATOR + catalogObject.getUsername() + "</p>";
+        return "<p>" + "<b>Last Commit date</b>" + KEY_VALUE_SEPARATOR +
+            getHumanReadableDate(catalogObject.getCommitTimeRaw()) + "</p>" + "<p>" + "<b>Committed by</b>" +
+            KEY_VALUE_SEPARATOR + catalogObject.getUsername() + "</p>";
     }
 
     private String getKindPlusContentType(CatalogObjectMetadata catalogObject) {
         return "<p>" + "<b>Kind</b>" + KEY_VALUE_SEPARATOR + catalogObject.getKind() + "</p>" + "<p>" +
-               "<b>Content Type</b>" + KEY_VALUE_SEPARATOR + catalogObject.getContentType() + "</p>";
+            "<b>Content Type</b>" + KEY_VALUE_SEPARATOR + catalogObject.getContentType() + "</p>";
     }
 
     private String getHumanReadableDate(String rawDate) {
         LocalDateTime localDateTime = Instant.ofEpochMilli(Long.parseLong(rawDate))
-                                             .atZone(ZoneId.systemDefault())
-                                             .toLocalDateTime();
-        return new StringBuilder().append(localDateTime.getYear())
-                                  .append("-")
-                                  .append(localDateTime.getMonthValue())
-                                  .append("-")
-                                  .append(localDateTime.getDayOfMonth())
-                                  .append(" ")
-                                  .append(localDateTime.getHour())
-                                  .append(":")
-                                  .append(localDateTime.getMinute())
-                                  .append(":")
-                                  .append(localDateTime.getSecond())
-                                  .toString();
+                .atZone(ZoneId.systemDefault()).toLocalDateTime();
+        return new StringBuilder().append(localDateTime.getYear()).append("-")
+                .append(localDateTime.getMonthValue()).append("-").append(localDateTime.getDayOfMonth())
+                .append(" ").append(localDateTime.getHour()).append(":").append(localDateTime.getMinute())
+                .append(":").append(localDateTime.getSecond()).toString();
 
     }
 
     private String getKeyValuesAsUnorderedHTMLList(CatalogObjectMetadata catalogObject, String key) {
-        return catalogObject.getMetadataList()
-                            .stream()
-                            .filter(metadata -> metadata.getLabel().equals(key))
-                            .map(metadata -> "<p><b>" + metadata.getKey() + "</b>" + KEY_VALUE_SEPARATOR +
-                                             metadata.getValue() + "</p>")
-                            .collect(Collectors.joining(""));
+        return catalogObject.getMetadataList().stream()
+                .filter(metadata -> metadata.getLabel().equals(key)).map(metadata -> "<p><b>" +
+                    metadata.getKey() + "</b>" + KEY_VALUE_SEPARATOR + metadata.getValue() + "</p>")
+                .collect(Collectors.joining(""));
 
     }
 
@@ -161,33 +149,26 @@ public class TableDataBuilder {
     }
 
     private String getDescription(CatalogObjectMetadata catalogObject) {
-        return catalogObject.getMetadataList()
-                            .stream()
-                            .filter(metadata -> metadata.getLabel().equals(AbstractCatalogObjectParser.GENERAL_LABEL) &&
-                                                metadata.getKey().equals("description"))
-                            .map(metadata -> metadata.getValue())
-                            .map(description -> description.replace("\n", " ").replace("\r", "").replace("\t", ""))
-                            .map(description -> "<p>" + description + "</p>")
-                            .findAny()
-                            .orElse("");
+        return catalogObject.getMetadataList().stream()
+                .filter(metadata -> metadata.getLabel().equals(AbstractCatalogObjectParser.GENERAL_LABEL) &&
+                    metadata.getKey().equals("description"))
+                .map(metadata -> metadata.getValue())
+                .map(description -> description.replace("\n", " ").replace("\r", "").replace("\t", ""))
+                .map(description -> "<p>" + description + "</p>").findAny().orElse("");
 
     }
 
     private String getIcon(CatalogObjectMetadata catalogObject) {
-        return catalogObject.getMetadataList()
-                            .stream()
-                            .filter(metadata -> metadata.getLabel().equals(AbstractCatalogObjectParser.GENERAL_LABEL) &&
-                                                metadata.getKey().equals("main.icon"))
-                            .map(metadata -> metadata.getValue())
-                            .map(image_url -> {
-                                if (image_url.startsWith("/")) {
-                                    return schedulerUrl + image_url;
-                                } else {
-                                    return schedulerUrl;
-                                }
-                            })
-                            .findAny()
-                            .orElse("");
+        return catalogObject.getMetadataList().stream()
+                .filter(metadata -> metadata.getLabel().equals(AbstractCatalogObjectParser.GENERAL_LABEL) &&
+                    metadata.getKey().equals("main.icon"))
+                .map(metadata -> metadata.getValue()).map(image_url -> {
+                    if (image_url.startsWith("/")) {
+                        return schedulerUrl + image_url;
+                    } else {
+                        return schedulerUrl;
+                    }
+                }).findAny().orElse("");
 
     }
 
