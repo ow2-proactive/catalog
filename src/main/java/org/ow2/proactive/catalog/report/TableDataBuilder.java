@@ -47,7 +47,7 @@ import be.quodlibet.boxable.Row;
 @Component
 public class TableDataBuilder {
 
-    private static final String KEY_VALUE_SEPARATOR = " = ";
+    private static final String KEY_VALUE_SEPARATOR = " : ";
 
     private static final float TOTAL_NUMBER_OF_COLUMNS = 11f;
 
@@ -106,7 +106,7 @@ public class TableDataBuilder {
     }
 
     private String getCommittedDetails(CatalogObjectMetadata catalogObject) {
-        return "<p>" + "<b>Last updated date</b>" + KEY_VALUE_SEPARATOR +
+        return "<p>" + "<b>Last Commit date</b>" + KEY_VALUE_SEPARATOR +
                getHumanReadableDate(catalogObject.getCommitTimeRaw()) + "</p>" + "<p>" + "<b>Committed by</b>" +
                KEY_VALUE_SEPARATOR + catalogObject.getUsername() + "</p>";
     }
