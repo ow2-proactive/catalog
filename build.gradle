@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+
         jcenter()
         maven {
             url "http://repository.activeeon.com/content/groups/proactive/"
@@ -45,6 +46,8 @@ bootRepackage {
     enabled = false
 }
 
+project.ext.set("local", "")
+
 configurations {
     // The following module is excluded to avoid clashes when embedded inside the ProActive Scheduler
     all*.exclude module: 'spring-boot-starter-logging'
@@ -82,6 +85,9 @@ repositories {
     if (project.hasProperty('local')) {
         mavenLocal()
     }
+
+    mavenLocal()
+
 
     jcenter()
     maven {
@@ -218,6 +224,10 @@ dependencies {
     integrationTestCompile 'com.google.code.gson:gson'
     integrationTestCompile 'com.jayway.restassured:rest-assured'
     integrationTestCompile 'org.springframework.boot:spring-boot-starter-test'
+
+    compile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
+    //testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
+    //integrationTestCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
 }
 
 test {
