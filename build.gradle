@@ -226,8 +226,8 @@ dependencies {
     integrationTestCompile 'org.springframework.boot:spring-boot-starter-test'
 
     compile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
-    //testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
-    //integrationTestCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
+    testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
+    integrationTestCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
 }
 
 test {
