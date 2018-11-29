@@ -177,7 +177,6 @@ dependencies {
 
     compile('org.hibernate:hibernate-entitymanager:5.1.16.Final')
     compile('org.hibernate:hibernate-core:5.1.16.Final')
-    compile('org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final')
 
     compile 'org.springframework.boot:spring-boot-starter-log4j2'
     compile 'org.springframework.boot:spring-boot-starter-web'
@@ -206,8 +205,6 @@ dependencies {
 
     // library to build pdf reports
     compile 'com.github.dhorions:boxable'
-
-    compile group: 'com.zaxxer', name: 'HikariCP', version: '2.6.0'
 
     //support for Oracle DB version 12.1.0.2
     compile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
