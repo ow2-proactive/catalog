@@ -28,11 +28,9 @@ package org.ow2.proactive.catalog;
 import static springfox.documentation.schema.AlternateTypeRules.newRule;
 
 import java.io.File;
-import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import oracle.jdbc.pool.OracleDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -42,19 +40,16 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -79,19 +74,17 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableAutoConfiguration(exclude = { MultipartAutoConfiguration.class })
 @EnableSwagger2
 @EnableTransactionManagement
-//@ComponentScan("org.ow2.proactive.catalog.repository")
-//@EnableJpaRepositories("org.ow2.proactive.catalog.repository")
 @EntityScan(basePackages = "org.ow2.proactive.catalog.repository.entity")
 @PropertySource("classpath:application.properties")
 public class Application extends WebMvcConfigurerAdapter {
 
-    @Value("${spring.datasource.driverClassName:oracle.jdbc.OracleDriver}")
+    @Value("${spring.datasource.driverClassName:}")
     private String dataSourceDriverClassName;
 
     @Value("${spring.datasource.url:}")
     private String dataSourceUrl;
 
-    @Value("${spring.datasource.username:root}")
+    @Value("${spring.datasource.username:}")
     private String dataSourceUsername;
 
     @Value("${spring.datasource.password:}")
@@ -116,10 +109,10 @@ public class Application extends WebMvcConfigurerAdapter {
 
     @Bean
     @Profile("default")
-    public DataSource defaultDataSource() throws SQLException {
+    public DataSource defaultDataSource() {
         String jdbcUrl = dataSourceUrl;
 
-        /*if (jdbcUrl.isEmpty()) {
+        if (jdbcUrl.isEmpty()) {
             jdbcUrl = "jdbc:hsqldb:file:" + getDatabaseDirectory() +
                       ";create=true;hsqldb.tx=mvcc;hsqldb.applog=1;hsqldb.sqllog=0;hsqldb.write_delay=false";
         }
@@ -130,37 +123,28 @@ public class Application extends WebMvcConfigurerAdapter {
                                 .url(jdbcUrl)
                                 .driverClassName(dataSourceDriverClassName)
                                 .build();
-        */
-
-        OracleDataSource dataSource = new OracleDataSource();
-        dataSource.setUser("system");
-        dataSource.setPassword("oracle");
-        dataSource.setURL("jdbc:oracle:thin:@localhost:8000:XE");
-        //dataSource.setImplicitCachingEnabled(true);
-        //dataSource.setFastConnectionFailoverEnabled(true);
-        return dataSource;
-
-
     }
 
     @Bean
     @Profile("test")
-    public DataSource testDataSource() throws SQLException {
+    public DataSource testDataSource() {
         return createMemDataSource();
     }
 
-    private DataSource createMemDataSource() throws SQLException {
-        /*EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-        EmbeddedDatabase db = builder.setType(EmbeddedDatabaseType.HSQL).build();
-        return db;*/
+    private DataSource createMemDataSource() {
+        /*
+         * EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+         * EmbeddedDatabase db = builder.setType(EmbeddedDatabaseType.HSQL).build();
+         * 
+         * return db;
+         */
 
-        OracleDataSource dataSource = new OracleDataSource();
-        dataSource.setUser("system");
-        dataSource.setPassword("oracle");
-        dataSource.setURL("jdbc:oracle:thin:@localhost:8000:XE");
-        //dataSource.setImplicitCachingEnabled(true);
-        //dataSource.setFastConnectionFailoverEnabled(true);
-        return dataSource;
+        return DataSourceBuilder.create()
+                                .username(dataSourceUsername)
+                                .password(dataSourcePassword)
+                                .url(dataSourceUrl)
+                                .driverClassName(dataSourceDriverClassName)
+                                .build();
 
     }
 

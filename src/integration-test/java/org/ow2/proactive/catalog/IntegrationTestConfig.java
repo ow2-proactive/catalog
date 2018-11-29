@@ -27,12 +27,10 @@ package org.ow2.proactive.catalog;
 
 import static org.mockito.Mockito.spy;
 
-import java.sql.SQLException;
 import java.util.List;
 
 import javax.sql.DataSource;
 
-import oracle.jdbc.pool.OracleDataSource;
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
@@ -64,6 +62,7 @@ import org.ow2.proactive.catalog.util.parser.PCWRuleParser;
 import org.ow2.proactive.catalog.util.parser.PolicyParser;
 import org.ow2.proactive.catalog.util.parser.ScriptParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityScan;
@@ -90,32 +89,31 @@ import graphql.schema.DataFetcher;
 @Profile("test")
 public class IntegrationTestConfig {
 
+    @Value("${spring.datasource.driverClassName:}")
+    private String dataSourceDriverClassName;
+
+    @Value("${spring.datasource.url:}")
+    private String dataSourceUrl;
+
+    @Value("${spring.datasource.username:}")
+    private String dataSourceUsername;
+
+    @Value("${spring.datasource.password:}")
+    private String dataSourcePassword;
+
     @Bean
-    public DataSource testDataSource()  throws SQLException {
-        return createMemDataSource();
+    public DataSource testDataSource() {
+        return createDataSource();
     }
 
-    private DataSource createMemDataSource() throws SQLException {
-        /*EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-        EmbeddedDatabase db = builder.setType(EmbeddedDatabaseType.HSQL).build();
+    private DataSource createDataSource() {
 
-        return db;*/
-
-        /*return DataSourceBuilder.create()
-                .username("system")
-                .password("oracle")
-                .url("jdbc:oracle:thin:@localhost:8000:XE")
-                .driverClassName("oracle.jdbc.OracleDriver")
-                .build(); */
-
-        OracleDataSource dataSource = new OracleDataSource();
-        dataSource.setUser("system");
-        dataSource.setPassword("oracle");
-        dataSource.setURL("jdbc:oracle:thin:@localhost:8000:XE");
-        //dataSource.setImplicitCachingEnabled(true);
-        //dataSource.setFastConnectionFailoverEnabled(true);
-        return dataSource;
-
+        return DataSourceBuilder.create()
+                                .username(dataSourceUsername)
+                                .password(dataSourcePassword)
+                                .url(dataSourceUrl)
+                                .driverClassName(dataSourceDriverClassName)
+                                .build();
     }
 
     @Bean
