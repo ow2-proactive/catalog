@@ -111,7 +111,6 @@ public class BucketServiceIntegrationTest {
         emptyBucketTest = bucketService.listBuckets("emptyBucketTest", Optional.empty(), Optional.empty());
         assertThat(emptyBucketTest).hasSize(1);
         assertThat(emptyBucketTest.get(0).getName()).isEqualTo("bucketnotempty");
-
     }
 
     @Test

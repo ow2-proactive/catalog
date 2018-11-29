@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog;
 
 import static org.mockito.Mockito.spy;
 
+import java.io.File;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -107,13 +108,30 @@ public class IntegrationTestConfig {
     }
 
     private DataSource createDataSource() {
+        String jdbcUrl = dataSourceUrl;
+
+        if (jdbcUrl.isEmpty()) {
+            jdbcUrl = "jdbc:hsqldb:file:" + getDatabaseDirectory() +
+                      ";create=true;hsqldb.tx=mvcc;hsqldb.applog=1;hsqldb.sqllog=0;hsqldb.write_delay=false";
+        }
 
         return DataSourceBuilder.create()
                                 .username(dataSourceUsername)
                                 .password(dataSourcePassword)
-                                .url(dataSourceUrl)
+                                .url(jdbcUrl)
                                 .driverClassName(dataSourceDriverClassName)
                                 .build();
+    }
+
+    private String getDatabaseDirectory() {
+        String proactiveHome = System.getProperty("proactive.home");
+
+        if (proactiveHome == null) {
+            return System.getProperty("java.io.tmpdir") + File.separator + "proactive" + File.separator + "catalog";
+        }
+
+        return proactiveHome + File.separator + "data" + File.separator + "db" + File.separator + "catalog" +
+               File.separator + "wc";
     }
 
     @Bean

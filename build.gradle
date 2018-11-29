@@ -1,6 +1,5 @@
 buildscript {
     repositories {
-
         jcenter()
         maven {
             url "http://repository.activeeon.com/content/groups/proactive/"
@@ -85,8 +84,6 @@ repositories {
     if (project.hasProperty('local')) {
         mavenLocal()
     }
-
-    mavenLocal()
 
     jcenter()
     maven {
@@ -180,11 +177,7 @@ dependencies {
 
     compile('org.hibernate:hibernate-entitymanager:5.1.16.Final')
     compile('org.hibernate:hibernate-core:5.1.16.Final')
-    //compile('org.hibernate.common:hibernate-commons-annotations:5.1.0.Final')
     compile('org.hibernate.javax.persistence:hibernate-jpa-2.1-api:1.0.0.Final')
-
-    //compile('org.hibernate:hibernate-entitymanager')
-    //compile('org.hibernate:hibernate-core')
 
     compile 'org.springframework.boot:spring-boot-starter-log4j2'
     compile 'org.springframework.boot:spring-boot-starter-web'
@@ -216,6 +209,12 @@ dependencies {
 
     compile group: 'com.zaxxer', name: 'HikariCP', version: '2.6.0'
 
+    //support for Oracle DB version 12.1.0.2
+    compile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
+
+    //support for MySQL DB
+    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.13'
+
     //  Using the Scheduler Rest client as authentication service
     providedCompile "org.ow2.proactive_grid_cloud_portal:rest-client:$version"
 
@@ -230,10 +229,6 @@ dependencies {
     integrationTestCompile 'com.google.code.gson:gson'
     integrationTestCompile 'com.jayway.restassured:rest-assured'
     integrationTestCompile 'org.springframework.boot:spring-boot-starter-test'
-
-    compile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
-    testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
-    integrationTestCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
 }
 
 test {

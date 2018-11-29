@@ -128,16 +128,10 @@ public class Application extends WebMvcConfigurerAdapter {
     @Bean
     @Profile("test")
     public DataSource testDataSource() {
-        return createMemDataSource();
+        return createDataSource();
     }
 
-    private DataSource createMemDataSource() {
-        /*
-         * EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-         * EmbeddedDatabase db = builder.setType(EmbeddedDatabaseType.HSQL).build();
-         * 
-         * return db;
-         */
+    private DataSource createDataSource() {
 
         return DataSourceBuilder.create()
                                 .username(dataSourceUsername)
@@ -145,7 +139,6 @@ public class Application extends WebMvcConfigurerAdapter {
                                 .url(dataSourceUrl)
                                 .driverClassName(dataSourceDriverClassName)
                                 .build();
-
     }
 
     private String getDatabaseDirectory() {
