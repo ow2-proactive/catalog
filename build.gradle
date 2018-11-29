@@ -231,9 +231,12 @@ dependencies {
     integrationTestCompile 'com.jayway.restassured:rest-assured'
     integrationTestCompile 'org.springframework.boot:spring-boot-starter-test'
 
+    //support for Oracle DB version 12.1.0.2
     compile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
-    testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
-    integrationTestCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
+
+    //support for MySQL DB
+    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.13'
+
 }
 
 test {
