@@ -256,42 +256,46 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                            .body("commit_time", is(secondCatalogObjectRevision.get("commit_time")))
                            .body("object_key_values", hasSize(10))
                            //check generic_information label
-                           .body("object_key_values[0].label", is("generic_information"))
-                           .body("object_key_values[0].key", is("bucketName"))
-                           .body("object_key_values[0].value", is("bucket"))
-                           .body("object_key_values[1].label", is("General"))
-                           .body("object_key_values[1].key", is("description"))
-                           .body("object_key_values[1].value",
-                                 is("\n" + "         A catalogObject that executes cmd in JVM. \n" + "    "))
-                           .body("object_key_values[2].label", is("generic_information"))
-                           .body("object_key_values[2].key", is("genericInfo1"))
-                           .body("object_key_values[2].value", is("genericInfo1ValueUpdated"))
-                           .body("object_key_values[3].label", is("generic_information"))
-                           .body("object_key_values[3].key", is("genericInfo2"))
-                           .body("object_key_values[3].value", is("genericInfo2ValueUpdated"))
-                           .body("object_key_values[4].label", is("generic_information"))
-                           .body("object_key_values[4].key", is("group"))
-                           .body("object_key_values[4].value", is("WorkflowRevisionControllerIntegrationTestUser"))
+                           .body("object_key_values.findAll { it.key=='bucketName' }[0].label",
+                                 is("generic_information"))
+                           .body("object_key_values.findAll { it.key=='bucketName' }[0].value", is("bucket"))
 
-                           .body("object_key_values[5].label", is("General"))
-                           .body("object_key_values[5].key", is("main.icon"))
-                           .body("object_key_values[5].value",
+                           .body("object_key_values.findAll { it.key=='description' }[0].label", is("General"))
+                           .body("object_key_values.findAll { it.key=='description' }[0].value",
+                                 is("\n" + "         A catalogObject that executes cmd in JVM. \n" + "    "))
+
+                           .body("object_key_values.findAll { it.key=='genericInfo1' }[0].label",
+                                 is("generic_information"))
+                           .body("object_key_values.findAll { it.key=='genericInfo1' }[0].value",
+                                 is("genericInfo1ValueUpdated"))
+
+                           .body("object_key_values.findAll { it.key=='genericInfo2' }[0].label",
+                                 is("generic_information"))
+                           .body("object_key_values.findAll { it.key=='genericInfo2' }[0].value",
+                                 is("genericInfo2ValueUpdated"))
+
+                           .body("object_key_values.findAll { it.key=='group' }[0].label", is("generic_information"))
+                           .body("object_key_values.findAll { it.key=='group' }[0].value",
+                                 is("WorkflowRevisionControllerIntegrationTestUser"))
+
+                           .body("object_key_values.findAll { it.key=='main.icon' }[0].label", is("General"))
+                           .body("object_key_values.findAll { it.key=='main.icon' }[0].value",
                                  is("/automation-dashboard/styles/patterns/img/wf-icons/wf-default-icon.png"))
 
                            //check job info
-                           .body("object_key_values[6].label", is("job_information"))
-                           .body("object_key_values[6].key", is("name"))
-                           .body("object_key_values[6].value", is("Valid Workflow Updated"))
-                           .body("object_key_values[7].label", is("job_information"))
-                           .body("object_key_values[7].key", is("project_name"))
-                           .body("object_key_values[7].value", is("Project Name Updated"))
+                           .body("object_key_values.findAll { it.key=='name' }[0].label", is("job_information"))
+                           .body("object_key_values.findAll { it.key=='name' }[0].value", is("Valid Workflow Updated"))
+
+                           .body("object_key_values.findAll { it.key=='project_name' }[0].label", is("job_information"))
+                           .body("object_key_values.findAll { it.key=='project_name' }[0].value",
+                                 is("Project Name Updated"))
+
                            //check variables label
-                           .body("object_key_values[8].label", is("variable"))
-                           .body("object_key_values[8].key", is("var1"))
-                           .body("object_key_values[8].value", is("var1ValueUpdated"))
-                           .body("object_key_values[9].label", is("variable"))
-                           .body("object_key_values[9].key", is("var2"))
-                           .body("object_key_values[9].value", is("var2ValueUpdated"))
+                           .body("object_key_values.findAll { it.key=='var1' }[0].label", is("variable"))
+                           .body("object_key_values.findAll { it.key=='var1' }[0].value", is("var1ValueUpdated"))
+
+                           .body("object_key_values.findAll { it.key=='var2' }[0].label", is("variable"))
+                           .body("object_key_values.findAll { it.key=='var2' }[0].value", is("var2ValueUpdated"))
                            //check link references
                            .body("_links.content.href",
                                  containsString("/buckets/" + bucket.getName() + "/resources/" + encodedObjectName +
@@ -300,7 +304,6 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                            .body("_links.relative.href",
                                  is("buckets/" + bucket.getName() + "/resources/" + encodedObjectName + "/revisions/" +
                                     secondCatalogObjectRevision.get("commit_time_raw")));
-        ;
     }
 
     @Test

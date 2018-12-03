@@ -212,6 +212,9 @@ dependencies {
     //support for MySQL DB
     compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.13'
 
+    //support for PostgreSQL DB
+    compile group: 'org.postgresql', name: 'postgresql', version: '42.0.0'
+
     //  Using the Scheduler Rest client as authentication service
     providedCompile "org.ow2.proactive_grid_cloud_portal:rest-client:$version"
 
