@@ -26,7 +26,6 @@
 package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.TestCase.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
