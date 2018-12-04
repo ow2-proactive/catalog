@@ -207,13 +207,16 @@ dependencies {
     compile 'com.github.dhorions:boxable'
 
     //support for Oracle DB version 12.1.0.2
-    compile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
+    testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
 
     //support for MySQL DB
-    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.13'
+    testCompile group: 'mysql', name: 'mysql-connector-java', version: '8.0.13'
 
     //support for PostgreSQL DB
-    compile group: 'org.postgresql', name: 'postgresql', version: '42.0.0'
+    testCompile group: 'org.postgresql', name: 'postgresql', version: '42.0.0'
+
+    //support for SqlServer DB
+    testCompile group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '7.1.2.jre8-preview'
 
     //  Using the Scheduler Rest client as authentication service
     providedCompile "org.ow2.proactive_grid_cloud_portal:rest-client:$version"
