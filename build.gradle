@@ -207,7 +207,7 @@ dependencies {
     compile 'com.github.dhorions:boxable'
 
     //support for Oracle DB version 12.1.0.2
-    testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
+    providedCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
 
     //support for MySQL DB
     testCompile group: 'mysql', name: 'mysql-connector-java', version: '8.0.13'
