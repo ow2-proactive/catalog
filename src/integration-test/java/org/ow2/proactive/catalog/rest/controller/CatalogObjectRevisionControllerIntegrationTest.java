@@ -39,14 +39,11 @@ import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.stream.IntStream;
 
 import org.apache.http.HttpStatus;
-import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,7 +61,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.google.common.io.ByteStreams;
-import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.response.ValidatableResponse;
 
@@ -260,46 +256,42 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                            .body("commit_time", is(secondCatalogObjectRevision.get("commit_time")))
                            .body("object_key_values", hasSize(10))
                            //check generic_information label
-                           .body("object_key_values.findAll { it.key=='bucketName' }[0].label",
-                                 is("generic_information"))
-                           .body("object_key_values.findAll { it.key=='bucketName' }[0].value", is("bucket"))
+                           .body("object_key_values.find { it.key=='bucketName' }.label", is("generic_information"))
+                           .body("object_key_values.find { it.key=='bucketName' }.value", is("bucket"))
 
-                           .body("object_key_values.findAll { it.key=='description' }[0].label", is("General"))
-                           .body("object_key_values.findAll { it.key=='description' }[0].value",
+                           .body("object_key_values.find { it.key=='description' }.label", is("General"))
+                           .body("object_key_values.find { it.key=='description' }.value",
                                  is("\n" + "         A catalogObject that executes cmd in JVM. \n" + "    "))
 
-                           .body("object_key_values.findAll { it.key=='genericInfo1' }[0].label",
-                                 is("generic_information"))
-                           .body("object_key_values.findAll { it.key=='genericInfo1' }[0].value",
+                           .body("object_key_values.find { it.key=='genericInfo1' }.label", is("generic_information"))
+                           .body("object_key_values.find { it.key=='genericInfo1' }.value",
                                  is("genericInfo1ValueUpdated"))
 
-                           .body("object_key_values.findAll { it.key=='genericInfo2' }[0].label",
-                                 is("generic_information"))
-                           .body("object_key_values.findAll { it.key=='genericInfo2' }[0].value",
+                           .body("object_key_values.find { it.key=='genericInfo2' }.label", is("generic_information"))
+                           .body("object_key_values.find { it.key=='genericInfo2' }.value",
                                  is("genericInfo2ValueUpdated"))
 
-                           .body("object_key_values.findAll { it.key=='group' }[0].label", is("generic_information"))
-                           .body("object_key_values.findAll { it.key=='group' }[0].value",
+                           .body("object_key_values.find { it.key=='group' }.label", is("generic_information"))
+                           .body("object_key_values.find { it.key=='group' }.value",
                                  is("WorkflowRevisionControllerIntegrationTestUser"))
 
-                           .body("object_key_values.findAll { it.key=='main.icon' }[0].label", is("General"))
-                           .body("object_key_values.findAll { it.key=='main.icon' }[0].value",
+                           .body("object_key_values.find { it.key=='main.icon' }.label", is("General"))
+                           .body("object_key_values.find { it.key=='main.icon' }.value",
                                  is("/automation-dashboard/styles/patterns/img/wf-icons/wf-default-icon.png"))
 
                            //check job info
-                           .body("object_key_values.findAll { it.key=='name' }[0].label", is("job_information"))
-                           .body("object_key_values.findAll { it.key=='name' }[0].value", is("Valid Workflow Updated"))
+                           .body("object_key_values.find { it.key=='name' }.label", is("job_information"))
+                           .body("object_key_values.find { it.key=='name' }.value", is("Valid Workflow Updated"))
 
-                           .body("object_key_values.findAll { it.key=='project_name' }[0].label", is("job_information"))
-                           .body("object_key_values.findAll { it.key=='project_name' }[0].value",
-                                 is("Project Name Updated"))
+                           .body("object_key_values.find { it.key=='project_name' }.label", is("job_information"))
+                           .body("object_key_values.find { it.key=='project_name' }.value", is("Project Name Updated"))
 
                            //check variables label
-                           .body("object_key_values.findAll { it.key=='var1' }[0].label", is("variable"))
-                           .body("object_key_values.findAll { it.key=='var1' }[0].value", is("var1ValueUpdated"))
+                           .body("object_key_values.find { it.key=='var1' }.label", is("variable"))
+                           .body("object_key_values.find { it.key=='var1' }.value", is("var1ValueUpdated"))
 
-                           .body("object_key_values.findAll { it.key=='var2' }[0].label", is("variable"))
-                           .body("object_key_values.findAll { it.key=='var2' }[0].value", is("var2ValueUpdated"))
+                           .body("object_key_values.find { it.key=='var2' }.label", is("variable"))
+                           .body("object_key_values.find { it.key=='var2' }.value", is("var2ValueUpdated"))
                            //check link references
                            .body("_links.content.href",
                                  containsString("/buckets/" + bucket.getName() + "/resources/" + encodedObjectName +

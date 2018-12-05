@@ -45,8 +45,6 @@ bootRepackage {
     enabled = false
 }
 
-project.ext.set("local", "")
-
 configurations {
     // The following module is excluded to avoid clashes when embedded inside the ProActive Scheduler
     all*.exclude module: 'spring-boot-starter-logging'
@@ -175,8 +173,8 @@ dependencies {
      */
     compile 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    compile('org.hibernate:hibernate-entitymanager:5.1.16.Final')
-    compile('org.hibernate:hibernate-core:5.1.16.Final')
+    compile('org.hibernate:hibernate-entitymanager')
+    compile('org.hibernate:hibernate-core')
 
     compile 'org.springframework.boot:spring-boot-starter-log4j2'
     compile 'org.springframework.boot:spring-boot-starter-web'
@@ -207,7 +205,7 @@ dependencies {
     compile 'com.github.dhorions:boxable'
 
     //support for Oracle DB version 12.1.0.2
-    providedCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
+    //testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
 
     //support for MySQL DB
     testCompile group: 'mysql', name: 'mysql-connector-java', version: '8.0.13'
