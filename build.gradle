@@ -44,7 +44,7 @@ apply plugin: 'info.solidsoft.pitest'
 pitest {
     targetClasses = ['org.ow2.proactive.catalog.*']
     threads = 2
-    outputFormats = ['XML', 'HTML']
+    outputFormats = ['XML', 'HTML', 'CSV']
     timestampedReports = false
     testSourceSets = [sourceSets.test]
     mainSourceSets = [sourceSets.main]
