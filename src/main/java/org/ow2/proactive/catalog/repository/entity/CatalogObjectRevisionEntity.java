@@ -70,10 +70,10 @@ import lombok.Data;
 public class CatalogObjectRevisionEntity implements Comparable, Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "CATALOG_OBJECT_REVISION_SEQUENCE")
-    @GenericGenerator(name = "CATALOG_OBJECT_REVISION_SEQUENCE", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator", parameters = { @Parameter(name = "sequence_name", value = "CATALOG_OBJECT_REVISION_SEQUENCE"),
-                                                                                                                                               @Parameter(name = "initial_value", value = "1"),
-                                                                                                                                               @Parameter(name = "increment_size", value = "1") })
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "CATALOG_OBJECT_REVISION_SEQ")
+    @GenericGenerator(name = "CATALOG_OBJECT_REVISION_SEQ", strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator", parameters = { @Parameter(name = "sequence_name", value = "CATALOG_OBJECT_REVISION_SEQ"),
+                                                                                                                                          @Parameter(name = "initial_value", value = "1"),
+                                                                                                                                          @Parameter(name = "increment_size", value = "1") })
     @Column(name = "ID")
     protected Long id;
 

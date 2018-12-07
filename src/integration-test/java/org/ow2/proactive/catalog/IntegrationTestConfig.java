@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog;
 
 import static org.mockito.Mockito.spy;
 
+import java.io.File;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -62,7 +63,9 @@ import org.ow2.proactive.catalog.util.parser.PCWRuleParser;
 import org.ow2.proactive.catalog.util.parser.PolicyParser;
 import org.ow2.proactive.catalog.util.parser.ScriptParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -87,16 +90,48 @@ import graphql.schema.DataFetcher;
 @Profile("test")
 public class IntegrationTestConfig {
 
+    @Value("${spring.datasource.driverClassName:}")
+    private String dataSourceDriverClassName;
+
+    @Value("${spring.datasource.url:}")
+    private String dataSourceUrl;
+
+    @Value("${spring.datasource.username:}")
+    private String dataSourceUsername;
+
+    @Value("${spring.datasource.password:}")
+    private String dataSourcePassword;
+
     @Bean
     public DataSource testDataSource() {
-        return createMemDataSource();
+        return createDataSource();
     }
 
-    private DataSource createMemDataSource() {
-        EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-        EmbeddedDatabase db = builder.setType(EmbeddedDatabaseType.HSQL).build();
+    private DataSource createDataSource() {
+        String jdbcUrl = dataSourceUrl;
 
-        return db;
+        if (jdbcUrl.isEmpty()) {
+            jdbcUrl = "jdbc:hsqldb:file:" + getDatabaseDirectory() +
+                      ";create=true;hsqldb.tx=mvcc;hsqldb.applog=1;hsqldb.sqllog=0;hsqldb.write_delay=false";
+        }
+
+        return DataSourceBuilder.create()
+                                .username(dataSourceUsername)
+                                .password(dataSourcePassword)
+                                .url(jdbcUrl)
+                                .driverClassName(dataSourceDriverClassName)
+                                .build();
+    }
+
+    private String getDatabaseDirectory() {
+        String proactiveHome = System.getProperty("proactive.home");
+
+        if (proactiveHome == null) {
+            return System.getProperty("java.io.tmpdir") + File.separator + "proactive" + File.separator + "catalog";
+        }
+
+        return proactiveHome + File.separator + "data" + File.separator + "db" + File.separator + "catalog" +
+               File.separator + "wc";
     }
 
     @Bean
