@@ -78,13 +78,13 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @PropertySource("classpath:application.properties")
 public class Application extends WebMvcConfigurerAdapter {
 
-    @Value("${spring.datasource.driverClassName:org.hsqldb.jdbc.JDBCDriver}")
+    @Value("${spring.datasource.driverClassName:}")
     private String dataSourceDriverClassName;
 
     @Value("${spring.datasource.url:}")
     private String dataSourceUrl;
 
-    @Value("${spring.datasource.username:root}")
+    @Value("${spring.datasource.username:}")
     private String dataSourceUsername;
 
     @Value("${spring.datasource.password:}")
@@ -128,14 +128,17 @@ public class Application extends WebMvcConfigurerAdapter {
     @Bean
     @Profile("test")
     public DataSource testDataSource() {
-        return createMemDataSource();
+        return createDataSource();
     }
 
-    private DataSource createMemDataSource() {
-        EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-        EmbeddedDatabase db = builder.setType(EmbeddedDatabaseType.HSQL).build();
+    private DataSource createDataSource() {
 
-        return db;
+        return DataSourceBuilder.create()
+                                .username(dataSourceUsername)
+                                .password(dataSourcePassword)
+                                .url(dataSourceUrl)
+                                .driverClassName(dataSourceDriverClassName)
+                                .build();
     }
 
     private String getDatabaseDirectory() {

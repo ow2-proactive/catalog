@@ -144,7 +144,11 @@ public class BucketServiceIntegrationTest {
 
         bucketMetadatas = bucketService.listBuckets((String) null, Optional.of("workflow"), Optional.empty());
         assertThat(bucketMetadatas).hasSize(2);
-        assertThat(bucketMetadatas.get(1).getName()).isEqualTo(bucket.getName());
+
+        org.hamcrest.MatcherAssert.assertThat(bucketMetadatas,
+                                              org.hamcrest.Matchers.hasItem(org.hamcrest.beans.HasPropertyWithValue.hasProperty("name",
+                                                                                                                                org.hamcrest.CoreMatchers.is(bucket.getName()))));
+
     }
 
     @Test
@@ -200,29 +204,43 @@ public class BucketServiceIntegrationTest {
         // test filtering by owner
         List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("owner", Optional.empty(), Optional.empty());
         assertThat(bucketMetadatas).hasSize(3);
-        assertThat(bucketMetadatas.get(0).getOwner()).isEqualTo(bucket.getOwner());
-        assertThat(bucketMetadatas.get(0).getName()).isEqualTo(bucket.getName());
+
+        org.hamcrest.MatcherAssert.assertThat(bucketMetadatas,
+                                              org.hamcrest.Matchers.hasItem(org.hamcrest.beans.HasPropertyWithValue.hasProperty("owner",
+                                                                                                                                org.hamcrest.CoreMatchers.is(bucket.getOwner()))));
+        org.hamcrest.MatcherAssert.assertThat(bucketMetadatas,
+                                              org.hamcrest.Matchers.hasItem(org.hamcrest.beans.HasPropertyWithValue.hasProperty("name",
+                                                                                                                                org.hamcrest.CoreMatchers.is(bucket.getName()))));
 
         //we expect to get only workflow/pca bucket and empty bucket
         List<BucketMetadata> bucketMetadatasWfPCA = bucketService.listBuckets((String) null,
                                                                               Optional.of("Workflow/pca"),
                                                                               Optional.empty());
         assertThat(bucketMetadatasWfPCA).hasSize(2);
-        assertThat(bucketMetadatasWfPCA.get(1).getName()).isEqualTo(bucketWfPCA.getName());
+
+        org.hamcrest.MatcherAssert.assertThat(bucketMetadatasWfPCA,
+                                              org.hamcrest.Matchers.hasItem(org.hamcrest.beans.HasPropertyWithValue.hasProperty("name",
+                                                                                                                                org.hamcrest.CoreMatchers.is(bucketWfPCA.getName()))));
 
         //we expect to get only workflow/standard bucket and empty bucket
         List<BucketMetadata> bucketMetadatasWfStandard = bucketService.listBuckets((String) null,
                                                                                    Optional.of("workflow/STANDARD"),
                                                                                    Optional.empty());
         assertThat(bucketMetadatasWfStandard).hasSize(2);
-        assertThat(bucketMetadatasWfStandard.get(1).getName()).isEqualTo(bucketWfStandard.getName());
+
+        org.hamcrest.MatcherAssert.assertThat(bucketMetadatasWfStandard,
+                                              org.hamcrest.Matchers.hasItem(org.hamcrest.beans.HasPropertyWithValue.hasProperty("name",
+                                                                                                                                org.hamcrest.CoreMatchers.is(bucketWfStandard.getName()))));
 
         //we expect to get all workflow kind bucket and empty bucket
         List<BucketMetadata> bucketMetadatasWorkflows = bucketService.listBuckets((String) null,
                                                                                   Optional.of("WORKFLOW"),
                                                                                   Optional.empty());
         assertThat(bucketMetadatasWorkflows).hasSize(4);
-        assertThat(bucketMetadatasWorkflows.get(1).getName()).isEqualTo(bucket.getName());
+
+        org.hamcrest.MatcherAssert.assertThat(bucketMetadatasWorkflows,
+                                              org.hamcrest.Matchers.hasItem(org.hamcrest.beans.HasPropertyWithValue.hasProperty("name",
+                                                                                                                                org.hamcrest.CoreMatchers.is(bucket.getName()))));
     }
 
 }
