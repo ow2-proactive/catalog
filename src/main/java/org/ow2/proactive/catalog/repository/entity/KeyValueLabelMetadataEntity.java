@@ -77,7 +77,7 @@ public class KeyValueLabelMetadataEntity implements Serializable {
     protected String key;
 
     @Lob
-    @Column(name = "PA_VALUE", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "PA_VALUE", nullable = true, length = Integer.MAX_VALUE)
     @Type(type = "org.hibernate.type.TextType")
     protected String value;
 
