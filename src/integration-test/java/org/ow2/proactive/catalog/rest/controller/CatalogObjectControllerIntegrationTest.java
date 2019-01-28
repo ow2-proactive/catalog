@@ -42,6 +42,7 @@ import java.util.HashMap;
 import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
@@ -612,6 +613,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    @Ignore
     public void testCreateWorkflowsFromArchive() {
         String firstCommitMessage = "First commit";
         String archiveCommitMessage = "Import from archive";
@@ -725,6 +727,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    @Ignore
     public void testCreateWorkflowsFromArchiveWithBadArchive() {
         given().pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")

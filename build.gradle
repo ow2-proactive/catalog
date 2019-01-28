@@ -1,4 +1,11 @@
 buildscript {
+    configurations.maybeCreate('pitest')
+
+    dependencies {
+       classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0'
+       pitest 'eu.stamp-project:descartes:1.2.4'
+    }
+
     repositories {
         jcenter()
         mavenCentral()
@@ -323,4 +330,17 @@ idea {
                 configurations.integrationTestRuntime
         ]
     }
+}
+
+apply plugin: 'info.solidsoft.pitest'
+
+pitest {
+    targetClasses = ['org.ow2.proactive.catalog.*']
+    enableDefaultIncrementalAnalysis = true
+    reportDir = 'build/pit-reports'
+    outputFormats = ['CSV','HTML']
+    pitestVersion = '1.4.0'
+    timeoutConstInMillis = 10000
+    targetTests = ['org.ow2.proactive.catalog.rest.controller.BucketControllerTest']
+    mutationEngine = 'descartes'
 }
