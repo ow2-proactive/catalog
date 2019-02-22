@@ -35,7 +35,10 @@ import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.ow2.proactive.scheduler.common.exception.JobCreationException;
 import org.ow2.proactive.scheduler.common.job.Job;
 import org.ow2.proactive.scheduler.common.job.JobVariable;
+import org.ow2.proactive.scheduler.common.job.TaskFlowJob;
 import org.ow2.proactive.scheduler.common.job.factories.JobFactory;
+import org.ow2.proactive.scheduler.common.task.Task;
+import org.ow2.proactive.scheduler.common.task.TaskVariable;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
@@ -68,19 +71,24 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private static final String ATTRIBUTE_VARIABLE_MODEL_LABEL = "variable_model";
 
+    private static final String ATTRIBUTE_DEPENDENCIES_LABEL = "dependencies";
+
+    private static final String CATALOG_OBJECT_MODEL = "PA:CATALOG_OBJECT";
+
+    private static final String DEPENDS_ON = "depends_on";
+
     private static final String JOB_DESCRIPTION_KEY = "description";
 
     private static final String JOB_VISUALIZATION_KEY = "visualization";
 
     @Override
     List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
-        Job job;
+        TaskFlowJob job;
         try {
-            job = JobFactory.getFactory().createJob(inputStream);
+            job = (TaskFlowJob) JobFactory.getFactory().createJob(inputStream);
         } catch (JobCreationException e) {
             throw new ParsingObjectException(e.getMessage(), e);
         }
-
         ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableList.builder();
 
         addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
@@ -89,6 +97,11 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
            .forEach((name, value) -> addGenericInformationIfNotNull(keyValueMapBuilder, name, value));
         job.getUnresolvedVariables().forEach((jobVariableName,
                 jobVariable) -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
+        for (Task task : job.getTasks()) {
+            task.getVariables().forEach((taskVariableName,
+                    taskVariable) -> addDependencyIfCatalogObjectModelExist(keyValueMapBuilder, taskVariable));
+
+        }
         addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobVizualisationIfNotNullAndNotEmpty(keyValueMapBuilder, job);
 
@@ -129,6 +142,25 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         }
         if (checkIfNotNull(name, model) && checkIfNotEmpty(name, model)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, model, ATTRIBUTE_VARIABLE_MODEL_LABEL));
+            addDependencyOn(keyValueMapBuilder, value, model);
+        }
+    }
+
+    private void addDependencyIfCatalogObjectModelExist(
+            ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, TaskVariable taskVariable) {
+        String name = taskVariable.getName();
+        String value = taskVariable.getValue();
+        String model = taskVariable.getModel();
+        if (checkIfNotNull(name, model) && checkIfNotEmpty(name, model)) {
+            addDependencyOn(keyValueMapBuilder, value, model);
+        }
+
+    }
+
+    private void addDependencyOn(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, String value,
+            String model) {
+        if (model.equalsIgnoreCase(CATALOG_OBJECT_MODEL)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(DEPENDS_ON, value, ATTRIBUTE_DEPENDENCIES_LABEL));
         }
     }
 
