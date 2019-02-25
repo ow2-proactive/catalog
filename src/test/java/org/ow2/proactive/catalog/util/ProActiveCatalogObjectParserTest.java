@@ -88,15 +88,17 @@ public class ProActiveCatalogObjectParserTest {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_variables_with_catalog_object_model.xml");
 
         assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("test_variables_with_model");
-        assertThat(findValuesForKeyAndLabel(result,
-                                            "depends_on",
-                                            "dependencies")).contains("basic-examples/Native_Task");
-        assertThat(findValuesForKeyAndLabel(result, "depends_on", "dependencies")).contains("data-connectors/FTP");
-        assertThat(findValuesForKeyAndLabel(result, "depends_on", "dependencies")).contains("finance/QuantLib");
-        assertThat(findValuesForKeyAndLabel(result,
-                                            "depends_on",
-                                            "dependencies")).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
-        assertThat(findValuesForKeyAndLabel(result, "depends_on", "dependencies")).hasSize(4);
+        assertThat(findUniqueValuesForKeyAndLabel(result,
+                                                  "depends_on",
+                                                  "dependencies")).contains("basic-examples/Native_Task");
+        assertThat(findUniqueValuesForKeyAndLabel(result,
+                                                  "depends_on",
+                                                  "dependencies")).contains("data-connectors/FTP");
+        assertThat(findUniqueValuesForKeyAndLabel(result, "depends_on", "dependencies")).contains("finance/QuantLib");
+        assertThat(findUniqueValuesForKeyAndLabel(result,
+                                                  "depends_on",
+                                                  "dependencies")).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(findUniqueValuesForKeyAndLabel(result, "depends_on", "dependencies")).hasSize(4);
     }
 
     @Test(expected = ParsingObjectException.class)
@@ -170,7 +172,8 @@ public class ProActiveCatalogObjectParserTest {
                      .getValue();
     }
 
-    private List<String> findValuesForKeyAndLabel(List<KeyValueLabelMetadataEntity> result, String key, String label) {
+    private List<String> findUniqueValuesForKeyAndLabel(List<KeyValueLabelMetadataEntity> result, String key,
+            String label) {
         return new ArrayList<>(new HashSet<>(result.stream()
                                                    .filter(metadata -> metadata.getKey().equals(key) &&
                                                                        metadata.getLabel().equals(label))

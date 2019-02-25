@@ -64,7 +64,7 @@ import lombok.NoArgsConstructor;
                                                                                           "PA_KEY",
                                                                                           "LABEL" }), indexes = { @Index(columnList = "PA_KEY") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@EqualsAndHashCode(of = { "key", "catalogObjectRevision" })
+@EqualsAndHashCode(of = { "catalogObjectRevision", "key", "label" })
 public class KeyValueLabelMetadataEntity implements Serializable {
 
     @Id
