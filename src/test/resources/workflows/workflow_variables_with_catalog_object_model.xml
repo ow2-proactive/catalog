@@ -39,6 +39,7 @@ ls -la
       <variables>
         <variable name="variableWithoutModel" value="valueWithoutModel"/>
         <variable name="called_workflow4" value="deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News" model="PA:Catalog_Object"/>
+        <variable name="called_workflow5" value="data-connectors/FTP" model="PA:Catalog_Object"/>
       </variables>
       <depends>
         <task ref="Linux_Bash_Task"/>

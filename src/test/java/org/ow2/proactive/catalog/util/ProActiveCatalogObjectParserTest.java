@@ -27,6 +27,8 @@ package org.ow2.proactive.catalog.util;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -94,6 +96,9 @@ public class ProActiveCatalogObjectParserTest {
         assertThat(findValuesForKeyAndLabel(result,
                                             "depends_on",
                                             "dependencies")).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(findValuesForKeyAndLabel(result,
+                "depends_on",
+                "dependencies")).hasSize(4);
     }
 
     @Test(expected = ParsingObjectException.class)
@@ -168,10 +173,12 @@ public class ProActiveCatalogObjectParserTest {
     }
 
     private List<String> findValuesForKeyAndLabel(List<KeyValueLabelMetadataEntity> result, String key, String label) {
-        return result.stream()
-                     .filter(metadata -> metadata.getKey().equals(key) && metadata.getLabel().equals(label))
-                     .map(metadata -> metadata.getValue())
-                     .collect(Collectors.toList());
+        return new ArrayList<>(
+                new HashSet<>(result.stream()
+                        .filter(metadata -> metadata.getKey().equals(key) && metadata.getLabel().equals(label))
+                        .map(KeyValueLabelMetadataEntity::getValue)
+                        .collect(Collectors.toList())));
+
     }
 
     private String getJobVisualizationExpectedContent() {
