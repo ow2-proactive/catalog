@@ -96,9 +96,7 @@ public class ProActiveCatalogObjectParserTest {
         assertThat(findValuesForKeyAndLabel(result,
                                             "depends_on",
                                             "dependencies")).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
-        assertThat(findValuesForKeyAndLabel(result,
-                "depends_on",
-                "dependencies")).hasSize(4);
+        assertThat(findValuesForKeyAndLabel(result, "depends_on", "dependencies")).hasSize(4);
     }
 
     @Test(expected = ParsingObjectException.class)
@@ -173,11 +171,11 @@ public class ProActiveCatalogObjectParserTest {
     }
 
     private List<String> findValuesForKeyAndLabel(List<KeyValueLabelMetadataEntity> result, String key, String label) {
-        return new ArrayList<>(
-                new HashSet<>(result.stream()
-                        .filter(metadata -> metadata.getKey().equals(key) && metadata.getLabel().equals(label))
-                        .map(KeyValueLabelMetadataEntity::getValue)
-                        .collect(Collectors.toList())));
+        return new ArrayList<>(new HashSet<>(result.stream()
+                                                   .filter(metadata -> metadata.getKey().equals(key) &&
+                                                                       metadata.getLabel().equals(label))
+                                                   .map(KeyValueLabelMetadataEntity::getValue)
+                                                   .collect(Collectors.toList())));
 
     }
 

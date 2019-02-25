@@ -81,15 +81,16 @@ public class KeyValueLabelMetadataHelper {
         return keyValueLabelMetadataEntity.getLabel().equals(WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
     }
 
-    public List<KeyValueLabelMetadataEntity>getOnlyNotDuplicatedDependsOn(List<KeyValueLabelMetadataEntity> keyValueLabelMetadataEntities) {
-        return new ArrayList<>(
-                new HashSet<>(keyValueLabelMetadataEntities.stream().filter(this::isDependsOn).collect(Collectors.toList())));
+    public List<KeyValueLabelMetadataEntity>
+            getOnlyNotDuplicatedDependsOn(List<KeyValueLabelMetadataEntity> keyValueLabelMetadataEntities) {
+        return new ArrayList<>(new HashSet<>(keyValueLabelMetadataEntities.stream()
+                                                                          .filter(this::isDependsOn)
+                                                                          .collect(Collectors.toList())));
     }
 
     private boolean isDependsOn(KeyValueLabelMetadataEntity keyValueLabelMetadataEntity) {
         return keyValueLabelMetadataEntity.getLabel().equals(WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL);
     }
-
 
     public List<KeyValueLabelMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {
         AbstractCatalogObjectParser catalogObjectParser = parsers.stream()
