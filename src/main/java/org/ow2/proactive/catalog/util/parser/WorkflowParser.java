@@ -37,7 +37,6 @@ import org.ow2.proactive.scheduler.common.job.Job;
 import org.ow2.proactive.scheduler.common.job.JobVariable;
 import org.ow2.proactive.scheduler.common.job.TaskFlowJob;
 import org.ow2.proactive.scheduler.common.job.factories.JobFactory;
-import org.ow2.proactive.scheduler.common.task.Task;
 import org.ow2.proactive.scheduler.common.task.TaskVariable;
 import org.springframework.stereotype.Component;
 
@@ -95,13 +94,14 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         addJobNameIfNotNull(keyValueMapBuilder, job);
         job.getUnresolvedGenericInformation()
            .forEach((name, value) -> addGenericInformationIfNotNull(keyValueMapBuilder, name, value));
-        job.getUnresolvedVariables().forEach((jobVariableName,
-                jobVariable) -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
-        for (Task task : job.getTasks()) {
-            task.getVariables().forEach((taskVariableName,
-                    taskVariable) -> addDependencyIfCatalogObjectModelExist(keyValueMapBuilder, taskVariable));
-
-        }
+        job.getUnresolvedVariables()
+           .values()
+           .forEach(jobVariable -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
+        job.getTasks()
+           .forEach(task -> task.getVariables()
+                                .values()
+                                .forEach(taskVariable -> addDependencyIfCatalogObjectModelExist(keyValueMapBuilder,
+                                                                                                taskVariable)));
         addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobVizualisationIfNotNullAndNotEmpty(keyValueMapBuilder, job);
 

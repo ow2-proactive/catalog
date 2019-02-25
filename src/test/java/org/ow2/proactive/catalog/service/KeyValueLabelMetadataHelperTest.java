@@ -126,12 +126,17 @@ public class KeyValueLabelMetadataHelperTest {
         KeyValueLabelMetadataEntity keyValueLabelMetadataEntityAnythingElse1 = new KeyValueLabelMetadataEntity("key",
                                                                                                                "value",
                                                                                                                WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
-        KeyValueLabelMetadataEntity keyValueLabelMetadataEntityAnythingElse2 = new KeyValueLabelMetadataEntity("key",
-                                                                                                               "value",
-                                                                                                               WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL);
+        KeyValueLabelMetadataEntity keyValueLabelMetadataEntityDependsOn1 = new KeyValueLabelMetadataEntity("key",
+                                                                                                            "value",
+                                                                                                            WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL);
+
+        KeyValueLabelMetadataEntity keyValueLabelMetadataEntityDependsOn2 = new KeyValueLabelMetadataEntity("key",
+                                                                                                            "value",
+                                                                                                            WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL);
 
         List<KeyValueLabelMetadataEntity> onlyNotDuplicatedDependsOn = keyValueLabelMetadataHelper.getOnlyNotDuplicatedDependsOn(Arrays.asList(keyValueLabelMetadataEntityAnythingElse1,
-                                                                                                                                               keyValueLabelMetadataEntityAnythingElse2));
+                                                                                                                                               keyValueLabelMetadataEntityDependsOn1,
+                                                                                                                                               keyValueLabelMetadataEntityDependsOn2));
         assertThat(onlyNotDuplicatedDependsOn.size()).isEqualTo(1);
     }
 
