@@ -71,7 +71,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private static final String ATTRIBUTE_VARIABLE_MODEL_LABEL = "variable_model";
 
-    private static final String ATTRIBUTE_DEPENDENCIES_LABEL = "dependencies";
+    public static final String ATTRIBUTE_DEPENDENCIES_LABEL = "dependencies";
 
     private static final String CATALOG_OBJECT_MODEL = "PA:CATALOG_OBJECT";
 

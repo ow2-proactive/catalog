@@ -108,6 +108,34 @@ public class KeyValueLabelMetadataHelperTest {
     }
 
     @Test
+    public void testThatGetOnlyNotDuplicatedDependsOnIsReturningEmptyListIfNoDependsOn() {
+        KeyValueLabelMetadataEntity keyValueLabelMetadataEntityAnythingElse1 = new KeyValueLabelMetadataEntity("key",
+                "value",
+                WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
+        KeyValueLabelMetadataEntity keyValueLabelMetadataEntityAnythingElse2 = new KeyValueLabelMetadataEntity("key",
+                "value",
+                "something");
+
+        List<KeyValueLabelMetadataEntity> onlyNotDuplicatedDependsOn = keyValueLabelMetadataHelper.getOnlyNotDuplicatedDependsOn(Arrays.asList(keyValueLabelMetadataEntityAnythingElse1,
+                keyValueLabelMetadataEntityAnythingElse2));
+        assertThat(onlyNotDuplicatedDependsOn.size()).isEqualTo(0);
+    }
+
+    @Test
+    public void testThatGetOnlyNotDuplicatedDependsOnIsOnlyReturningDependsOn() {
+        KeyValueLabelMetadataEntity keyValueLabelMetadataEntityAnythingElse1 = new KeyValueLabelMetadataEntity("key",
+                "value",
+                WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
+        KeyValueLabelMetadataEntity keyValueLabelMetadataEntityAnythingElse2 = new KeyValueLabelMetadataEntity("key",
+                "value",
+                WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL);
+
+        List<KeyValueLabelMetadataEntity> onlyNotDuplicatedDependsOn = keyValueLabelMetadataHelper.getOnlyNotDuplicatedDependsOn(Arrays.asList(keyValueLabelMetadataEntityAnythingElse1,
+                keyValueLabelMetadataEntityAnythingElse2));
+        assertThat(onlyNotDuplicatedDependsOn.size()).isEqualTo(1);
+    }
+
+    @Test
     public void testThatMetadataEntityIsReplaced() {
         List<KeyValueLabelMetadataEntity> metadataEntities = Collections.singletonList(new KeyValueLabelMetadataEntity("group",
                                                                                                                        "value",
