@@ -86,17 +86,16 @@ public class ProActiveCatalogObjectParserTest {
     @Test
     public void testParseWorkflowWithCatalogObjectModelVariables() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_variables_with_catalog_object_model.xml");
+        List<String> dependsOnValues = findValuesForKeyAndLabel(result,
+                                                                WorkflowParser.DEPENDS_ON_KEY,
+                                                                WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL);
 
         assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("test_variables_with_model");
-        assertThat(findValuesForKeyAndLabel(result,
-                                            "depends_on",
-                                            "dependencies")).contains("basic-examples/Native_Task");
-        assertThat(findValuesForKeyAndLabel(result, "depends_on", "dependencies")).contains("data-connectors/FTP");
-        assertThat(findValuesForKeyAndLabel(result, "depends_on", "dependencies")).contains("finance/QuantLib");
-        assertThat(findValuesForKeyAndLabel(result,
-                                            "depends_on",
-                                            "dependencies")).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
-        assertThat(findValuesForKeyAndLabel(result, "depends_on", "dependencies")).hasSize(4);
+        assertThat(dependsOnValues).contains("basic-examples/Native_Task");
+        assertThat(dependsOnValues).contains("data-connectors/FTP");
+        assertThat(dependsOnValues).contains("finance/QuantLib");
+        assertThat(dependsOnValues).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(dependsOnValues).hasSize(4);
     }
 
     @Test(expected = ParsingObjectException.class)
@@ -176,7 +175,6 @@ public class ProActiveCatalogObjectParserTest {
                                                                        metadata.getLabel().equals(label))
                                                    .map(KeyValueLabelMetadataEntity::getValue)
                                                    .collect(Collectors.toList())));
-
     }
 
     private String getJobVisualizationExpectedContent() {

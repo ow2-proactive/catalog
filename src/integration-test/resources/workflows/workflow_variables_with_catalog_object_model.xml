@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:proactive:jobdescriptor:3.10"
+        xsi:schemaLocation="urn:proactive:jobdescriptor:3.10 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.10/schedulerjob.xsd"
+        name="test_variables_with_model"
+        priority="normal"
+        onTaskError="continueJobExecution"
+        maxNumberOfExecution="2"
+>
+  <variables>
+    <variable name="keyWithoutModel" value="valueWithoutModel"/>
+    <variable name="called_workflow1" value="basic-examples/Native_Task" model="PA:Catalog_Object"/>
+    <variable name="called_workflow2" value="data-connectors/FTP" model="PA:Catalog_Object"/>
+    <variable name="emptyValue" value="" />
+  </variables>
+  <taskFlow>
+    <task name="Linux_Bash_Task">
+      <description>
+        <![CDATA[ The simplest task, ran by a bash engine. ]]>
+      </description>
+      <variables>
+        <variable name="called_workflow3" value="finance/QuantLib" model="PA:Catalog_Object"/>
+      </variables>
+      <scriptExecutable>
+        <script>
+          <code language="bash">
+            <![CDATA[
+ls -la
+]]>
+          </code>
+        </script>
+      </scriptExecutable>
+    </task>
+    <task name="Groovy_Task" >
+      <description>
+        <![CDATA[ The simplest task, ran by a Groovy engine. ]]>
+      </description>
+      <variables>
+        <variable name="variableWithoutModel" value="valueWithoutModel"/>
+        <variable name="called_workflow4" value="deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News" model="PA:Catalog_Object"/>
+        <variable name="called_workflow5" value="data-connectors/FTP" model="PA:Catalog_Object"/>
+      </variables>
+      <depends>
+        <task ref="Linux_Bash_Task"/>
+      </depends>
+      <scriptExecutable>
+        <script>
+          <code language="groovy">
+            <![CDATA[
+println "Hello World from " + ("hostname".execute().text)
+]]>
+          </code>
+        </script>
+      </scriptExecutable>
+    </task>
+  </taskFlow>
+</job>
