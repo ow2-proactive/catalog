@@ -86,7 +86,7 @@ public class ProActiveCatalogObjectParserTest {
     @Test
     public void testParseWorkflowWithCatalogObjectModelVariables() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_variables_with_catalog_object_model.xml");
-        List<String> dependsOnValues = findValuesForKeyAndLabel(result,
+        List<String> dependsOnValues = findUniqueValuesForKeyAndLabel(result,
                                                                 WorkflowParser.DEPENDS_ON_KEY,
                                                                 WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL);
 
@@ -169,7 +169,7 @@ public class ProActiveCatalogObjectParserTest {
                      .getValue();
     }
 
-    private List<String> findValuesForKeyAndLabel(List<KeyValueLabelMetadataEntity> result, String key, String label) {
+    private List<String> findUniqueValuesForKeyAndLabel(List<KeyValueLabelMetadataEntity> result, String key, String label) {
         return new ArrayList<>(new HashSet<>(result.stream()
                                                    .filter(metadata -> metadata.getKey().equals(key) &&
                                                                        metadata.getLabel().equals(label))
