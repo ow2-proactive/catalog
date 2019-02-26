@@ -29,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -78,6 +79,17 @@ public class KeyValueLabelMetadataHelper {
 
     private boolean isGenericInformation(KeyValueLabelMetadataEntity keyValueLabelMetadataEntity) {
         return keyValueLabelMetadataEntity.getLabel().equals(WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
+    }
+
+    public List<KeyValueLabelMetadataEntity>
+            getOnlyNotDuplicatedDependsOn(List<KeyValueLabelMetadataEntity> keyValueLabelMetadataEntities) {
+        return new ArrayList<>(new HashSet<>(keyValueLabelMetadataEntities.stream()
+                                                                          .filter(this::isDependsOn)
+                                                                          .collect(Collectors.toList())));
+    }
+
+    private boolean isDependsOn(KeyValueLabelMetadataEntity keyValueLabelMetadataEntity) {
+        return keyValueLabelMetadataEntity.getLabel().equals(WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL);
     }
 
     public List<KeyValueLabelMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {

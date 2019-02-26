@@ -49,6 +49,7 @@ import org.ow2.proactive.catalog.dto.Metadata;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 
@@ -63,6 +64,7 @@ import lombok.NoArgsConstructor;
                                                                                           "PA_KEY",
                                                                                           "LABEL" }), indexes = { @Index(columnList = "PA_KEY") })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@EqualsAndHashCode(of = { "catalogObjectRevision", "key", "label" })
 public class KeyValueLabelMetadataEntity implements Serializable {
 
     @Id
@@ -99,30 +101,6 @@ public class KeyValueLabelMetadataEntity implements Serializable {
         this.key = metadata.getKey();
         this.value = metadata.getValue();
         this.label = metadata.getLabel();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        if (!super.equals(o))
-            return false;
-
-        KeyValueLabelMetadataEntity that = (KeyValueLabelMetadataEntity) o;
-
-        if (!key.equals(that.key))
-            return false;
-        return catalogObjectRevision.equals(that.catalogObjectRevision);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + key.hashCode();
-        result = 31 * result + ((catalogObjectRevision == null) ? 0 : catalogObjectRevision.hashCode());
-        return result;
     }
 
     @Override
