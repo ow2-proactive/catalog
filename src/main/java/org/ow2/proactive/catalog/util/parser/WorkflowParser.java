@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
@@ -71,11 +72,11 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private static final String ATTRIBUTE_VARIABLE_MODEL_LABEL = "variable_model";
 
-    public static final String ATTRIBUTE_DEPENDENCIES_LABEL = "dependencies";
+    public static final String ATTRIBUTE_DEPENDS_ON_LABEL = "depends_on";
 
     private static final String CATALOG_OBJECT_MODEL = "PA:CATALOG_OBJECT";
 
-    public static final String DEPENDS_ON_KEY = "depends_on";
+    public static final String LATEST_VERSION = "latest";
 
     private static final String JOB_DESCRIPTION_KEY = "description";
 
@@ -101,8 +102,8 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         job.getTasks()
            .forEach(task -> task.getVariables()
                                 .values()
-                                .forEach(taskVariable -> addDependencyIfCatalogObjectModelExist(keyValueMapBuilder,
-                                                                                                taskVariable)));
+                                .forEach(taskVariable -> addDependsOnIfCatalogObjectModelExistOnTaskVariable(keyValueMapBuilder,
+                                                                                                             taskVariable)));
         addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobVizualisationIfNotNullAndNotEmpty(keyValueMapBuilder, job);
 
@@ -143,27 +144,51 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         }
         if (checkIfNotNull(name, model) && checkIfNotEmpty(name, model)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, model, ATTRIBUTE_VARIABLE_MODEL_LABEL));
-            addDependencyOn(keyValueMapBuilder, value, model);
+            addDependsOn(keyValueMapBuilder, value, model);
         }
     }
 
-    private void addDependencyIfCatalogObjectModelExist(
+    private void addDependsOnIfCatalogObjectModelExistOnTaskVariable(
             ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, TaskVariable taskVariable) {
         String name = taskVariable.getName();
         String value = taskVariable.getValue();
         String model = taskVariable.getModel();
         if (checkIfNotNull(name, model) && checkIfNotEmpty(name, model)) {
-            addDependencyOn(keyValueMapBuilder, value, model);
+            addDependsOn(keyValueMapBuilder, value, model);
         }
 
     }
 
-    private void addDependencyOn(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, String value,
+    private void addDependsOn(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, String value,
             String model) {
         if (model.equalsIgnoreCase(CATALOG_OBJECT_MODEL)) {
-            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(DEPENDS_ON_KEY,
-                                                                   value,
-                                                                   ATTRIBUTE_DEPENDENCIES_LABEL));
+            if (getRevisionFromDependencyOn(value).isPresent()) {
+                keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependencyOn(value),
+                                                                       getRevisionFromDependencyOn(value).get(),
+                                                                       ATTRIBUTE_DEPENDS_ON_LABEL));
+            } else {
+                keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependencyOn(value),
+                                                                       LATEST_VERSION,
+                                                                       ATTRIBUTE_DEPENDS_ON_LABEL));
+            }
+        }
+    }
+
+    private String getNameAndBucketFromDependencyOn(String calledWorkflow) {
+        try {
+            return calledWorkflow.split("/")[0] + "/" + calledWorkflow.split("/")[1];
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("Impossible to parse the PA:CATALOG_OBJECT: %s, parsing error when getting the workflow name",
+                                                     calledWorkflow),
+                                       e);
+        }
+    }
+
+    private Optional<String> getRevisionFromDependencyOn(String calledWorkflow) {
+        try {
+            return Optional.of(calledWorkflow.split("/")[2]);
+        } catch (Exception e) {
+            return Optional.empty();
         }
     }
 

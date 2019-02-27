@@ -27,8 +27,6 @@ package org.ow2.proactive.catalog.util;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -86,16 +84,20 @@ public class ProActiveCatalogObjectParserTest {
     @Test
     public void testParseWorkflowWithCatalogObjectModelVariables() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_variables_with_catalog_object_model.xml");
-        List<String> dependsOnValues = findUniqueValuesForKeyAndLabel(result,
-                                                                WorkflowParser.DEPENDS_ON_KEY,
-                                                                WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL);
+        List<String> dependsOnKeys = findKeysForDependsOnLabel(result, WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
+        List<String> revisionValues = findRevisionsForDependsOnLabel(result, WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
 
         assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("test_variables_with_model");
-        assertThat(dependsOnValues).contains("basic-examples/Native_Task");
-        assertThat(dependsOnValues).contains("data-connectors/FTP");
-        assertThat(dependsOnValues).contains("finance/QuantLib");
-        assertThat(dependsOnValues).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
-        assertThat(dependsOnValues).hasSize(4);
+        assertThat(dependsOnKeys).contains("basic-examples/Native_Task");
+        assertThat(dependsOnKeys).contains("data-connectors/FTP");
+        assertThat(dependsOnKeys).contains("finance/QuantLib");
+        assertThat(dependsOnKeys).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(dependsOnKeys).contains("data-connectors/SFTP");
+        assertThat(dependsOnKeys).contains("data-connectors/URL");
+        assertThat(dependsOnKeys).hasSize(6);
+        assertThat(revisionValues.stream()
+                                 .filter(revision -> revision.equals(WorkflowParser.LATEST_VERSION))
+                                 .collect(Collectors.toList())).hasSize(4);
     }
 
     @Test(expected = ParsingObjectException.class)
@@ -169,12 +171,18 @@ public class ProActiveCatalogObjectParserTest {
                      .getValue();
     }
 
-    private List<String> findUniqueValuesForKeyAndLabel(List<KeyValueLabelMetadataEntity> result, String key, String label) {
-        return new ArrayList<>(new HashSet<>(result.stream()
-                                                   .filter(metadata -> metadata.getKey().equals(key) &&
-                                                                       metadata.getLabel().equals(label))
-                                                   .map(KeyValueLabelMetadataEntity::getValue)
-                                                   .collect(Collectors.toList())));
+    private List<String> findKeysForDependsOnLabel(List<KeyValueLabelMetadataEntity> result, String label) {
+        return result.stream()
+                     .filter(metadata -> metadata.getLabel().equals(label))
+                     .map(KeyValueLabelMetadataEntity::getKey)
+                     .collect(Collectors.toList());
+    }
+
+    private List<String> findRevisionsForDependsOnLabel(List<KeyValueLabelMetadataEntity> result, String label) {
+        return result.stream()
+                     .filter(metadata -> metadata.getLabel().equals(label))
+                     .map(KeyValueLabelMetadataEntity::getValue)
+                     .collect(Collectors.toList());
     }
 
     private String getJobVisualizationExpectedContent() {

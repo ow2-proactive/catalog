@@ -21,6 +21,7 @@
       </description>
       <variables>
         <variable name="called_workflow3" value="finance/QuantLib" model="PA:Catalog_Object"/>
+        <variable name="called_workflow7" value="data-connectors/SFTP/1249310166743" model="PA:Catalog_Object"/>
       </variables>
       <scriptExecutable>
         <script>
@@ -40,6 +41,8 @@ ls -la
         <variable name="variableWithoutModel" value="valueWithoutModel"/>
         <variable name="called_workflow4" value="deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News" model="PA:Catalog_Object"/>
         <variable name="called_workflow5" value="data-connectors/FTP" model="PA:Catalog_Object"/>
+        <variable name="called_workflow6" value="data-connectors/URL/1539310165443" model="PA:Catalog_Object"/>
+        <variable name="called_workflow8" value="data-connectors/FTP" model="PA:Catalog_Object"/>
       </variables>
       <depends>
         <task ref="Linux_Bash_Task"/>

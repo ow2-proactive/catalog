@@ -89,7 +89,7 @@ public class KeyValueLabelMetadataHelper {
     }
 
     private boolean isDependsOn(KeyValueLabelMetadataEntity keyValueLabelMetadataEntity) {
-        return keyValueLabelMetadataEntity.getLabel().equals(WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL);
+        return keyValueLabelMetadataEntity.getLabel().equals(WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
     }
 
     public List<KeyValueLabelMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {

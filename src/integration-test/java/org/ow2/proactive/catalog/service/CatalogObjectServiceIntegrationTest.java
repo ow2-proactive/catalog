@@ -153,21 +153,19 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("commit message");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("workflow");
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("application/xml");
-        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(11);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(14);
 
-        List<String> dependsOnValues = catalogObjectMetadata.getMetadataList()
-                                                            .stream()
-                                                            .filter(metadata -> metadata.getKey()
-                                                                                        .equals(WorkflowParser.DEPENDS_ON_KEY) &&
-                                                                                metadata.getLabel()
-                                                                                        .equals(WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL))
-                                                            .map(Metadata::getValue)
-                                                            .collect(Collectors.toList());
-        assertThat(dependsOnValues).contains("basic-examples/Native_Task");
-        assertThat(dependsOnValues).contains("data-connectors/FTP");
-        assertThat(dependsOnValues).contains("finance/QuantLib");
-        assertThat(dependsOnValues).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
-        assertThat(dependsOnValues).hasSize(4);
+        List<String> dependsOnKeys = catalogObjectMetadata.getMetadataList()
+                                                          .stream()
+                                                          .filter(metadata -> metadata.getLabel()
+                                                                                      .equals(WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL))
+                                                          .map(Metadata::getKey)
+                                                          .collect(Collectors.toList());
+        assertThat(dependsOnKeys).contains("basic-examples/Native_Task");
+        assertThat(dependsOnKeys).contains("data-connectors/FTP");
+        assertThat(dependsOnKeys).contains("finance/QuantLib");
+        assertThat(dependsOnKeys).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(dependsOnKeys).hasSize(4);
     }
 
     @Test
