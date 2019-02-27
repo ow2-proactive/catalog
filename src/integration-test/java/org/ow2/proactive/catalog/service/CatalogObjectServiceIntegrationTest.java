@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.IntegrationTestConfig;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
+import org.ow2.proactive.catalog.dto.CatalogObjectDependencyList;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.dto.Metadata;
@@ -166,6 +167,10 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(dependsOnKeys).contains("finance/QuantLib");
         assertThat(dependsOnKeys).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
         assertThat(dependsOnKeys).hasSize(4);
+
+        CatalogObjectDependencyList catalogObjectDependencyList = catalogObjectService.getObjectDependencies(bucket.getName(),
+                                                                                                             wfName);
+        assertThat(catalogObjectDependencyList.getDependsOnList()).hasSize(4);
     }
 
     @Test

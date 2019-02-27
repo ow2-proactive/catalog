@@ -64,10 +64,15 @@ public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogOb
     CatalogObjectRevisionEntity findCatalogObjectRevisionByCommitTime(List<String> bucketNames, String name,
             long commitTime);
 
-    @Query("SELECT metadata.key FROM CatalogObjectRevisionEntity cor JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" + WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL + "' AND cor.catalogObject.bucket.bucketName = :bucketName AND cor.catalogObject.id.name = :objectName")
-    List<String> findDependsOnCatalogObjectNamesFromKeyValueMetadata(@Param("bucketName") String bucketName, @Param("objectName") String objectName);
+    @Query("SELECT metadata.key FROM CatalogObjectRevisionEntity cor JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
+           WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL +
+           "' AND cor.catalogObject.bucket.bucketName = :bucketName AND cor.catalogObject.id.name = :objectName")
+    List<String> findDependsOnCatalogObjectNamesFromKeyValueMetadata(@Param("bucketName") String bucketName,
+            @Param("objectName") String objectName);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" + WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL + "' AND metadata.value = :bucketObjectName")
-    List<CatalogObjectRevisionEntity> findCalledByCatalogObjectsFromKeyValueMetadata(@Param("bucketObjectName") String bucketObjectName);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
+           WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL + "' AND metadata.value = :bucketObjectName")
+    List<CatalogObjectRevisionEntity>
+            findCalledByCatalogObjectsFromKeyValueMetadata(@Param("bucketObjectName") String bucketObjectName);
 
 }

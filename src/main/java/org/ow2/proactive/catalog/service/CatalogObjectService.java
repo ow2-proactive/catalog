@@ -43,6 +43,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
+import org.ow2.proactive.catalog.dto.CatalogObjectDependencyList;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.dto.Metadata;
@@ -65,6 +66,7 @@ import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
+import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -108,6 +110,9 @@ public class CatalogObjectService {
 
     @Autowired
     private KindAndContentTypeValidator kindAndContentTypeValidator;
+
+    @Autowired
+    private SeparatorUtility separatorUtility;
 
     @Value("${kind.separator}")
     protected String kindSeparator;
@@ -231,6 +236,24 @@ public class CatalogObjectService {
         contentType.ifPresent(catalogObjectEntity::setContentType);
         catalogObjectRepository.save(catalogObjectEntity);
         return new CatalogObjectMetadata(catalogObjectEntity);
+    }
+
+    public CatalogObjectDependencyList getObjectDependencies(String bucketName, String name) {
+        findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
+        List<String> dependsOnNamesList = catalogObjectRevisionRepository.findDependsOnCatalogObjectNamesFromKeyValueMetadata(bucketName,
+                                                                                                                              name);
+        List<CatalogObjectRevisionEntity> calledByList = catalogObjectRevisionRepository.findCalledByCatalogObjectsFromKeyValueMetadata(separatorUtility.getConcatWithSeparator(bucketName,
+                                                                                                                                                                                name));
+        List<String> calledByNamesList = calledByList.stream()
+                                                     .map(revisionEntity -> separatorUtility.getConcatWithSeparator(revisionEntity.getCatalogObject()
+                                                                                                                                  .getBucket()
+                                                                                                                                  .getBucketName(),
+                                                                                                                    revisionEntity.getCatalogObject()
+                                                                                                                                  .getId()
+                                                                                                                                  .getName()))
+                                                     .collect(Collectors.toList());
+
+        return new CatalogObjectDependencyList(dependsOnNamesList, calledByNamesList);
     }
 
     private BucketEntity findBucketByNameAndCheck(String bucketName) {
