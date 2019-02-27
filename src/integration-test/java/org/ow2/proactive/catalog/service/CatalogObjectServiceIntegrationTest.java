@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.After;
 import org.junit.Before;
@@ -47,6 +48,7 @@ import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
+import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -131,6 +133,39 @@ public class CatalogObjectServiceIntegrationTest {
     @After
     public void deleteBucket() {
         bucketService.cleanAll();
+    }
+
+    @Test
+    public void testGetWorkflowCatalogObjectWithDependsOnModel() throws IOException {
+        String wfName = "workflow-depends-on";
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 wfName,
+                                                 "workflow",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 Collections.EMPTY_LIST,
+                                                 IntegrationTestUtil.getWorkflowAsByteArray("workflow_variables_with_catalog_object_model.xml"),
+                                                 null);
+
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
+                                                                                                    wfName);
+        assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("commit message");
+        assertThat(catalogObjectMetadata.getKind()).isEqualTo("workflow");
+        assertThat(catalogObjectMetadata.getContentType()).isEqualTo("application/xml");
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(14);
+
+        List<String> dependsOnKeys = catalogObjectMetadata.getMetadataList()
+                                                          .stream()
+                                                          .filter(metadata -> metadata.getLabel()
+                                                                                      .equals(WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL))
+                                                          .map(Metadata::getKey)
+                                                          .collect(Collectors.toList());
+        assertThat(dependsOnKeys).contains("basic-examples/Native_Task");
+        assertThat(dependsOnKeys).contains("data-connectors/FTP");
+        assertThat(dependsOnKeys).contains("finance/QuantLib");
+        assertThat(dependsOnKeys).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(dependsOnKeys).hasSize(4);
     }
 
     @Test

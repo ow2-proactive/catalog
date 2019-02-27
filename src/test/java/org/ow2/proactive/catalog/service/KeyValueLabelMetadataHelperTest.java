@@ -128,11 +128,11 @@ public class KeyValueLabelMetadataHelperTest {
                                                                                                                WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
         KeyValueLabelMetadataEntity keyValueLabelMetadataEntityDependsOn1 = new KeyValueLabelMetadataEntity("key",
                                                                                                             "value",
-                                                                                                            WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL);
+                                                                                                            WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
 
         KeyValueLabelMetadataEntity keyValueLabelMetadataEntityDependsOn2 = new KeyValueLabelMetadataEntity("key",
                                                                                                             "value",
-                                                                                                            WorkflowParser.ATTRIBUTE_DEPENDENCIES_LABEL);
+                                                                                                            WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
 
         List<KeyValueLabelMetadataEntity> onlyNotDuplicatedDependsOn = keyValueLabelMetadataHelper.getOnlyNotDuplicatedDependsOn(Arrays.asList(keyValueLabelMetadataEntityAnythingElse1,
                                                                                                                                                keyValueLabelMetadataEntityDependsOn1,
