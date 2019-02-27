@@ -77,7 +77,6 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     private static final String CATALOG_OBJECT_MODEL = "PA:CATALOG_OBJECT";
 
     public static final String LATEST_VERSION = "latest";
-
     private static final String JOB_DESCRIPTION_KEY = "description";
 
     private static final String JOB_VISUALIZATION_KEY = "visualization";
@@ -91,7 +90,6 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
             throw new ParsingObjectException(e.getMessage(), e);
         }
         ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableSet.builder();
-
         addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobNameIfNotNull(keyValueMapBuilder, job);
         job.getUnresolvedGenericInformation()
