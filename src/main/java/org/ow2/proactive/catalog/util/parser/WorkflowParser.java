@@ -80,7 +80,9 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     public static final String LATEST_VERSION = "latest";
 
-    public static final String CATALOG_OBJECT_MODEL_REGEXP = "^([^/]+/[^/]+)(/[^/][0-9]{12})?";
+    public static final String CATALOG_OBJECT_MODEL_REGEXP = "^([^/]+/[^/]+)(/[^/][0-9]{12})?$";
+
+    private static final Pattern PATTERN = Pattern.compile(CATALOG_OBJECT_MODEL_REGEXP);
 
     private static final String JOB_DESCRIPTION_KEY = "description";
 
@@ -166,24 +168,22 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     private void addDependsOn(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, String value,
             String model) {
         if (model.equalsIgnoreCase(CATALOG_OBJECT_MODEL)) {
-                keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependsOn(value),
-                        getRevisionFromDependsOn(value).orElse(LATEST_VERSION),
-                        ATTRIBUTE_DEPENDS_ON_LABEL));
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependsOn(value),
+                                                                   getRevisionFromDependsOn(value).orElse(LATEST_VERSION),
+                                                                   ATTRIBUTE_DEPENDS_ON_LABEL));
         }
     }
 
     private String getNameAndBucketFromDependsOn(String calledWorkflow) {
-        Pattern pattern = Pattern.compile(CATALOG_OBJECT_MODEL_REGEXP);
-        Matcher matcher = pattern.matcher(calledWorkflow);
+        Matcher matcher = PATTERN.matcher(calledWorkflow);
         if (!(calledWorkflow.matches(CATALOG_OBJECT_MODEL_REGEXP) && matcher.find())) {
             throw new RuntimeException(String.format("Impossible to parse the PA:CATALOG_OBJECT: %s, parsing error when getting the bucket and the workflow name",
-                    calledWorkflow));
+                                                     calledWorkflow));
         } else {
             return (matcher.group(1));
 
         }
     }
-
 
     private Optional<String> getRevisionFromDependsOn(String calledWorkflow) {
         try {

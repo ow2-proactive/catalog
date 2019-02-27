@@ -98,6 +98,9 @@ public class ProActiveCatalogObjectParserTest {
         assertThat(revisionValues.stream()
                                  .filter(revision -> revision.equals(WorkflowParser.LATEST_VERSION))
                                  .collect(Collectors.toList())).hasSize(4);
+        assertThat(revisionValues.stream()
+                                 .filter(revision -> !revision.equals(WorkflowParser.LATEST_VERSION))
+                                 .collect(Collectors.toList())).hasSize(2);
     }
 
     @Test(expected = ParsingObjectException.class)
