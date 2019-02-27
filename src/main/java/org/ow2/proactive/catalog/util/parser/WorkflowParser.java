@@ -31,6 +31,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
@@ -77,6 +79,9 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     private static final String CATALOG_OBJECT_MODEL = "PA:CATALOG_OBJECT";
 
     public static final String LATEST_VERSION = "latest";
+
+    public static final String CATALOG_OBJECT_MODEL_REGEXP = "^([^/]+/[^/]+)(/[^/][0-9]{12})?";
+
     private static final String JOB_DESCRIPTION_KEY = "description";
 
     private static final String JOB_VISUALIZATION_KEY = "visualization";
@@ -90,6 +95,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
             throw new ParsingObjectException(e.getMessage(), e);
         }
         ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableSet.builder();
+
         addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobNameIfNotNull(keyValueMapBuilder, job);
         job.getUnresolvedGenericInformation()
@@ -160,29 +166,28 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     private void addDependsOn(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, String value,
             String model) {
         if (model.equalsIgnoreCase(CATALOG_OBJECT_MODEL)) {
-            if (getRevisionFromDependencyOn(value).isPresent()) {
-                keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependencyOn(value),
-                                                                       getRevisionFromDependencyOn(value).get(),
-                                                                       ATTRIBUTE_DEPENDS_ON_LABEL));
-            } else {
-                keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependencyOn(value),
-                                                                       LATEST_VERSION,
-                                                                       ATTRIBUTE_DEPENDS_ON_LABEL));
+            if (model.equalsIgnoreCase(CATALOG_OBJECT_MODEL)) {
+                keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependsOn(value),
+                        getRevisionFromDependsOn(value).orElse(LATEST_VERSION),
+                        ATTRIBUTE_DEPENDS_ON_LABEL));
             }
         }
     }
 
-    private String getNameAndBucketFromDependencyOn(String calledWorkflow) {
-        try {
-            return calledWorkflow.split("/")[0] + "/" + calledWorkflow.split("/")[1];
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Impossible to parse the PA:CATALOG_OBJECT: %s, parsing error when getting the workflow name",
-                                                     calledWorkflow),
-                                       e);
+    private String getNameAndBucketFromDependsOn(String calledWorkflow) {
+        Pattern pattern = Pattern.compile(CATALOG_OBJECT_MODEL_REGEXP);
+        Matcher matcher = pattern.matcher(calledWorkflow);
+        if (!(calledWorkflow.matches(CATALOG_OBJECT_MODEL_REGEXP) && matcher.find())) {
+            throw new RuntimeException(String.format("Impossible to parse the PA:CATALOG_OBJECT: %s, parsing error when getting the bucket and the workflow name",
+                    calledWorkflow));
+        } else {
+            return (matcher.group(1));
+
         }
     }
 
-    private Optional<String> getRevisionFromDependencyOn(String calledWorkflow) {
+
+    private Optional<String> getRevisionFromDependsOn(String calledWorkflow) {
         try {
             return Optional.of(calledWorkflow.split("/")[2]);
         } catch (Exception e) {
