@@ -64,14 +64,21 @@ public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogOb
     CatalogObjectRevisionEntity findCatalogObjectRevisionByCommitTime(List<String> bucketNames, String name,
             long commitTime);
 
-    @Query("SELECT metadata.key FROM CatalogObjectRevisionEntity cor JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
+    @Query("SELECT metadata.key FROM CatalogObjectRevisionEntity cor INNER JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
            WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL +
-           "' AND cor.catalogObject.bucket.bucketName = :bucketName AND cor.catalogObject.id.name = :objectName")
+           "' AND cor.catalogObject.bucket.bucketName = :bucketName AND cor.catalogObject.id.name = :objectName " +
+           " AND cor.commitTime = :revisionTime")
     List<String> findDependsOnCatalogObjectNamesFromKeyValueMetadata(@Param("bucketName") String bucketName,
-            @Param("objectName") String objectName);
+            @Param("objectName") String objectName, @Param("revisionTime") long commitTime);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
-           WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL + "' AND metadata.value = :bucketObjectName")
+    /**
+     *
+     * @param bucketObjectName
+     * @return last revision of object depends on passed bucketObjectName
+     */
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor INNER JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
+           WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL + "' AND metadata.key = :bucketObjectName" +
+           " AND cor.commitTime = cor.catalogObject.lastCommitTime")
     List<CatalogObjectRevisionEntity>
             findCalledByCatalogObjectsFromKeyValueMetadata(@Param("bucketObjectName") String bucketObjectName);
 

@@ -238,10 +238,11 @@ public class CatalogObjectService {
         return new CatalogObjectMetadata(catalogObjectEntity);
     }
 
-    public CatalogObjectDependencyList getObjectDependencies(String bucketName, String name) {
-        findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
+    protected CatalogObjectDependencyList processObjectDependencies(String bucketName, String name,
+            long revisionCommitTime) {
         List<String> dependsOnNamesList = catalogObjectRevisionRepository.findDependsOnCatalogObjectNamesFromKeyValueMetadata(bucketName,
-                                                                                                                              name);
+                                                                                                                              name,
+                                                                                                                              revisionCommitTime);
         List<CatalogObjectRevisionEntity> calledByList = catalogObjectRevisionRepository.findCalledByCatalogObjectsFromKeyValueMetadata(separatorUtility.getConcatWithSeparator(bucketName,
                                                                                                                                                                                 name));
         List<String> calledByNamesList = calledByList.stream()
@@ -254,6 +255,16 @@ public class CatalogObjectService {
                                                      .collect(Collectors.toList());
 
         return new CatalogObjectDependencyList(dependsOnNamesList, calledByNamesList);
+    }
+
+    public CatalogObjectDependencyList getObjectDependencies(String bucketName, String name, long revisionCommitTime) {
+        findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
+        return processObjectDependencies(bucketName, name, revisionCommitTime);
+    }
+
+    public CatalogObjectDependencyList getObjectDependencies(String bucketName, String name) {
+        CatalogObjectRevisionEntity catalogObject = findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
+        return processObjectDependencies(bucketName, name, catalogObject.getCommitTime());
     }
 
     private BucketEntity findBucketByNameAndCheck(String bucketName) {

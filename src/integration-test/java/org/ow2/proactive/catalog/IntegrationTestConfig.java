@@ -53,6 +53,7 @@ import org.ow2.proactive.catalog.service.WorkflowXmlManipulator;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
+import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
 import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
@@ -71,9 +72,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 import com.google.common.collect.Lists;
 
@@ -157,6 +155,11 @@ public class IntegrationTestConfig {
     @Bean
     public DataFetcher dataFetcher() {
         return new CatalogObjectFetcher();
+    }
+
+    @Bean
+    public SeparatorUtility separatorUtility() {
+        return new SeparatorUtility();
     }
 
     @Bean

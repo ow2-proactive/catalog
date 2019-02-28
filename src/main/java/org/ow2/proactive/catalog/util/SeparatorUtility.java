@@ -32,12 +32,15 @@ import java.util.stream.Collectors;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.stereotype.Component;
 
+import lombok.NoArgsConstructor;
+
 
 /**
  * @author ActiveEon Team
  * @since 2/27/2019
  */
 @Component
+@NoArgsConstructor
 public class SeparatorUtility {
     private static final String separator = WorkflowParser.DEPENDS_ON_SEPARATOR;
 
