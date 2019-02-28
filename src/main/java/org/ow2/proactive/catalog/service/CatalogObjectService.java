@@ -238,31 +238,41 @@ public class CatalogObjectService {
         return new CatalogObjectMetadata(catalogObjectEntity);
     }
 
+    /**
+     * This methods computes the successor(s) (depends_on) and predecessor(s) (called_by) of a given catalog object
+     * @param bucketName
+     * @param name
+     * @param revisionCommitTime
+     * @return CatalogObjectDependencyList which is composed of two list of dependencies dependsOn and calledBy
+     */
+
     protected CatalogObjectDependencyList processObjectDependencies(String bucketName, String name,
             long revisionCommitTime) {
-        List<String> dependsOnNamesList = catalogObjectRevisionRepository.findDependsOnCatalogObjectNamesFromKeyValueMetadata(bucketName,
-                                                                                                                              name,
-                                                                                                                              revisionCommitTime);
-        List<CatalogObjectRevisionEntity> calledByList = catalogObjectRevisionRepository.findCalledByCatalogObjectsFromKeyValueMetadata(separatorUtility.getConcatWithSeparator(bucketName,
-                                                                                                                                                                                name));
-        List<String> calledByNamesList = calledByList.stream()
-                                                     .map(revisionEntity -> separatorUtility.getConcatWithSeparator(revisionEntity.getCatalogObject()
-                                                                                                                                  .getBucket()
-                                                                                                                                  .getBucketName(),
-                                                                                                                    revisionEntity.getCatalogObject()
-                                                                                                                                  .getId()
-                                                                                                                                  .getName()))
-                                                     .collect(Collectors.toList());
+        List<String> dependsOnBucketAndObjectNameList = catalogObjectRevisionRepository.findDependsOnCatalogObjectNamesFromKeyValueMetadata(bucketName,
+                                                                                                                                            name,
+                                                                                                                                            revisionCommitTime);
+        List<CatalogObjectRevisionEntity> calledByCatalogObjectList = catalogObjectRevisionRepository.findCalledByCatalogObjectsFromKeyValueMetadata(separatorUtility.getConcatWithSeparator(bucketName,
+                                                                                                                                                                                             name));
+        List<String> calledByBucketAndObjectNameList = calledByCatalogObjectList.stream()
+                                                                                .map(revisionEntity -> separatorUtility.getConcatWithSeparator(revisionEntity.getCatalogObject()
+                                                                                                                                                             .getBucket()
+                                                                                                                                                             .getBucketName(),
+                                                                                                                                               revisionEntity.getCatalogObject()
+                                                                                                                                                             .getId()
+                                                                                                                                                             .getName()))
+                                                                                .collect(Collectors.toList());
 
-        return new CatalogObjectDependencyList(dependsOnNamesList, calledByNamesList);
+        return new CatalogObjectDependencyList(dependsOnBucketAndObjectNameList, calledByBucketAndObjectNameList);
     }
 
     public CatalogObjectDependencyList getObjectDependencies(String bucketName, String name, long revisionCommitTime) {
+        // Check that the bucketName/name object exists in the catalog
         findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
         return processObjectDependencies(bucketName, name, revisionCommitTime);
     }
 
     public CatalogObjectDependencyList getObjectDependencies(String bucketName, String name) {
+        // Check that the bucketName/name object exists in the catalog and retrieve the commit time
         CatalogObjectRevisionEntity catalogObject = findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
         return processObjectDependencies(bucketName, name, catalogObject.getCommitTime());
     }
