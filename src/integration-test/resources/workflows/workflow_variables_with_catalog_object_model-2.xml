@@ -10,7 +10,6 @@
 >
   <variables>
     <variable name="keyWithoutModel" value="valueWithoutModel"/>
-    <variable name="called_workflow1" value="bucket/ObjectNameTest" model="PA:Catalog_Object"/>
     <variable name="called_workflow2" value="data-connectors/FTP" model="PA:Catalog_Object"/>
     <variable name="emptyValue" value="" />
   </variables>

@@ -80,7 +80,9 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     public static final String LATEST_VERSION = "latest";
 
-    public static final String CATALOG_OBJECT_MODEL_REGEXP = "^([^/]+/[^/]+)(/[^/][0-9]{12})?$";
+    public static final String DEPENDS_ON_SEPARATOR = "/";
+
+    private static final String CATALOG_OBJECT_MODEL_REGEXP = "^([^/]+/[^/]+)(/[^/][0-9]{12})?$";
 
     private static final Pattern PATTERN = Pattern.compile(CATALOG_OBJECT_MODEL_REGEXP);
 
@@ -187,7 +189,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private Optional<String> getRevisionFromDependsOn(String calledWorkflow) {
         try {
-            return Optional.of(calledWorkflow.split("/")[2]);
+            return Optional.of(calledWorkflow.split(DEPENDS_ON_SEPARATOR)[2]);
         } catch (Exception e) {
             return Optional.empty();
         }

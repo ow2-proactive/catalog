@@ -29,9 +29,11 @@ import java.util.List;
 import java.util.UUID;
 
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 
 /**
@@ -61,5 +63,23 @@ public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogOb
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND cor.catalogObject.id.name = ?2 AND cor.commitTime = ?3")
     CatalogObjectRevisionEntity findCatalogObjectRevisionByCommitTime(List<String> bucketNames, String name,
             long commitTime);
+
+    @Query("SELECT metadata.key FROM CatalogObjectRevisionEntity cor INNER JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
+           WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL +
+           "' AND cor.catalogObject.bucket.bucketName = :bucketName AND cor.catalogObject.id.name = :objectName " +
+           " AND cor.commitTime = :revisionTime")
+    List<String> findDependsOnCatalogObjectNamesFromKeyValueMetadata(@Param("bucketName") String bucketName,
+            @Param("objectName") String objectName, @Param("revisionTime") long commitTime);
+
+    /**
+     *
+     * @param bucketObjectName
+     * @return a list of objects (checking only the last revision) the depend on the passed bucketObjectName
+     */
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor INNER JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
+           WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL + "' AND metadata.key = :bucketObjectName" +
+           " AND cor.commitTime = cor.catalogObject.lastCommitTime")
+    List<CatalogObjectRevisionEntity>
+            findCalledByCatalogObjectsFromKeyValueMetadata(@Param("bucketObjectName") String bucketObjectName);
 
 }
