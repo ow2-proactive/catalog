@@ -19,7 +19,7 @@
         <![CDATA[ The simplest task, ran by a bash engine. ]]>
       </description>
       <variables>
-        <variable name="called_workflow3" value="finance/QuantLib" model="PA:Catalog_Object"/>
+        <variable name="called_workflow3" value="finance/QuantLib" inherited="false" model="PA:Catalog_Object"/>
       </variables>
       <scriptExecutable>
         <script>
@@ -36,9 +36,9 @@ ls -la
         <![CDATA[ The simplest task, ran by a Groovy engine. ]]>
       </description>
       <variables>
-        <variable name="variableWithoutModel" value="valueWithoutModel"/>
-        <variable name="called_workflow4" value="deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News" model="PA:Catalog_Object"/>
-        <variable name="called_workflow5" value="data-connectors/FTP" model="PA:Catalog_Object"/>
+        <variable name="variableWithoutModel" value="valueWithoutModel" inherited="false"/>
+        <variable name="called_workflow4" value="deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News" inherited="false" model="PA:Catalog_Object"/>
+        <variable name="called_workflow5" value="data-connectors/FTP" inherited="false" model="PA:Catalog_Object"/>
       </variables>
       <depends>
         <task ref="Linux_Bash_Task"/>

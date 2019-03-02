@@ -25,8 +25,6 @@
  */
 package org.ow2.proactive.catalog.dto;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
@@ -34,18 +32,28 @@ import lombok.Data;
 
 /**
  * @author ActiveEon Team
+ * @since 2019-03-01
  */
+
 @Data
-public class CatalogObjectDependencyList {
+public class DependsOnCatalogObject {
 
-    @JsonProperty("depends_on")
-    private List<DependsOnCatalogObject> dependsOnList;
+    @JsonProperty
+    private String bucketAndObjectName;
 
-    @JsonProperty("called_by")
-    private List<String> calledByList;
+    @JsonProperty
+    private boolean isInCatalog;
 
-    public CatalogObjectDependencyList(List<DependsOnCatalogObject> dependsOnList, List<String> calledByList) {
-        this.dependsOnList = dependsOnList;
-        this.calledByList = calledByList;
+    public DependsOnCatalogObject(String bucketAndObjectName, boolean isInCatalog) {
+        this.bucketAndObjectName = bucketAndObjectName;
+        this.isInCatalog = isInCatalog;
+    }
+
+    public String getBucketAndObjectName() {
+        return bucketAndObjectName;
+    }
+
+    public boolean isInCatalog() {
+        return isInCatalog;
     }
 }

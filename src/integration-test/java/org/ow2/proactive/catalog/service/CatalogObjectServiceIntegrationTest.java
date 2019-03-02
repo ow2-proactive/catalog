@@ -46,9 +46,11 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectDependencyList;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
+import org.ow2.proactive.catalog.dto.DependsOnCatalogObject;
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
+import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -82,6 +84,9 @@ public class CatalogObjectServiceIntegrationTest {
     private long firstCommitTime;
 
     private long secondCommitTime;
+
+    @Autowired
+    private SeparatorUtility separatorUtility;
 
     @Before
     public void setup() throws IOException, InterruptedException {
@@ -138,25 +143,25 @@ public class CatalogObjectServiceIntegrationTest {
 
     @Test
     public void testGetWorkflowCatalogObjectWithDependsOnModel() throws IOException {
-        String wfNameThatDependsOn = "workflow-depends-on";
-        String bucketNameDependsOn = bucket.getName();
-        String objectNameDependsOn = "ObjectNameTest";
+        String a_object = "A_Object";
+        String bucketName = bucket.getName();
+        String b_object = "B_Object";
 
-        // First commit to the catalog
-        catalogObjectService.createCatalogObject(bucketNameDependsOn,
-                                                 wfNameThatDependsOn,
+        // First commit of the A_Object to the catalog
+        catalogObjectService.createCatalogObject(bucketName,
+                                                 a_object,
                                                  "workflow",
-                                                 "commit message",
+                                                 "first commit message",
                                                  "username",
                                                  "application/xml",
                                                  Collections.EMPTY_LIST,
                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow_variables_with_catalog_object_model-2.xml"),
                                                  null);
 
-        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
-                                                                                                    wfNameThatDependsOn);
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucketName,
+                                                                                                    a_object);
 
-        assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("commit message");
+        assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("first commit message");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("workflow");
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("application/xml");
         assertThat(catalogObjectMetadata.getMetadataList()).hasSize(11);
@@ -174,43 +179,52 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(dependsOnKeys).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
         assertThat(dependsOnKeys).hasSize(3);
 
-        //'workflow-depends-on' depends on 'ObjectNameTest'
-        //check with first commit
+        //'A_Object' depends on B_Object'
+        //check the correctness of the DB
         long firstCommitTimeDependsOn = catalogObjectMetadata.getCommitDateTime()
                                                              .atZone(ZoneId.systemDefault())
                                                              .toInstant()
                                                              .toEpochMilli();
-        CatalogObjectDependencyList catalogObjectDependencyList = catalogObjectService.getObjectDependencies(bucket.getName(),
-                                                                                                             wfNameThatDependsOn,
+        CatalogObjectDependencyList catalogObjectDependencyListOfAObjectFirstCommit = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                             a_object,
                                                                                                              firstCommitTimeDependsOn);
-        List<String> dependsOnListFromDB = catalogObjectDependencyList.getDependsOnList();
-        assertThat(dependsOnListFromDB).hasSize(3);
-        assertThat(dependsOnListFromDB).contains("data-connectors/FTP");
-        assertThat(dependsOnListFromDB).contains("finance/QuantLib");
-        assertThat(dependsOnListFromDB).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
-        assertThat(catalogObjectDependencyList.getCalledByList()).hasSize(0);
+        List<String> BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit = catalogObjectDependencyListOfAObjectFirstCommit.getDependsOnList()
+                                                                                         .stream()
+                                                                                         .map(DependsOnCatalogObject::getBucketAndObjectName)
+                                                                                         .collect(Collectors.toList());
+        ;
+        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).hasSize(3);
+        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("data-connectors/FTP");
+        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("finance/QuantLib");
+        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(catalogObjectDependencyListOfAObjectFirstCommit.getCalledByList()).hasSize(0);
 
-        // Second commit of the same object to the catalog
-        catalogObjectService.createCatalogObjectRevision(bucketNameDependsOn,
-                                                         wfNameThatDependsOn,
+        // Second commit of the A_Object to the catalog
+        catalogObjectService.createCatalogObjectRevision(bucketName,
+                                                         a_object,
                                                          "second commit message",
                                                          "username",
                                                          IntegrationTestUtil.getWorkflowAsByteArray("workflow_variables_with_catalog_object_model.xml"));
 
-        //if no revision number is specified, check last revision of the object
-        CatalogObjectDependencyList catalogObjectDependencyListSecondCommit = catalogObjectService.getObjectDependencies(bucketNameDependsOn,
-                                                                                                                         wfNameThatDependsOn);
-        assertThat(catalogObjectDependencyListSecondCommit.getDependsOnList()).hasSize(4);
-        assertThat(catalogObjectDependencyListSecondCommit.getDependsOnList()).contains(bucketNameDependsOn + "/" +
-                                                                                        objectNameDependsOn);
-        assertThat(catalogObjectDependencyListSecondCommit.getDependsOnList()).contains("data-connectors/FTP");
-        assertThat(catalogObjectDependencyListSecondCommit.getDependsOnList()).contains("finance/QuantLib");
-        assertThat(catalogObjectDependencyListSecondCommit.getDependsOnList()).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
-        assertThat(catalogObjectDependencyListSecondCommit.getCalledByList()).hasSize(0);
+        //if no revision number is specified, get ObjectDependencyList of the  last revision of the given object
+        CatalogObjectDependencyList catalogObjectDependencyListOfAObjectSecondCommit = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                                         a_object);
+        List<String> BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit = catalogObjectDependencyListOfAObjectSecondCommit.getDependsOnList()
+                                                                                                                 .stream()
+                                                                                                                 .map(DependsOnCatalogObject::getBucketAndObjectName)
+                                                                                                                 .collect(Collectors.toList());
+        ;
+        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).hasSize(4);
+        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains(separatorUtility.getConcatWithSeparator(bucketName,
+                                                                                                                        b_object));
+        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains("data-connectors/FTP");
+        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains("finance/QuantLib");
+        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(catalogObjectDependencyListOfAObjectSecondCommit.getCalledByList()).hasSize(0);
 
-        //  'ObjectNameTest' wf called by 'workflow-depends-on'
-        catalogObjectService.createCatalogObject(bucketNameDependsOn,
-                                                 objectNameDependsOn,
+        //  Create a new catalog object 'bucket/B_Object' which is called by 'bucket/A_Object' and check that its calledBy list is not empty
+        catalogObjectService.createCatalogObject(bucketName,
+                                                 b_object,
                                                  "workflow",
                                                  "commit message",
                                                  "username",
@@ -219,15 +233,20 @@ public class CatalogObjectServiceIntegrationTest {
                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow_variables_with_catalog_object_model-2.xml"),
                                                  null);
 
-        CatalogObjectDependencyList catalogObjectDependencyListForCalledByWf = catalogObjectService.getObjectDependencies(bucket.getName(),
-                                                                                                                          objectNameDependsOn);
-        assertThat(catalogObjectDependencyListForCalledByWf.getDependsOnList()).hasSize(3);
-        assertThat(catalogObjectDependencyListForCalledByWf.getDependsOnList()).contains("data-connectors/FTP");
-        assertThat(catalogObjectDependencyListForCalledByWf.getDependsOnList()).contains("finance/QuantLib");
-        assertThat(catalogObjectDependencyListForCalledByWf.getDependsOnList()).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
-        assertThat(catalogObjectDependencyListForCalledByWf.getCalledByList()).hasSize(1);
-        assertThat(catalogObjectDependencyListForCalledByWf.getCalledByList()).contains(bucketNameDependsOn + "/" +
-                                                                                        wfNameThatDependsOn);
+        CatalogObjectDependencyList catalogObjectDependencyListOfBObject = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                                          b_object);
+        List<String> BucketAndObjectNameDependsOnListOfBObjectFromDB = catalogObjectDependencyListOfBObject.getDependsOnList()
+                                                                                                                   .stream()
+                                                                                                                   .map(DependsOnCatalogObject::getBucketAndObjectName)
+                                                                                                                   .collect(Collectors.toList());
+        ;
+        assertThat(BucketAndObjectNameDependsOnListOfBObjectFromDB).hasSize(3);
+        assertThat(BucketAndObjectNameDependsOnListOfBObjectFromDB).contains("data-connectors/FTP");
+        assertThat(BucketAndObjectNameDependsOnListOfBObjectFromDB).contains("finance/QuantLib");
+        assertThat(BucketAndObjectNameDependsOnListOfBObjectFromDB).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(catalogObjectDependencyListOfBObject.getCalledByList()).hasSize(1);
+        assertThat(catalogObjectDependencyListOfBObject.getCalledByList()).contains(separatorUtility.getConcatWithSeparator(bucketName,
+                                                                                                                                a_object));
     }
 
     @Test
