@@ -247,7 +247,7 @@ public class CatalogObjectService {
      * @param bucketName
      * @param name
      * @param revisionCommitTime
-     * @return CatalogObjectDependencyList which is composed of two list of dependencies dependsOn and calledBy
+     * @return CatalogObjectDependencyList composed of two list of dependencies dependsOn and calledBy
      */
 
     protected CatalogObjectDependencyList processObjectDependencies(String bucketName, String name,
@@ -297,6 +297,14 @@ public class CatalogObjectService {
 
         return catalogObjectRevisionEntity != null;
     }
+
+    /**
+     *
+     * @param bucketName
+     * @param name
+     * @param revisionCommitTime
+     * @return  CatalogObjectDependencyList composed of two list of dependencies: dependsOn and calledBy
+     */
 
     public CatalogObjectDependencyList getObjectDependencies(String bucketName, String name, long revisionCommitTime) {
         // Check that the bucketName/name object exists in the catalog

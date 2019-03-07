@@ -62,6 +62,7 @@ import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidEx
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.service.exception.WrongParametersException;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
+import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 
 import com.google.common.collect.ImmutableList;
 
@@ -81,6 +82,10 @@ public class CatalogObjectServiceTest {
     public static final String OBJECT = "object";
 
     public static final String NAME = "catalog";
+
+    public static final String BUCKET = "bucket";
+
+    public static final long REVISION_COMMIT_TIME = 1551960076669L;
 
     @InjectMocks
     private CatalogObjectService catalogObjectService;
@@ -171,6 +176,7 @@ public class CatalogObjectServiceTest {
                                                                                        keyValues,
                                                                                        null,
                                                                                        null);
+
         assertThat(catalogObject).isNotNull();
         assertThat(catalogObject.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
         assertThat(catalogObject.getUsername()).isEqualTo(USERNAME);
@@ -309,6 +315,18 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedContentType.getMetadataList()).isNotEmpty();
         assertThat(catalogObjectUpdatedContentType.getMetadataList()).hasSize(1);
         assertThat(catalogObjectUpdatedContentType.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
+    }
+
+    @Test(expected = CatalogObjectNotFoundException.class)
+    public void testCatalogObjectNotFound() {
+        catalogObjectService.getObjectDependencies(BUCKET, OBJECT);
+
+    }
+
+    @Test(expected = CatalogObjectNotFoundException.class)
+    public void testCatalogObjectWithRevisionCommitTimeNotFound() {
+        catalogObjectService.getObjectDependencies(BUCKET, OBJECT, REVISION_COMMIT_TIME);
+
     }
 
     @Test
