@@ -71,6 +71,14 @@ public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogOb
     List<String> findDependsOnCatalogObjectNamesFromKeyValueMetadata(@Param("bucketName") String bucketName,
             @Param("objectName") String objectName, @Param("revisionTime") long commitTime);
 
+    @Query("SELECT metadata.value FROM CatalogObjectRevisionEntity cor INNER JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
+           WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL +
+           "' AND cor.catalogObject.bucket.bucketName = :bucketName AND cor.catalogObject.id.name = :objectName " +
+           " AND cor.commitTime = :revisionTime AND metadata.key = :dependsOnObject")
+    String findRevisionOfDependsOnCatalogObjectFromKeyLabelMetadata(@Param("bucketName") String bucketName,
+            @Param("objectName") String objectName, @Param("revisionTime") long commitTime,
+            @Param("dependsOnObject") String dependsOnObject);
+
     /**
      *
      * @param bucketObjectName
