@@ -341,7 +341,7 @@ public class CatalogObjectService {
 
         List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = KeyValueLabelMetadataHelper.convertToEntity(metadataList);
 
-        if(keyValueMetadataEntities == null){
+        if (keyValueMetadataEntities == null) {
             throw new NullPointerException("Cannot build catalog object!");
         }
 
@@ -351,7 +351,7 @@ public class CatalogObjectService {
 
         GenericInfoBucketData genericInfoBucketData = createGenericInfoBucketData(catalogObjectEntity.getBucket());
 
-        if(genericInfoBucketData == null){
+        if (genericInfoBucketData == null) {
             throw new NullPointerException("Cannot build catalog object!");
         }
 
