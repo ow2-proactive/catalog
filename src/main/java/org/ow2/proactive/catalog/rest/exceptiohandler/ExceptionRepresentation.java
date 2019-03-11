@@ -34,9 +34,13 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class ExceptionRepresentation {
-    @JsonProperty("status_code")
+    @JsonProperty("httpErrorCode")
     private final Integer statusCode;
 
-    @JsonProperty("error_message")
+    @JsonProperty("errorMessage")
     private final String errorMessage;
+
+    @JsonProperty("stackTrace")
+    private final String stackTrace;
+
 }

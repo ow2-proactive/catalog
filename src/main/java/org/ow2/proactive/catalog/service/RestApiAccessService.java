@@ -38,7 +38,6 @@ import org.springframework.stereotype.Component;
  * @since 27/07/2017
  */
 @Component
-
 public class RestApiAccessService {
 
     private final BucketService bucketService;
@@ -55,15 +54,55 @@ public class RestApiAccessService {
         this.schedulerUserAuthenticationService = schedulerUserAuthenticationService;
     }
 
-    public RestApiAccessResponse checkAccessBySessionIdForBucketAndThrowIfDeclined(String sessionId, String bucketName)
-            throws NotAuthenticatedException, AccessDeniedException {
+    public RestApiAccessResponse getUserDataFromSessionidAndCheckAccess(boolean sessionIdRequired, String sessionId,
+            String bucketName) {
+        if (!isAPublicBucket(bucketName) && sessionIdRequired) {
+            return checkBucketPermission(sessionId, bucketName);
+        } else {
+            return RestApiAccessResponse.builder()
+                                        .authorized(true)
+                                        .authenticatedUser(getAuthenticatedUser(sessionIdRequired, sessionId))
+                                        .build();
+
+        }
+
+    }
+
+    private AuthenticatedUser getAuthenticatedUser(boolean sessionIdRequired, String sessionId) {
+        try {
+            return schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
+        } catch (NotAuthenticatedException nae) {
+            if (sessionIdRequired) {
+                throw nae;
+            }
+        }
+        return AuthenticatedUser.EMPTY;
+
+    }
+
+    public void checkAccessBySessionIdForBucketAndThrowIfDeclined(boolean sessionIdRequired, String sessionId,
+            String bucketName) {
+        if (!isAPublicBucket(bucketName) && sessionIdRequired) {
+            checkBucketPermission(sessionId, bucketName);
+
+        }
+
+    }
+
+    private RestApiAccessResponse checkBucketPermission(String sessionId, String bucketName) {
         RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionForBucketToOwnerOrGroup(sessionId,
                                                                                                        bucketName);
         if (!restApiAccessResponse.isAuthorized()) {
             throw new AccessDeniedException("SessionId: " + sessionId + " is not allowed to access buckets with id " +
                                             bucketName);
         }
+
         return restApiAccessResponse;
+    }
+
+    private RestApiAccessResponse checkAccessBySessionForBucketToOwnerOrGroup(String sessionId, String bucketName)
+            throws NotAuthenticatedException {
+        return checkAccessBySessionIdToOwnerOrGroup(sessionId, bucketService.getBucketMetadata(bucketName).getOwner());
     }
 
     public RestApiAccessResponse checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(String sessionId,
@@ -77,9 +116,8 @@ public class RestApiAccessService {
         return restApiAccessResponse;
     }
 
-    private RestApiAccessResponse checkAccessBySessionForBucketToOwnerOrGroup(String sessionId, String bucketName)
-            throws NotAuthenticatedException {
-        return checkAccessBySessionIdToOwnerOrGroup(sessionId, bucketService.getBucketMetadata(bucketName).getOwner());
+    public boolean isAPublicBucket(String bucketName) {
+        return BucketService.DEFAULT_BUCKET_OWNER.equals(bucketService.getBucketMetadata(bucketName).getOwner());
     }
 
     private RestApiAccessResponse checkAccessBySessionIdToOwnerOrGroup(String sessionId, String ownerOrGroup)

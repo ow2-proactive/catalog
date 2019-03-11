@@ -25,25 +25,38 @@
  */
 package org.ow2.proactive.catalog.util.parser;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.log4j.Log4j2;
+
+
 /**
- * CatalogObjectParserFactory return the right Parser for the given type of object
+ * DefaultObjectParser is the default parser for object.
  *
  * @author ActiveEon Team
  */
-public enum CatalogObjectParserFactory {
+@Log4j2
+@Component
 
-    INSTANCE;
+public final class InfrastructureParser extends AbstractCatalogObjectParser {
 
-    public static CatalogObjectParserFactory get() {
-        return INSTANCE;
+    @Override
+    public boolean isMyKind(String kind) {
+        return kind.toLowerCase().startsWith(SupportedParserKinds.INFRASTRUCTURE.toString().toLowerCase());
     }
 
-    public CatalogObjectParserInterface getParser(String type) {
-        if (SupportedParserKinds.WORKFLOW.toString().equals(type))
-            return new WorkflowParser();
-        if (SupportedParserKinds.PCW_RULE.toString().equals(type))
-            return new PCWRuleParser();
-        return new DefaultCatalogObjectParser();
+    @Override
+    public String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities) {
+        return SupportedParserKinds.INFRASTRUCTURE.getDefaultIcon();
     }
 
+    @Override
+    List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
+        return new ArrayList<>();
+    }
 }

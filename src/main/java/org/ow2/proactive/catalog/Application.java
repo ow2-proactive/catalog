@@ -25,7 +25,7 @@
  */
 package org.ow2.proactive.catalog;
 
-import static springfox.documentation.schema.AlternateTypeRules.*;
+import static springfox.documentation.schema.AlternateTypeRules.newRule;
 
 import java.io.File;
 
@@ -78,19 +78,21 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @PropertySource("classpath:application.properties")
 public class Application extends WebMvcConfigurerAdapter {
 
-    @Value("${spring.datasource.driverClassName:org.hsqldb.jdbc.JDBCDriver}")
+    @Value("${spring.datasource.driverClassName:}")
     private String dataSourceDriverClassName;
 
     @Value("${spring.datasource.url:}")
     private String dataSourceUrl;
 
-    @Value("${spring.datasource.username:root}")
+    @Value("${spring.datasource.username:}")
     private String dataSourceUsername;
 
     @Value("${spring.datasource.password:}")
     private String dataSourcePassword;
 
     public static void main(String[] args) {
+        //Important notice when using PDFBox with Java 8  :  https://pdfbox.apache.org/2.0/getting-started.html
+        System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
         SpringApplication.run(Application.class, args);
     }
 
@@ -126,14 +128,17 @@ public class Application extends WebMvcConfigurerAdapter {
     @Bean
     @Profile("test")
     public DataSource testDataSource() {
-        return createMemDataSource();
+        return createDataSource();
     }
 
-    private DataSource createMemDataSource() {
-        EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-        EmbeddedDatabase db = builder.setType(EmbeddedDatabaseType.HSQL).build();
+    private DataSource createDataSource() {
 
-        return db;
+        return DataSourceBuilder.create()
+                                .username(dataSourceUsername)
+                                .password(dataSourcePassword)
+                                .url(dataSourceUrl)
+                                .driverClassName(dataSourceDriverClassName)
+                                .build();
     }
 
     private String getDatabaseDirectory() {

@@ -23,20 +23,34 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser.pcw.rule.model;
+package org.ow2.proactive.catalog.util.name.validator;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
-public class RuleContent {
+/**
+ * @author ActiveEon Team
+ * @since 8/2/2018
+ */
+public abstract class NameValidator {
 
-    private String drl;
+    protected String namePattern;
 
+    private Pattern validNamePattern;
+
+    public NameValidator(String namePattern) {
+        this.namePattern = namePattern;
+        validNamePattern = Pattern.compile(namePattern);
+    }
+
+    /**
+    * Please check the validator pattern in the specific class implementation of this abstract class
+     * @param nameForCheck
+     * @return true result if name is valid
+     */
+    public boolean isValid(String nameForCheck) {
+        Matcher matcher = validNamePattern.matcher(nameForCheck);
+        return matcher.matches();
+    }
 }

@@ -34,6 +34,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.service.BucketService;
+import org.ow2.proactive.catalog.service.RestApiAccessService;
 
 
 /**
@@ -46,6 +47,9 @@ public class BucketControllerTest {
 
     @Mock
     private BucketService bucketService;
+
+    @Mock
+    private RestApiAccessService restApiAccessService;
 
     @Before
     public void setUp() throws Exception {
@@ -67,8 +71,8 @@ public class BucketControllerTest {
 
     @Test
     public void testList() throws Exception {
-        bucketController.list(null, null, null);
-        verify(bucketService, times(1)).listBuckets((String) null, null);
+        bucketController.list(null, null, null, null);
+        verify(bucketService, times(1)).listBuckets((String) null, null, null);
     }
 
     @Test

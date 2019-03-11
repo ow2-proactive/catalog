@@ -62,10 +62,23 @@ public interface BucketRepository extends JpaRepository<BucketEntity, Long>, Jpa
     @Query(value = "SELECT bk FROM BucketEntity bk WHERE bk.bucketName = ?1")
     BucketEntity findBucketForUpdate(String bucketName);
 
-    @Query(value = "SELECT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos WHERE cos.kind = ?1 OR bk.catalogObjects IS EMPTY GROUP BY bk")
+    @Query(value = "SELECT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos WHERE lower(cos.kind) LIKE lower(concat(?1, '%')) OR bk.catalogObjects IS EMPTY GROUP BY bk.id, bk.bucketName, bk.owner")
     List<BucketEntity> findContainingKind(String kind);
 
-    @Query(value = "SELECT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos WHERE bk.owner in ?1 AND (cos.kind = ?2 OR bk.catalogObjects IS EMPTY) GROUP BY bk")
+    @Query(value = "SELECT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos WHERE lower(cos.contentType) LIKE lower(concat(?1, '%')) OR bk.catalogObjects IS EMPTY GROUP BY bk.id, bk.bucketName, bk.owner")
+    List<BucketEntity> findContainingContentType(String contentType);
+
+    @Query(value = "SELECT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos WHERE lower(cos.kind) LIKE lower(concat(?1, '%')) AND lower(cos.contentType) LIKE lower(concat(?2, '%')) OR bk.catalogObjects IS EMPTY GROUP BY bk.id, bk.bucketName, bk.owner")
+    List<BucketEntity> findContainingKindAndContentType(String kind, String contentType);
+
+    @Query(value = "SELECT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos WHERE bk.owner in ?1 AND (lower(cos.kind) LIKE lower(concat(?2, '%')) OR bk.catalogObjects IS EMPTY) GROUP BY bk.id, bk.bucketName, bk.owner")
     List<BucketEntity> findByOwnerIsInContainingKind(List<String> owners, String kind);
+
+    @Query(value = "SELECT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos WHERE bk.owner in ?1 AND (lower(cos.contentType)LIKE lower(concat(?2, '%')) OR bk.catalogObjects IS EMPTY) GROUP BY bk.id, bk.bucketName, bk.owner")
+    List<BucketEntity> findByOwnerIsInContainingContentType(List<String> owners, String content);
+
+    @Query(value = "SELECT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos WHERE bk.owner in ?1 AND (lower(cos.kind) LIKE lower(concat(?2, '%')) AND (lower(cos.contentType)LIKE lower(concat(?3, '%'))) OR bk.catalogObjects IS EMPTY) GROUP BY bk.id, bk.bucketName, bk.owner")
+    List<BucketEntity> findByOwnerIsInContainingKindAndContentType(List<String> owners, String kind,
+            String contentType);
 
 }

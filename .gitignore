@@ -1,5 +1,6 @@
 # Idea stuff
 build
+logs
 generated
 src/generated
 classes

@@ -23,39 +23,40 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser.pcw.rule.model;
+package org.ow2.proactive.catalog.util.parser;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import org.springframework.stereotype.Component;
+
+import lombok.extern.log4j.Log4j2;
 
 
-@EqualsAndHashCode
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
-public class JMXCredentials {
+/**
+ * DefaultObjectParser is the default parser for object.
+ *
+ * @author ActiveEon Team
+ */
+@Log4j2
+@Component
 
-    private String username;
+public final class NodeSourceParser extends AbstractCatalogObjectParser {
 
-    private String password;
-
-    private String filePath;
-
-    public void validateCredentials() throws IllegalArgumentException {
-        if ((username == null || password == null) && filePath == null) {
-            throw new IllegalArgumentException("No authentication is specified for the JMX client.");
-        }
+    @Override
+    public boolean isMyKind(String kind) {
+        return kind.toLowerCase().startsWith(SupportedParserKinds.NODE_SOURCE.toString().toLowerCase());
     }
 
-    public boolean verifyFileCredentials() {
-        return (filePath != null);
+    @Override
+    public String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities) {
+        return SupportedParserKinds.NODE_SOURCE.getDefaultIcon();
     }
 
-    public boolean verifyClearCredentials() {
-        return (username != null && password != null);
+    @Override
+    List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
+        return new ArrayList<>();
     }
 }

@@ -23,31 +23,32 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util.parser.pcw.rule.model;
+package org.ow2.proactive.catalog.util;
 
-import java.util.Set;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.springframework.stereotype.Component;
+
 import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.experimental.Wither;
 
 
-@AllArgsConstructor
+/**
+ * @author ActiveEon Team
+ * @since 2/27/2019
+ */
+@Component
 @NoArgsConstructor
-@Wither
-@Getter
-@ToString
-public class PollConfiguration {
+public class SeparatorUtility {
+    private static final String separator = WorkflowParser.DEPENDS_ON_SEPARATOR;
 
-    private String pollType;
+    public String getConcatWithSeparator(String... values) {
+        return Arrays.stream(values).collect(Collectors.joining(separator));
+    }
 
-    private Set<NodeInformation> nodeInformations;
-
-    private Set<String> kpis;
-
-    private long pollingPeriodInSeconds;
-
-    private long calmPeriodInSeconds;
+    public List<String> getSplitBySeparator(String value) {
+        return Arrays.asList(value.split(separator));
+    }
 }

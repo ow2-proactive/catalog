@@ -23,32 +23,29 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util;
+package org.ow2.proactive.catalog.dto;
 
-import static com.google.common.truth.Truth.assertThat;
+import java.util.List;
 
-import org.junit.Test;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
-import org.ow2.proactive.catalog.util.parser.DefaultCatalogObjectParser;
-import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
 
 
 /**
- * Unit tests associated to {@link CatalogObjectParserFactory}.
- *
  * @author ActiveEon Team
  */
-public class CatalogObjectParserFactoryTest {
+@Data
+public class CatalogObjectDependencyList {
 
-    @Test
-    public void testFactory() throws Exception {
+    @JsonProperty("depends_on")
+    private List<DependsOnCatalogObject> dependsOnList;
 
-        CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("workflow");
-        assertThat(parser).isInstanceOf(WorkflowParser.class);
+    @JsonProperty("called_by")
+    private List<String> calledByList;
 
-        parser = CatalogObjectParserFactory.get().getParser("default parser");
-        assertThat(parser).isInstanceOf(DefaultCatalogObjectParser.class);
+    public CatalogObjectDependencyList(List<DependsOnCatalogObject> dependsOnList, List<String> calledByList) {
+        this.dependsOnList = dependsOnList;
+        this.calledByList = calledByList;
     }
-
 }

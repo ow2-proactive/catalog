@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.service;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -38,6 +39,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -53,7 +55,7 @@ import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
-import org.ow2.proactive.catalog.util.BucketNameValidator;
+import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 
 
 /**
@@ -78,7 +80,7 @@ public class BucketServiceTest {
 
     @Test
     public void testThatEmptyListIsReturnedIfListAndKindAreNull() {
-        assertThat(bucketService.listBuckets((List<String>) null, null)).isEmpty();
+        assertThat(bucketService.listBuckets((List<String>) null, null, null)).isEmpty();
         verify(bucketRepository, times(0)).findByOwnerIsInContainingKind(any(), any());
         verify(bucketRepository, times(0)).findByOwnerIn(any());
     }
@@ -87,17 +89,17 @@ public class BucketServiceTest {
     public void testCreateBucket() throws Exception {
         BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
-        when(bucketNameValidator.checkBucketName(anyString())).thenReturn(true);
+        when(bucketNameValidator.isValid(anyString())).thenReturn(true);
         BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
         verify(bucketRepository, times(1)).save(any(BucketEntity.class));
-        verify(bucketNameValidator, times(1)).checkBucketName(anyString());
+        verify(bucketNameValidator, times(1)).isValid(anyString());
         assertEquals(mockedBucket.getBucketName(), bucketMetadata.getName());
         assertEquals(mockedBucket.getOwner(), bucketMetadata.getOwner());
     }
 
     @Test(expected = BucketNameIsNotValidException.class)
     public void testCreateBucketWithInvalidName() {
-        when(bucketNameValidator.checkBucketName(anyString())).thenReturn(false);
+        when(bucketNameValidator.isValid(anyString())).thenReturn(false);
         bucketService.createBucket("Bucket-Wrong.name");
 
     }
@@ -119,17 +121,17 @@ public class BucketServiceTest {
 
     @Test
     public void testListBucketsNoOwner() throws Exception {
-        listBucket(null, null);
+        listBucket(null, Optional.empty(), Optional.empty());
     }
 
     @Test
     public void testListBucketsWithOwner() throws Exception {
-        listBucket("toto", null);
+        listBucket("toto", Optional.empty(), Optional.empty());
     }
 
     @Test
     public void testListBucketsNoOwnerWithKind() throws Exception {
-        listBucket(null, "workflow");
+        listBucket(null, Optional.of("workflow"), Optional.empty());
     }
 
     @Test
@@ -168,12 +170,12 @@ public class BucketServiceTest {
         verify(bucketRepository, times(1)).findBucketForUpdate("bucket-name");
     }
 
-    private void listBucket(String owner, String kind) {
+    private void listBucket(String owner, Optional<String> kind, Optional<String> contentType) {
         when(bucketRepository.findAll()).thenReturn(Collections.emptyList());
-        bucketService.listBuckets(owner, kind);
+        bucketService.listBuckets(owner, (kind), (contentType));
         if (!StringUtils.isEmpty(owner)) {
-            verify(bucketRepository, times(1)).findByOwner(anyString());
-        } else if (!StringUtils.isEmpty(kind)) {
+            verify(bucketRepository, times(1)).findByOwnerIn(anyList());
+        } else if (kind.isPresent()) {
             verify(bucketRepository, times(1)).findContainingKind(anyString());
         } else {
             verify(bucketRepository, times(1)).findAll();
