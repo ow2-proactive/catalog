@@ -38,10 +38,10 @@ import lombok.Data;
 @Data
 public class DependsOnCatalogObject {
 
-    @JsonProperty
+    @JsonProperty("bucket_and_object_name")
     private String bucketAndObjectName;
 
-    @JsonProperty
+    @JsonProperty("is_in_catalog")
     private boolean isInCatalog;
 
     public DependsOnCatalogObject(String bucketAndObjectName, boolean isInCatalog) {

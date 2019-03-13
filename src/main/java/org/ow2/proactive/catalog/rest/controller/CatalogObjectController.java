@@ -41,6 +41,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FilenameUtils;
+import org.ow2.proactive.catalog.dto.CatalogObjectDependencies;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
@@ -216,6 +217,24 @@ public class CatalogObjectController {
         CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucketName, name);
         return rawObjectResponseCreator.createRawObjectResponse(rawObject);
 
+    }
+
+    @ApiOperation(value = "Gets dependencies (dependsOn and calledBy) of a catalog object")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Ok"),
+                            @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied"),
+                            @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found") })
+
+    @RequestMapping(value = REQUEST_API_QUERY + "/{name:.+}/dependencies", method = GET, produces = "application/json")
+    public CatalogObjectDependencies getDependencies(
+            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @PathVariable String bucketName, @PathVariable String name)
+            throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
+                                                                               sessionId,
+                                                                               bucketName);
+
+        return catalogObjectService.getObjectDependencies(bucketName, name);
     }
 
     @ApiOperation(value = "Lists catalog objects metadata", notes = "Returns catalog objects metadata associated to the latest revision.")

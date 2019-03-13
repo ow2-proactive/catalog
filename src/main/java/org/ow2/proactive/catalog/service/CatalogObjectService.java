@@ -44,7 +44,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
-import org.ow2.proactive.catalog.dto.CatalogObjectDependencyList;
+import org.ow2.proactive.catalog.dto.CatalogObjectDependencies;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.dto.DependsOnCatalogObject;
@@ -247,10 +247,10 @@ public class CatalogObjectService {
      * @param bucketName
      * @param name
      * @param revisionCommitTime
-     * @return CatalogObjectDependencyList composed of two list of dependencies dependsOn and calledBy
+     * @return the dependencies (dependsOn and calledBy) of a catalog object
      */
 
-    protected CatalogObjectDependencyList processObjectDependencies(String bucketName, String name,
+    protected CatalogObjectDependencies processObjectDependencies(String bucketName, String name,
             long revisionCommitTime) {
         List<String> dependsOnCatalogObjectsList = catalogObjectRevisionRepository.findDependsOnCatalogObjectNamesFromKeyValueMetadata(bucketName,
                                                                                                                                        name,
@@ -280,7 +280,7 @@ public class CatalogObjectService {
                                                                                                                                                              .getName()))
                                                                                 .collect(Collectors.toList());
 
-        return new CatalogObjectDependencyList(dependsOnBucketAndObjectNameList, calledByBucketAndObjectNameList);
+        return new CatalogObjectDependencies(dependsOnBucketAndObjectNameList, calledByBucketAndObjectNameList);
     }
 
     private boolean isDependsOnObjectExistInCatalog(String bucketName, String name,
@@ -303,16 +303,16 @@ public class CatalogObjectService {
      * @param bucketName
      * @param name
      * @param revisionCommitTime
-     * @return  CatalogObjectDependencyList composed of two list of dependencies: dependsOn and calledBy
+     * @return  the dependencies (dependsOn and calledBy) of a catalog object
      */
 
-    public CatalogObjectDependencyList getObjectDependencies(String bucketName, String name, long revisionCommitTime) {
+    public CatalogObjectDependencies getObjectDependencies(String bucketName, String name, long revisionCommitTime) {
         // Check that the bucketName/name object exists in the catalog
         findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
         return processObjectDependencies(bucketName, name, revisionCommitTime);
     }
 
-    public CatalogObjectDependencyList getObjectDependencies(String bucketName, String name) {
+    public CatalogObjectDependencies getObjectDependencies(String bucketName, String name) {
         // Check that the bucketName/name object exists in the catalog and retrieve the commit time
         CatalogObjectRevisionEntity catalogObject = findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
         return processObjectDependencies(bucketName, name, catalogObject.getCommitTime());

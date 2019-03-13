@@ -45,7 +45,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.IntegrationTestConfig;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
-import org.ow2.proactive.catalog.dto.CatalogObjectDependencyList;
+import org.ow2.proactive.catalog.dto.CatalogObjectDependencies;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.dto.DependsOnCatalogObject;
@@ -188,9 +188,9 @@ public class CatalogObjectServiceIntegrationTest {
                                                              .atZone(ZoneId.systemDefault())
                                                              .toInstant()
                                                              .toEpochMilli();
-        CatalogObjectDependencyList catalogObjectDependencyListOfAObjectFirstCommit = catalogObjectService.getObjectDependencies(bucketName,
-                                                                                                                                 aObject,
-                                                                                                                                 firstCommitTimeDependsOn);
+        CatalogObjectDependencies catalogObjectDependencyListOfAObjectFirstCommit = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                                               aObject,
+                                                                                                                               firstCommitTimeDependsOn);
         List<String> BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit = catalogObjectDependencyListOfAObjectFirstCommit.getDependsOnList()
                                                                                                                                  .stream()
                                                                                                                                  .map(DependsOnCatalogObject::getBucketAndObjectName)
@@ -209,8 +209,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                          IntegrationTestUtil.getWorkflowAsByteArray("workflow_variables_with_catalog_object_model.xml"));
 
         //if no revision number is specified, get ObjectDependencyList of the  last revision of the given object
-        CatalogObjectDependencyList catalogObjectDependencyListOfAObjectSecondCommit = catalogObjectService.getObjectDependencies(bucketName,
-                                                                                                                                  aObject);
+        CatalogObjectDependencies catalogObjectDependencyListOfAObjectSecondCommit = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                                                aObject);
         List<String> BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit = catalogObjectDependencyListOfAObjectSecondCommit.getDependsOnList()
                                                                                                                                    .stream()
                                                                                                                                    .map(DependsOnCatalogObject::getBucketAndObjectName)
@@ -234,8 +234,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow_variables_with_catalog_object_model-2.xml"),
                                                  null);
 
-        CatalogObjectDependencyList catalogObjectDependencyListOfBObject = catalogObjectService.getObjectDependencies(bucketName,
-                                                                                                                      bObject);
+        CatalogObjectDependencies catalogObjectDependencyListOfBObject = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                                    bObject);
         List<String> BucketAndObjectNameDependsOnListOfBObjectFromDB = catalogObjectDependencyListOfBObject.getDependsOnList()
                                                                                                            .stream()
                                                                                                            .map(DependsOnCatalogObject::getBucketAndObjectName)
@@ -301,9 +301,9 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                     .toInstant()
                                                                                     .toEpochMilli();
 
-        //Retrieve the CatalogObjectDependencyList of the bucket/A_Object
-        CatalogObjectDependencyList catalogObjectDependencyListOfAObjectFirstCommit = catalogObjectService.getObjectDependencies(bucketName,
-                                                                                                                                 aObject);
+        //Retrieve the CatalogObjectDependencies of the bucket/A_Object
+        CatalogObjectDependencies catalogObjectDependencyListOfAObjectFirstCommit = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                                               aObject);
         List<String> BucketAndObjectNameDependsOnListOfAObjectFromDB = catalogObjectDependencyListOfAObjectFirstCommit.getDependsOnList()
                                                                                                                       .stream()
                                                                                                                       .map(DependsOnCatalogObject::getBucketAndObjectName)
@@ -360,9 +360,9 @@ public class CatalogObjectServiceIntegrationTest {
         //Check that depends on list of the second commit contains only bucket/D_Object and bucket/E_Object and its size is equals to 2
         //Note that if the revision number is not specified, getObjectDependencies method processes the last revision of the given catalog object
 
-        CatalogObjectDependencyList catalogObjectDependencyListOfAObjectSecondCommit = catalogObjectService.getObjectDependencies(bucketName,
-                                                                                                                                  aObject,
-                                                                                                                                  secondCommitTimeOfAObject);
+        CatalogObjectDependencies catalogObjectDependencyListOfAObjectSecondCommit = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                                                aObject,
+                                                                                                                                secondCommitTimeOfAObject);
         List<String> BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit = catalogObjectDependencyListOfAObjectSecondCommit.getDependsOnList()
                                                                                                                                    .stream()
                                                                                                                                    .map(DependsOnCatalogObject::getBucketAndObjectName)
@@ -376,13 +376,13 @@ public class CatalogObjectServiceIntegrationTest {
 
         //Check that bucket/B_Object and bucket/C_Object workflows are not called by the bucket/A_Object anymore (here the version is not considered)
         //First we check the bucket/B_Object
-        CatalogObjectDependencyList catalogObjectDependencyListOfBObject = catalogObjectService.getObjectDependencies(bucketName,
-                                                                                                                      bObject);
+        CatalogObjectDependencies catalogObjectDependencyListOfBObject = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                                    bObject);
         assertThat(catalogObjectDependencyListOfBObject.getCalledByList()).hasSize(0);
 
         //Second we check the bucket/C_Object
-        CatalogObjectDependencyList catalogObjectDependencyListOfCObject = catalogObjectService.getObjectDependencies(bucketName,
-                                                                                                                      bObject);
+        CatalogObjectDependencies catalogObjectDependencyListOfCObject = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                                    bObject);
         assertThat(catalogObjectDependencyListOfCObject.getCalledByList()).hasSize(0);
 
         /************ THIRD TEST ****************/
@@ -440,9 +440,9 @@ public class CatalogObjectServiceIntegrationTest {
                                         .map(Metadata::getValue)
                                         .collect(Collectors.toList())).contains("1551960076669");
 
-        CatalogObjectDependencyList catalogObjectDependencyListOfAObjectThirdCommit = catalogObjectService.getObjectDependencies(bucketName,
-                                                                                                                                 aObject,
-                                                                                                                                 thirdCommitTimeOfAObject);
+        CatalogObjectDependencies catalogObjectDependencyListOfAObjectThirdCommit = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                                               aObject,
+                                                                                                                               thirdCommitTimeOfAObject);
 
         //check that bucket/D_Object/1551960076669 object is not in the catalog DB which means that isInCatalog=False
         assertFalse(catalogObjectDependencyListOfAObjectThirdCommit.getDependsOnList()
