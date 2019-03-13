@@ -262,6 +262,7 @@ public class CatalogObjectService {
                                                                                                                                                   revisionCommitTime,
                                                                                                                                                   dependOnCatalogObject);
             dependsOnBucketAndObjectNameList.add(new DependsOnCatalogObject(dependOnCatalogObject,
+                                                                            String.valueOf(revisionCommitTime),
                                                                             isDependsOnObjectExistInCatalog(separatorUtility.getSplitBySeparator(dependOnCatalogObject)
                                                                                                                             .get(0),
                                                                                                             separatorUtility.getSplitBySeparator(dependOnCatalogObject)
