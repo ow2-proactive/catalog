@@ -342,11 +342,20 @@ public class CatalogObjectService {
 
         List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = KeyValueLabelMetadataHelper.convertToEntity(metadataList);
 
+        if (keyValueMetadataEntities == null) {
+            throw new NullPointerException("Cannot build catalog object!");
+        }
+
         List<KeyValueLabelMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? keyValueLabelMetadataHelper.extractKeyValuesFromRaw(catalogObjectEntity.getKind(),
                                                                                                                                                   rawObject)
                                                                                             : keyValueMetadataEntities;
 
         GenericInfoBucketData genericInfoBucketData = createGenericInfoBucketData(catalogObjectEntity.getBucket());
+
+        if (genericInfoBucketData == null) {
+            throw new NullPointerException("Cannot build catalog object!");
+        }
+
         List<KeyValueLabelMetadataEntity> genericInformationWithBucketDataList = keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(keyValues,
                                                                                                                                                             genericInfoBucketData);
         byte[] workflowWithReplacedGenericInfo = genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(rawObject,
