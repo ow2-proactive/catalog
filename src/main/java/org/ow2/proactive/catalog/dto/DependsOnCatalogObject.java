@@ -38,15 +38,19 @@ import lombok.Data;
 @Data
 public class DependsOnCatalogObject {
 
-    @JsonProperty
-    private String bucketAndObjectName;
+    @JsonProperty("bucket_and_object_name")
+    private final String bucketAndObjectName;
 
-    @JsonProperty
-    private boolean isInCatalog;
+    @JsonProperty("revision_commit_time")
+    private final String revisionCommitTime;
 
-    public DependsOnCatalogObject(String bucketAndObjectName, boolean isInCatalog) {
+    @JsonProperty("is_in_catalog")
+    private final boolean isInCatalog;
+
+    public DependsOnCatalogObject(String bucketAndObjectName, String revisionCommitTime, boolean isInCatalog) {
         this.bucketAndObjectName = bucketAndObjectName;
         this.isInCatalog = isInCatalog;
+        this.revisionCommitTime = revisionCommitTime;
     }
 
     public String getBucketAndObjectName() {

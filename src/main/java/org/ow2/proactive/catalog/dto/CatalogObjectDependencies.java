@@ -36,15 +36,15 @@ import lombok.Data;
  * @author ActiveEon Team
  */
 @Data
-public class CatalogObjectDependencyList {
+public class CatalogObjectDependencies {
 
     @JsonProperty("depends_on")
-    private List<DependsOnCatalogObject> dependsOnList;
+    private final List<DependsOnCatalogObject> dependsOnList;
 
     @JsonProperty("called_by")
-    private List<String> calledByList;
+    private final List<String> calledByList;
 
-    public CatalogObjectDependencyList(List<DependsOnCatalogObject> dependsOnList, List<String> calledByList) {
+    public CatalogObjectDependencies(List<DependsOnCatalogObject> dependsOnList, List<String> calledByList) {
         this.dependsOnList = dependsOnList;
         this.calledByList = calledByList;
     }
