@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
@@ -47,7 +48,9 @@ public class DependsOnCatalogObject {
     @JsonProperty("is_in_catalog")
     private final boolean isInCatalog;
 
-    public DependsOnCatalogObject(String bucketAndObjectName, String revisionCommitTime, boolean isInCatalog) {
+    public DependsOnCatalogObject(@JsonProperty("bucket_and_object_name") String bucketAndObjectName,
+            @JsonProperty("revision_commit_time") String revisionCommitTime,
+            @JsonProperty("is_in_catalog") boolean isInCatalog) {
         this.bucketAndObjectName = bucketAndObjectName;
         this.isInCatalog = isInCatalog;
         this.revisionCommitTime = revisionCommitTime;
@@ -57,6 +60,7 @@ public class DependsOnCatalogObject {
         return bucketAndObjectName;
     }
 
+    @JsonIgnore
     public boolean isInCatalog() {
         return isInCatalog;
     }
