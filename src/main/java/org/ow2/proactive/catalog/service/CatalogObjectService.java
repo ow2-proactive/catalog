@@ -581,6 +581,10 @@ public class CatalogObjectService {
         return new TreeSet<>(catalogObjectRepository.findAllContentTypes());
     }
 
+    public List<Object[]> getCatalogObjectsOfKindWorkflow() {
+        return catalogObjectRepository.findDefaultCatalogObjectsOfKindWorkflow();
+    }
+
     @VisibleForTesting
     protected CatalogObjectRevisionEntity getCatalogObjectRevisionEntityByCommitTime(String bucketName, String name,
             long commitTime) {

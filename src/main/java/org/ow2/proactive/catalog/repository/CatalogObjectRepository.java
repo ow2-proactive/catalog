@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.repository;
 
+import java.util.List;
 import java.util.Set;
 
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
@@ -50,4 +51,8 @@ public interface CatalogObjectRepository
 
     @Query(value = "SELECT DISTINCT cos.contentType FROM CatalogObjectEntity cos")
     Set<String> findAllContentTypes();
+
+    @Query(value = "SELECT cos.bucket.bucketName, cos.id.name FROM CatalogObjectEntity cos WHERE lower(cos.kind) LIKE '%workflow%'")
+    List<Object[]> findDefaultCatalogObjectsOfKindWorkflow();
+
 }
