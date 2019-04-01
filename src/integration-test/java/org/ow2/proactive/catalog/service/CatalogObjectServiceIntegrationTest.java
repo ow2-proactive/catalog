@@ -488,26 +488,26 @@ public class CatalogObjectServiceIntegrationTest {
 
         //Adding a new catalog object of workflow kind
         catalogObjectService.createCatalogObject(bucket.getName(),
-                "catalog_object_1",
-                "workflow/new",
-                "commit message",
-                "username",
-                "application/xml",
-                keyValues,
-                workflowAsByteArray,
-                null);
+                                                 "catalog_object_1",
+                                                 "workflow/new",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
         assertThat(catalogObjectService.getCatalogObjectsOfKindWorkflow()).hasSize(2);
 
         //Adding a new catalog object of non workflow kind and check the number remains the same
         catalogObjectService.createCatalogObject(bucket.getName(),
-                "catalog_object_2",
-                "another/kind",
-                "commit message",
-                "username",
-                "application/xml",
-                keyValues,
-                workflowAsByteArray,
-                null);
+                                                 "catalog_object_2",
+                                                 "another/kind",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
 
         assertThat(catalogObjectService.getCatalogObjectsOfKindWorkflow()).hasSize(2);
     }
