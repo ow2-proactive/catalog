@@ -483,6 +483,36 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
+    public void testGetCatalogObjectsOfKindWorkflow() {
+        assertThat(catalogObjectService.getCatalogObjectsOfKindWorkflow()).hasSize(1);
+
+        //Adding a new catalog object of workflow kind
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                "catalog_object_1",
+                "workflow/new",
+                "commit message",
+                "username",
+                "application/xml",
+                keyValues,
+                workflowAsByteArray,
+                null);
+        assertThat(catalogObjectService.getCatalogObjectsOfKindWorkflow()).hasSize(2);
+
+        //Adding a new catalog object of non workflow kind and check the number remains the same
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                "catalog_object_2",
+                "another/kind",
+                "commit message",
+                "username",
+                "application/xml",
+                keyValues,
+                workflowAsByteArray,
+                null);
+
+        assertThat(catalogObjectService.getCatalogObjectsOfKindWorkflow()).hasSize(2);
+    }
+
+    @Test
     public void testGetAllKinds() {
         Set<String> listKinds = catalogObjectService.getKinds();
         assertThat(listKinds).hasSize(2);

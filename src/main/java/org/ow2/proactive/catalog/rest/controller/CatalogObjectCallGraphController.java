@@ -25,9 +25,112 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.http.entity.mime.MIME;
+import org.ow2.proactive.catalog.dto.BucketMetadata;
+import org.ow2.proactive.catalog.service.BucketService;
+import org.ow2.proactive.catalog.service.CatalogObjectCallGraphService;
+import org.ow2.proactive.catalog.service.RestApiAccessService;
+import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
+import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
+import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import lombok.extern.log4j.Log4j2;
+
+
 /**
  * @author ActiveEon Team
  * @since 2019-03-25
  */
+@RestController
+@Log4j2
+@RequestMapping(value = "/buckets/call-graph")
 public class CatalogObjectCallGraphController {
+    @Autowired
+    private BucketService bucketService;
+
+    @Autowired
+    private CatalogObjectCallGraphService catalogObjectCallGraphService;
+
+    @Autowired
+    private RestApiAccessService restApiAccessService;
+
+    @Value("${pa.catalog.security.required.sessionid}")
+    private boolean sessionIdRequired;
+
+    @ApiOperation(value = "Get the call graph of all catalog objects in a PNG image")
+    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @RequestMapping(method = GET)
+    @ResponseStatus(HttpStatus.OK)
+    public void getCallGraph(HttpServletResponse response,
+            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
+            @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @ApiParam(value = "The content type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
+            throws NotAuthenticatedException, AccessDeniedException, IOException {
+
+        List<String> authorisedBucketsNames = getListOfAuthorizedBuckets(sessionId, ownerName, kind, contentType);
+
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphImage(authorisedBucketsNames,
+                                                                                   kind,
+                                                                                   contentType);
+
+        response.setContentType(MediaType.IMAGE_PNG_VALUE);
+        flushResponse(response, content);
+
+    }
+
+    private void flushResponse(HttpServletResponse response, byte[] content) throws IOException {
+        response.addHeader("Content-size", Integer.toString(content.length));
+        response.setCharacterEncoding("UTF-8");
+
+        response.getOutputStream().write(content);
+        response.getOutputStream().flush();
+    }
+
+    private List<String> getListOfAuthorizedBuckets(String sessionId, String ownerName, Optional<String> kind,
+            Optional<String> contentType) throws NotAuthenticatedException, AccessDeniedException {
+        List<BucketMetadata> authorisedBuckets;
+        if (sessionIdRequired) {
+            RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
+                                                                                                                                       ownerName);
+
+            authorisedBuckets = bucketService.getBucketsByGroups(ownerName,
+                                                                 kind,
+                                                                 contentType,
+                                                                 () -> restApiAccessResponse.getAuthenticatedUser()
+                                                                                            .getGroups());
+
+        } else {
+            authorisedBuckets = bucketService.listBuckets(ownerName, kind, contentType);
+        }
+
+        List<String> authorisedBucketsNames = authorisedBuckets.stream()
+                                                               .map(bucketMetaData -> bucketMetaData.getName())
+                                                               .collect(Collectors.toList());
+        return authorisedBucketsNames;
+    }
+
 }

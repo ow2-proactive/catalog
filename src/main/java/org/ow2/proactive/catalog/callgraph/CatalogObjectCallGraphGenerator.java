@@ -27,7 +27,7 @@ package org.ow2.proactive.catalog.callgraph;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,28 +63,26 @@ public class CatalogObjectCallGraphGenerator {
     @Autowired
     private SeparatorUtility separatorUtility;
 
-    public File buildImageOfCatalogCallGraph(List<CatalogObjectMetadata> catalogObjectMetadataList) throws IOException {
+    public byte[] generateImage(List<CatalogObjectMetadata> catalogObjectMetadataList) throws IOException {
 
         CallGraphHolder callGraphHolder = buildCatalogCallGraph(catalogObjectMetadataList);
-
         JGraphXAdapter<GraphNode, DefaultEdge> callGraphAdapter = new JGraphXAdapter(callGraphHolder.getDependencyGraph());
-
         callGraphStyle(callGraphAdapter);
-
         mxGraphLayout layout = new mxHierarchicalLayout(callGraphAdapter, SwingConstants.NORTH);
         layout.execute(callGraphAdapter.getDefaultParent());
+        BufferedImage callGraphImage = mxCellRenderer.createBufferedImage(callGraphAdapter, null, 2, null, true, null);
 
-        BufferedImage image = mxCellRenderer.createBufferedImage(callGraphAdapter, null, 2, Color.WHITE, true, null);
-        File imgFile = new File("src/test/resources/graph.png");
-        ImageIO.write(image, "PNG", imgFile);
-
-        return imgFile;
-
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(callGraphImage, "png", baos);
+        baos.flush();
+        baos.close();
+        return baos.toByteArray();
     }
 
     private void callGraphStyle(JGraphXAdapter<GraphNode, DefaultEdge> callGraphAdapter) {
         callGraphAdapter.setAutoSizeCells(true);
         callGraphAdapter.setCellsResizable(true);
+
         //Vertex style
         callGraphAdapter.getStylesheet().getDefaultVertexStyle().put(mxConstants.STYLE_SHAPE,
                                                                      mxConstants.SHAPE_RECTANGLE);

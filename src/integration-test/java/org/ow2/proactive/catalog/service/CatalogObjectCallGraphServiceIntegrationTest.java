@@ -28,12 +28,15 @@ package org.ow2.proactive.catalog.service;
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.TestCase.assertTrue;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.ws.rs.core.MediaType;
 
 import org.junit.After;
@@ -72,10 +75,12 @@ public class CatalogObjectCallGraphServiceIntegrationTest {
 
     private BucketMetadata secondBucket;
 
-    private final String kind = "workflow";
+    private final static String KIND = "workflow";
+
+    private final static String USERNAME = "username";
 
     @Before
-    public void setup() throws IOException, InterruptedException {
+    public void setup() {
         bucket = bucketService.createBucket("bucket", "CatalogObjectCallGraphServiceIntegrationTest");
         secondBucket = bucketService.createBucket("bucket1", "CatalogObjectCallGraphServiceIntegrationTest");
         assertThat(bucket).isNotNull();
@@ -106,9 +111,9 @@ public class CatalogObjectCallGraphServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(bucketName,
                                                  dWorkflow,
-                                                 kind,
+                                                 KIND,
                                                  "commit message of D_Workflow",
-                                                 "username",
+                                                 USERNAME,
                                                  MediaType.APPLICATION_XML,
                                                  Collections.EMPTY_LIST,
                                                  IntegrationTestUtil.getWorkflowAsByteArray("call-graph/D_Workflow.xml"),
@@ -116,9 +121,9 @@ public class CatalogObjectCallGraphServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(bucketName,
                                                  eWorkflow,
-                                                 kind,
+                                                 KIND,
                                                  "commit message of E_Workflow",
-                                                 "username",
+                                                 USERNAME,
                                                  MediaType.APPLICATION_XML,
                                                  Collections.EMPTY_LIST,
                                                  IntegrationTestUtil.getWorkflowAsByteArray("call-graph/E_Workflow.xml"),
@@ -126,9 +131,9 @@ public class CatalogObjectCallGraphServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(bucketName,
                                                  cWorkflow,
-                                                 kind,
+                                                 KIND,
                                                  "commit message of C_Workflow",
-                                                 "username",
+                                                 USERNAME,
                                                  MediaType.APPLICATION_XML,
                                                  Collections.EMPTY_LIST,
                                                  IntegrationTestUtil.getWorkflowAsByteArray("call-graph/C_Workflow.xml"),
@@ -136,9 +141,9 @@ public class CatalogObjectCallGraphServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(bucketName,
                                                  bWorkflow,
-                                                 kind,
+                                                 KIND,
                                                  "commit message of B_Workflow",
-                                                 "username",
+                                                 USERNAME,
                                                  MediaType.APPLICATION_XML,
                                                  Collections.EMPTY_LIST,
                                                  IntegrationTestUtil.getWorkflowAsByteArray("call-graph/B_Workflow.xml"),
@@ -146,9 +151,9 @@ public class CatalogObjectCallGraphServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(bucketName,
                                                  aWorkflow,
-                                                 kind,
+                                                 KIND,
                                                  "commit message of A_Workflow",
-                                                 "username",
+                                                 USERNAME,
                                                  MediaType.APPLICATION_XML,
                                                  Collections.EMPTY_LIST,
                                                  IntegrationTestUtil.getWorkflowAsByteArray("call-graph/A_Workflow.xml"),
@@ -156,9 +161,9 @@ public class CatalogObjectCallGraphServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(secondBucketName,
                                                  fWorkflow,
-                                                 kind,
+                                                 KIND,
                                                  "commit message of F_Workflow",
-                                                 "username",
+                                                 USERNAME,
                                                  MediaType.APPLICATION_XML,
                                                  Collections.EMPTY_LIST,
                                                  IntegrationTestUtil.getWorkflowAsByteArray("call-graph/F_Workflow.xml"),
@@ -166,9 +171,9 @@ public class CatalogObjectCallGraphServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(secondBucketName,
                                                  gWorkflow,
-                                                 kind,
+                                                 KIND,
                                                  "commit message of G_Workflow",
-                                                 "username",
+                                                 USERNAME,
                                                  MediaType.APPLICATION_XML,
                                                  Collections.EMPTY_LIST,
                                                  IntegrationTestUtil.getWorkflowAsByteArray("call-graph/G_Workflow.xml"),
@@ -176,19 +181,22 @@ public class CatalogObjectCallGraphServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(secondBucketName,
                                                  hWorkflow,
-                                                 kind,
+                                                 KIND,
                                                  "commit message of H_Workflow",
-                                                 "username",
+                                                 USERNAME,
                                                  MediaType.APPLICATION_XML,
                                                  Collections.EMPTY_LIST,
                                                  IntegrationTestUtil.getWorkflowAsByteArray("call-graph/H_Workflow.xml"),
                                                  null);
 
-        File callGraphPNGImage = catalogObjectCallGraphService.generatePNGImageOfCatalogCallGraph(authorisedBucketsNames,
-                                                                                                  java.util.Optional.of(kind),
-                                                                                                  java.util.Optional.of(MediaType.APPLICATION_XML));
+        byte[] bytesCallGraphImage = catalogObjectCallGraphService.generateBytesCallGraphImage(authorisedBucketsNames,
+                                                                                               java.util.Optional.of(KIND),
+                                                                                               java.util.Optional.of(MediaType.APPLICATION_XML));
 
-        assertTrue(callGraphPNGImage.exists());
-
+        File callGraphJPGImage = new File("src/integration-test/resources/call-graph.png");
+        ByteArrayInputStream bis = new ByteArrayInputStream(bytesCallGraphImage);
+        BufferedImage bImage2 = ImageIO.read(bis);
+        ImageIO.write(bImage2, "png", callGraphJPGImage);
+        assertTrue(callGraphJPGImage.exists());
     }
 }

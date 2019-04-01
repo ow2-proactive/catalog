@@ -73,7 +73,7 @@ public class CatalogObjectReportControllerTest {
     @Test
     public void getReport() throws Exception {
 
-        List<String> ownerName = Lists.newArrayList("xxx");
+        String ownerName = "xxx";
         Optional<String> kind = Optional.empty();
         Optional<String> contentType = Optional.empty();
 
@@ -86,7 +86,7 @@ public class CatalogObjectReportControllerTest {
         ServletOutputStream sos = mock(ServletOutputStream.class);
         when(response.getOutputStream()).thenReturn(sos);
 
-        when(bucketService.listBuckets("xxx", kind, contentType)).thenReturn(authorisedBuckets);
+        when(bucketService.listBuckets(ownerName, kind, contentType)).thenReturn(authorisedBuckets);
         when(catalogObjectReportService.generateBytesReport(anyList(), anyObject(), anyObject())).thenReturn(content);
 
         catalogObjectReportController.getReport(response, "sessionid", "xxx", Optional.empty(), Optional.empty());

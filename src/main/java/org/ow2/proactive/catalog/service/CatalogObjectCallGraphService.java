@@ -25,7 +25,6 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,12 +55,12 @@ public class CatalogObjectCallGraphService {
     @Autowired
     private CatalogObjectCallGraphGenerator catalogObjectCallGraphGenerator;
 
-    public File generatePNGImageOfCatalogCallGraph(List<String> authorisedBucketsNames, Optional<String> kind,
+    public byte[] generateBytesCallGraphImage(List<String> authorisedBucketsNames, Optional<String> kind,
             Optional<String> contentType) throws IOException {
 
         List<CatalogObjectMetadata> metadataList = getListOfCatalogObjects(kind, contentType, authorisedBucketsNames);
 
-        return catalogObjectCallGraphGenerator.buildImageOfCatalogCallGraph(metadataList);
+        return catalogObjectCallGraphGenerator.generateImage(metadataList);
 
     }
 
