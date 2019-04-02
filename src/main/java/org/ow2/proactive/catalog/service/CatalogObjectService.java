@@ -46,6 +46,7 @@ import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
 import org.ow2.proactive.catalog.dto.CatalogObjectDependencies;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.dto.CatalogObjectNameReference;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.dto.DependsOnCatalogObject;
 import org.ow2.proactive.catalog.dto.Metadata;
@@ -579,6 +580,25 @@ public class CatalogObjectService {
      */
     public TreeSet<String> getContentTypes() {
         return new TreeSet<>(catalogObjectRepository.findAllContentTypes());
+    }
+
+    public List<CatalogObjectNameReference> getCatalogObjectsNameReferenceByKind(String kind) {
+        return generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKind(kind));
+    }
+
+    private List<CatalogObjectNameReference>
+            generateCatalogObjectsNameReferenceByKind(List<Object[]> catalogObjectsNameReferenceByKind) {
+
+        List<CatalogObjectNameReference> listCatalogObjectNameReference = new ArrayList();
+
+        for (Object[] item : catalogObjectsNameReferenceByKind) {
+
+            listCatalogObjectNameReference.add(new CatalogObjectNameReference(String.valueOf(item[0]),
+                                                                              String.valueOf(item[1])));
+        }
+
+        return listCatalogObjectNameReference;
+
     }
 
     @VisibleForTesting

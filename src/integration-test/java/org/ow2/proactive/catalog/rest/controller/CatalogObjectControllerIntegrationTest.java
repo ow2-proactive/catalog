@@ -580,6 +580,17 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    public void testGetCatalogObjectsNameReferenceByKind() {
+        given().header("sessionID", "12345")
+               .pathParam("kind", "workflow")
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingBucketName() {
         given().pathParam("bucketName", "non-existing-bucket")
                .pathParam("name", "object-name")

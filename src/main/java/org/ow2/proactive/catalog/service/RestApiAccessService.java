@@ -68,18 +68,6 @@ public class RestApiAccessService {
 
     }
 
-    private AuthenticatedUser getAuthenticatedUser(boolean sessionIdRequired, String sessionId) {
-        try {
-            return schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
-        } catch (NotAuthenticatedException nae) {
-            if (sessionIdRequired) {
-                throw nae;
-            }
-        }
-        return AuthenticatedUser.EMPTY;
-
-    }
-
     public void checkAccessBySessionIdForBucketAndThrowIfDeclined(boolean sessionIdRequired, String sessionId,
             String bucketName) {
         if (!isAPublicBucket(bucketName) && sessionIdRequired) {
@@ -87,6 +75,28 @@ public class RestApiAccessService {
 
         }
 
+    }
+
+    public boolean isAPublicBucket(String bucketName) {
+        return BucketService.DEFAULT_BUCKET_OWNER.equals(bucketService.getBucketMetadata(bucketName).getOwner());
+    }
+
+    public RestApiAccessResponse checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(String sessionId,
+            String ownerOrGroup) throws NotAuthenticatedException, AccessDeniedException {
+        RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionIdToOwnerOrGroup(sessionId,
+                                                                                                ownerOrGroup);
+        if (!restApiAccessResponse.isAuthorized()) {
+            throw new AccessDeniedException("SessionId: " + sessionId +
+                                            " is not allowed to access buckets with owner or group " + ownerOrGroup);
+        }
+        return restApiAccessResponse;
+    }
+
+    public boolean isBucketAccessibleByUser(boolean sessionIdRequired, String sessionId, String bucketName) {
+        if (!isAPublicBucket(bucketName) && sessionIdRequired) {
+            return this.checkAccessBySessionForBucketToOwnerOrGroup(sessionId, bucketName).isAuthorized();
+        }
+        return true;
     }
 
     private RestApiAccessResponse checkBucketPermission(String sessionId, String bucketName) {
@@ -105,25 +115,23 @@ public class RestApiAccessService {
         return checkAccessBySessionIdToOwnerOrGroup(sessionId, bucketService.getBucketMetadata(bucketName).getOwner());
     }
 
-    public RestApiAccessResponse checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(String sessionId,
-            String ownerOrGroup) throws NotAuthenticatedException, AccessDeniedException {
-        RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionIdToOwnerOrGroup(sessionId,
-                                                                                                ownerOrGroup);
-        if (!restApiAccessResponse.isAuthorized()) {
-            throw new AccessDeniedException("SessionId: " + sessionId +
-                                            " is not allowed to access buckets with owner or group " + ownerOrGroup);
-        }
-        return restApiAccessResponse;
-    }
-
-    public boolean isAPublicBucket(String bucketName) {
-        return BucketService.DEFAULT_BUCKET_OWNER.equals(bucketService.getBucketMetadata(bucketName).getOwner());
-    }
-
     private RestApiAccessResponse checkAccessBySessionIdToOwnerOrGroup(String sessionId, String ownerOrGroup)
             throws NotAuthenticatedException {
         AuthenticatedUser authenticatedUser = schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
         boolean authorized = authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser, ownerOrGroup);
         return RestApiAccessResponse.builder().authorized(authorized).authenticatedUser(authenticatedUser).build();
     }
+
+    private AuthenticatedUser getAuthenticatedUser(boolean sessionIdRequired, String sessionId) {
+        try {
+            return schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
+        } catch (NotAuthenticatedException nae) {
+            if (sessionIdRequired) {
+                throw nae;
+            }
+        }
+        return AuthenticatedUser.EMPTY;
+
+    }
+
 }

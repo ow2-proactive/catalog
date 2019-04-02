@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -44,6 +45,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.ow2.proactive.catalog.dto.CatalogObjectDependencies;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadataList;
+import org.ow2.proactive.catalog.dto.CatalogObjectNameReference;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
@@ -158,6 +160,22 @@ public class CatalogObjectController {
     @ResponseStatus(HttpStatus.OK)
     public Set<String> listContentTypes() {
         return catalogObjectService.getContentTypes();
+    }
+
+    @ApiOperation(value = "Lists catalog objects by kind")
+    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied") })
+    @RequestMapping(value = "/{kind}/references", method = GET, produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    public List<CatalogObjectNameReference> listCatalogObjectNameReference(
+            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @PathVariable String kind) {
+        return catalogObjectService.getCatalogObjectsNameReferenceByKind(kind)
+                                   .stream()
+                                   .filter(catalogObjectNameReference -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
+                                                                                                                       sessionId,
+                                                                                                                       catalogObjectNameReference.getBucketName()))
+                                   .collect(Collectors.toList());
     }
 
     @ApiOperation(value = "Update a catalog object metadata, like kind and content type")
