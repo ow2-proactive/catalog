@@ -580,6 +580,66 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    public void testGetCatalogObjectsNameReferenceByKind() {
+        String workflowKind = "workflow";
+        String pcaKind = "pca";
+
+        given().header("sessionID", "12345")
+               .pathParam("kind", workflowKind)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+        // Add a second object of kind "workflow" into first bucket
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", workflowKind)
+               .queryParam("name", "new workflow 1")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        // Add a third object of kind "pca" into first bucket
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", pcaKind)
+               .queryParam("name", "new workflow 2")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        given().header("sessionID", "12345")
+               .pathParam("kind", workflowKind)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(2));
+
+        given().header("sessionID", "12345")
+               .pathParam("kind", pcaKind)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+    }
+
+    @Test
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingBucketName() {
         given().pathParam("bucketName", "non-existing-bucket")
                .pathParam("name", "object-name")

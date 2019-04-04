@@ -585,6 +585,132 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
+    public void testGetCatalogObjectsNameReferenceByKind() {
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
+                                                                                       "12345",
+                                                                                       "workflow")).hasSize(1);
+
+        //Adding two catalog object of kind *workflow*
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog_object_1",
+                                                 "workflow/new",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog_object_2",
+                                                 "standard/workflow",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
+                                                                                       "12345",
+                                                                                       "workflow")).hasSize(3);
+
+        //Adding a new catalog object of kind "script"
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog_object_3",
+                                                 "script",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
+                                                                                       "12345",
+                                                                                       "workflow")).hasSize(3);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
+                                                                                       "12345",
+                                                                                       "sCriPt")).hasSize(1);
+
+        //Adding a new catalog object of kind "rule"
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog_object_4",
+                                                 "rule",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
+                                                                                       "12345",
+                                                                                       "workflow")).hasSize(3);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
+                                                                                       "12345",
+                                                                                       "sCriPt")).hasSize(1);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
+                                                                                       "12345",
+                                                                                       "ruLE")).hasSize(1);
+
+        //create a second bucket and add some catalog objects to it
+
+        BucketMetadata secondBucket = bucketService.createBucket("second-bucket",
+                                                                 "CatalogObjectServiceIntegrationTest");
+
+        catalogObjectService.createCatalogObject(secondBucket.getName(),
+                                                 "catalog_object_1",
+                                                 "workflow/new",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+        catalogObjectService.createCatalogObject(secondBucket.getName(),
+                                                 "catalog_object_2",
+                                                 "standard/workflow",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjectService.createCatalogObject(secondBucket.getName(),
+                                                 "catalog_object_3",
+                                                 "script",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        //Adding another object to the first bucket
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog_object_5",
+                                                 "rule",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
+                                                                                       "12345",
+                                                                                       "workflow")).hasSize(5);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
+                                                                                       "12345",
+                                                                                       "sCriPt")).hasSize(2);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
+                                                                                       "12345",
+                                                                                       "ruLE")).hasSize(2);
+
+    }
+
+    @Test
     public void testGetCatalogObjectRevision() throws UnsupportedEncodingException {
 
         CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucket.getName(),
