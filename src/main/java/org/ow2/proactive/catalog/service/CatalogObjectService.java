@@ -591,20 +591,18 @@ public class CatalogObjectService {
 
         List<CatalogObjectNameReference> catalogObjectsNameReferenceByKind = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKind(kind));
 
-        return sortCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKind).entrySet()
-                                                                                          .stream()
-                                                                                          .filter(map -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
-                                                                                                                                                       sessionId,
-                                                                                                                                                       map.getKey()))
-                                                                                          .map(map -> map.getValue())
-                                                                                          .collect(Collectors.toList())
-                                                                                          .stream()
-                                                                                          .flatMap(x -> x.stream())
-                                                                                          .collect(Collectors.toList());
+        return groupCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKind).entrySet()
+                                                                                           .stream()
+                                                                                           .filter(map -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
+                                                                                                                                                        sessionId,
+                                                                                                                                                        map.getKey()))
+                                                                                           .map(map -> map.getValue())
+                                                                                           .flatMap(list -> list.stream())
+                                                                                           .collect(Collectors.toList());
     }
 
     private Map<String, List<CatalogObjectNameReference>>
-            sortCatalogObjectsNameReferencePerBucket(List<CatalogObjectNameReference> catalogObjectsNameReferences) {
+            groupCatalogObjectsNameReferencePerBucket(List<CatalogObjectNameReference> catalogObjectsNameReferences) {
 
         return catalogObjectsNameReferences.stream()
                                            .collect(Collectors.groupingBy(CatalogObjectNameReference::getBucketName));
