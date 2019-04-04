@@ -160,13 +160,6 @@ public class CatalogObjectController {
         return catalogObjectService.getContentTypes();
     }
 
-    @ApiOperation(value = "Lists all catalog objects of kind workflow")
-    @RequestMapping(value = "/workflows", method = GET, produces = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    public List<Object[]> listWorkflows() {
-        return catalogObjectService.getCatalogObjectsOfKindWorkflow();
-    }
-
     @ApiOperation(value = "Update a catalog object metadata, like kind and content type")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),

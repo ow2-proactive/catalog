@@ -162,10 +162,7 @@ public class CatalogObjectReportController {
             authorisedBuckets = bucketService.listBuckets(ownerName, kind, contentType);
         }
 
-        List<String> authorisedBucketsNames = authorisedBuckets.stream()
-                                                               .map(bucketMetaData -> bucketMetaData.getName())
-                                                               .collect(Collectors.toList());
-        return authorisedBucketsNames;
+        return authorisedBuckets.stream().map(BucketMetadata::getName).collect(Collectors.toList());
     }
 
 }

@@ -67,9 +67,12 @@ import org.ow2.proactive.catalog.util.parser.PolicyParser;
 import org.ow2.proactive.catalog.util.parser.ScriptParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.orm.jpa.EntityScan;
+import org.springframework.boot.test.SpringApplicationContextLoader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
@@ -88,7 +91,7 @@ import graphql.schema.DataFetcher;
 @EntityScan(basePackages = { "org.ow2.proactive.catalog" })
 @PropertySource("classpath:application-test.properties")
 @Profile("test")
-public class IntegrationTestConfig {
+public class IntegrationTestConfig extends SpringApplicationContextLoader {
 
     @Value("${spring.datasource.driverClassName:}")
     private String dataSourceDriverClassName;
@@ -105,6 +108,11 @@ public class IntegrationTestConfig {
     @Bean
     public DataSource testDataSource() {
         return createDataSource();
+    }
+
+    @Override
+    protected SpringApplication getSpringApplication() {
+        return new SpringApplicationBuilder().headless(false).build();
     }
 
     private DataSource createDataSource() {

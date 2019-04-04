@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.http.entity.mime.MIME;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.CatalogObjectCallGraphService;
@@ -67,6 +66,7 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 @RequestMapping(value = "/buckets/call-graph")
 public class CatalogObjectCallGraphController {
+
     @Autowired
     private BucketService bucketService;
 
@@ -79,7 +79,7 @@ public class CatalogObjectCallGraphController {
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
-    @ApiOperation(value = "Get the call graph of all catalog objects in a PNG image")
+    @ApiOperation(value = "Get the call graph of all catalog objects in a JPG image")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(method = GET)
@@ -127,10 +127,7 @@ public class CatalogObjectCallGraphController {
             authorisedBuckets = bucketService.listBuckets(ownerName, kind, contentType);
         }
 
-        List<String> authorisedBucketsNames = authorisedBuckets.stream()
-                                                               .map(bucketMetaData -> bucketMetaData.getName())
-                                                               .collect(Collectors.toList());
-        return authorisedBucketsNames;
+        return authorisedBuckets.stream().map(BucketMetadata::getName).collect(Collectors.toList());
     }
 
 }
