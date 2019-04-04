@@ -162,7 +162,7 @@ public class CatalogObjectController {
         return catalogObjectService.getContentTypes();
     }
 
-    @ApiOperation(value = "Lists catalog objects by kind")
+    @ApiOperation(value = "Lists catalog object name references by kind")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(value = "/{kind}/references", method = GET, produces = "application/json")
@@ -170,12 +170,7 @@ public class CatalogObjectController {
     public List<CatalogObjectNameReference> listCatalogObjectNameReference(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String kind) {
-        return catalogObjectService.getCatalogObjectsNameReferenceByKind(kind)
-                                   .stream()
-                                   .filter(catalogObjectNameReference -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
-                                                                                                                       sessionId,
-                                                                                                                       catalogObjectNameReference.getBucketName()))
-                                   .collect(Collectors.toList());
+        return catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(sessionIdRequired, sessionId, kind);
     }
 
     @ApiOperation(value = "Update a catalog object metadata, like kind and content type")

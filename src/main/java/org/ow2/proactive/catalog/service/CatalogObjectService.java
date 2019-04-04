@@ -35,6 +35,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -114,6 +115,9 @@ public class CatalogObjectService {
 
     @Autowired
     private KindAndContentTypeValidator kindAndContentTypeValidator;
+
+    @Autowired
+    private RestApiAccessService restApiAccessService;
 
     @Autowired
     private SeparatorUtility separatorUtility;
@@ -582,22 +586,36 @@ public class CatalogObjectService {
         return new TreeSet<>(catalogObjectRepository.findAllContentTypes());
     }
 
-    public List<CatalogObjectNameReference> getCatalogObjectsNameReferenceByKind(String kind) {
-        return generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKind(kind));
+    public List<CatalogObjectNameReference> getAccessibleCatalogObjectsNameReferenceByKind(boolean sessionIdRequired,
+            String sessionId, String kind) {
+
+        List<CatalogObjectNameReference> catalogObjectsNameReferenceByKind = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKind(kind));
+
+        return sortCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKind).entrySet()
+                                                                                          .stream()
+                                                                                          .filter(map -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
+                                                                                                                                                       sessionId,
+                                                                                                                                                       map.getKey()))
+                                                                                          .map(map -> map.getValue())
+                                                                                          .collect(Collectors.toList())
+                                                                                          .stream()
+                                                                                          .flatMap(x -> x.stream())
+                                                                                          .collect(Collectors.toList());
+    }
+
+    private Map<String, List<CatalogObjectNameReference>>
+            sortCatalogObjectsNameReferencePerBucket(List<CatalogObjectNameReference> catalogObjectsNameReferences) {
+
+        return catalogObjectsNameReferences.stream()
+                                           .collect(Collectors.groupingBy(CatalogObjectNameReference::getBucketName));
     }
 
     private List<CatalogObjectNameReference>
             generateCatalogObjectsNameReferenceByKind(List<Object[]> catalogObjectsNameReferenceByKind) {
-
-        List<CatalogObjectNameReference> listCatalogObjectNameReference = new ArrayList();
-
-        for (Object[] item : catalogObjectsNameReferenceByKind) {
-
-            listCatalogObjectNameReference.add(new CatalogObjectNameReference(String.valueOf(item[0]),
-                                                                              String.valueOf(item[1])));
-        }
-
-        return listCatalogObjectNameReference;
+        return catalogObjectsNameReferenceByKind.stream()
+                                                .map(item -> new CatalogObjectNameReference(String.valueOf(item[0]),
+                                                                                            String.valueOf(item[1])))
+                                                .collect(Collectors.toList());
 
     }
 
