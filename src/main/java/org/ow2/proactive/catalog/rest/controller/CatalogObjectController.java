@@ -165,11 +165,11 @@ public class CatalogObjectController {
     @ApiOperation(value = "Lists catalog object name references by kind")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
-    @RequestMapping(value = "/{kind}/references", method = GET, produces = "application/json")
+    @RequestMapping(value = "/references", method = GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public List<CatalogObjectNameReference> listCatalogObjectNameReference(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @PathVariable String kind) {
+            @ApiParam(value = "kind", required = false) @RequestHeader(value = "kind", required = false) String kind) {
         return catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(sessionIdRequired, sessionId, kind);
     }
 
