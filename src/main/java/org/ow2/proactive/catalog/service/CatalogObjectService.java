@@ -595,8 +595,6 @@ public class CatalogObjectService {
             catalogObjectsNameReferenceByKind = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKind(kind));
         }
 
-        System.out.println("method=  " + catalogObjectsNameReferenceByKind.size());
-
         return groupCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKind).entrySet()
                                                                                            .stream()
                                                                                            .filter(map -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
