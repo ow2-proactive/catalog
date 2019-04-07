@@ -51,7 +51,7 @@ public abstract class AbstractRestAssuredTest {
 
     protected static final String CATALOG_OBJECT_BUCKET_REPORT = "/buckets/report/selected/{bucketName}";
 
-    protected static final String CATALOG_OBJECTS_REFERENCE = "/buckets/{kind}/references";
+    protected static final String CATALOG_OBJECTS_REFERENCE = "/buckets/references";
 
     protected final static String ERROR_MESSAGE = "errorMessage";
 

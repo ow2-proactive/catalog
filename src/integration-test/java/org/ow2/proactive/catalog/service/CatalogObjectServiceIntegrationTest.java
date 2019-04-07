@@ -589,7 +589,6 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
                                                                                        "12345",
                                                                                        "workflow")).hasSize(1);
-
         //Adding two catalog object of kind *workflow*
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog_object_1",

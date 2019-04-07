@@ -583,9 +583,10 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     public void testGetCatalogObjectsNameReferenceByKind() {
         String workflowKind = "workflow";
         String pcaKind = "pca";
+        String scriptTaskKind = "Script/task";
 
         given().header("sessionID", "12345")
-               .pathParam("kind", workflowKind)
+               .header("kind", workflowKind)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -620,7 +621,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_CREATED);
 
         given().header("sessionID", "12345")
-               .pathParam("kind", workflowKind)
+               .header("kind", workflowKind)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -629,7 +630,65 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("results.size()", equalTo(2));
 
         given().header("sessionID", "12345")
-               .pathParam("kind", pcaKind)
+               .header("kind", pcaKind)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+        //Create a second bucket
+        HashMap<String, Object> result = given().header("sessionID", "12345")
+                                                .parameters("name",
+                                                            "my-second-bucket",
+                                                            "owner",
+                                                            "BucketControllerIntegrationTestUser")
+                                                .when()
+                                                .post(BUCKETS_RESOURCE)
+                                                .then()
+                                                .statusCode(HttpStatus.SC_CREATED)
+                                                .extract()
+                                                .path("");
+
+        BucketMetadata secondBucket = new BucketMetadata((String) result.get("name"), (String) result.get("owner"));
+
+        // Add two objects of kind "workflow" and "Script/task" into the second bucket
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", secondBucket.getName())
+               .queryParam("kind", workflowKind)
+               .queryParam("name", "new workflow 1")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", secondBucket.getName())
+               .queryParam("kind", scriptTaskKind)
+               .queryParam("name", "new workflow 2")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        given().header("sessionID", "12345")
+               .header("kind", workflowKind)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(3));
+
+        given().header("sessionID", "12345")
+               .header("kind", scriptTaskKind)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
