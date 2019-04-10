@@ -25,12 +25,11 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.ow2.proactive.catalog.callgraph.CatalogObjectCallGraphGenerator;
+import org.ow2.proactive.catalog.callgraph.CatalogObjectCallGraphPDFGenerator;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,14 +52,14 @@ public class CatalogObjectCallGraphService {
     private CatalogObjectService catalogObjectService;
 
     @Autowired
-    private CatalogObjectCallGraphGenerator catalogObjectCallGraphGenerator;
+    private CatalogObjectCallGraphPDFGenerator catalogObjectCallGraphPDFGenerator;
 
     public byte[] generateBytesCallGraphImage(List<String> authorisedBucketsNames, Optional<String> kind,
-            Optional<String> contentType) throws IOException {
+            Optional<String> contentType) {
 
         List<CatalogObjectMetadata> metadataList = getListOfCatalogObjects(kind, contentType, authorisedBucketsNames);
 
-        return catalogObjectCallGraphGenerator.generateImage(metadataList);
+        return catalogObjectCallGraphPDFGenerator.generatePdfImage(metadataList, kind, contentType);
 
     }
 

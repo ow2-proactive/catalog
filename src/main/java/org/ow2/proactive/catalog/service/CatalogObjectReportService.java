@@ -64,13 +64,6 @@ public class CatalogObjectReportService {
 
     }
 
-    private byte[] orderCatalogObjectsByBucketAndProjectName(Optional<String> kind, Optional<String> contentType,
-            List<CatalogObjectMetadata> metadataList) {
-        TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(metadataList);
-
-        return catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket, kind, contentType);
-    }
-
     public byte[] generateBytesReport(List<String> authorisedBucketsNames, Optional<String> kind,
             Optional<String> contentType) {
 
@@ -78,6 +71,13 @@ public class CatalogObjectReportService {
 
         return orderCatalogObjectsByBucketAndProjectName(kind, contentType, metadataList);
 
+    }
+
+    private byte[] orderCatalogObjectsByBucketAndProjectName(Optional<String> kind, Optional<String> contentType,
+            List<CatalogObjectMetadata> metadataList) {
+        TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(metadataList);
+
+        return catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket, kind, contentType);
     }
 
     private List<CatalogObjectMetadata> getListOfCatalogObjects(Optional<String> kind, Optional<String> contentType,

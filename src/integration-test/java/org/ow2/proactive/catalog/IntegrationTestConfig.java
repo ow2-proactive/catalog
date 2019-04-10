@@ -32,7 +32,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.ow2.proactive.catalog.callgraph.CatalogObjectCallGraphGenerator;
+import org.ow2.proactive.catalog.callgraph.CatalogObjectCallGraphPDFGenerator;
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
@@ -42,6 +42,7 @@ import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectKind
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectMetadataFilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectNameFilterHandler;
 import org.ow2.proactive.catalog.mocks.RestApiAccessServiceMock;
+import org.ow2.proactive.catalog.report.HeadersBuilder;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.CatalogObjectCallGraphService;
@@ -67,12 +68,9 @@ import org.ow2.proactive.catalog.util.parser.PolicyParser;
 import org.ow2.proactive.catalog.util.parser.ScriptParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.orm.jpa.EntityScan;
-import org.springframework.boot.test.SpringApplicationContextLoader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
@@ -91,7 +89,7 @@ import graphql.schema.DataFetcher;
 @EntityScan(basePackages = { "org.ow2.proactive.catalog" })
 @PropertySource("classpath:application-test.properties")
 @Profile("test")
-public class IntegrationTestConfig extends SpringApplicationContextLoader {
+public class IntegrationTestConfig {
 
     @Value("${spring.datasource.driverClassName:}")
     private String dataSourceDriverClassName;
@@ -108,11 +106,6 @@ public class IntegrationTestConfig extends SpringApplicationContextLoader {
     @Bean
     public DataSource testDataSource() {
         return createDataSource();
-    }
-
-    @Override
-    protected SpringApplication getSpringApplication() {
-        return new SpringApplicationBuilder().headless(false).build();
     }
 
     private DataSource createDataSource() {
@@ -282,16 +275,6 @@ public class IntegrationTestConfig extends SpringApplicationContextLoader {
     @Bean
     public RevisionCommitMessageBuilder revisionCommitMessageBuilder() {
         return new RevisionCommitMessageBuilder();
-    }
-
-    @Bean
-    public CatalogObjectCallGraphService catalogObjectCallGraphService() {
-        return new CatalogObjectCallGraphService();
-    }
-
-    @Bean
-    public CatalogObjectCallGraphGenerator catalogObjectCallGraphGenerator() {
-        return new CatalogObjectCallGraphGenerator();
     }
 
     @Bean

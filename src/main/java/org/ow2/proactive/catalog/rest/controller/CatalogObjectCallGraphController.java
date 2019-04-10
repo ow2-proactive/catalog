@@ -97,7 +97,6 @@ public class CatalogObjectCallGraphController {
                                                                                    kind,
                                                                                    contentType);
 
-        response.setContentType(MediaType.IMAGE_PNG_VALUE);
         flushResponse(response, content);
 
     }

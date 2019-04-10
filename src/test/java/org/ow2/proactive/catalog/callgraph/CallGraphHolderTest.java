@@ -42,7 +42,7 @@ import org.junit.Test;
  */
 public class CallGraphHolderTest {
 
-    CallGraphHolder callGraphHolder = CallGraphHolder.getInstance();
+    CallGraphHolder callGraphHolder = new CallGraphHolder();
 
     @Test
     public void testCallGraphHolder() {
