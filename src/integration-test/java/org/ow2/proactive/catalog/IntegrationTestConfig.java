@@ -32,7 +32,6 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.ow2.proactive.catalog.callgraph.CatalogObjectCallGraphPDFGenerator;
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
@@ -42,10 +41,8 @@ import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectKind
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectMetadataFilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectNameFilterHandler;
 import org.ow2.proactive.catalog.mocks.RestApiAccessServiceMock;
-import org.ow2.proactive.catalog.report.HeadersBuilder;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.BucketService;
-import org.ow2.proactive.catalog.service.CatalogObjectCallGraphService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.GenericInformationAdder;
 import org.ow2.proactive.catalog.service.GraphqlService;

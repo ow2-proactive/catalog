@@ -57,7 +57,7 @@ public class CallGraphHolderTest {
 
         //Checking that we cannot add a node having same bucket name and workflow name as an existing node and therefore the order of the graph remains the same.
         GraphNode graphNode22 = callGraphHolder.addNode("bucket2", "workflow2");
-        assertTrue(callGraphHolder.NodeSet().contains(graphNode22));
+        assertTrue(callGraphHolder.nodeSet().contains(graphNode22));
         assertEquals(3, callGraphHolder.order());
 
         //Adding 10 more nodes
@@ -94,7 +94,7 @@ public class CallGraphHolderTest {
         assertEquals(2, callGraphHolder.size());
 
         //Removing a non existing edge
-        assertFalse(callGraphHolder.DependencySet().contains(defaultEdge1));
+        assertFalse(callGraphHolder.dependencySet().contains(defaultEdge1));
         assertThat(callGraphHolder.removeDependsOnEdge(graphNode1, graphNode2)).isEqualTo(null);
         assertEquals(2, callGraphHolder.size());
 

@@ -37,16 +37,7 @@ import org.jgrapht.graph.DefaultEdge;
  */
 public class CallGraphHolder {
 
-    // private CallGraphHolder() {
-    //}
-
-    //private static final CallGraphHolder INSTANCE = new CallGraphHolder();
-
     private final DefaultDirectedGraph<GraphNode, DefaultEdge> dependencyGraph = new DefaultDirectedGraph(DefaultEdge.class);
-
-    //public static CallGraphHolder getInstance() {
-    //    return INSTANCE;
-    //}
 
     public GraphNode addNode(String bucketName, String objectName) {
         GraphNode graphNode = new GraphNode.Builder().bucketName(bucketName).objectName(objectName).build();
@@ -69,11 +60,11 @@ public class CallGraphHolder {
         return dependencyGraph.removeEdge(graphNode1, graphNode2);
     }
 
-    public Set<GraphNode> NodeSet() {
+    public Set<GraphNode> nodeSet() {
         return dependencyGraph.vertexSet();
     }
 
-    public Set<DefaultEdge> DependencySet() {
+    public Set<DefaultEdge> dependencySet() {
         return dependencyGraph.edgeSet();
     }
 

@@ -30,12 +30,10 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.swing.*;
@@ -43,10 +41,7 @@ import javax.swing.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.jgrapht.ext.JGraphXAdapter;
 import org.jgrapht.graph.DefaultEdge;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
@@ -67,6 +62,8 @@ import com.mxgraph.util.mxConstants;
 import com.mxgraph.util.mxUtils;
 
 import be.quodlibet.boxable.BaseTable;
+import be.quodlibet.boxable.Row;
+import be.quodlibet.boxable.image.Image;
 import be.quodlibet.boxable.utils.FontUtils;
 
 
@@ -78,11 +75,14 @@ import be.quodlibet.boxable.utils.FontUtils;
 @Component
 public class CatalogObjectCallGraphPDFGenerator {
 
-    private final static float MARGIN = 10;
+    private static final float MARGIN = 10;
 
-    private static final String MAIN_TITLE = "ProActive Catalog Report";
+    private static final String MAIN_TITLE = "ProActive Call Graph Report";
 
     private CallGraphHolder callGraphHolder = new CallGraphHolder();
+
+    @Autowired
+    private SeparatorUtility separatorUtility;
 
     @Value("${pa.scheduler.url}")
     private String schedulerUrl;
@@ -100,9 +100,6 @@ public class CatalogObjectCallGraphPDFGenerator {
     private String ttfFontBoldItalicPath;
 
     @Autowired
-    private SeparatorUtility separatorUtility;
-
-    @Autowired
     private HeadersBuilder headersBuilder;
 
     public byte[] generatePdfImage(List<CatalogObjectMetadata> catalogObjectMetadataList, Optional<String> kind,
@@ -111,7 +108,9 @@ public class CatalogObjectCallGraphPDFGenerator {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 PDDocument doc = new PDDocument();) {
 
-            BufferedImage callGraphBufferedImage = generateBufferedImage(catalogObjectMetadataList);
+            buildCatalogCallGraph(catalogObjectMetadataList);
+
+            BufferedImage callGraphBufferedImage = generateBufferedImage();
 
             //Load font for all languages
             setFontToUse(doc);
@@ -131,6 +130,9 @@ public class CatalogObjectCallGraphPDFGenerator {
                                             extractObjectSet(callGraphHolder),
                                             kind,
                                             contentType);
+
+            Row<PDPage> dataRow = table.createRow(100);
+            dataRow.createImageCell(100, new Image(callGraphBufferedImage));
 
             table.draw();
 
@@ -181,13 +183,11 @@ public class CatalogObjectCallGraphPDFGenerator {
         return page;
     }
 
-    private BufferedImage generateBufferedImage(List<CatalogObjectMetadata> catalogObjectMetadataList) {
-
-        buildCatalogCallGraph(catalogObjectMetadataList);
+    private BufferedImage generateBufferedImage() {
 
         JGraphXAdapter<GraphNode, DefaultEdge> callGraphAdapter = new JGraphXAdapter(callGraphHolder.getDependencyGraph());
         callGraphStyle(callGraphAdapter);
-        mxGraphLayout layout = new mxHierarchicalLayout(callGraphAdapter, SwingConstants.NORTH);
+        mxGraphLayout layout = new mxHierarchicalLayout(callGraphAdapter, SwingConstants.WEST);
         layout.execute(callGraphAdapter.getDefaultParent());
         return mxCellRenderer.createBufferedImage(callGraphAdapter, null, 2, null, true, null);
 
@@ -195,14 +195,14 @@ public class CatalogObjectCallGraphPDFGenerator {
 
     private Set<String> extractBucketSet(CallGraphHolder callGraphHolder) {
         Set<String> bucketSet = new HashSet<>();
-        callGraphHolder.NodeSet().forEach(graphNode -> bucketSet.add(graphNode.getBucketName()));
+        callGraphHolder.nodeSet().forEach(graphNode -> bucketSet.add(graphNode.getBucketName()));
         return bucketSet;
 
     }
 
     private Set<String> extractObjectSet(CallGraphHolder callGraphHolder) {
         Set<String> objectSet = new HashSet<>();
-        callGraphHolder.NodeSet().forEach(graphNode -> objectSet.add(graphNode.getObjectName()));
+        callGraphHolder.nodeSet().forEach(graphNode -> objectSet.add(graphNode.getObjectName()));
         return objectSet;
 
     }
@@ -241,14 +241,17 @@ public class CatalogObjectCallGraphPDFGenerator {
     private void buildCatalogCallGraph(List<CatalogObjectMetadata> catalogObjectMetadataList) {
 
         for (CatalogObjectMetadata catalogObjectMetadata : catalogObjectMetadataList) {
-            GraphNode callingWorkflow = callGraphHolder.addNode(catalogObjectMetadata.getBucketName(),
-                                                                catalogObjectMetadata.getName());
             List<String> dependsOnCatalogObjects = collectDependsOnCatalogObjects(catalogObjectMetadata);
-            for (String dependsOnCatalogObject : dependsOnCatalogObjects) {
-                String bucketName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(0);
-                String workflowName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(1);
-                GraphNode calledWorkflow = callGraphHolder.addNode(bucketName, workflowName);
-                callGraphHolder.addDependsOnDependency(callingWorkflow, calledWorkflow);
+            if (!dependsOnCatalogObjects.isEmpty()) {
+                GraphNode callingWorkflow = callGraphHolder.addNode(catalogObjectMetadata.getBucketName(),
+                                                                    catalogObjectMetadata.getName());
+
+                for (String dependsOnCatalogObject : dependsOnCatalogObjects) {
+                    String bucketName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(0);
+                    String workflowName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(1);
+                    GraphNode calledWorkflow = callGraphHolder.addNode(bucketName, workflowName);
+                    callGraphHolder.addDependsOnDependency(callingWorkflow, calledWorkflow);
+                }
             }
         }
     }

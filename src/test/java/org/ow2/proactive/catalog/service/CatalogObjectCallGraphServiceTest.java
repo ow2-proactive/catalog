@@ -100,6 +100,26 @@ public class CatalogObjectCallGraphServiceTest {
 
     }
 
+    @Test
+    public void testGenerateBytesReportEmptyBucket() {
+        List<String> authorisedBucketsNames = Lists.newArrayList();
+        Optional<String> kind = Optional.empty();
+        Optional<String> contentType = Optional.empty();
+
+        List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList();
+        when(catalogObjectService.listCatalogObjects(anyList())).thenReturn(objectsMetadata);
+
+        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
+                kind,
+                contentType)).thenReturn("onetwothree".getBytes());
+
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphImage(authorisedBucketsNames, kind, contentType);
+
+        assertThat(content).isNotNull();
+
+    }
+
+
     private CatalogObjectMetadata createObjectMetadata(String bucketName, String name) {
         List<Metadata> metadataList = Lists.newArrayList(new Metadata(separatorUtility.getConcatWithSeparator("bucket3",
                                                                                                               "one"),
