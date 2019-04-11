@@ -62,9 +62,7 @@ public class HeadersBuilder {
 
     private static final String ACTIVEEON_LOGO = "/automation-dashboard/styles/patterns/AE-Logo.png";
 
-    private static final String MAIN_TITLE = "ProActive Catalog Report";
-
-    public void createMainHeader(BaseTable table) throws IOException {
+    public void createMainHeader(BaseTable table, String mainTitle) throws IOException {
         Row<PDPage> headerRow = table.createRow(15f);
 
         try {
@@ -75,7 +73,7 @@ public class HeadersBuilder {
             headerRow.createCell((100 / 12f) * 3, "Activeeon", HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE);
             log.error("Impossible to create the image from the url: " + schedulerUrl + ACTIVEEON_LOGO, e);
         }
-        cellFactory.addMainTitleCell(headerRow, MAIN_TITLE);
+        cellFactory.addMainTitleCell(headerRow, mainTitle);
 
         table.addHeaderRow(headerRow);
     }
@@ -89,6 +87,19 @@ public class HeadersBuilder {
                                    calculateTotalBuckets(orderedObjectsPerBucket) + SPACE_BETWEEN_INFO +
                                    " Object Number: " + orderedObjectsPerBucket.size() + SPACE_BETWEEN_INFO +
                                    " Generated: " + getNowDate();
+
+        cellFactory.addSecondaryHeaderCell(infoHeaderRow, infoHeaderMessage);
+
+    }
+
+    public void createInfoHeader(BaseTable table, Set<String> bucketSet, Set<String> ObjectSet, Optional<String> kind,
+            Optional<String> contentType) {
+        Row<PDPage> infoHeaderRow = table.createRow(15f);
+
+        String infoHeaderMessage = "Objects Kind: " + kind.orElse("All") + " -  Content Type: " +
+                                   contentType.orElse("All") + SPACE_BETWEEN_INFO + " Bucket Number: " +
+                                   bucketSet.size() + SPACE_BETWEEN_INFO + " Object Number: " + ObjectSet.size() +
+                                   SPACE_BETWEEN_INFO + " Generated: " + getNowDate();
 
         cellFactory.addSecondaryHeaderCell(infoHeaderRow, infoHeaderMessage);
 

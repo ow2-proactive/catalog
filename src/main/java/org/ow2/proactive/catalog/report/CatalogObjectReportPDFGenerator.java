@@ -50,6 +50,8 @@ public class CatalogObjectReportPDFGenerator {
 
     private final static float MARGIN = 10;
 
+    private static final String MAIN_TITLE = "ProActive Catalog Report";
+
     @Value("${pa.scheduler.url}")
     private String schedulerUrl;
 
@@ -87,7 +89,7 @@ public class CatalogObjectReportPDFGenerator {
             BaseTable table = initializeTable(doc, MARGIN, page);
 
             // Create Header row
-            headersBuilder.createMainHeader(table);
+            headersBuilder.createMainHeader(table, MAIN_TITLE);
 
             // Create Header row
             headersBuilder.createInfoHeader(table, orderedObjectsPerBucket, kind, contentType);

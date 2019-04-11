@@ -57,5 +57,4 @@ public interface CatalogObjectRepository
 
     @Query(value = "SELECT cos.bucket.bucketName, cos.id.name FROM CatalogObjectEntity cos")
     List<Object[]> findAllCatalogObjectNameReferenceByKind();
-
 }

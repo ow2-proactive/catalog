@@ -26,13 +26,11 @@
 package org.ow2.proactive.catalog.service;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.TreeSet;
 
+import org.ow2.proactive.catalog.callgraph.CatalogObjectCallGraphPDFGenerator;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.report.CatalogObjectReportPDFGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,42 +40,27 @@ import lombok.extern.log4j.Log4j2;
 
 /**
  * @author ActiveEon Team
+ * @since 2019-03-25
  */
+
 @Log4j2
 @Service
 @Transactional
-public class CatalogObjectReportService {
+public class CatalogObjectCallGraphService {
 
     @Autowired
     private CatalogObjectService catalogObjectService;
 
     @Autowired
-    private CatalogObjectReportPDFGenerator catalogObjectReportPDFGenerator;
+    private CatalogObjectCallGraphPDFGenerator catalogObjectCallGraphPDFGenerator;
 
-    public byte[] generateBytesReportForSelectedObjects(String bucketName, List<String> catalogObjectsNames,
-            Optional<String> kind, Optional<String> contentType) {
-
-        List<CatalogObjectMetadata> metadataList = catalogObjectService.listSelectedCatalogObjects(bucketName,
-                                                                                                   catalogObjectsNames);
-
-        return orderCatalogObjectsByBucketAndProjectName(kind, contentType, metadataList);
-
-    }
-
-    public byte[] generateBytesReport(List<String> authorisedBucketsNames, Optional<String> kind,
+    public byte[] generateBytesCallGraphImage(List<String> authorisedBucketsNames, Optional<String> kind,
             Optional<String> contentType) {
 
         List<CatalogObjectMetadata> metadataList = getListOfCatalogObjects(kind, contentType, authorisedBucketsNames);
 
-        return orderCatalogObjectsByBucketAndProjectName(kind, contentType, metadataList);
+        return catalogObjectCallGraphPDFGenerator.generatePdfImage(metadataList, kind, contentType);
 
-    }
-
-    private byte[] orderCatalogObjectsByBucketAndProjectName(Optional<String> kind, Optional<String> contentType,
-            List<CatalogObjectMetadata> metadataList) {
-        TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(metadataList);
-
-        return catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket, kind, contentType);
     }
 
     private List<CatalogObjectMetadata> getListOfCatalogObjects(Optional<String> kind, Optional<String> contentType,
@@ -86,7 +69,6 @@ public class CatalogObjectReportService {
         if (authorisedBucketsNames.isEmpty()) {
             return new ArrayList<>();
         }
-
         List<CatalogObjectMetadata> metadataList;
 
         if (kind.isPresent() && contentType.isPresent()) {
@@ -104,18 +86,4 @@ public class CatalogObjectReportService {
 
         return metadataList;
     }
-
-    private TreeSet<CatalogObjectMetadata> sortObjectsPerBucket(List<CatalogObjectMetadata> metadataList) {
-
-        Comparator<CatalogObjectMetadata> sortBasedOnName = Comparator.comparing(CatalogObjectMetadata::getBucketName);
-        sortBasedOnName = sortBasedOnName.thenComparing(Comparator.comparing(CatalogObjectMetadata::getProjectName));
-        sortBasedOnName = sortBasedOnName.thenComparing(Comparator.comparing(CatalogObjectMetadata::getName));
-
-        TreeSet<CatalogObjectMetadata> sortedObjects = new TreeSet<CatalogObjectMetadata>(sortBasedOnName);
-
-        sortedObjects.addAll(metadataList);
-
-        return sortedObjects;
-    }
-
 }
