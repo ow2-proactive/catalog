@@ -35,6 +35,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -46,6 +47,7 @@ import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
 import org.ow2.proactive.catalog.dto.CatalogObjectDependencies;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.dto.CatalogObjectNameReference;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.dto.DependsOnCatalogObject;
 import org.ow2.proactive.catalog.dto.Metadata;
@@ -113,6 +115,9 @@ public class CatalogObjectService {
 
     @Autowired
     private KindAndContentTypeValidator kindAndContentTypeValidator;
+
+    @Autowired
+    private RestApiAccessService restApiAccessService;
 
     @Autowired
     private SeparatorUtility separatorUtility;
@@ -579,6 +584,41 @@ public class CatalogObjectService {
      */
     public TreeSet<String> getContentTypes() {
         return new TreeSet<>(catalogObjectRepository.findAllContentTypes());
+    }
+
+    public List<CatalogObjectNameReference> getAccessibleCatalogObjectsNameReferenceByKind(boolean sessionIdRequired,
+            String sessionId, String kind) {
+        List<CatalogObjectNameReference> catalogObjectsNameReferenceByKind;
+        if (kind == null) {
+            catalogObjectsNameReferenceByKind = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findAllCatalogObjectNameReferenceByKind());
+        } else {
+            catalogObjectsNameReferenceByKind = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKind(kind));
+        }
+
+        return groupCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKind).entrySet()
+                                                                                           .stream()
+                                                                                           .filter(map -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
+                                                                                                                                                        sessionId,
+                                                                                                                                                        map.getKey()))
+                                                                                           .map(map -> map.getValue())
+                                                                                           .flatMap(list -> list.stream())
+                                                                                           .collect(Collectors.toList());
+    }
+
+    private Map<String, List<CatalogObjectNameReference>>
+            groupCatalogObjectsNameReferencePerBucket(List<CatalogObjectNameReference> catalogObjectsNameReferences) {
+
+        return catalogObjectsNameReferences.stream()
+                                           .collect(Collectors.groupingBy(CatalogObjectNameReference::getBucketName));
+    }
+
+    private List<CatalogObjectNameReference>
+            generateCatalogObjectsNameReferenceByKind(List<Object[]> catalogObjectsNameReferenceByKind) {
+        return catalogObjectsNameReferenceByKind.stream()
+                                                .map(item -> new CatalogObjectNameReference(String.valueOf(item[0]),
+                                                                                            String.valueOf(item[1])))
+                                                .collect(Collectors.toList());
+
     }
 
     @VisibleForTesting

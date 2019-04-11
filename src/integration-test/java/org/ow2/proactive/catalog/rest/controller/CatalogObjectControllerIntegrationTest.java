@@ -580,6 +580,125 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    public void testGetCatalogObjectsNameReferenceByKind() {
+        String workflowKind = "workflow";
+        String pcaKind = "pca";
+        String scriptTaskKind = "Script/task";
+
+        given().header("sessionID", "12345")
+               .header("kind", workflowKind)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+        // Add a second object of kind "workflow" into first bucket
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", workflowKind)
+               .queryParam("name", "new workflow 1")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        // Add a third object of kind "pca" into first bucket
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", pcaKind)
+               .queryParam("name", "new workflow 2")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        given().header("sessionID", "12345")
+               .header("kind", workflowKind)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(2));
+
+        given().header("sessionID", "12345")
+               .header("kind", pcaKind)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+        //Create a second bucket
+        HashMap<String, Object> result = given().header("sessionID", "12345")
+                                                .parameters("name",
+                                                            "my-second-bucket",
+                                                            "owner",
+                                                            "BucketControllerIntegrationTestUser")
+                                                .when()
+                                                .post(BUCKETS_RESOURCE)
+                                                .then()
+                                                .statusCode(HttpStatus.SC_CREATED)
+                                                .extract()
+                                                .path("");
+
+        BucketMetadata secondBucket = new BucketMetadata((String) result.get("name"), (String) result.get("owner"));
+
+        // Add two objects of kind "workflow" and "Script/task" into the second bucket
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", secondBucket.getName())
+               .queryParam("kind", workflowKind)
+               .queryParam("name", "new workflow 1")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", secondBucket.getName())
+               .queryParam("kind", scriptTaskKind)
+               .queryParam("name", "new workflow 2")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        given().header("sessionID", "12345")
+               .header("kind", workflowKind)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(3));
+
+        given().header("sessionID", "12345")
+               .header("kind", scriptTaskKind)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+    }
+
+    @Test
     public void testGetWorkflowShouldReturnNotFoundIfNonExistingBucketName() {
         given().pathParam("bucketName", "non-existing-bucket")
                .pathParam("name", "object-name")

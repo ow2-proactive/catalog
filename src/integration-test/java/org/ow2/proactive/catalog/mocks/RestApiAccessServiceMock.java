@@ -65,4 +65,8 @@ public class RestApiAccessServiceMock extends RestApiAccessService {
 
     }
 
+    public boolean isAPublicBucket(String bucketName) {
+        return true;
+    }
+
 }
