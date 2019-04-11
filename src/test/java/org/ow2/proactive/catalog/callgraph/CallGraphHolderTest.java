@@ -75,18 +75,18 @@ public class CallGraphHolderTest {
         //TEST2: Adding/Removing Edges
 
         //Adding three edges
-        callGraphHolder.addDependsOnDependency(graphNode1, graphNode2);
-        callGraphHolder.addDependsOnDependency(graphNode1, graphNode3);
-        callGraphHolder.addDependsOnDependency(graphNode2, graphNode3);
+        callGraphHolder.addDependsOnEdge(graphNode1, graphNode2);
+        callGraphHolder.addDependsOnEdge(graphNode1, graphNode3);
+        callGraphHolder.addDependsOnEdge(graphNode2, graphNode3);
         assertEquals(3, callGraphHolder.size());
 
         //Checking that we cannot add an edge where one of its node is not in the graph and therefore the the size of the graph remains the same.
-        DefaultEdge defaultEdge = callGraphHolder.addDependsOnDependency(graphNode1, graphNode22);
+        DefaultEdge defaultEdge = callGraphHolder.addDependsOnEdge(graphNode1, graphNode22);
         assertThat(defaultEdge).isEqualTo(null);
         assertEquals(3, callGraphHolder.size());
 
         //Checking that we cannot have duplicated directed edges between two nodes.
-        callGraphHolder.addDependsOnDependency(graphNode1, graphNode2);
+        callGraphHolder.addDependsOnEdge(graphNode1, graphNode2);
         assertEquals(3, callGraphHolder.size());
 
         //Removing an existing edge

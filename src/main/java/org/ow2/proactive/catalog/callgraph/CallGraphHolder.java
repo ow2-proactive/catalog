@@ -52,7 +52,7 @@ public class CallGraphHolder {
                                                                    .build());
     }
 
-    public DefaultEdge addDependsOnDependency(GraphNode graphNode1, GraphNode graphNode2) {
+    public DefaultEdge addDependsOnEdge(GraphNode graphNode1, GraphNode graphNode2) {
         return dependencyGraph.addEdge(graphNode1, graphNode2);
     }
 
@@ -69,7 +69,7 @@ public class CallGraphHolder {
     }
 
     /**
-     * The number of vertices, the cardinality of V, is called the order of graph and devoted by |V|. We usually use n to denote the order of G.
+     * This function computes the number of nodes.
      * @return
      */
     public int order() {
@@ -77,7 +77,7 @@ public class CallGraphHolder {
     }
 
     /**
-     * The number of edges, the cardinality of E, is called the size of graph and denoted by |E|. We usually use m to denote the size of G.
+     * This function computes the number of edges.
      * @return
      */
     public int size() {

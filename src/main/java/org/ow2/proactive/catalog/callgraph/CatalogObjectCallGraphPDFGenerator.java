@@ -84,9 +84,6 @@ public class CatalogObjectCallGraphPDFGenerator {
     @Autowired
     private SeparatorUtility separatorUtility;
 
-    @Value("${pa.scheduler.url}")
-    private String schedulerUrl;
-
     @Value("${pa.catalog.pdf.report.ttf.font.path}")
     private String ttfFontPath;
 
@@ -250,7 +247,7 @@ public class CatalogObjectCallGraphPDFGenerator {
                     String bucketName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(0);
                     String workflowName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(1);
                     GraphNode calledWorkflow = callGraphHolder.addNode(bucketName, workflowName);
-                    callGraphHolder.addDependsOnDependency(callingWorkflow, calledWorkflow);
+                    callGraphHolder.addDependsOnEdge(callingWorkflow, calledWorkflow);
                 }
             }
         }
