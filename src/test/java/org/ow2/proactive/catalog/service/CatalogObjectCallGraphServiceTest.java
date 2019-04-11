@@ -110,15 +110,16 @@ public class CatalogObjectCallGraphServiceTest {
         when(catalogObjectService.listCatalogObjects(anyList())).thenReturn(objectsMetadata);
 
         when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
-                kind,
-                contentType)).thenReturn("onetwothree".getBytes());
+                                                                 kind,
+                                                                 contentType)).thenReturn("onetwothree".getBytes());
 
-        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphImage(authorisedBucketsNames, kind, contentType);
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphImage(authorisedBucketsNames,
+                                                                                   kind,
+                                                                                   contentType);
 
         assertThat(content).isNotNull();
 
     }
-
 
     private CatalogObjectMetadata createObjectMetadata(String bucketName, String name) {
         List<Metadata> metadataList = Lists.newArrayList(new Metadata(separatorUtility.getConcatWithSeparator("bucket3",
