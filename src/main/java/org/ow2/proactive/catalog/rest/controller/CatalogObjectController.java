@@ -169,7 +169,7 @@ public class CatalogObjectController {
     @ResponseStatus(HttpStatus.OK)
     public List<CatalogObjectNameReference> listCatalogObjectNameReference(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "kind", required = false) @RequestHeader(value = "kind", required = false) String kind) {
+            @ApiParam(value = "kind") @RequestHeader(value = "kind", required = false) Optional<String> kind) {
         return catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(sessionIdRequired, sessionId, kind);
     }
 

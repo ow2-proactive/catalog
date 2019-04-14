@@ -588,7 +588,7 @@ public class CatalogObjectServiceIntegrationTest {
     public void testGetCatalogObjectsNameReferenceByKind() {
         assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
                                                                                        "12345",
-                                                                                       "workflow")).hasSize(1);
+                                                                                       Optional.of("workflow"))).hasSize(1);
         //Adding two catalog object of kind *workflow*
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog_object_1",
@@ -611,7 +611,7 @@ public class CatalogObjectServiceIntegrationTest {
 
         assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
                                                                                        "12345",
-                                                                                       "workflow")).hasSize(3);
+                                                                                       Optional.of("workflow"))).hasSize(3);
 
         //Adding a new catalog object of kind "script"
         catalogObjectService.createCatalogObject(bucket.getName(),
@@ -626,10 +626,10 @@ public class CatalogObjectServiceIntegrationTest {
 
         assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
                                                                                        "12345",
-                                                                                       "workflow")).hasSize(3);
+                                                                                       Optional.of("workflow"))).hasSize(3);
         assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
                                                                                        "12345",
-                                                                                       "sCriPt")).hasSize(1);
+                                                                                       Optional.of("sCriPt"))).hasSize(1);
 
         //Adding a new catalog object of kind "rule"
         catalogObjectService.createCatalogObject(bucket.getName(),
@@ -644,13 +644,13 @@ public class CatalogObjectServiceIntegrationTest {
 
         assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
                                                                                        "12345",
-                                                                                       "workflow")).hasSize(3);
+                                                                                       Optional.of("workflow"))).hasSize(3);
         assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
                                                                                        "12345",
-                                                                                       "sCriPt")).hasSize(1);
+                                                                                       Optional.of("sCriPt"))).hasSize(1);
         assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
                                                                                        "12345",
-                                                                                       "ruLE")).hasSize(1);
+                                                                                       Optional.of("ruLE"))).hasSize(1);
 
         //create a second bucket and add some catalog objects to it
 
@@ -699,13 +699,13 @@ public class CatalogObjectServiceIntegrationTest {
 
         assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
                                                                                        "12345",
-                                                                                       "workflow")).hasSize(5);
+                                                                                       Optional.of("workflow"))).hasSize(5);
         assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
                                                                                        "12345",
-                                                                                       "sCriPt")).hasSize(2);
+                                                                                       Optional.of("sCriPt"))).hasSize(2);
         assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
                                                                                        "12345",
-                                                                                       "ruLE")).hasSize(2);
+                                                                                       Optional.of("ruLE"))).hasSize(2);
 
     }
 

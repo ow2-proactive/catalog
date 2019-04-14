@@ -587,12 +587,12 @@ public class CatalogObjectService {
     }
 
     public List<CatalogObjectNameReference> getAccessibleCatalogObjectsNameReferenceByKind(boolean sessionIdRequired,
-            String sessionId, String kind) {
+            String sessionId, Optional<String> kind) {
         List<CatalogObjectNameReference> catalogObjectsNameReferenceByKind;
-        if (kind == null) {
+        if (!kind.isPresent()) {
             catalogObjectsNameReferenceByKind = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findAllCatalogObjectNameReferenceByKind());
         } else {
-            catalogObjectsNameReferenceByKind = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKind(kind));
+            catalogObjectsNameReferenceByKind = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKind(kind.get()));
         }
 
         return groupCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKind).entrySet()
