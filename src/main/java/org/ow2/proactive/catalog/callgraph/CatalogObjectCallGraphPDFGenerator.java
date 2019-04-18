@@ -266,6 +266,10 @@ public class CatalogObjectCallGraphPDFGenerator {
 
     }
 
+    /**
+     * The aim of these inner private classes is to disable the Drag and Drop functionality which throws HeadlessException in a Headless Environment.
+     */
+
     private class mxGraphComponentWithoutDragAndDrop extends mxGraphComponent {
 
         public mxGraphComponentWithoutDragAndDrop(mxGraph graph) {
