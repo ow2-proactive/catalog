@@ -56,10 +56,12 @@ import org.springframework.stereotype.Component;
 
 import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
 import com.mxgraph.layout.mxGraphLayout;
+import com.mxgraph.swing.handler.mxGraphHandler;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxCellRenderer;
 import com.mxgraph.util.mxConstants;
 import com.mxgraph.util.mxUtils;
+import com.mxgraph.view.mxGraph;
 
 import be.quodlibet.boxable.BaseTable;
 import be.quodlibet.boxable.Row;
@@ -78,8 +80,6 @@ public class CatalogObjectCallGraphPDFGenerator {
     private static final float MARGIN = 10;
 
     private static final String MAIN_TITLE = "ProActive Call Graph Report";
-
-    private CallGraphHolder callGraphHolder = new CallGraphHolder();
 
     @Autowired
     private SeparatorUtility separatorUtility;
@@ -105,9 +105,9 @@ public class CatalogObjectCallGraphPDFGenerator {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 PDDocument doc = new PDDocument();) {
 
-            buildCatalogCallGraph(catalogObjectMetadataList);
+            CallGraphHolder callGraph = buildCatalogCallGraph(catalogObjectMetadataList);
 
-            BufferedImage callGraphBufferedImage = generateBufferedImage();
+            BufferedImage callGraphBufferedImage = generateBufferedImage(callGraph);
 
             //Load font for all languages
             setFontToUse(doc);
@@ -123,8 +123,8 @@ public class CatalogObjectCallGraphPDFGenerator {
 
             // Create Header row
             headersBuilder.createInfoHeader(table,
-                                            extractBucketSet(callGraphHolder),
-                                            extractObjectSet(callGraphHolder),
+                                            extractBucketSet(callGraph),
+                                            extractObjectSet(callGraph),
                                             kind,
                                             contentType);
 
@@ -180,7 +180,7 @@ public class CatalogObjectCallGraphPDFGenerator {
         return page;
     }
 
-    private BufferedImage generateBufferedImage() {
+    private BufferedImage generateBufferedImage(CallGraphHolder callGraphHolder) {
 
         JGraphXAdapter<GraphNode, DefaultEdge> callGraphAdapter = new JGraphXAdapter(callGraphHolder.getDependencyGraph());
         callGraphStyle(callGraphAdapter);
@@ -231,12 +231,13 @@ public class CatalogObjectCallGraphPDFGenerator {
         callGraphAdapter.getStylesheet().getDefaultEdgeStyle().put(mxConstants.STYLE_STROKECOLOR,
                                                                    mxUtils.getHexColorString(new Color(0, 0, 255)));
 
-        mxGraphComponent graphComponent = new mxGraphComponent(callGraphAdapter);
+        mxGraphComponentWithoutDragAndDrop graphComponent = new mxGraphComponentWithoutDragAndDrop(callGraphAdapter);
         graphComponent.setWheelScrollingEnabled(false);
     }
 
-    private void buildCatalogCallGraph(List<CatalogObjectMetadata> catalogObjectMetadataList) {
+    private CallGraphHolder buildCatalogCallGraph(List<CatalogObjectMetadata> catalogObjectMetadataList) {
 
+        CallGraphHolder callGraphHolder = new CallGraphHolder();
         for (CatalogObjectMetadata catalogObjectMetadata : catalogObjectMetadataList) {
             List<String> dependsOnCatalogObjects = collectDependsOnCatalogObjects(catalogObjectMetadata);
             if (!dependsOnCatalogObjects.isEmpty()) {
@@ -251,6 +252,8 @@ public class CatalogObjectCallGraphPDFGenerator {
                 }
             }
         }
+
+        return callGraphHolder;
     }
 
     private List<String> collectDependsOnCatalogObjects(CatalogObjectMetadata catalogObjectMetadata) {
@@ -261,6 +264,31 @@ public class CatalogObjectCallGraphPDFGenerator {
                                     .map(Metadata::getKey)
                                     .collect(Collectors.toList());
 
+    }
+
+    /**
+     * The aim of these inner private classes is to disable the Drag and Drop functionality which throws HeadlessException in a Headless Environment.
+     */
+
+    private class mxGraphComponentWithoutDragAndDrop extends mxGraphComponent {
+
+        public mxGraphComponentWithoutDragAndDrop(mxGraph graph) {
+            super(graph);
+        }
+
+        protected mxGraphHandler createGraphHandler() {
+            return new mxGraphHandlerWithoutDragAndDrop(this);
+        }
+    }
+
+    private class mxGraphHandlerWithoutDragAndDrop extends mxGraphHandler {
+        public mxGraphHandlerWithoutDragAndDrop(mxGraphComponent graphComponent) {
+            super(graphComponent);
+        }
+
+        protected void installDragGestureHandler() {
+            //My Blank implementation for the installDragGestureHandler
+        }
     }
 
 }
