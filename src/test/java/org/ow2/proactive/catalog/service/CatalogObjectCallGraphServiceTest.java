@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -43,7 +44,6 @@ import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
@@ -91,9 +91,9 @@ public class CatalogObjectCallGraphServiceTest {
                                                                  kind,
                                                                  contentType)).thenReturn("onetwothree".getBytes());
 
-        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphImage(authorisedBucketsNames,
-                                                                                   kind,
-                                                                                   contentType);
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
+                                                                              kind,
+                                                                              contentType);
 
         assertThat(content).isNotNull();
         assertThat(content.length).isEqualTo("onetwothree".length());
@@ -101,7 +101,115 @@ public class CatalogObjectCallGraphServiceTest {
     }
 
     @Test
-    public void testGenerateBytesReportEmptyBucket() {
+    public void testGenerateBytesCallGraphForSelectedObjects() {
+        String bucketsName = "bucket3";
+        Optional<String> kind = Optional.empty();
+        Optional<String> contentType = Optional.empty();
+
+        List<String> objectsName = Lists.newArrayList("one", "two");
+
+        CatalogObjectMetadata one = createObjectMetadata(bucketsName, "one");
+        CatalogObjectMetadata two = createObjectMetadata(bucketsName, "two");
+
+        List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two);
+        when(catalogObjectService.listSelectedCatalogObjects(anyString(), anyList())).thenReturn(objectsMetadata);
+
+        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
+                                                                 kind,
+                                                                 contentType)).thenReturn("onetwo".getBytes());
+
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForSelectedObjects(bucketsName,
+                                                                                                objectsName,
+                                                                                                kind,
+                                                                                                contentType);
+
+        assertThat(content).isNotNull();
+        assertThat(content.length).isEqualTo("onetwo".length());
+
+    }
+
+    @Test
+    public void testGenerateBytesCallGraphWithKind() {
+        List<String> authorisedBucketsNames = Lists.newArrayList("bucket3", "bucket6");
+        Optional<String> kind = Optional.of("kind");
+        Optional<String> contentType = Optional.empty();
+
+        CatalogObjectMetadata one = createObjectMetadata("bucket3", "one");
+        CatalogObjectMetadata two = createObjectMetadata("bucket3", "two");
+        CatalogObjectMetadata three = createObjectMetadata("bucket6", "three");
+
+        List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two, three);
+        when(catalogObjectService.listCatalogObjectsByKind(anyList(), anyString())).thenReturn(objectsMetadata);
+
+        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
+                                                                 kind,
+                                                                 contentType)).thenReturn("onetwothree".getBytes());
+
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
+                                                                              kind,
+                                                                              contentType);
+
+        assertThat(content).isNotNull();
+        assertThat(content.length).isEqualTo("onetwothree".length());
+
+    }
+
+    @Test
+    public void testGenerateBytesCallGraphWithContentType() {
+        List<String> authorisedBucketsNames = Lists.newArrayList("bucket3", "bucket6");
+        Optional<String> kind = Optional.empty();
+        Optional<String> contentType = Optional.of("contentType");
+
+        CatalogObjectMetadata one = createObjectMetadata("bucket3", "one");
+        CatalogObjectMetadata two = createObjectMetadata("bucket3", "two");
+        CatalogObjectMetadata three = createObjectMetadata("bucket6", "three");
+
+        List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two, three);
+        when(catalogObjectService.listCatalogObjectsByContentType(anyList(), anyString())).thenReturn(objectsMetadata);
+
+        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
+                                                                 kind,
+                                                                 contentType)).thenReturn("onetwothree".getBytes());
+
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
+                                                                              kind,
+                                                                              contentType);
+
+        assertThat(content).isNotNull();
+        assertThat(content.length).isEqualTo("onetwothree".length());
+
+    }
+
+    @Test
+    public void testGenerateBytesCallGraphWithKindAndContentType() {
+        List<String> authorisedBucketsNames = Lists.newArrayList("bucket3", "bucket6");
+        Optional<String> kind = Optional.of("kind");
+        Optional<String> contentType = Optional.of("contentType");
+
+        CatalogObjectMetadata one = createObjectMetadata("bucket3", "one");
+        CatalogObjectMetadata two = createObjectMetadata("bucket3", "two");
+        CatalogObjectMetadata three = createObjectMetadata("bucket6", "three");
+
+        List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two, three);
+        when(catalogObjectService.listCatalogObjectsByKindAndContentType(anyList(),
+                                                                         anyString(),
+                                                                         anyString())).thenReturn(objectsMetadata);
+
+        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
+                                                                 kind,
+                                                                 contentType)).thenReturn("onetwothree".getBytes());
+
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
+                                                                              kind,
+                                                                              contentType);
+
+        assertThat(content).isNotNull();
+        assertThat(content.length).isEqualTo("onetwothree".length());
+
+    }
+
+    @Test
+    public void testGenerateBytesCallGraphEmptyBucket() {
         List<String> authorisedBucketsNames = Lists.newArrayList();
         Optional<String> kind = Optional.empty();
         Optional<String> contentType = Optional.empty();
@@ -113,9 +221,9 @@ public class CatalogObjectCallGraphServiceTest {
                                                                  kind,
                                                                  contentType)).thenReturn("onetwothree".getBytes());
 
-        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphImage(authorisedBucketsNames,
-                                                                                   kind,
-                                                                                   contentType);
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
+                                                                              kind,
+                                                                              contentType);
 
         assertThat(content).isNotNull();
 

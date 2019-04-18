@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -67,6 +68,9 @@ public class CatalogObjectCallGraphControllerTest {
     @Mock
     private BucketService bucketService;
 
+    @Mock
+    private RestApiAccessService restApiAccessService;
+
     @Test
     public void getCallGraph() throws Exception {
         String ownerName = "xxx";
@@ -83,11 +87,84 @@ public class CatalogObjectCallGraphControllerTest {
         when(response.getOutputStream()).thenReturn(sos);
 
         when(bucketService.listBuckets(ownerName, kind, contentType)).thenReturn(authorisedBuckets);
-        when(catalogObjectCallGraphService.generateBytesCallGraphImage(anyList(),
-                                                                       anyObject(),
-                                                                       anyObject())).thenReturn(content);
+        when(catalogObjectCallGraphService.generateBytesCallGraph(anyList(),
+                                                                  anyObject(),
+                                                                  anyObject())).thenReturn(content);
 
         CatalogObjectCallGraphController.getCallGraph(response, "sessionid", "xxx", Optional.empty(), Optional.empty());
+        verify(response, times(1)).addHeader("Content-size", new Integer(content.length).toString());
+        verify(response, times(1)).setCharacterEncoding("UTF-8");
+
+        verify(sos, times(1)).write(content);
+
+        verify(sos, times(1)).flush();
+
+    }
+
+    @Test
+    public void getReportForSelectedObjectsWithNames() throws Exception {
+
+        Optional<String> kind = Optional.empty();
+        Optional<String> contentType = Optional.empty();
+
+        byte[] content = "some data to test".getBytes();
+
+        List<BucketMetadata> authorisedBuckets = Lists.newArrayList(new BucketMetadata("bucket2", "xxx"),
+                                                                    new BucketMetadata("bucket5", "xxx"));
+
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        ServletOutputStream sos = mock(ServletOutputStream.class);
+        when(response.getOutputStream()).thenReturn(sos);
+
+        when(bucketService.listBuckets("xxx", kind, contentType)).thenReturn(authorisedBuckets);
+        when(catalogObjectCallGraphService.generateBytesCallGraphForSelectedObjects(anyString(),
+                                                                                    anyList(),
+                                                                                    anyObject(),
+                                                                                    anyObject())).thenReturn(content);
+
+        String bucketName = "basic-examples";
+        Optional<List<String>> catalogObjectsNames = Optional.of(Lists.newArrayList("object1"));
+        CatalogObjectCallGraphController.getCallGraphForSelectedObjects(response,
+                                                                        "sessionId",
+                                                                        "ownerName",
+                                                                        bucketName,
+                                                                        kind,
+                                                                        contentType,
+                                                                        catalogObjectsNames);
+        verify(response, times(1)).addHeader("Content-size", new Integer(content.length).toString());
+        verify(response, times(1)).setCharacterEncoding("UTF-8");
+
+        verify(sos, times(1)).write(content);
+
+        verify(sos, times(1)).flush();
+
+    }
+
+    @Test
+    public void getReportForSelectedObjectsWithoutNames() throws Exception {
+
+        Optional<String> kind = Optional.empty();
+        Optional<String> contentType = Optional.empty();
+
+        byte[] content = "some data to test".getBytes();
+
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        ServletOutputStream sos = mock(ServletOutputStream.class);
+        when(response.getOutputStream()).thenReturn(sos);
+
+        when(catalogObjectCallGraphService.generateBytesCallGraph(anyList(),
+                                                                  anyObject(),
+                                                                  anyObject())).thenReturn(content);
+
+        String bucketName = "basic-examples";
+        Optional<List<String>> catalogObjectsNames = Optional.empty();
+        CatalogObjectCallGraphController.getCallGraphForSelectedObjects(response,
+                                                                        "sessionId",
+                                                                        "ownerName",
+                                                                        bucketName,
+                                                                        kind,
+                                                                        contentType,
+                                                                        catalogObjectsNames);
         verify(response, times(1)).addHeader("Content-size", new Integer(content.length).toString());
         verify(response, times(1)).setCharacterEncoding("UTF-8");
 

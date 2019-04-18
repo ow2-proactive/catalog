@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.rest.controller;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,6 +45,7 @@ import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -92,11 +94,49 @@ public class CatalogObjectCallGraphController {
 
         List<String> authorisedBucketsNames = getListOfAuthorizedBuckets(sessionId, ownerName, kind, contentType);
 
-        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphImage(authorisedBucketsNames,
-                                                                                   kind,
-                                                                                   contentType);
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
+                                                                              kind,
+                                                                              contentType);
 
         flushResponse(response, content);
+
+    }
+
+    @ApiOperation(value = "Get the call graph of selected catalog objects in a bucket")
+    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
+                            @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied") })
+    @RequestMapping(value = "/selected/{bucketName}", method = GET)
+    @ResponseStatus(HttpStatus.OK)
+    public void getCallGraphForSelectedObjects(HttpServletResponse response,
+            @ApiParam(value = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
+            @PathVariable String bucketName,
+            @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
+            @ApiParam(value = "Filter according to content type.") @RequestParam(required = false) Optional<String> contentType,
+            @ApiParam(value = "Give a list of name separated by comma to get them in the report", allowMultiple = true, type = "string") @RequestParam(value = "name", required = false) Optional<List<String>> catalogObjectsNames)
+            throws NotAuthenticatedException, AccessDeniedException, IOException {
+
+        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
+                                                                               sessionId,
+                                                                               bucketName);
+
+        if (catalogObjectsNames.isPresent()) {
+
+            byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForSelectedObjects(bucketName,
+                                                                                                    catalogObjectsNames.get(),
+                                                                                                    kind,
+                                                                                                    contentType);
+            flushResponse(response, content);
+
+        } else {
+
+            byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(Collections.singletonList(bucketName),
+                                                                                  kind,
+                                                                                  contentType);
+            flushResponse(response, content);
+
+        }
 
     }
 

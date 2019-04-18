@@ -54,10 +54,20 @@ public class CatalogObjectCallGraphService {
     @Autowired
     private CatalogObjectCallGraphPDFGenerator catalogObjectCallGraphPDFGenerator;
 
-    public byte[] generateBytesCallGraphImage(List<String> authorisedBucketsNames, Optional<String> kind,
+    public byte[] generateBytesCallGraph(List<String> authorisedBucketsNames, Optional<String> kind,
             Optional<String> contentType) {
 
         List<CatalogObjectMetadata> metadataList = getListOfCatalogObjects(kind, contentType, authorisedBucketsNames);
+
+        return catalogObjectCallGraphPDFGenerator.generatePdfImage(metadataList, kind, contentType);
+
+    }
+
+    public byte[] generateBytesCallGraphForSelectedObjects(String bucketName, List<String> catalogObjectsNames,
+            Optional<String> kind, Optional<String> contentType) {
+
+        List<CatalogObjectMetadata> metadataList = catalogObjectService.listSelectedCatalogObjects(bucketName,
+                                                                                                   catalogObjectsNames);
 
         return catalogObjectCallGraphPDFGenerator.generatePdfImage(metadataList, kind, contentType);
 
