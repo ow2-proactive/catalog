@@ -120,23 +120,10 @@ public class CatalogObjectCallGraphController {
         restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
                                                                                sessionId,
                                                                                bucketName);
-
-        if (catalogObjectsNames.isPresent()) {
-
-            byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForSelectedObjects(bucketName,
-                                                                                                    catalogObjectsNames.get(),
-                                                                                                    kind,
-                                                                                                    contentType);
-            flushResponse(response, content);
-
-        } else {
-
-            byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(Collections.singletonList(bucketName),
-                                                                                  kind,
-                                                                                  contentType);
-            flushResponse(response, content);
-
-        }
+        byte[] content = catalogObjectsNames
+                .map(names->catalogObjectCallGraphService.generateBytesCallGraphForSelectedObjects(bucketName,names,kind,contentType))
+                        .orElse(catalogObjectCallGraphService.generateBytesCallGraph(Collections.singletonList(bucketName), kind,contentType));
+        flushResponse(response, content);
 
     }
 

@@ -286,6 +286,7 @@ public class CatalogObjectCallGraphPDFGenerator {
             super(graphComponent);
         }
 
+        @Override
         protected void installDragGestureHandler() {
             //My Blank implementation for the installDragGestureHandler
         }
