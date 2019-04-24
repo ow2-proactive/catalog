@@ -64,7 +64,10 @@ import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxGraph;
 
 import be.quodlibet.boxable.BaseTable;
+import be.quodlibet.boxable.Cell;
+import be.quodlibet.boxable.HorizontalAlignment;
 import be.quodlibet.boxable.Row;
+import be.quodlibet.boxable.VerticalAlignment;
 import be.quodlibet.boxable.image.Image;
 import be.quodlibet.boxable.utils.FontUtils;
 
@@ -80,6 +83,12 @@ public class CatalogObjectCallGraphPDFGenerator {
     private static final float MARGIN = 10;
 
     private static final String MAIN_TITLE = "ProActive Call Graph Report";
+
+    private static final String LIGHT_GRAY = "#D3D3D3";
+
+    private static final String BLACK = "#000000";
+
+    private static final int BIG_FONT = 12;
 
     @Autowired
     private SeparatorUtility separatorUtility;
@@ -129,7 +138,18 @@ public class CatalogObjectCallGraphPDFGenerator {
                                             contentType);
 
             Row<PDPage> dataRow = table.createRow(100);
-            dataRow.createImageCell(100, new Image(callGraphBufferedImage));
+            if (callGraphBufferedImage == null) {
+                createDataCell(dataRow,
+                               100,
+                               "No Dependencies in the Catalog",
+                               BIG_FONT,
+                               HorizontalAlignment.CENTER,
+                               VerticalAlignment.MIDDLE,
+                               LIGHT_GRAY,
+                               BLACK);
+            } else {
+                dataRow.createImageCell(100, new Image(callGraphBufferedImage));
+            }
 
             table.draw();
 
@@ -252,7 +272,6 @@ public class CatalogObjectCallGraphPDFGenerator {
                 }
             }
         }
-
         return callGraphHolder;
     }
 
@@ -263,6 +282,17 @@ public class CatalogObjectCallGraphPDFGenerator {
                                                                 .equals(WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL))
                                     .map(Metadata::getKey)
                                     .collect(Collectors.toList());
+
+    }
+
+    private void createDataCell(Row<PDPage> row, float width, String data, int fontSize, HorizontalAlignment align,
+            VerticalAlignment valign, String fillColor, String textColor) {
+        Cell<PDPage> cell = row.createCell(width, data);
+        cell.setFontSize(fontSize);
+        cell.setAlign(align);
+        cell.setValign(valign);
+        cell.setFillColor(java.awt.Color.decode(fillColor));
+        cell.setTextColor(java.awt.Color.decode(textColor));
 
     }
 
