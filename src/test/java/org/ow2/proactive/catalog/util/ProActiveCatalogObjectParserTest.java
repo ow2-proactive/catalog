@@ -37,6 +37,7 @@ import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.ow2.proactive.scheduler.core.properties.PASchedulerProperties;
 
 
 /**
@@ -101,6 +102,35 @@ public class ProActiveCatalogObjectParserTest {
         assertThat(revisionValues.stream()
                                  .filter(revision -> !revision.equals(WorkflowParser.LATEST_VERSION))
                                  .collect(Collectors.toList())).hasSize(2);
+    }
+
+    @Test
+    public void testParseWorkflowContainingScriptUrl() throws Exception {
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_with_script_url.xml");
+        List<String> dependsOnKeys = findKeysForDependsOnLabel(result, WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
+        List<String> revisionValues = findRevisionsForDependsOnLabel(result, WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
+        assertThat(dependsOnKeys).contains("basic-examples/Native_Task");
+        assertThat(dependsOnKeys).contains("cloud-automation-scripts/Service_Start");
+        assertThat(dependsOnKeys).contains("cloud-automation-scripts/Pre_Trigger_Action");
+        assertThat(dependsOnKeys).contains("scripts/check_ip");
+        assertThat(dependsOnKeys).contains("notification-tools/Web_Validation_Script");
+        assertThat(dependsOnKeys).contains("scripts/is_mac");
+        assertThat(dependsOnKeys).contains("scripts/update_variables_from_system");
+        assertThat(dependsOnKeys).contains("scripts/update_variables_from_file");
+        assertThat(dependsOnKeys).hasSize(8);
+
+        assertThat(revisionValues.stream()
+                                 .filter(revision -> revision.equals(WorkflowParser.LATEST_VERSION))
+                                 .collect(Collectors.toList())).hasSize(6);
+        assertThat(revisionValues.stream()
+                                 .filter(revision -> !revision.equals(WorkflowParser.LATEST_VERSION))
+                                 .collect(Collectors.toList())).hasSize(2);
+
+    }
+
+    @Test(expected = Exception.class)
+    public void testParseWorkflowContainingWrongScriptUrl() throws Exception {
+        parseWorkflow("workflow-with_wrong_script_url.xml");
     }
 
     @Test(expected = ParsingObjectException.class)
