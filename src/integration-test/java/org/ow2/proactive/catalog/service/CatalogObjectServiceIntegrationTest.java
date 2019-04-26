@@ -55,6 +55,7 @@ import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidEx
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.ow2.proactive.scheduler.core.properties.PASchedulerProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -93,6 +94,7 @@ public class CatalogObjectServiceIntegrationTest {
 
     @Before
     public void setup() throws IOException, InterruptedException {
+        PASchedulerProperties.CATALOG_REST_URL.updateProperty("http://localhost:8080/catalog");
         bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
         keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
 
@@ -478,9 +480,8 @@ public class CatalogObjectServiceIntegrationTest {
 
     @Test
     public void testParseWorkflowContainingScriptUrl() throws Exception {
-        String workflowName = "workflow";
+        String workflowName = "workflow-with-script-url";
         String bucketName = bucket.getName();
-
         // First commit of the A_Object to the catalog
         catalogObjectService.createCatalogObject(bucketName,
                                                  workflowName,
@@ -498,7 +499,7 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("first commit message");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("workflow");
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("application/xml");
-        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(18);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(15);
 
         List<String> dependsOnKeys = catalogObjectMetadata.getMetadataList()
                                                           .stream()
@@ -511,36 +512,29 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(dependsOnKeys).contains("basic-examples/Native_Task");
         assertThat(dependsOnKeys).contains("cloud-automation-scripts/Service_Start");
         assertThat(dependsOnKeys).contains("cloud-automation-scripts/Pre_Trigger_Action");
-        assertThat(dependsOnKeys).contains("scripts/check_ip");
-        assertThat(dependsOnKeys).contains("notification-tools/Web_Validation_Script");
-        assertThat(dependsOnKeys).contains("scripts/is_mac");
         assertThat(dependsOnKeys).contains("scripts/update_variables_from_system");
         assertThat(dependsOnKeys).contains("scripts/update_variables_from_file");
-        assertThat(dependsOnKeys).hasSize(8);
+        assertThat(dependsOnKeys).hasSize(5);
 
-        //'bucket/A_Object' depends on bucket/B_Object'
-        //check the correctness of the DB
+        //check the consistency of the DB
         long firstCommitTimeDependsOn = catalogObjectMetadata.getCommitDateTime()
                                                              .atZone(ZoneId.systemDefault())
                                                              .toInstant()
                                                              .toEpochMilli();
-        CatalogObjectDependencies catalogObjectDependencyListOfAObjectFirstCommit = catalogObjectService.getObjectDependencies(bucketName,
-                                                                                                                               workflowName,
-                                                                                                                               firstCommitTimeDependsOn);
-        List<String> BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit = catalogObjectDependencyListOfAObjectFirstCommit.getDependsOnList()
-                                                                                                                                 .stream()
-                                                                                                                                 .map(DependsOnCatalogObject::getBucketAndObjectName)
-                                                                                                                                 .collect(Collectors.toList());
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).hasSize(8);
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("basic-examples/Native_Task");
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("cloud-automation-scripts/Service_Start");
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("cloud-automation-scripts/Pre_Trigger_Action");
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("scripts/check_ip");
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("notification-tools/Web_Validation_Script");
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("scripts/is_mac");
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("scripts/update_variables_from_system");
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("scripts/update_variables_from_file");
-        assertThat(catalogObjectDependencyListOfAObjectFirstCommit.getCalledByList()).hasSize(0);
+        CatalogObjectDependencies catalogObjectDependencyList = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                           workflowName,
+                                                                                                           firstCommitTimeDependsOn);
+        List<String> BucketAndObjectNameDependsOnListFromDB = catalogObjectDependencyList.getDependsOnList()
+                                                                                         .stream()
+                                                                                         .map(DependsOnCatalogObject::getBucketAndObjectName)
+                                                                                         .collect(Collectors.toList());
+        assertThat(BucketAndObjectNameDependsOnListFromDB).hasSize(5);
+        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("basic-examples/Native_Task");
+        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("cloud-automation-scripts/Service_Start");
+        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("cloud-automation-scripts/Pre_Trigger_Action");
+        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("scripts/update_variables_from_system");
+        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("scripts/update_variables_from_file");
+        assertThat(catalogObjectDependencyList.getCalledByList()).hasSize(0);
 
     }
 

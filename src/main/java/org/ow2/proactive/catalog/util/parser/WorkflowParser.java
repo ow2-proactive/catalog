@@ -45,6 +45,7 @@ import org.ow2.proactive.scheduler.common.job.factories.JobFactory;
 import org.ow2.proactive.scheduler.common.task.ScriptTask;
 import org.ow2.proactive.scheduler.common.task.Task;
 import org.ow2.proactive.scheduler.common.task.TaskVariable;
+import org.ow2.proactive.scheduler.core.properties.PASchedulerProperties;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableSet;
@@ -87,7 +88,8 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private static final String CATALOG_OBJECT_MODEL_REGEXP = "^([^/]+/[^/]+)(/[^/][0-9]{12})?$";
 
-    private static final String SCRIPT_URL_REGEX = "^((http|https)://.*|\\$\\{PA\\_CATALOG\\_REST\\_URL\\})/buckets/([^/]+)/resources/([^/]+)(/revisions/([^/][0-9]{12}))?/raw";
+    // e.g ${PA_CATALOG_REST_URL}/buckets/notification-tools/resources/Web_Validation_Script/revisions/1555683355837/raw
+    private static final String SCRIPT_URL_REGEX = "^/buckets/([^/]+)/resources/([^/]+)(/revisions/([^/][0-9]{12}))?/raw";
 
     private static final Pattern URL_PATTERN = Pattern.compile(SCRIPT_URL_REGEX);
 
@@ -181,41 +183,49 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
             ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Task task) {
 
         if (task.getPreScript() != null && task.getPreScript().getScriptUrl() != null &&
-            !task.getPreScript().getScriptUrl().toString().isEmpty()) {
-            addDependsOn(keyValueMapBuilder, task.getPreScript().getScriptUrl().toString());
+            !task.getPreScript().getScriptUrl().toString().isEmpty() &&
+            isScriptUrlValid(shortScriptUrl(task.getPreScript().getScriptUrl().toString()))) {
+            addDependsOn(keyValueMapBuilder, shortScriptUrl(task.getPreScript().getScriptUrl().toString()));
         }
 
         if (task.getPostScript() != null && task.getPostScript().getScriptUrl() != null &&
-            !task.getPostScript().getScriptUrl().toString().isEmpty()) {
-            addDependsOn(keyValueMapBuilder, task.getPostScript().getScriptUrl().toString());
+            !task.getPostScript().getScriptUrl().toString().isEmpty() &&
+            isScriptUrlValid(shortScriptUrl(task.getPostScript().getScriptUrl().toString()))) {
+            addDependsOn(keyValueMapBuilder, shortScriptUrl(task.getPostScript().getScriptUrl().toString()));
         }
 
         if (task.getFlowScript() != null && task.getFlowScript().getScriptUrl() != null &&
-            !task.getFlowScript().getScriptUrl().toString().isEmpty()) {
-            addDependsOn(keyValueMapBuilder, task.getFlowScript().getScriptUrl().toString());
+            !task.getFlowScript().getScriptUrl().toString().isEmpty() &&
+            isScriptUrlValid(shortScriptUrl(task.getFlowScript().getScriptUrl().toString()))) {
+            addDependsOn(keyValueMapBuilder, shortScriptUrl(task.getFlowScript().getScriptUrl().toString()));
         }
 
         if (task.getCleaningScript() != null && task.getPreScript().getScriptUrl() != null &&
-            !task.getCleaningScript().getScriptUrl().toString().isEmpty()) {
-            addDependsOn(keyValueMapBuilder, task.getCleaningScript().getScriptUrl().toString());
+            !task.getCleaningScript().getScriptUrl().toString().isEmpty() &&
+            isScriptUrlValid(shortScriptUrl(task.getCleaningScript().getScriptUrl().toString()))) {
+            addDependsOn(keyValueMapBuilder, shortScriptUrl(task.getCleaningScript().getScriptUrl().toString()));
         }
 
         if (task.getForkEnvironment() != null && task.getForkEnvironment().getEnvScript() != null &&
             task.getForkEnvironment().getEnvScript().getScriptUrl() != null &&
-            !task.getForkEnvironment().getEnvScript().getScriptUrl().toString().isEmpty()) {
-            addDependsOn(keyValueMapBuilder, task.getForkEnvironment().getEnvScript().getScriptUrl().toString());
+            !task.getForkEnvironment().getEnvScript().getScriptUrl().toString().isEmpty() &&
+            isScriptUrlValid(shortScriptUrl(task.getForkEnvironment().getEnvScript().getScriptUrl().toString()))) {
+            addDependsOn(keyValueMapBuilder,
+                         shortScriptUrl(task.getForkEnvironment().getEnvScript().getScriptUrl().toString()));
         }
 
         if (task instanceof ScriptTask && ((ScriptTask) task).getScript() != null &&
             ((ScriptTask) task).getScript().getScriptUrl() != null &&
-            !((ScriptTask) task).getScript().getScriptUrl().toString().isEmpty()) {
-            addDependsOn(keyValueMapBuilder, ((ScriptTask) task).getScript().getScriptUrl().toString());
+            !((ScriptTask) task).getScript().getScriptUrl().toString().isEmpty() &&
+            isScriptUrlValid(shortScriptUrl(((ScriptTask) task).getScript().getScriptUrl().toString()))) {
+            addDependsOn(keyValueMapBuilder, shortScriptUrl(((ScriptTask) task).getScript().getScriptUrl().toString()));
         }
 
         if (task.getSelectionScripts() != null) {
             task.getSelectionScripts().forEach(selectionScript -> {
-                if (selectionScript.getScriptUrl() != null && !selectionScript.getScriptUrl().toString().isEmpty()) {
-                    addDependsOn(keyValueMapBuilder, selectionScript.getScriptUrl().toString());
+                if (selectionScript.getScriptUrl() != null && !selectionScript.getScriptUrl().toString().isEmpty() &&
+                    isScriptUrlValid(shortScriptUrl(selectionScript.getScriptUrl().toString()))) {
+                    addDependsOn(keyValueMapBuilder, shortScriptUrl(selectionScript.getScriptUrl().toString()));
                 }
             });
         }
@@ -224,27 +234,31 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private void addDependsOn(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, String scriptUrl) {
 
-        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromUrl(scriptUrl),
+        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromScriptUrl(scriptUrl),
                                                                getRevisionFromUrl(scriptUrl).orElse(LATEST_VERSION),
                                                                ATTRIBUTE_DEPENDS_ON_LABEL));
 
     }
 
-    private String getNameAndBucketFromUrl(String scriptUrl) {
-        Matcher matcher = URL_PATTERN.matcher(scriptUrl);
-        if (!(scriptUrl.matches(SCRIPT_URL_REGEX) && matcher.find())) {
-            throw new RuntimeException(String.format("Impossible to parse the script url: %s, parsing error when getting the bucket and the workflow name",
-                                                     scriptUrl));
-        } else {
-            return (separatorUtility.getConcatWithSeparator(matcher.group(3), matcher.group(4)));
+    private String shortScriptUrl(String scriptUrl) {
+        return scriptUrl.replace(PASchedulerProperties.CATALOG_REST_URL.getValueAsString(), "");
+    }
 
-        }
+    private boolean isScriptUrlValid(String scriptUrl) {
+        return scriptUrl.matches(SCRIPT_URL_REGEX);
+    }
+
+    private String getNameAndBucketFromScriptUrl(String scriptUrl) {
+        Matcher matcher = URL_PATTERN.matcher(scriptUrl);
+        matcher.find();
+        return (separatorUtility.getConcatWithSeparator(matcher.group(1), matcher.group(2)));
+
     }
 
     private Optional<String> getRevisionFromUrl(String scriptUrl) {
         Matcher matcher = URL_PATTERN.matcher(scriptUrl);
-        if (matcher.find() && matcher.group(6) != null) {
-            return Optional.of(matcher.group(6));
+        if (matcher.find() && matcher.group(4) != null) {
+            return Optional.of(matcher.group(4));
         } else {
             return Optional.empty();
         }

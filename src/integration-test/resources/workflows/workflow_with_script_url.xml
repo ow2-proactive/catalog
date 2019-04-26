@@ -15,43 +15,25 @@
     <task name="Task_Script"
 
           onTaskError="cancelJob" >
-      <selection>
-        <script type="static">
-          <file url="http://try.activeeon.com:8080/catalog/buckets/scripts/resources/is_mac/raw" language="groovy"></file>
-        </script>
-        <script type="dynamic">
-          <file url="http://try.activeeon.com:8080/catalog/buckets/scripts/resources/check_ip/raw" language="groovy"></file>
-        </script>
-        <script type="dynamic">
-          <file url="http://try.activeeon.com:8080/catalog/buckets/cloud-automation-scripts/resources/Pre_Trigger_Action/raw" language="groovy"></file>
-        </script>
-      </selection>
-      <forkEnvironment >
-        <envScript>
-          <script>
-            <file url="http://localhost:8080/catalog/buckets/notification-tools/resources/Web_Validation_Script/revisions/1555683355837/raw" language="groovy"></file>
-          </script>
-        </envScript>
-      </forkEnvironment>
       <pre>
         <script>
-          <file url="http://localhost:8080/catalog/buckets/cloud-automation-scripts/resources/Pre_Trigger_Action/raw" language="groovy"></file>
+          <file url="${PA_CATALOG_REST_URL}/buckets/cloud-automation-scripts/resources/Pre_Trigger_Action/raw" language="groovy"></file>
         </script>
       </pre>
       <scriptExecutable>
         <script>
-          <file url="http://localhost:8080/catalog/buckets/cloud-automation-scripts/resources/Service_Start/raw" language="groovy"></file>
+          <file url="${PA_CATALOG_REST_URL}/buckets/cloud-automation-scripts/resources/Service_Start/raw" language="groovy"></file>
         </script>
       </scriptExecutable>
       <controlFlow block="none"></controlFlow>
       <post>
         <script>
-          <file url="http://localhost:8080/catalog/buckets/scripts/resources/update_variables_from_file/raw" language="groovy"></file>
+          <file url="${PA_CATALOG_REST_URL}/buckets/scripts/resources/update_variables_from_file/raw" language="groovy"></file>
         </script>
       </post>
       <cleaning>
         <script>
-          <file url="http://localhost:8080/catalog/buckets/scripts/resources/update_variables_from_system/revisions/1777683355837/raw" language="groovy"></file>
+          <file url="${PA_CATALOG_REST_URL}/buckets/scripts/resources/update_variables_from_system/revisions/1777683355837/raw" language="groovy"></file>
         </script>
       </cleaning>
     </task>

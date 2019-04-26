@@ -106,25 +106,23 @@ public class ProActiveCatalogObjectParserTest {
 
     @Test
     public void testParseWorkflowContainingScriptUrl() throws Exception {
+        PASchedulerProperties.CATALOG_REST_URL.updateProperty("http://localhost:8080/catalog");
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_with_script_url.xml");
         List<String> dependsOnKeys = findKeysForDependsOnLabel(result, WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
         List<String> revisionValues = findRevisionsForDependsOnLabel(result, WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
         assertThat(dependsOnKeys).contains("basic-examples/Native_Task");
         assertThat(dependsOnKeys).contains("cloud-automation-scripts/Service_Start");
         assertThat(dependsOnKeys).contains("cloud-automation-scripts/Pre_Trigger_Action");
-        assertThat(dependsOnKeys).contains("scripts/check_ip");
-        assertThat(dependsOnKeys).contains("notification-tools/Web_Validation_Script");
-        assertThat(dependsOnKeys).contains("scripts/is_mac");
         assertThat(dependsOnKeys).contains("scripts/update_variables_from_system");
         assertThat(dependsOnKeys).contains("scripts/update_variables_from_file");
-        assertThat(dependsOnKeys).hasSize(8);
+        assertThat(dependsOnKeys).hasSize(5);
 
         assertThat(revisionValues.stream()
                                  .filter(revision -> revision.equals(WorkflowParser.LATEST_VERSION))
-                                 .collect(Collectors.toList())).hasSize(6);
+                                 .collect(Collectors.toList())).hasSize(4);
         assertThat(revisionValues.stream()
                                  .filter(revision -> !revision.equals(WorkflowParser.LATEST_VERSION))
-                                 .collect(Collectors.toList())).hasSize(2);
+                                 .collect(Collectors.toList())).hasSize(1);
 
     }
 
