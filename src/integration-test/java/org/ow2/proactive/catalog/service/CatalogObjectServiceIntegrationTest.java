@@ -55,6 +55,7 @@ import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidEx
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.ow2.proactive.scheduler.core.properties.PASchedulerProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -93,6 +94,7 @@ public class CatalogObjectServiceIntegrationTest {
 
     @Before
     public void setup() throws IOException, InterruptedException {
+        PASchedulerProperties.CATALOG_REST_URL.updateProperty("http://localhost:8080/catalog");
         bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
         keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
 
@@ -473,6 +475,66 @@ public class CatalogObjectServiceIntegrationTest {
                                                  null);
 
         catalogObjectService.getObjectDependencies(bucketName, dObject);
+
+    }
+
+    @Test
+    public void testParseWorkflowContainingScriptUrl() throws Exception {
+        String workflowName = "workflow-with-script-url";
+        String bucketName = bucket.getName();
+        // First commit of the A_Object to the catalog
+        catalogObjectService.createCatalogObject(bucketName,
+                                                 workflowName,
+                                                 "workflow",
+                                                 "first commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 Collections.EMPTY_LIST,
+                                                 IntegrationTestUtil.getWorkflowAsByteArray("workflow_with_script_url.xml"),
+                                                 null);
+
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucketName,
+                                                                                                    workflowName);
+
+        assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("first commit message");
+        assertThat(catalogObjectMetadata.getKind()).isEqualTo("workflow");
+        assertThat(catalogObjectMetadata.getContentType()).isEqualTo("application/xml");
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(15);
+
+        List<String> dependsOnKeys = catalogObjectMetadata.getMetadataList()
+                                                          .stream()
+                                                          .filter(metadata -> metadata.getLabel()
+                                                                                      .equals(WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL))
+                                                          .map(Metadata::getKey)
+                                                          .collect(Collectors.toList());
+
+        // Check that depends on Metadata are well extracted from the script urls at all levels (task, pre, post, cleaning...) without duplication
+        assertThat(dependsOnKeys).contains("basic-examples/Native_Task");
+        assertThat(dependsOnKeys).contains("cloud-automation-scripts/Service_Start");
+        assertThat(dependsOnKeys).contains("cloud-automation-scripts/Pre_Trigger_Action");
+        assertThat(dependsOnKeys).contains("scripts/update_variables_from_system");
+        assertThat(dependsOnKeys).contains("scripts/update_variables_from_file");
+        assertThat(dependsOnKeys).hasSize(5);
+
+        //check the consistency of the DB
+        long firstCommitTimeDependsOn = catalogObjectMetadata.getCommitDateTime()
+                                                             .atZone(ZoneId.systemDefault())
+                                                             .toInstant()
+                                                             .toEpochMilli();
+        CatalogObjectDependencies catalogObjectDependencyList = catalogObjectService.getObjectDependencies(bucketName,
+                                                                                                           workflowName,
+                                                                                                           firstCommitTimeDependsOn);
+        List<String> BucketAndObjectNameDependsOnListFromDB = catalogObjectDependencyList.getDependsOnList()
+                                                                                         .stream()
+                                                                                         .map(DependsOnCatalogObject::getBucketAndObjectName)
+                                                                                         .collect(Collectors.toList());
+        assertThat(BucketAndObjectNameDependsOnListFromDB).hasSize(5);
+        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("basic-examples/Native_Task");
+        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("cloud-automation-scripts/Service_Start");
+        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("cloud-automation-scripts/Pre_Trigger_Action");
+        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("scripts/update_variables_from_system");
+        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("scripts/update_variables_from_file");
+        assertThat(catalogObjectDependencyList.getCalledByList()).hasSize(0);
 
     }
 
