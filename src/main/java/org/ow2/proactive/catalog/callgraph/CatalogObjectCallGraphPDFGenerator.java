@@ -187,7 +187,11 @@ public class CatalogObjectCallGraphPDFGenerator {
         PDRectangle mediaBox = page.getMediaBox();
         float fX = pdImage.getWidth() / mediaBox.getWidth();
         float fY = pdImage.getHeight() / mediaBox.getHeight();
+        float startY = mediaBox.getHeight() - pdImage.getHeight();
         float factor = Math.max(fX, fY);
+        if (pageIndex == 0) {
+            factor = factor * 1.15f;
+        }
 
         try (final PDPageContentStream contentStream = new PDPageContentStream(doc,
                                                                                doc.getPage(pageIndex),
@@ -195,10 +199,9 @@ public class CatalogObjectCallGraphPDFGenerator {
                                                                                true)) {
             contentStream.drawImage(pdImage,
                                     0,
-                                    0,
+                                    startY > 0 ? startY : 0,
                                     pdImage.getWidth() / factor,
-                                    pageIndex != 0 ? pdImage.getHeight() / factor
-                                                   : pdImage.getHeight() / factor - 100f);
+                                    pdImage.getHeight() / factor);
         }
     }
 
