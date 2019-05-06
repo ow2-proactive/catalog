@@ -338,7 +338,9 @@ public class CatalogObjectCallGraphPDFGenerator {
                 }
             }
         });
-
+        if (!partition.isEmpty()) {
+            nodesPartition.add(new HashSet<>(partition));
+        }
         return nodesPartition;
     }
 
