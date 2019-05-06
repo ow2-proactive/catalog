@@ -179,10 +179,8 @@ public class CatalogObjectCallGraphPDFGenerator {
 
     private void drawPartitionImageOnSinglePage(BufferedImage partition, PDDocument doc, int pageIndex)
             throws IOException {
-        PDPage page = doc.getPage(0);
-        if (pageIndex != 0) {
-            page = addNewPage(doc);
-        }
+        PDPage page = pageIndex != 0 ? addNewPage(doc) : doc.getPage(0);
+
         final PDImageXObject pdImage = LosslessFactory.createFromImage(doc, partition);
         PDRectangle mediaBox = page.getMediaBox();
         float fX = pdImage.getWidth() / mediaBox.getWidth();
