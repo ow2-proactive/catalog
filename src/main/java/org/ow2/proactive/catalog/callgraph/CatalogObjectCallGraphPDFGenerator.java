@@ -30,6 +30,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -41,8 +42,14 @@ import javax.swing.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.jgrapht.alg.connectivity.ConnectivityInspector;
 import org.jgrapht.ext.JGraphXAdapter;
+import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.Metadata;
@@ -68,7 +75,6 @@ import be.quodlibet.boxable.Cell;
 import be.quodlibet.boxable.HorizontalAlignment;
 import be.quodlibet.boxable.Row;
 import be.quodlibet.boxable.VerticalAlignment;
-import be.quodlibet.boxable.image.Image;
 import be.quodlibet.boxable.utils.FontUtils;
 
 
@@ -89,6 +95,8 @@ public class CatalogObjectCallGraphPDFGenerator {
     private static final String BLACK = "#000000";
 
     private static final int BIG_FONT = 12;
+
+    private static final int NODES_LIMIT_NUMBER = 30;
 
     @Autowired
     private SeparatorUtility separatorUtility;
@@ -115,8 +123,11 @@ public class CatalogObjectCallGraphPDFGenerator {
                 PDDocument doc = new PDDocument();) {
 
             CallGraphHolder callGraph = buildCatalogCallGraph(catalogObjectMetadataList);
+            List<BufferedImage> subGraphBufferedImages = new ArrayList<>();
 
-            BufferedImage callGraphBufferedImage = generateBufferedImage(callGraph);
+            callGraphPartitioning(callGraph).stream()
+                                            .forEach(partition -> subGraphBufferedImages.add(generateBufferedImage(callGraph,
+                                                                                                                   partition)));
 
             //Load font for all languages
             setFontToUse(doc);
@@ -137,18 +148,22 @@ public class CatalogObjectCallGraphPDFGenerator {
                                             kind,
                                             contentType);
 
-            Row<PDPage> dataRow = table.createRow(100);
-            if (callGraphBufferedImage == null) {
+            if (callGraph.order() == 0) {
+                Row<PDPage> dataRow = table.createRow(10f);
                 createDataCell(dataRow,
                                100,
-                               "No Dependencies in the Catalog",
+                               "No identified Dependencies among selected Catalog Objects",
                                BIG_FONT,
                                HorizontalAlignment.CENTER,
                                VerticalAlignment.MIDDLE,
                                LIGHT_GRAY,
                                BLACK);
             } else {
-                dataRow.createImageCell(100, new Image(callGraphBufferedImage));
+                int pageIndex = 0;
+                for (BufferedImage partition : subGraphBufferedImages) {
+                    drawPartitionImageOnSinglePage(partition, doc, pageIndex);
+                    pageIndex++;
+                }
             }
 
             table.draw();
@@ -159,6 +174,32 @@ public class CatalogObjectCallGraphPDFGenerator {
 
         } catch (Exception e) {
             throw new PDFGenerationException(e);
+        }
+    }
+
+    private void drawPartitionImageOnSinglePage(BufferedImage partition, PDDocument doc, int pageIndex)
+            throws IOException {
+        PDPage page = pageIndex != 0 ? addNewPage(doc) : doc.getPage(0);
+
+        final PDImageXObject pdImage = LosslessFactory.createFromImage(doc, partition);
+        PDRectangle mediaBox = page.getMediaBox();
+        float fX = pdImage.getWidth() / mediaBox.getWidth();
+        float fY = pdImage.getHeight() / mediaBox.getHeight();
+        float startY = mediaBox.getHeight() - pdImage.getHeight();
+        float factor = Math.max(fX, fY);
+        if (pageIndex == 0) {
+            factor = factor * 1.15f;
+        }
+
+        try (final PDPageContentStream contentStream = new PDPageContentStream(doc,
+                                                                               doc.getPage(pageIndex),
+                                                                               PDPageContentStream.AppendMode.APPEND,
+                                                                               true)) {
+            contentStream.drawImage(pdImage,
+                                    0,
+                                    startY > 0 ? startY : 0,
+                                    pdImage.getWidth() / factor,
+                                    pdImage.getHeight() / factor);
         }
     }
 
@@ -200,9 +241,12 @@ public class CatalogObjectCallGraphPDFGenerator {
         return page;
     }
 
-    private BufferedImage generateBufferedImage(CallGraphHolder callGraphHolder) {
+    private BufferedImage generateBufferedImage(CallGraphHolder callGraphHolder, Set<GraphNode> subGraphNodes) {
 
-        JGraphXAdapter<GraphNode, DefaultEdge> callGraphAdapter = new JGraphXAdapter(callGraphHolder.getDependencyGraph());
+        JGraphXAdapter<GraphNode, DefaultEdge> callGraphAdapter = new JGraphXAdapter(new AsSubgraph(callGraphHolder.getDependencyGraph(),
+                                                                                                    subGraphNodes,
+                                                                                                    callGraphHolder.getDependencyGraph()
+                                                                                                                   .edgeSet()));
         callGraphStyle(callGraphAdapter);
         mxGraphLayout layout = new mxHierarchicalLayout(callGraphAdapter, SwingConstants.WEST);
         layout.execute(callGraphAdapter.getDefaultParent());
@@ -275,6 +319,32 @@ public class CatalogObjectCallGraphPDFGenerator {
         return callGraphHolder;
     }
 
+    private List<Set<GraphNode>> callGraphPartitioning(CallGraphHolder callGraphHolder) {
+        Set<GraphNode> nodes = new HashSet(callGraphHolder.nodeSet());
+        Set<DefaultEdge> edges = new HashSet(callGraphHolder.dependencySet());
+        List<Set<GraphNode>> nodesPartition = new ArrayList<>();
+        ConnectivityInspector<GraphNode, DefaultEdge> inspector = new ConnectivityInspector(new AsSubgraph(callGraphHolder.getDependencyGraph(),
+                                                                                                           nodes,
+                                                                                                           edges));
+        List<Set<GraphNode>> connectedVertices = inspector.connectedSets();
+        final Set<GraphNode> partition = new HashSet();
+        connectedVertices.forEach(subGraph -> {
+            if (subGraph.size() > NODES_LIMIT_NUMBER) {
+                nodesPartition.add(subGraph);
+            } else {
+                partition.addAll(subGraph);
+                if (partition.size() > NODES_LIMIT_NUMBER) {
+                    nodesPartition.add(new HashSet<>(partition));
+                    partition.clear();
+                }
+            }
+        });
+        if (!partition.isEmpty()) {
+            nodesPartition.add(new HashSet<>(partition));
+        }
+        return nodesPartition;
+    }
+
     private List<String> collectDependsOnCatalogObjects(CatalogObjectMetadata catalogObjectMetadata) {
         return catalogObjectMetadata.getMetadataList()
                                     .stream()
@@ -306,6 +376,7 @@ public class CatalogObjectCallGraphPDFGenerator {
             super(graph);
         }
 
+        @Override
         protected mxGraphHandler createGraphHandler() {
             return new mxGraphHandlerWithoutDragAndDrop(this);
         }
