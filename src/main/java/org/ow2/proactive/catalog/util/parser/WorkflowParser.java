@@ -200,7 +200,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
             addDependsOn(keyValueMapBuilder, shortScriptUrl(task.getFlowScript().getScriptUrl().toString()));
         }
 
-        if (task.getCleaningScript() != null && task.getPreScript().getScriptUrl() != null &&
+        if (task.getCleaningScript() != null && task.getCleaningScript().getScriptUrl() != null &&
             !task.getCleaningScript().getScriptUrl().toString().isEmpty() &&
             isScriptUrlValid(shortScriptUrl(task.getCleaningScript().getScriptUrl().toString()))) {
             addDependsOn(keyValueMapBuilder, shortScriptUrl(task.getCleaningScript().getScriptUrl().toString()));
