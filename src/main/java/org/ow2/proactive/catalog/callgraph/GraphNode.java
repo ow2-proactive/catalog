@@ -45,6 +45,10 @@ public final class GraphNode implements Serializable {
 
         private String objectName;
 
+        private String objectKind;
+
+        private boolean isInCatalog;
+
         public Builder bucketName(String bucketName) {
             this.bucketName = bucketName;
             return this;
@@ -55,8 +59,18 @@ public final class GraphNode implements Serializable {
             return this;
         }
 
+        public Builder objectKind(String objectKind) {
+            this.objectKind = objectKind;
+            return this;
+        }
+
+        public Builder isInCatalog(boolean isInCatalog) {
+            this.isInCatalog = isInCatalog;
+            return this;
+        }
+
         public GraphNode build() {
-            return new GraphNode(bucketName, objectName);
+            return new GraphNode(bucketName, objectName, objectKind, isInCatalog);
         }
     }
 
@@ -64,9 +78,15 @@ public final class GraphNode implements Serializable {
 
     private final String objectName;
 
-    public GraphNode(String bucketName, String objectName) {
+    private final String objectKind;
+
+    private final boolean isInCatalog;
+
+    public GraphNode(String bucketName, String objectName, String objectKind, boolean isInCatalog) {
         this.bucketName = Objects.requireNonNull(bucketName, "bucketName");
         this.objectName = Objects.requireNonNull(objectName, "objectName");
+        this.objectKind = Objects.requireNonNull(objectKind, "objectKind");
+        this.isInCatalog = isInCatalog;
     }
 
     @Override
@@ -90,6 +110,14 @@ public final class GraphNode implements Serializable {
 
     public String getObjectName() {
         return objectName;
+    }
+
+    public String getObjectKind() {
+        return objectKind;
+    }
+
+    public boolean isInCatalog() {
+        return isInCatalog;
     }
 
     @Override

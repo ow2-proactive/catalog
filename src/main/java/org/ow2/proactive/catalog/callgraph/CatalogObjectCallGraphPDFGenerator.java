@@ -54,6 +54,7 @@ import org.jgrapht.graph.DefaultEdge;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.report.HeadersBuilder;
+import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.PDFGenerationException;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
@@ -63,6 +64,7 @@ import org.springframework.stereotype.Component;
 
 import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
 import com.mxgraph.layout.mxGraphLayout;
+import com.mxgraph.model.mxICell;
 import com.mxgraph.swing.handler.mxGraphHandler;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxCellRenderer;
@@ -98,6 +100,8 @@ public class CatalogObjectCallGraphPDFGenerator {
 
     private static final int NODES_LIMIT_NUMBER = 30;
 
+    private static final String MISSING_CATALOG_OBJECT_STYLE = "strokeColor=#FF0000";
+
     @Autowired
     private SeparatorUtility separatorUtility;
 
@@ -117,12 +121,12 @@ public class CatalogObjectCallGraphPDFGenerator {
     private HeadersBuilder headersBuilder;
 
     public byte[] generatePdfImage(List<CatalogObjectMetadata> catalogObjectMetadataList, Optional<String> kind,
-            Optional<String> contentType) {
+            Optional<String> contentType, CatalogObjectService catalogObjectService) {
 
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                PDDocument doc = new PDDocument();) {
+                PDDocument doc = new PDDocument()) {
 
-            CallGraphHolder callGraph = buildCatalogCallGraph(catalogObjectMetadataList);
+            CallGraphHolder callGraph = buildCatalogCallGraph(catalogObjectMetadataList, catalogObjectService);
             List<BufferedImage> subGraphBufferedImages = new ArrayList<>();
 
             callGraphPartitioning(callGraph).stream()
@@ -286,6 +290,15 @@ public class CatalogObjectCallGraphPDFGenerator {
         callGraphAdapter.getStylesheet().getDefaultVertexStyle().put(mxConstants.STYLE_STROKECOLOR,
                                                                      mxUtils.getHexColorString(new Color(0, 0, 255)));
 
+        //personalize the style of missing catalog objects
+        List<mxICell> missingCatalogObjects = callGraphAdapter.getVertexToCellMap()
+                                                              .entrySet()
+                                                              .stream()
+                                                              .filter(map -> map.getKey().isInCatalog())
+                                                              .map(map -> map.getValue())
+                                                              .collect(Collectors.toList());
+        callGraphAdapter.setCellStyle(MISSING_CATALOG_OBJECT_STYLE, missingCatalogObjects.toArray());
+
         //Edge style
         callGraphAdapter.getStylesheet().getDefaultEdgeStyle().put(mxConstants.STYLE_NOLABEL, "1");
         callGraphAdapter.getStylesheet().getDefaultEdgeStyle().put(mxConstants.STYLE_SHAPE,
@@ -299,20 +312,30 @@ public class CatalogObjectCallGraphPDFGenerator {
         graphComponent.setWheelScrollingEnabled(false);
     }
 
-    private CallGraphHolder buildCatalogCallGraph(List<CatalogObjectMetadata> catalogObjectMetadataList) {
+    private CallGraphHolder buildCatalogCallGraph(List<CatalogObjectMetadata> catalogObjectMetadataList,
+            CatalogObjectService catalogObjectService) {
 
         CallGraphHolder callGraphHolder = new CallGraphHolder();
         for (CatalogObjectMetadata catalogObjectMetadata : catalogObjectMetadataList) {
             List<String> dependsOnCatalogObjects = collectDependsOnCatalogObjects(catalogObjectMetadata);
             if (!dependsOnCatalogObjects.isEmpty()) {
-                GraphNode callingWorkflow = callGraphHolder.addNode(catalogObjectMetadata.getBucketName(),
-                                                                    catalogObjectMetadata.getName());
+                GraphNode callingCatalogObject = callGraphHolder.addNode(catalogObjectMetadata.getBucketName(),
+                                                                         catalogObjectMetadata.getName(),
+                                                                         catalogObjectMetadata.getKind(),
+                                                                         true);
 
                 for (String dependsOnCatalogObject : dependsOnCatalogObjects) {
                     String bucketName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(0);
-                    String workflowName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(1);
-                    GraphNode calledWorkflow = callGraphHolder.addNode(bucketName, workflowName);
-                    callGraphHolder.addDependsOnEdge(callingWorkflow, calledWorkflow);
+                    String objectName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(1);
+                    boolean isCatalogObjectExist = catalogObjectService.isDependsOnObjectExistInCatalog(bucketName,
+                                                                                                        objectName,
+                                                                                                        WorkflowParser.LATEST_VERSION);
+                    String objectKind = catalogObjectService.getCatalogObjectMetadata(bucketName, objectName).getKind();
+                    GraphNode calledCatalogObject = callGraphHolder.addNode(bucketName,
+                                                                            objectName,
+                                                                            objectKind,
+                                                                            isCatalogObjectExist);
+                    callGraphHolder.addDependsOnEdge(callingCatalogObject, calledCatalogObject);
                 }
             }
         }

@@ -50,26 +50,33 @@ public class CallGraphHolderTest {
         //TEST1: Adding/Removing Nodes
 
         //Adding three nodes
-        GraphNode graphNode1 = callGraphHolder.addNode("bucket1", "workflow1");
-        GraphNode graphNode2 = callGraphHolder.addNode("bucket2", "workflow2");
-        GraphNode graphNode3 = callGraphHolder.addNode("bucket1", "workflow2");
+        GraphNode graphNode1 = callGraphHolder.addNode("bucket1", "workflow1", "workflow/standard", true);
+        GraphNode graphNode2 = callGraphHolder.addNode("bucket2", "workflow2", "workflow/standard", true);
+        GraphNode graphNode3 = callGraphHolder.addNode("bucket1", "workflow2", "workflow/standard", true);
         assertEquals(3, callGraphHolder.order());
 
         //Checking that we cannot add a node having same bucket name and workflow name as an existing node and therefore the order of the graph remains the same.
-        GraphNode graphNode22 = callGraphHolder.addNode("bucket2", "workflow2");
+        GraphNode graphNode22 = callGraphHolder.addNode("bucket2", "workflow2", "workflow/standard", true);
         assertTrue(callGraphHolder.nodeSet().contains(graphNode22));
         assertEquals(3, callGraphHolder.order());
 
         //Adding 10 more nodes
-        IntStream.range(0, 10).forEach(nbr -> callGraphHolder.addNode(String.valueOf(nbr), String.valueOf(nbr)));
+        IntStream.range(0, 10).forEach(nbr -> callGraphHolder.addNode(String.valueOf(nbr),
+                                                                      String.valueOf(nbr),
+                                                                      String.valueOf(nbr),
+                                                                      true));
         assertEquals(13, callGraphHolder.order());
 
         //Removing those nodes and check that the order of the graph is correct
-        IntStream.range(0, 10).forEach(nbr -> callGraphHolder.removeNode(String.valueOf(nbr), String.valueOf(nbr)));
+        IntStream.range(0, 10)
+                 .forEach(nbr -> callGraphHolder.removeNode(String.valueOf(nbr),
+                                                            String.valueOf(nbr),
+                                                            String.valueOf(nbr),
+                                                            true));
         assertEquals(3, callGraphHolder.order());
 
         //Removing a non existing node
-        assertFalse(callGraphHolder.removeNode("nonexistingbucket", "nonexistingworkflow"));
+        assertFalse(callGraphHolder.removeNode("nonexistingbucket", "nonexistingworkflow", "workflow/standard", true));
         assertEquals(3, callGraphHolder.order());
 
         //TEST2: Adding/Removing Edges
@@ -100,7 +107,7 @@ public class CallGraphHolderTest {
 
         //TEST3: Removing Nodes and check the consistency of the Edges
 
-        callGraphHolder.removeNode("bucket1", "workflow1");
+        callGraphHolder.removeNode("bucket1", "workflow1", "workflow/standard", true);
         assertEquals(1, callGraphHolder.size());
 
     }

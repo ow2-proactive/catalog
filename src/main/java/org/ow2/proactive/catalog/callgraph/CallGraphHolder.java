@@ -39,16 +39,22 @@ public class CallGraphHolder {
 
     private final DefaultDirectedGraph<GraphNode, DefaultEdge> dependencyGraph = new DefaultDirectedGraph(DefaultEdge.class);
 
-    public GraphNode addNode(String bucketName, String objectName) {
-        GraphNode graphNode = new GraphNode.Builder().bucketName(bucketName).objectName(objectName).build();
+    public GraphNode addNode(String bucketName, String objectName, String objectKind, boolean isInCatalog) {
+        GraphNode graphNode = new GraphNode.Builder().bucketName(bucketName)
+                                                     .objectName(objectName)
+                                                     .objectKind(objectKind)
+                                                     .isInCatalog(isInCatalog)
+                                                     .build();
         dependencyGraph.addVertex(graphNode);
         return graphNode;
 
     }
 
-    public boolean removeNode(String bucketName, String objectName) {
+    public boolean removeNode(String bucketName, String objectName, String objectKind, boolean isInCatalog) {
         return dependencyGraph.removeVertex(new GraphNode.Builder().bucketName(bucketName)
                                                                    .objectName(objectName)
+                                                                   .objectKind(objectKind)
+                                                                   .isInCatalog(isInCatalog)
                                                                    .build());
     }
 

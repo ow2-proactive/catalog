@@ -289,7 +289,7 @@ public class CatalogObjectService {
         return new CatalogObjectDependencies(dependsOnBucketAndObjectNameList, calledByBucketAndObjectNameList);
     }
 
-    private boolean isDependsOnObjectExistInCatalog(String bucketName, String name,
+    public boolean isDependsOnObjectExistInCatalog(String bucketName, String name,
             String revisionCommitTimeOfDependsOnObject) {
         CatalogObjectRevisionEntity catalogObjectRevisionEntity;
         if (revisionCommitTimeOfDependsOnObject.equals(WorkflowParser.LATEST_VERSION)) {
