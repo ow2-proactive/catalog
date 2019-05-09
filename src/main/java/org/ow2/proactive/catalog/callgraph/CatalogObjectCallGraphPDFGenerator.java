@@ -100,7 +100,7 @@ public class CatalogObjectCallGraphPDFGenerator {
 
     private static final int NODES_LIMIT_NUMBER = 30;
 
-    private static final String MISSING_CATALOG_OBJECT_STYLE = "strokeColor=#FF0000";
+    private static final String MISSING_CATALOG_OBJECT_STYLE = "fillColor=#C0C0C0";
 
     @Autowired
     private SeparatorUtility separatorUtility;
@@ -189,7 +189,7 @@ public class CatalogObjectCallGraphPDFGenerator {
         PDRectangle mediaBox = page.getMediaBox();
         float fX = pdImage.getWidth() / mediaBox.getWidth();
         float fY = pdImage.getHeight() / mediaBox.getHeight();
-        float startY = mediaBox.getHeight() - pdImage.getHeight();
+        float startY = pageIndex != 0 ? mediaBox.getHeight() - pdImage.getHeight() : mediaBox.getHeight() - pdImage.getHeight()/2;
         float factor = Math.max(fX, fY);
         if (pageIndex == 0) {
             factor = factor * 1.15f;
@@ -254,6 +254,7 @@ public class CatalogObjectCallGraphPDFGenerator {
         callGraphStyle(callGraphAdapter);
         mxGraphLayout layout = new mxHierarchicalLayout(callGraphAdapter, SwingConstants.WEST);
         layout.execute(callGraphAdapter.getDefaultParent());
+
         return mxCellRenderer.createBufferedImage(callGraphAdapter, null, 2, null, true, null);
 
     }
@@ -281,6 +282,8 @@ public class CatalogObjectCallGraphPDFGenerator {
                                                                      mxConstants.SHAPE_RECTANGLE);
         callGraphAdapter.getStylesheet().getDefaultVertexStyle().put(mxConstants.STYLE_FONTCOLOR,
                                                                      mxUtils.getHexColorString(new Color(0, 0, 0)));
+        callGraphAdapter.getStylesheet().getDefaultVertexStyle().put(mxConstants.STYLE_FONTSTYLE,
+                                                                     mxConstants.FONT_ITALIC);
         callGraphAdapter.getStylesheet().getDefaultVertexStyle().put(mxConstants.STYLE_ROUNDED, true);
         callGraphAdapter.getStylesheet().getDefaultVertexStyle().put(mxConstants.STYLE_OPACITY, 50);
         callGraphAdapter.getStylesheet()
@@ -294,7 +297,7 @@ public class CatalogObjectCallGraphPDFGenerator {
         List<mxICell> missingCatalogObjects = callGraphAdapter.getVertexToCellMap()
                                                               .entrySet()
                                                               .stream()
-                                                              .filter(map -> map.getKey().isInCatalog())
+                                                              .filter(map -> !map.getKey().isInCatalog())
                                                               .map(map -> map.getValue())
                                                               .collect(Collectors.toList());
         callGraphAdapter.setCellStyle(MISSING_CATALOG_OBJECT_STYLE, missingCatalogObjects.toArray());
@@ -330,7 +333,10 @@ public class CatalogObjectCallGraphPDFGenerator {
                     boolean isCatalogObjectExist = catalogObjectService.isDependsOnObjectExistInCatalog(bucketName,
                                                                                                         objectName,
                                                                                                         WorkflowParser.LATEST_VERSION);
-                    String objectKind = catalogObjectService.getCatalogObjectMetadata(bucketName, objectName).getKind();
+                    String objectKind = isCatalogObjectExist ? catalogObjectService.getCatalogObjectMetadata(bucketName,
+                                                                                                             objectName)
+                                                                                   .getKind()
+                                                             : "N/A";
                     GraphNode calledCatalogObject = callGraphHolder.addNode(bucketName,
                                                                             objectName,
                                                                             objectKind,

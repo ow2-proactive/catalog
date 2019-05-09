@@ -123,7 +123,15 @@ public final class GraphNode implements Serializable {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append(bucketName).append('/').append(objectName);
+        sb.append(" ")
+          .append(bucketName)
+          .append('/')
+          .append(objectName)
+          .append(" ")
+          .append(System.getProperty("line.separator"))
+          .append("[")
+          .append(objectKind)
+          .append("]");
         return sb.toString();
     }
 }
