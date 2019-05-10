@@ -90,6 +90,8 @@ public class CatalogObjectCallGraphPDFGenerator {
 
     private static final float MARGIN = 10;
 
+    private static final float HEADER_HEIGHT = 100;
+
     private static final String MAIN_TITLE = "ProActive Call Graph Report";
 
     private static final String LIGHT_GRAY = "#D3D3D3";
@@ -189,10 +191,11 @@ public class CatalogObjectCallGraphPDFGenerator {
         PDRectangle mediaBox = page.getMediaBox();
         float fX = pdImage.getWidth() / mediaBox.getWidth();
         float fY = pdImage.getHeight() / mediaBox.getHeight();
-        float startY = pageIndex != 0 ? mediaBox.getHeight() - pdImage.getHeight() : mediaBox.getHeight() - pdImage.getHeight()/2;
+        float startY = pageIndex != 0 ? mediaBox.getHeight() - pdImage.getHeight()
+                                      : mediaBox.getHeight() - (HEADER_HEIGHT + pdImage.getHeight());
         float factor = Math.max(fX, fY);
         if (pageIndex == 0) {
-            factor = factor * 1.15f;
+            factor = factor * 1.10f;
         }
 
         try (final PDPageContentStream contentStream = new PDPageContentStream(doc,
@@ -301,6 +304,8 @@ public class CatalogObjectCallGraphPDFGenerator {
                                                               .map(map -> map.getValue())
                                                               .collect(Collectors.toList());
         callGraphAdapter.setCellStyle(MISSING_CATALOG_OBJECT_STYLE, missingCatalogObjects.toArray());
+
+
 
         //Edge style
         callGraphAdapter.getStylesheet().getDefaultEdgeStyle().put(mxConstants.STYLE_NOLABEL, "1");
