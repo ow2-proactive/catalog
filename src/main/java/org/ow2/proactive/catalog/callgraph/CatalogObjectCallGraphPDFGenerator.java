@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -195,7 +196,7 @@ public class CatalogObjectCallGraphPDFGenerator {
                                       : mediaBox.getHeight() - (HEADER_HEIGHT + pdImage.getHeight());
         float factor = Math.max(fX, fY);
         if (pageIndex == 0) {
-            factor = factor * 1.10f;
+            factor = factor * 1.15f;
         }
 
         try (final PDPageContentStream contentStream = new PDPageContentStream(doc,
@@ -301,11 +302,21 @@ public class CatalogObjectCallGraphPDFGenerator {
                                                               .entrySet()
                                                               .stream()
                                                               .filter(map -> !map.getKey().isInCatalog())
-                                                              .map(map -> map.getValue())
+                                                              .map(Map.Entry::getValue)
                                                               .collect(Collectors.toList());
         callGraphAdapter.setCellStyle(MISSING_CATALOG_OBJECT_STYLE, missingCatalogObjects.toArray());
 
-
+        //Apply a hashcode based color rule on all nodes to distinguish visually different kinds
+        callGraphAdapter.getVertexToCellMap()
+                        .entrySet()
+                        .forEach(entry -> entry.getValue()
+                                               .setStyle("strokeColor=" +
+                                                         intToARGB(entry.getKey().getObjectKind().hashCode()) +
+                                                         (entry.getValue().getStyle() != null
+                                                                                              ? ";" + entry
+                                                                                                           .getValue()
+                                                                                                           .getStyle()
+                                                                                              : "")));
 
         //Edge style
         callGraphAdapter.getStylesheet().getDefaultEdgeStyle().put(mxConstants.STYLE_NOLABEL, "1");
@@ -318,6 +329,11 @@ public class CatalogObjectCallGraphPDFGenerator {
 
         mxGraphComponentWithoutDragAndDrop graphComponent = new mxGraphComponentWithoutDragAndDrop(callGraphAdapter);
         graphComponent.setWheelScrollingEnabled(false);
+    }
+
+    private String intToARGB(int i) {
+        return "#" + (Integer.toHexString(((i >> 24) & 0xFF)) + Integer.toHexString(((i >> 16) & 0xFF)) +
+                      Integer.toHexString(((i >> 8) & 0xFF)) + Integer.toHexString((i & 0xFF))).substring(0, 6);
     }
 
     private CallGraphHolder buildCatalogCallGraph(List<CatalogObjectMetadata> catalogObjectMetadataList,
