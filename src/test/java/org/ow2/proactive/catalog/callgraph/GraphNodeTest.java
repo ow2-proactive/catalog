@@ -42,27 +42,51 @@ public class GraphNodeTest {
 
     @Test
     public void testEqualsAndHashCodeOK1() {
-        GraphNode graphNode1 = new GraphNode.Builder().bucketName("bucket1").objectName("workflow1").build();
+        GraphNode graphNode1 = new GraphNode.Builder().bucketName("bucket1")
+                                                      .objectName("workflow1")
+                                                      .objectKind("workflow")
+                                                      .isInCatalog(true)
+                                                      .build();
 
-        GraphNode graphNode2 = new GraphNode.Builder().bucketName("bucket1").objectName("workflow1").build();
+        GraphNode graphNode2 = new GraphNode.Builder().bucketName("bucket1")
+                                                      .objectName("workflow1")
+                                                      .objectKind("workflow")
+                                                      .isInCatalog(true)
+                                                      .build();
         assertTrue(graphNode1.equals(graphNode2));
         assertEquals(graphNode1.hashCode(), graphNode2.hashCode());
     }
 
     @Test
     public void testEqualsAndHashCodeKO1() {
-        GraphNode graphNode1 = new GraphNode.Builder().bucketName("bucket1").objectName("workflow1").build();
+        GraphNode graphNode1 = new GraphNode.Builder().bucketName("bucket1")
+                                                      .objectName("workflow1")
+                                                      .objectKind("workflow")
+                                                      .isInCatalog(true)
+                                                      .build();
 
-        GraphNode graphNode2 = new GraphNode.Builder().bucketName("bucket2").objectName("workflow1").build();
+        GraphNode graphNode2 = new GraphNode.Builder().bucketName("bucket2")
+                                                      .objectName("workflow1")
+                                                      .objectKind("workflow")
+                                                      .isInCatalog(true)
+                                                      .build();
         assertFalse(graphNode1.equals(graphNode2));
         assertNotEquals(graphNode1.hashCode(), graphNode2.hashCode());
     }
 
     @Test
     public void testEqualsAndHashCodeKO2() {
-        GraphNode graphNode1 = new GraphNode.Builder().bucketName("bucket1").objectName("workflow1").build();
+        GraphNode graphNode1 = new GraphNode.Builder().bucketName("bucket1")
+                                                      .objectName("workflow1")
+                                                      .objectKind("workflow")
+                                                      .isInCatalog(true)
+                                                      .build();
 
-        GraphNode graphNode2 = new GraphNode.Builder().bucketName("bucket1").objectName("workflow2").build();
+        GraphNode graphNode2 = new GraphNode.Builder().bucketName("bucket1")
+                                                      .objectName("workflow2")
+                                                      .objectKind("workflow")
+                                                      .isInCatalog(true)
+                                                      .build();
         assertFalse(graphNode1.equals(graphNode2));
         assertNotEquals(graphNode1.hashCode(), graphNode2.hashCode());
     }

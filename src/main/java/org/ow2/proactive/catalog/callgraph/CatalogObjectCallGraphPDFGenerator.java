@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,6 +55,7 @@ import org.jgrapht.graph.DefaultEdge;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.report.HeadersBuilder;
+import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.PDFGenerationException;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
@@ -63,6 +65,7 @@ import org.springframework.stereotype.Component;
 
 import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
 import com.mxgraph.layout.mxGraphLayout;
+import com.mxgraph.model.mxICell;
 import com.mxgraph.swing.handler.mxGraphHandler;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxCellRenderer;
@@ -88,6 +91,8 @@ public class CatalogObjectCallGraphPDFGenerator {
 
     private static final float MARGIN = 10;
 
+    private static final float HEADER_HEIGHT = 100;
+
     private static final String MAIN_TITLE = "ProActive Call Graph Report";
 
     private static final String LIGHT_GRAY = "#D3D3D3";
@@ -97,6 +102,10 @@ public class CatalogObjectCallGraphPDFGenerator {
     private static final int BIG_FONT = 12;
 
     private static final int NODES_LIMIT_NUMBER = 30;
+
+    private static final String MISSING_CATALOG_OBJECT_STYLE = "fillColor=#C0C0C0";
+
+    private static final float FIRST_PAGE_FACTOR = 1.15f;
 
     @Autowired
     private SeparatorUtility separatorUtility;
@@ -117,12 +126,12 @@ public class CatalogObjectCallGraphPDFGenerator {
     private HeadersBuilder headersBuilder;
 
     public byte[] generatePdfImage(List<CatalogObjectMetadata> catalogObjectMetadataList, Optional<String> kind,
-            Optional<String> contentType) {
+            Optional<String> contentType, CatalogObjectService catalogObjectService) {
 
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                PDDocument doc = new PDDocument();) {
+                PDDocument doc = new PDDocument()) {
 
-            CallGraphHolder callGraph = buildCatalogCallGraph(catalogObjectMetadataList);
+            CallGraphHolder callGraph = buildCatalogCallGraph(catalogObjectMetadataList, catalogObjectService);
             List<BufferedImage> subGraphBufferedImages = new ArrayList<>();
 
             callGraphPartitioning(callGraph).stream()
@@ -185,10 +194,11 @@ public class CatalogObjectCallGraphPDFGenerator {
         PDRectangle mediaBox = page.getMediaBox();
         float fX = pdImage.getWidth() / mediaBox.getWidth();
         float fY = pdImage.getHeight() / mediaBox.getHeight();
-        float startY = mediaBox.getHeight() - pdImage.getHeight();
+        float startY = pageIndex != 0 ? mediaBox.getHeight() - pdImage.getHeight()
+                                      : mediaBox.getHeight() - (HEADER_HEIGHT + pdImage.getHeight());
         float factor = Math.max(fX, fY);
         if (pageIndex == 0) {
-            factor = factor * 1.15f;
+            factor = factor * FIRST_PAGE_FACTOR;
         }
 
         try (final PDPageContentStream contentStream = new PDPageContentStream(doc,
@@ -250,6 +260,7 @@ public class CatalogObjectCallGraphPDFGenerator {
         callGraphStyle(callGraphAdapter);
         mxGraphLayout layout = new mxHierarchicalLayout(callGraphAdapter, SwingConstants.WEST);
         layout.execute(callGraphAdapter.getDefaultParent());
+
         return mxCellRenderer.createBufferedImage(callGraphAdapter, null, 2, null, true, null);
 
     }
@@ -277,6 +288,8 @@ public class CatalogObjectCallGraphPDFGenerator {
                                                                      mxConstants.SHAPE_RECTANGLE);
         callGraphAdapter.getStylesheet().getDefaultVertexStyle().put(mxConstants.STYLE_FONTCOLOR,
                                                                      mxUtils.getHexColorString(new Color(0, 0, 0)));
+        callGraphAdapter.getStylesheet().getDefaultVertexStyle().put(mxConstants.STYLE_FONTSTYLE,
+                                                                     mxConstants.FONT_ITALIC);
         callGraphAdapter.getStylesheet().getDefaultVertexStyle().put(mxConstants.STYLE_ROUNDED, true);
         callGraphAdapter.getStylesheet().getDefaultVertexStyle().put(mxConstants.STYLE_OPACITY, 50);
         callGraphAdapter.getStylesheet()
@@ -285,6 +298,27 @@ public class CatalogObjectCallGraphPDFGenerator {
         callGraphAdapter.getStylesheet().getDefaultVertexStyle().put(mxConstants.STYLE_STROKEWIDTH, 1.5);
         callGraphAdapter.getStylesheet().getDefaultVertexStyle().put(mxConstants.STYLE_STROKECOLOR,
                                                                      mxUtils.getHexColorString(new Color(0, 0, 255)));
+
+        //personalize the style of missing catalog objects
+        List<mxICell> missingCatalogObjects = callGraphAdapter.getVertexToCellMap()
+                                                              .entrySet()
+                                                              .stream()
+                                                              .filter(map -> !map.getKey().isInCatalog())
+                                                              .map(Map.Entry::getValue)
+                                                              .collect(Collectors.toList());
+        callGraphAdapter.setCellStyle(MISSING_CATALOG_OBJECT_STYLE, missingCatalogObjects.toArray());
+
+        //Apply a hashcode based color rule on all nodes to distinguish visually different kinds
+        callGraphAdapter.getVertexToCellMap()
+                        .entrySet()
+                        .forEach(entry -> entry.getValue()
+                                               .setStyle("strokeColor=" +
+                                                         intToARGB(entry.getKey().getObjectKind().hashCode()) +
+                                                         (entry.getValue().getStyle() != null
+                                                                                              ? ";" + entry
+                                                                                                           .getValue()
+                                                                                                           .getStyle()
+                                                                                              : "")));
 
         //Edge style
         callGraphAdapter.getStylesheet().getDefaultEdgeStyle().put(mxConstants.STYLE_NOLABEL, "1");
@@ -299,20 +333,38 @@ public class CatalogObjectCallGraphPDFGenerator {
         graphComponent.setWheelScrollingEnabled(false);
     }
 
-    private CallGraphHolder buildCatalogCallGraph(List<CatalogObjectMetadata> catalogObjectMetadataList) {
+    private String intToARGB(int i) {
+        return "#" + (Integer.toHexString(((i >> 24) & 0xFF)) + Integer.toHexString(((i >> 16) & 0xFF)) +
+                      Integer.toHexString(((i >> 8) & 0xFF)) + Integer.toHexString((i & 0xFF))).substring(0, 6);
+    }
+
+    private CallGraphHolder buildCatalogCallGraph(List<CatalogObjectMetadata> catalogObjectMetadataList,
+            CatalogObjectService catalogObjectService) {
 
         CallGraphHolder callGraphHolder = new CallGraphHolder();
         for (CatalogObjectMetadata catalogObjectMetadata : catalogObjectMetadataList) {
             List<String> dependsOnCatalogObjects = collectDependsOnCatalogObjects(catalogObjectMetadata);
             if (!dependsOnCatalogObjects.isEmpty()) {
-                GraphNode callingWorkflow = callGraphHolder.addNode(catalogObjectMetadata.getBucketName(),
-                                                                    catalogObjectMetadata.getName());
+                GraphNode callingCatalogObject = callGraphHolder.addNode(catalogObjectMetadata.getBucketName(),
+                                                                         catalogObjectMetadata.getName(),
+                                                                         catalogObjectMetadata.getKind(),
+                                                                         true);
 
                 for (String dependsOnCatalogObject : dependsOnCatalogObjects) {
                     String bucketName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(0);
-                    String workflowName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(1);
-                    GraphNode calledWorkflow = callGraphHolder.addNode(bucketName, workflowName);
-                    callGraphHolder.addDependsOnEdge(callingWorkflow, calledWorkflow);
+                    String objectName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(1);
+                    boolean isCatalogObjectExist = catalogObjectService.isDependsOnObjectExistInCatalog(bucketName,
+                                                                                                        objectName,
+                                                                                                        WorkflowParser.LATEST_VERSION);
+                    String objectKind = isCatalogObjectExist ? catalogObjectService.getCatalogObjectMetadata(bucketName,
+                                                                                                             objectName)
+                                                                                   .getKind()
+                                                             : "N/A";
+                    GraphNode calledCatalogObject = callGraphHolder.addNode(bucketName,
+                                                                            objectName,
+                                                                            objectKind,
+                                                                            isCatalogObjectExist);
+                    callGraphHolder.addDependsOnEdge(callingCatalogObject, calledCatalogObject);
                 }
             }
         }
