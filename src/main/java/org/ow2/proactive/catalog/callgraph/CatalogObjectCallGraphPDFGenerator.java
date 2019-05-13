@@ -105,6 +105,8 @@ public class CatalogObjectCallGraphPDFGenerator {
 
     private static final String MISSING_CATALOG_OBJECT_STYLE = "fillColor=#C0C0C0";
 
+    private static final float FIRST_PAGE_FACTOR = 1.15f;
+
     @Autowired
     private SeparatorUtility separatorUtility;
 
@@ -196,7 +198,7 @@ public class CatalogObjectCallGraphPDFGenerator {
                                       : mediaBox.getHeight() - (HEADER_HEIGHT + pdImage.getHeight());
         float factor = Math.max(fX, fY);
         if (pageIndex == 0) {
-            factor = factor * 1.15f;
+            factor = factor * FIRST_PAGE_FACTOR;
         }
 
         try (final PDPageContentStream contentStream = new PDPageContentStream(doc,

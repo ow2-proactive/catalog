@@ -128,7 +128,7 @@ public final class GraphNode implements Serializable {
           .append('/')
           .append(objectName)
           .append(" ")
-          .append(System.getProperty("line.separator"))
+          .append(System.lineSeparator())
           .append("[")
           .append(objectKind)
           .append("]");
