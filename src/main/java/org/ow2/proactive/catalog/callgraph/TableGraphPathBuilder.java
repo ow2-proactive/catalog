@@ -123,12 +123,14 @@ public class TableGraphPathBuilder {
                 if (!currentBucketName.equals(mapEntry.getKey().getBucketName())) {
                     currentBucketName = mapEntry.getKey().getBucketName();
                     Row<PDPage> dataRow = table.createRow(15f);
-                    cellFactory.createDataCellBucketName(dataRow, (100), currentBucketName);
+                    cellFactory.createDataCellBucketName(dataRow, 100, currentBucketName);
                 }
-                Row<PDPage> dataRow = table.createRow(10f);
-                dataRow.createImageCell(100,
-                                        new Image(generateBufferedImage(orderedCallGraphsPerBucket.get(mapEntry.getKey()),
-                                                                        callGraphDiameterHashMap.get((mapEntry.getKey())))));
+                Row<PDPage> callGraphRow = table.createRow(10f);
+                callGraphRow.createImageCell(100,
+                                             new Image(generateBufferedImage(orderedCallGraphsPerBucket.get(mapEntry.getKey()),
+                                                                             callGraphDiameterHashMap.get((mapEntry.getKey())))).scale(350,
+                                                                                                                                       250))
+                            .scaleToFit();
             }
         }
 
@@ -272,6 +274,8 @@ public class TableGraphPathBuilder {
                                                                                                         .getObjectKind())
                                                                                            .append("&#93;")
                                                                                            .append("</i></b>"));
+                callGraphAdapter.updateCellSize(entry.getValue(), true);
+
             });
         } finally {
             callGraphAdapter.getModel().endUpdate();
@@ -300,7 +304,6 @@ public class TableGraphPathBuilder {
         editCallGraphStyle(callGraphAdapter);
         mxHierarchicalLayout layout = new mxHierarchicalLayout(callGraphAdapter, SwingConstants.WEST);
         layout.setFineTuning(true);
-        layout.setResizeParent(true);
 
         if (diameter >= MAX_DIAMETER) {
             layout.setOrientation(SwingConstants.NORTH);
