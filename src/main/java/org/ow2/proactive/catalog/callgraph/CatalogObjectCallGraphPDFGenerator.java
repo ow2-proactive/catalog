@@ -116,7 +116,7 @@ public class CatalogObjectCallGraphPDFGenerator {
                                             contentType);
 
             //Create graph path table
-            tableGraphPathBuilder.buildGraphPathTable(globalCallGraph, table);
+            tableGraphPathBuilder.buildCallGraphsTable(globalCallGraph, table);
 
             table.draw();
 
@@ -150,21 +150,25 @@ public class CatalogObjectCallGraphPDFGenerator {
                                                                          catalogObjectMetadata.getName(),
                                                                          catalogObjectMetadata.getKind(),
                                                                          true);
-
+                String bucketName;
+                String objectName;
+                boolean isCatalogObjectExist;
+                String objectKind;
+                GraphNode calledCatalogObject;
                 for (String dependsOnCatalogObject : dependsOnCatalogObjects) {
-                    String bucketName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(0);
-                    String objectName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(1);
-                    boolean isCatalogObjectExist = catalogObjectService.isDependsOnObjectExistInCatalog(bucketName,
-                                                                                                        objectName,
-                                                                                                        WorkflowParser.LATEST_VERSION);
-                    String objectKind = isCatalogObjectExist ? catalogObjectService.getCatalogObjectMetadata(bucketName,
-                                                                                                             objectName)
-                                                                                   .getKind()
-                                                             : "N/A";
-                    GraphNode calledCatalogObject = callGraphHolder.addNode(bucketName,
-                                                                            objectName,
-                                                                            objectKind,
-                                                                            isCatalogObjectExist);
+                    bucketName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(0);
+                    objectName = separatorUtility.getSplitBySeparator(dependsOnCatalogObject).get(1);
+                    isCatalogObjectExist = catalogObjectService.isDependsOnObjectExistInCatalog(bucketName,
+                                                                                                objectName,
+                                                                                                WorkflowParser.LATEST_VERSION);
+                    objectKind = isCatalogObjectExist ? catalogObjectService.getCatalogObjectMetadata(bucketName,
+                                                                                                      objectName)
+                                                                            .getKind()
+                                                      : "N/A";
+                    calledCatalogObject = callGraphHolder.addNode(bucketName,
+                                                                  objectName,
+                                                                  objectKind,
+                                                                  isCatalogObjectExist);
                     callGraphHolder.addDependsOnEdge(callingCatalogObject, calledCatalogObject);
                 }
             }

@@ -93,7 +93,16 @@ public class TableGraphPathBuilder {
     @Autowired
     private CellFactory cellFactory;
 
-    public void buildGraphPathTable(CallGraphHolder globalCallGraph, BaseTable table) {
+    /**
+     * This method builds a table of call Graphs which are ordered and grouped by bucket name. The build is composed of three steps
+     * 1. Compute all graph paths of the globalCallGraph. A graph path is a chain of dependencies starting from a root until a leaf
+     * 2. Grouping all graph paths having the same root in a single graph
+     * 3. Compute call graphs for all roots
+     * In case the oder of the globalCallGraph is zero, an appropriate message is displayed.
+     * @param globalCallGraph
+     * @param table
+     */
+    public void buildCallGraphsTable(CallGraphHolder globalCallGraph, BaseTable table) {
 
         if (globalCallGraph.order() == 0) {
             Row<PDPage> dataRow = table.createRow(10f);
@@ -107,11 +116,14 @@ public class TableGraphPathBuilder {
                            BLACK);
         } else {
 
+            // We first compute all graph paths of the globalCallGraph. A graph path is a chain of dependencies starting from a root until a leaf
             List<GraphPath<GraphNode, DefaultEdge>> graphPathList = computeAllGraphPaths(globalCallGraph);
+
+            //Grouping all graph paths having the same root in a single graph
             Map<GraphNode, List<GraphPath<GraphNode, DefaultEdge>>> groupingGraphPathsHavingSameRoot = graphPathList.stream()
                                                                                                                     .collect(Collectors.groupingBy(GraphPath::getStartVertex,
                                                                                                                                                    Collectors.toList()));
-
+            // Compute call graphs for all roots
             Map<GraphNode, Graph<GraphNode, DefaultEdge>> callGraphHashMap = computeCallGraphForAllRoots(groupingGraphPathsHavingSameRoot,
                                                                                                          globalCallGraph);
             Map<GraphNode, Integer> callGraphDiameterHashMap = computeCallGraphsDiameter(groupingGraphPathsHavingSameRoot);
@@ -136,6 +148,11 @@ public class TableGraphPathBuilder {
 
     }
 
+    /**
+     * This method computes the diameter of all call graphs. A diameter is the longest shortest path" (i.e., the longest graph geodesic) between any two graph vertices.
+     * @param groupingGraphPathsHavingSameRoot
+     * @return
+     */
     private Map<GraphNode, Integer> computeCallGraphsDiameter(
             Map<GraphNode, List<GraphPath<GraphNode, DefaultEdge>>> groupingGraphPathsHavingSameRoot) {
         Map<GraphNode, Integer> callGraphDiameterHashMap = new HashMap<>();
@@ -165,6 +182,11 @@ public class TableGraphPathBuilder {
         return callGraphsHashMap;
     }
 
+    /**
+     * This methods computes all graph paths of the globalCallGraph. A graph path is a chain of dependencies starting from a root until a leaf
+     * @param globalCallGraph
+     * @return
+     */
     private List<GraphPath<GraphNode, DefaultEdge>> computeAllGraphPaths(CallGraphHolder globalCallGraph) {
 
         Graph<GraphNode, DefaultEdge> callGraph = globalCallGraph.getDependencyGraph();
@@ -178,8 +200,9 @@ public class TableGraphPathBuilder {
                                                                                                 globalCallGraph.dependencySet()));
             Set<GraphNode> rootNodes = new HashSet<>();
             Set<GraphNode> leafNodes = new HashSet<>();
+            GraphNode graphNode;
             while (breadthFirstIterator.hasNext()) {
-                GraphNode graphNode = ((GraphNode) breadthFirstIterator.next());
+                graphNode = ((GraphNode) breadthFirstIterator.next());
                 if (callGraph.inDegreeOf(graphNode) == 0) {
                     rootNodes.add(graphNode);
                 }
