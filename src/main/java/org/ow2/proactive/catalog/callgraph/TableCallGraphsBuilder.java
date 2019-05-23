@@ -78,7 +78,7 @@ import be.quodlibet.boxable.image.Image;
  */
 
 @Component
-public class TableGraphPathBuilder {
+public class TableCallGraphsBuilder {
 
     private static final String MISSING_CATALOG_OBJECT_STYLE = "fillColor=#C0C0C0;strokeColor=#FF0000;fontSize=8";
 
@@ -134,7 +134,7 @@ public class TableGraphPathBuilder {
 
                 if (!currentBucketName.equals(mapEntry.getKey().getBucketName())) {
                     currentBucketName = mapEntry.getKey().getBucketName();
-                    Row<PDPage> dataRow = table.createRow(15f);
+                    Row<PDPage> dataRow = table.createRow(10f);
                     cellFactory.createDataCellBucketName(dataRow, 100, currentBucketName);
                 }
                 Row<PDPage> callGraphRow = table.createRow(10f);
@@ -165,6 +165,12 @@ public class TableGraphPathBuilder {
         return callGraphDiameterHashMap;
     }
 
+    /**
+     * This methods computes the call graph for all node roots
+     * @param mergeGraphPathsHavingSameRoot
+     * @param globalCallGraph
+     * @return
+     */
     private Map<GraphNode, Graph<GraphNode, DefaultEdge>> computeCallGraphForAllRoots(
             Map<GraphNode, List<GraphPath<GraphNode, DefaultEdge>>> mergeGraphPathsHavingSameRoot,
             CallGraphHolder globalCallGraph) {
@@ -229,6 +235,11 @@ public class TableGraphPathBuilder {
         return graphPathList;
     }
 
+    /**
+     * This methods sorts call graphs per bucket then object name
+     * @param callGraphsHashMap
+     * @return
+     */
     private TreeMap<GraphNode, Graph<GraphNode, DefaultEdge>>
             sortCallGraphsPerBucket(Map<GraphNode, Graph<GraphNode, DefaultEdge>> callGraphsHashMap) {
         Comparator<GraphNode> sortBasedOnName = Comparator.comparing(GraphNode::getBucketName);
@@ -246,12 +257,12 @@ public class TableGraphPathBuilder {
         callGraphAdapter.setAllowLoops(true);
         callGraphAdapter.setHtmlLabels(true);
 
-        //Edit Vertex style
+        //Edit and personalize Vertex style
         editVertexStyle(callGraphAdapter);
-        //Edit Edge style
+        //Edit and personalize Edge style
         editEdgeStyle(callGraphAdapter);
 
-        TableGraphPathBuilder.mxGraphComponentWithoutDragAndDrop graphComponent = new TableGraphPathBuilder.mxGraphComponentWithoutDragAndDrop(callGraphAdapter);
+        TableCallGraphsBuilder.mxGraphComponentWithoutDragAndDrop graphComponent = new TableCallGraphsBuilder.mxGraphComponentWithoutDragAndDrop(callGraphAdapter);
         graphComponent.setWheelScrollingEnabled(false);
     }
 
@@ -316,6 +327,12 @@ public class TableGraphPathBuilder {
                                                                    mxUtils.getHexColorString(new Color(0, 0, 255)));
     }
 
+    /**
+     * This methods computes an ARGB color from the hashcode of a catalog object kind to distinguish between vertex visually.
+     * In this way, we ensure to have as many color as many different kinds in the catalog.
+     * @param i
+     * @return
+     */
     private String intToARGB(int i) {
         return "#" + (Integer.toHexString(((i >> 24) & 0xFF)) + Integer.toHexString(((i >> 16) & 0xFF)) +
                       Integer.toHexString(((i >> 8) & 0xFF)) + Integer.toHexString((i & 0xFF))).substring(0, 6);

@@ -84,7 +84,7 @@ public class CatalogObjectCallGraphPDFGenerator {
     private SeparatorUtility separatorUtility;
 
     @Autowired
-    private TableGraphPathBuilder tableGraphPathBuilder;
+    private TableCallGraphsBuilder tableGraphPathBuilder;
 
     public byte[] generatePdfImage(List<CatalogObjectMetadata> catalogObjectMetadataList, Optional<String> kind,
             Optional<String> contentType, CatalogObjectService catalogObjectService) {
