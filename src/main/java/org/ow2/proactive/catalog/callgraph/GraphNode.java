@@ -119,19 +119,4 @@ public final class GraphNode implements Serializable {
     public boolean isInCatalog() {
         return isInCatalog;
     }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(" ")
-          .append(bucketName)
-          .append('/')
-          .append(objectName)
-          .append(" ")
-          .append(System.lineSeparator())
-          .append("[")
-          .append(objectKind)
-          .append("]");
-        return sb.toString();
-    }
 }
