@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -162,15 +161,19 @@ public class CatalogObjectController {
         return catalogObjectService.getContentTypes();
     }
 
-    @ApiOperation(value = "Lists catalog object name references by kind")
+    @ApiOperation(value = "Lists catalog object name references by kind and content type")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(value = "/references", method = GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public List<CatalogObjectNameReference> listCatalogObjectNameReference(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "kind") @RequestHeader(value = "kind", required = false) Optional<String> kind) {
-        return catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(sessionIdRequired, sessionId, kind);
+            @ApiParam(value = "Filter according to kind") @RequestHeader(value = "kind", required = false) Optional<String> kind,
+            @ApiParam(value = "Filter according to content type") @RequestHeader(value = "contentType", required = false) Optional<String> contentType) {
+        return catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(sessionIdRequired,
+                                                                                                 sessionId,
+                                                                                                 kind,
+                                                                                                 contentType);
     }
 
     @ApiOperation(value = "Update a catalog object metadata, like kind and content type")

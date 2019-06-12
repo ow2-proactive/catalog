@@ -586,23 +586,29 @@ public class CatalogObjectService {
         return new TreeSet<>(catalogObjectRepository.findAllContentTypes());
     }
 
-    public List<CatalogObjectNameReference> getAccessibleCatalogObjectsNameReferenceByKind(boolean sessionIdRequired,
-            String sessionId, Optional<String> kind) {
-        List<CatalogObjectNameReference> catalogObjectsNameReferenceByKind;
-        if (!kind.isPresent()) {
-            catalogObjectsNameReferenceByKind = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findAllCatalogObjectNameReferenceByKind());
+    public List<CatalogObjectNameReference> getAccessibleCatalogObjectsNameReferenceByKindAndContentType(
+            boolean sessionIdRequired, String sessionId, Optional<String> kind, Optional<String> contentType) {
+        List<CatalogObjectNameReference> catalogObjectsNameReferenceByKindAndContentType;
+        if (kind.isPresent() && contentType.isPresent()) {
+            catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKindAndContentType(kind.get(),
+                                                                                                                                                                                   contentType.get()));
+        } else if (contentType.isPresent()) {
+            catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByContentType(contentType.get()));
+
+        } else if (kind.isPresent()) {
+            catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKind(kind.get()));
         } else {
-            catalogObjectsNameReferenceByKind = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKind(kind.get()));
+            catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findAllCatalogObjectNameReference());
         }
 
-        return groupCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKind).entrySet()
-                                                                                           .stream()
-                                                                                           .filter(map -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
-                                                                                                                                                        sessionId,
-                                                                                                                                                        map.getKey()))
-                                                                                           .map(map -> map.getValue())
-                                                                                           .flatMap(list -> list.stream())
-                                                                                           .collect(Collectors.toList());
+        return groupCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKindAndContentType).entrySet()
+                                                                                                         .stream()
+                                                                                                         .filter(map -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
+                                                                                                                                                                      sessionId,
+                                                                                                                                                                      map.getKey()))
+                                                                                                         .map(map -> map.getValue())
+                                                                                                         .flatMap(list -> list.stream())
+                                                                                                         .collect(Collectors.toList());
     }
 
     private Map<String, List<CatalogObjectNameReference>>

@@ -647,11 +647,14 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
-    public void testGetCatalogObjectsNameReferenceByKind() {
-        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
-                                                                                       "12345",
-                                                                                       Optional.of("workflow"))).hasSize(1);
-        //Adding two catalog object of kind *workflow*
+    public void testGetCatalogObjectsNameReferenceByKindAndContentType() {
+
+        final String sessionId = "12345";
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("workflow"),
+                                                                                                     Optional.of("application/xml"))).hasSize(1);
+        //Adding two catalog object of kind "workflow" and contentType "application/xml"
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog_object_1",
                                                  "workflow/new",
@@ -671,48 +674,70 @@ public class CatalogObjectServiceIntegrationTest {
                                                  workflowAsByteArray,
                                                  null);
 
-        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
-                                                                                       "12345",
-                                                                                       Optional.of("workflow"))).hasSize(3);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("workflow"),
+                                                                                                     Optional.of("application/xml"))).hasSize(3);
 
-        //Adding a new catalog object of kind "script"
+        //Adding a new catalog object of kind "script" and contentType "text/x-groovy"
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog_object_3",
                                                  "script",
                                                  "commit message",
                                                  "username",
-                                                 "application/xml",
+                                                 "text/x-groovy",
                                                  keyValues,
                                                  workflowAsByteArray,
                                                  null);
 
-        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
-                                                                                       "12345",
-                                                                                       Optional.of("workflow"))).hasSize(3);
-        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
-                                                                                       "12345",
-                                                                                       Optional.of("sCriPt"))).hasSize(1);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("workflow"),
+                                                                                                     Optional.of("application/xml"))).hasSize(3);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("sCriPt"),
+                                                                                                     Optional.of("text/x-groovy"))).hasSize(1);
 
-        //Adding a new catalog object of kind "rule"
+        //Adding a new catalog object of kind "rule" and contentType "text/x-sh"
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog_object_4",
                                                  "rule",
                                                  "commit message",
                                                  "username",
-                                                 "application/xml",
+                                                 "text/x-sh",
                                                  keyValues,
                                                  workflowAsByteArray,
                                                  null);
 
-        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
-                                                                                       "12345",
-                                                                                       Optional.of("workflow"))).hasSize(3);
-        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
-                                                                                       "12345",
-                                                                                       Optional.of("sCriPt"))).hasSize(1);
-        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
-                                                                                       "12345",
-                                                                                       Optional.of("ruLE"))).hasSize(1);
+        //Adding a new catalog object of kind "rule" and contentType "text/css"
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog_object_5",
+                                                 "rule",
+                                                 "commit message",
+                                                 "username",
+                                                 "text/css",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("workflow"),
+                                                                                                     Optional.of("application/xml"))).hasSize(3);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("sCriPt"),
+                                                                                                     Optional.of("text/x-groovy"))).hasSize(1);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("ruLE"),
+                                                                                                     Optional.of("text/x-sh"))).hasSize(1);
+
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("ruLE"),
+                                                                                                     Optional.empty())).hasSize(2);
 
         //create a second bucket and add some catalog objects to it
 
@@ -724,7 +749,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "workflow/new",
                                                  "commit message",
                                                  "username",
-                                                 "application/xml",
+                                                 "application/python",
                                                  keyValues,
                                                  workflowAsByteArray,
                                                  null);
@@ -750,24 +775,63 @@ public class CatalogObjectServiceIntegrationTest {
 
         //Adding another object to the first bucket
         catalogObjectService.createCatalogObject(bucket.getName(),
-                                                 "catalog_object_5",
+                                                 "catalog_object_6",
                                                  "rule",
                                                  "commit message",
                                                  "username",
-                                                 "application/xml",
+                                                 "application/python",
                                                  keyValues,
                                                  workflowAsByteArray,
                                                  null);
 
-        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
-                                                                                       "12345",
-                                                                                       Optional.of("workflow"))).hasSize(5);
-        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
-                                                                                       "12345",
-                                                                                       Optional.of("sCriPt"))).hasSize(2);
-        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(false,
-                                                                                       "12345",
-                                                                                       Optional.of("ruLE"))).hasSize(2);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("workflow"),
+                                                                                                     Optional.of("application/xml"))).hasSize(4);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("workflow"),
+                                                                                                     Optional.of("application/python"))).hasSize(1);
+
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("workflow"),
+                                                                                                     Optional.empty())).hasSize(5);
+
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("sCriPt"),
+                                                                                                     Optional.empty())).hasSize(2);
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.of("ruLE"),
+                                                                                                     Optional.empty())).hasSize(3);
+
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.empty(),
+                                                                                                     Optional.of("application/python"))).hasSize(2);
+
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.empty(),
+                                                                                                     Optional.of("application/xml"))).hasSize(7);
+
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.empty(),
+                                                                                                     Optional.of("text/x-groovy"))).hasSize(1);
+
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.empty(),
+                                                                                                     Optional.of("text/x-sh"))).hasSize(1);
+
+        //Check total number of existing objects in the Catalog
+        assertThat(catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                     sessionId,
+                                                                                                     Optional.empty(),
+                                                                                                     Optional.empty())).hasSize(12);
 
     }
 

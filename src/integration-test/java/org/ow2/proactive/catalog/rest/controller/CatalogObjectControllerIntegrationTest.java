@@ -580,13 +580,16 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
-    public void testGetCatalogObjectsNameReferenceByKind() {
+    public void testGetCatalogObjectsNameReferenceByKindAndContentType() {
         String workflowKind = "workflow";
         String pcaKind = "pca";
         String scriptTaskKind = "Script/task";
+        String xmlContentType = "application/xml";
+        String groovyContentType = "text/x-groovy";
 
         given().header("sessionID", "12345")
                .header("kind", workflowKind)
+               .header("contentType", xmlContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -594,20 +597,20 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_OK)
                .body("results.size()", equalTo(1));
 
-        // Add a second object of kind "workflow" into first bucket
+        // Add a second object of kind "workflow" and contentType "text/x-groovy" into first bucket
         given().header("sessionID", "12345")
                .pathParam("bucketName", bucket.getName())
                .queryParam("kind", workflowKind)
                .queryParam("name", "new workflow 1")
                .queryParam("commitMessage", "commit message")
-               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .queryParam("objectContentType", groovyContentType)
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
                .statusCode(HttpStatus.SC_CREATED);
 
-        // Add a third object of kind "pca" into first bucket
+        // Add a third object of kind "pca" and contentType "application/xml" into first bucket
         given().header("sessionID", "12345")
                .pathParam("bucketName", bucket.getName())
                .queryParam("kind", pcaKind)
@@ -622,6 +625,35 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
         given().header("sessionID", "12345")
                .header("kind", workflowKind)
+               .header("contentType", xmlContentType)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+        given().header("sessionID", "12345")
+               .header("kind", workflowKind)
+               .header("contentType", groovyContentType)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+        given().header("sessionID", "12345")
+               .header("kind", workflowKind)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(2));
+
+        given().header("sessionID", "12345")
+               .header("contentType", xmlContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -631,6 +663,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
         given().header("sessionID", "12345")
                .header("kind", pcaKind)
+               .header("contentType", xmlContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -680,21 +713,32 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
         given().header("sessionID", "12345")
                .header("kind", workflowKind)
+               .header("contentType", xmlContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("results.size()", equalTo(3));
+               .body("results.size()", equalTo(2));
 
         given().header("sessionID", "12345")
                .header("kind", scriptTaskKind)
+               .header("contentType", xmlContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("results.size()", equalTo(1));
+
+        // Check total number of existing objects in the Catalog
+        given().header("sessionID", "12345")
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(5));
 
     }
 
