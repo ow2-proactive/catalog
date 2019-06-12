@@ -731,6 +731,27 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_OK)
                .body("results.size()", equalTo(1));
 
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", secondBucket.getName())
+               .queryParam("kind", scriptTaskKind)
+               .queryParam("name", "new workflow 3")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", groovyContentType)
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        given().header("sessionID", "12345")
+               .header("contentType", groovyContentType)
+               .when()
+               .get(CATALOG_OBJECTS_REFERENCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(2));
+
         // Check total number of existing objects in the Catalog
         given().header("sessionID", "12345")
                .when()
@@ -738,7 +759,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("results.size()", equalTo(5));
+               .body("results.size()", equalTo(6));
 
     }
 
