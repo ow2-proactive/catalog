@@ -69,7 +69,7 @@ public class RawObjectResponseCreator {
             MediaType mediaType = MediaType.valueOf(rawObject.getContentType());
             responseBodyBuilder = responseBodyBuilder.contentType(mediaType);
         } catch (org.springframework.http.InvalidMediaTypeException mimeEx) {
-            log.warn("The wrong content type for object: " + name + ", commitTime:" + rawObject.getCommitDateTime() +
+            log.warn("The wrong Content-Type for object: " + name + ", commitTime:" + rawObject.getCommitDateTime() +
                      ", the contentType: " + rawObject.getContentType(), mimeEx);
         }
 

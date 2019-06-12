@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -112,7 +111,7 @@ public class CatalogObjectController {
             @ApiParam(value = "Name of the object or empty when a ZIP archive is uploaded (All objects inside the archive are stored inside the catalog).") @RequestParam(required = false) Optional<String> name,
             @ApiParam(value = "Kind of the new object", required = true) @RequestParam String kind,
             @ApiParam(value = "Commit message", required = true) @RequestParam String commitMessage,
-            @ApiParam(value = "The content type of CatalogRawObject - MIME type", required = true) @RequestParam String objectContentType,
+            @ApiParam(value = "The Content-Type of CatalogRawObject - MIME type", required = true) @RequestParam String objectContentType,
             @ApiParam(value = "The content of CatalogRawObject", required = true) @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
         RestApiAccessResponse restApiAccessResponse = restApiAccessService.getUserDataFromSessionidAndCheckAccess(sessionIdRequired,
@@ -155,25 +154,29 @@ public class CatalogObjectController {
         return catalogObjectService.getKinds();
     }
 
-    @ApiOperation(value = "Lists all content types for all objects")
+    @ApiOperation(value = "Lists all Content-Types for all objects")
     @RequestMapping(value = "/content-types", method = GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public Set<String> listContentTypes() {
         return catalogObjectService.getContentTypes();
     }
 
-    @ApiOperation(value = "Lists catalog object name references by kind")
+    @ApiOperation(value = "Lists catalog object name references by kind and Content-Type")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(value = "/references", method = GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public List<CatalogObjectNameReference> listCatalogObjectNameReference(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "kind") @RequestHeader(value = "kind", required = false) Optional<String> kind) {
-        return catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKind(sessionIdRequired, sessionId, kind);
+            @ApiParam(value = "Filter according to kind") @RequestHeader(value = "kind", required = false) Optional<String> kind,
+            @ApiParam(value = "Filter according to Content-Type") @RequestHeader(value = "contentType", required = false) Optional<String> contentType) {
+        return catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(sessionIdRequired,
+                                                                                                 sessionId,
+                                                                                                 kind,
+                                                                                                 contentType);
     }
 
-    @ApiOperation(value = "Update a catalog object metadata, like kind and content type")
+    @ApiOperation(value = "Update a catalog object metadata, like kind and Content-Type")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"),
@@ -184,7 +187,7 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String name,
             @ApiParam(value = "The new kind of an object", required = false) @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "The new content type of an object - MIME type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType)
+            @ApiParam(value = "The new Content-Type of an object - MIME type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
         restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
                                                                                sessionId,
@@ -260,7 +263,7 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
             @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
-            @ApiParam(value = "Filter according to content type.") @RequestParam(required = false) Optional<String> contentType,
+            @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
             @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "name", required = false) Optional<List<String>> names,
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {

@@ -52,9 +52,6 @@ public interface CatalogObjectRepository
     @Query(value = "SELECT DISTINCT cos.contentType FROM CatalogObjectEntity cos")
     Set<String> findAllContentTypes();
 
-    @Query(value = "SELECT cos.bucket.bucketName, cos.id.name FROM CatalogObjectEntity cos WHERE lower(cos.kind) LIKE lower(concat('%', ?1, '%'))")
-    List<Object[]> findCatalogObjectNameReferenceByKind(String kind);
-
-    @Query(value = "SELECT cos.bucket.bucketName, cos.id.name FROM CatalogObjectEntity cos")
-    List<Object[]> findAllCatalogObjectNameReferenceByKind();
+    @Query(value = "SELECT cos.bucket.bucketName, cos.id.name FROM CatalogObjectEntity cos WHERE lower(cos.kind) LIKE lower(concat('%', ?1, '%')) AND lower(cos.contentType) LIKE lower(concat('%', ?2, '%'))")
+    List<Object[]> findCatalogObjectNameReferenceByKindAndContentType(String kind, String contentType);
 }
