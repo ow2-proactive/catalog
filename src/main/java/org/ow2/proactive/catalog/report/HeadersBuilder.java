@@ -82,7 +82,7 @@ public class HeadersBuilder {
             Optional<String> kind, Optional<String> contentType) {
         Row<PDPage> infoHeaderRow = table.createRow(15f);
 
-        String infoHeaderMessage = "Objects Kind: " + kind.orElse("All") + " -  Content Type: " +
+        String infoHeaderMessage = "Objects Kind: " + kind.orElse("All") + " -  Content-Type: " +
                                    contentType.orElse("All") + SPACE_BETWEEN_INFO + " Bucket Number: " +
                                    calculateTotalBuckets(orderedObjectsPerBucket) + SPACE_BETWEEN_INFO +
                                    " Object Number: " + orderedObjectsPerBucket.size() + SPACE_BETWEEN_INFO +
@@ -96,7 +96,7 @@ public class HeadersBuilder {
             Optional<String> contentType) {
         Row<PDPage> infoHeaderRow = table.createRow(15f);
 
-        String infoHeaderMessage = "Objects Kind: " + kind.orElse("All") + " -  Content Type: " +
+        String infoHeaderMessage = "Objects Kind: " + kind.orElse("All") + " -  Content-Type: " +
                                    contentType.orElse("All") + SPACE_BETWEEN_INFO + " Bucket Number: " +
                                    bucketSet.size() + SPACE_BETWEEN_INFO + " Object Number: " + ObjectSet.size() +
                                    SPACE_BETWEEN_INFO + " Generated: " + getNowDate();

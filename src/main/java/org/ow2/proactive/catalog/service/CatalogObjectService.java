@@ -181,7 +181,7 @@ public class CatalogObjectService {
             throw new KindOrContentTypeIsNotValidException(kind, "kind");
         }
         if (!kindAndContentTypeValidator.isValid(contentType)) {
-            throw new KindOrContentTypeIsNotValidException(contentType, "content type");
+            throw new KindOrContentTypeIsNotValidException(contentType, "Content-Type");
         }
 
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
@@ -237,7 +237,7 @@ public class CatalogObjectService {
             throw new KindOrContentTypeIsNotValidException(kind.get(), "kind");
         }
         if (contentType.isPresent() && !kindAndContentTypeValidator.isValid(contentType.get())) {
-            throw new KindOrContentTypeIsNotValidException(contentType.get(), "content type");
+            throw new KindOrContentTypeIsNotValidException(contentType.get(), "Content-Type");
         }
         CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
         kind.ifPresent(catalogObjectEntity::setKind);
@@ -412,7 +412,7 @@ public class CatalogObjectService {
         return buildMetadataWithLink(result);
     }
 
-    // find catalog objects by kind and content type
+    // find catalog objects by kind and Content-Type
     public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentType(List<String> bucketNames, String kind,
             String contentType) {
         bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
@@ -423,7 +423,7 @@ public class CatalogObjectService {
         return buildMetadataWithLink(result);
     }
 
-    // find catalog objects by content type
+    // find catalog objects by Content-Type
     public List<CatalogObjectMetadata> listCatalogObjectsByContentType(List<String> bucketNames, String contentType) {
         bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfContentTypeInBucket(bucketNames,
@@ -580,7 +580,7 @@ public class CatalogObjectService {
     }
 
     /**
-     * @return all ordered content types for all objects in catalog
+     * @return all ordered Content-Types for all objects in catalog
      */
     public TreeSet<String> getContentTypes() {
         return new TreeSet<>(catalogObjectRepository.findAllContentTypes());
@@ -588,18 +588,8 @@ public class CatalogObjectService {
 
     public List<CatalogObjectNameReference> getAccessibleCatalogObjectsNameReferenceByKindAndContentType(
             boolean sessionIdRequired, String sessionId, Optional<String> kind, Optional<String> contentType) {
-        List<CatalogObjectNameReference> catalogObjectsNameReferenceByKindAndContentType;
-        if (kind.isPresent() && contentType.isPresent()) {
-            catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKindAndContentType(kind.get(),
-                                                                                                                                                                                   contentType.get()));
-        } else if (contentType.isPresent()) {
-            catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByContentType(contentType.get()));
-
-        } else if (kind.isPresent()) {
-            catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKind(kind.get()));
-        } else {
-            catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findAllCatalogObjectNameReference());
-        }
+        List<CatalogObjectNameReference> catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKindAndContentType(kind.orElse(""),
+                                                                                                                                                                                                                contentType.orElse("")));
 
         return groupCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKindAndContentType).entrySet()
                                                                                                          .stream()

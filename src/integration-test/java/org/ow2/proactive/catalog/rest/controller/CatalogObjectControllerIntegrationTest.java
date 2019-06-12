@@ -315,7 +315,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_BAD_REQUEST)
                .body(ERROR_MESSAGE,
                      equalTo(new KindOrContentTypeIsNotValidException(wrongContentType,
-                                                                      "content type").getLocalizedMessage()));
+                                                                      "Content-Type").getLocalizedMessage()));
     }
 
     @Test

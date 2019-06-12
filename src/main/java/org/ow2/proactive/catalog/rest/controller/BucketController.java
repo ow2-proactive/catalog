@@ -119,7 +119,7 @@ public class BucketController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "The content type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
+            @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
             throws NotAuthenticatedException, AccessDeniedException {
 
         if (sessionIdRequired) {

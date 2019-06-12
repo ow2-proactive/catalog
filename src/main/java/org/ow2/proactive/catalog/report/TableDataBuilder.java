@@ -113,7 +113,7 @@ public class TableDataBuilder {
 
     private String getKindPlusContentType(CatalogObjectMetadata catalogObject) {
         return "<p>" + "<b>Kind</b>" + KEY_VALUE_SEPARATOR + catalogObject.getKind() + "</p>" + "<p>" +
-               "<b>Content Type</b>" + KEY_VALUE_SEPARATOR + catalogObject.getContentType() + "</p>";
+               "<b>Content-Type</b>" + KEY_VALUE_SEPARATOR + catalogObject.getContentType() + "</p>";
     }
 
     private String getHumanReadableDate(String rawDate) {

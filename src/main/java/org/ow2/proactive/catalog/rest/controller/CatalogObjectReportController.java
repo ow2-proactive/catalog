@@ -88,7 +88,7 @@ public class CatalogObjectReportController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "The content type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
+            @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
             throws NotAuthenticatedException, AccessDeniedException, IOException {
 
         List<String> authorisedBucketsNames = getListOfAuthorizedBuckets(sessionId, ownerName, kind, contentType);
@@ -110,7 +110,7 @@ public class CatalogObjectReportController {
             @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @PathVariable String bucketName,
             @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
-            @ApiParam(value = "Filter according to content type.") @RequestParam(required = false) Optional<String> contentType,
+            @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
             @ApiParam(value = "Give a list of name separated by comma to get them in the report", allowMultiple = true, type = "string") @RequestParam(value = "name", required = false) Optional<List<String>> catalogObjectsNames)
             throws NotAuthenticatedException, AccessDeniedException, IOException {
 

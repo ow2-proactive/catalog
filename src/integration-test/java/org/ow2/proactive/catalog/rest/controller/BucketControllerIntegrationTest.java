@@ -376,7 +376,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .statusCode(HttpStatus.SC_OK)
                .body("", hasSize(3));
 
-        // list bucket with the given kind of objects and content type inside bucket -> should
+        // list bucket with the given kind of objects and Content-Type inside bucket -> should
         // return the specified buckets
         given().param("owner", adminOwner)
                .param("kind", "new-kind-2")
@@ -387,7 +387,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .statusCode(HttpStatus.SC_OK)
                .body("", hasSize(1));
 
-        // list buckets by specific kind and specified content type -> should return one specified bucket and empty bucket
+        // list buckets by specific kind and specified Content-Type -> should return one specified bucket and empty bucket
         given().param("kind", "my-object-kind")
                .param("contentType", "my-content")
                .get(BUCKETS_RESOURCE)
