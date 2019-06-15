@@ -92,7 +92,7 @@ public class GraphqlServiceIntegrationTest {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @Before
-    public void setup() throws IOException, NotAuthenticatedException, AccessDeniedException {
+    public void setup() throws IOException, NotAuthenticatedException, AccessDeniedException, InterruptedException {
         doReturn("link").when(catalogObjectMapper).generatLink(anyString(), anyString());
 
         bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
@@ -104,14 +104,18 @@ public class GraphqlServiceIntegrationTest {
                                                                                        "catalog1",
                                                                                        "object",
                                                                                        "commit message",
+                                                                                       "username",
                                                                                        "application/xml",
                                                                                        keyValues,
-                                                                                       workflowAsByteArray);
+                                                                                       workflowAsByteArray,
+                                                                                       null);
         firstCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
+        Thread.sleep(1); // to be sure that a new revision time will be different from previous revision time
         catalogObject = catalogObjectService.createCatalogObjectRevision(bucket.getName(),
                                                                          "catalog1",
                                                                          "commit message 2",
+                                                                         "username",
                                                                          keyValues,
                                                                          workflowAsByteArrayUpdated);
         secondCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
@@ -120,9 +124,11 @@ public class GraphqlServiceIntegrationTest {
                                                  "catalog2",
                                                  "object",
                                                  "commit message",
+                                                 "username",
                                                  "application/xml",
                                                  keyValues,
-                                                 workflowAsByteArray);
+                                                 workflowAsByteArray,
+                                                 null);
 
         keyValues = Collections.singletonList(new Metadata("key", "value2", "type"));
 
@@ -130,17 +136,21 @@ public class GraphqlServiceIntegrationTest {
                                                  "catalog3",
                                                  "workflow",
                                                  "commit message",
+                                                 "username",
                                                  "application/xml",
                                                  keyValues,
-                                                 workflowAsByteArray);
+                                                 workflowAsByteArray,
+                                                 null);
 
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog4",
                                                  "workflow",
                                                  "commit message",
+                                                 "username",
                                                  "application/xml",
                                                  keyValues,
-                                                 workflowAsByteArray);
+                                                 workflowAsByteArray,
+                                                 null);
 
     }
 
@@ -438,9 +448,11 @@ public class GraphqlServiceIntegrationTest {
                                                  "catalog1",
                                                  "object",
                                                  "commit message",
+                                                 "username",
                                                  "application/xml",
                                                  keyValues,
-                                                 IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"));
+                                                 IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"),
+                                                 null);
 
         String query = "{\n" +
                        "  allCatalogObjects(where:{OR:[{AND:[{nameArg:{eq:\"catalog1\"}}, {kindArg:{eq:\"object\"}}, {metadataArg:{key:\"key2\", value:{like:\"%%\"}}}]}, {AND:[{kindArg:{eq:\"workflow\"}}, {metadataArg:{key:\"key\",value:{eq:\"value2\"}}}]}]}) {\n" +

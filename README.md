@@ -22,7 +22,7 @@ A single Bucket can store multiple kinds of objects
 You can build a WAR file as follows:
 
 ```
-$ gradle clean build war
+$ ./gradlew clean build war
 ```
 
 Then, you can directly deploy the service with embedded Tomcat:
@@ -119,7 +119,7 @@ The next example will fetch all Objects that has name like `Clear%` from `cloud-
 The response will return all fields, that are in the query.
 ```
 {
-  allCatalogObjects(where: {AND: [{nameArg: {like: “Clear%“}}, {bucketNameArg: {eq: "cloud-automation"}}]}) {
+  allCatalogObjects(where: {AND: [{nameArg: {like: "Clear%"}}, {bucketNameArg: {eq: "cloud-automation"}}]}) {
     edges {
       bucketName
       name

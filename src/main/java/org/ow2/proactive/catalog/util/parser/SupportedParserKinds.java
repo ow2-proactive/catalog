@@ -30,17 +30,32 @@ package org.ow2.proactive.catalog.util.parser;
  * @since 7/11/2017
  */
 public enum SupportedParserKinds {
-    WORKFLOW("workflow"),
-    PCW_RULE("pcw-rule");
+    WORKFLOW("workflow", "/automation-dashboard/styles/patterns/img/wf-icons/wf-default-icon.png"),
+    CALENDAR("calendar", "/automation-dashboard/styles/patterns/img/objects-icons/calendar_icon.png"),
+    SCRIPT("script", "/automation-dashboard/styles/patterns/img/objects-icons/script_icon.png"),
+    NODE_SOURCE("nodesource", "/automation-dashboard/styles/patterns/img/objects-icons/node_source_icon.png"),
+    POLICY("policynodesource", "/automation-dashboard/styles/patterns/img/objects-icons/node_source_policy_icon.png"),
+    INFRASTRUCTURE(
+            "infrastructurenodesource",
+            "/automation-dashboard/styles/patterns/img/objects-icons/node_source_infrastructure_icon.png"),
+    PCW_RULE("rule", "/automation-dashboard/styles/patterns/img/objects-icons/rule_icon.png");
 
     private final String kind;
 
-    SupportedParserKinds(final String kind) {
+    private final String defaultIcon;
+
+    SupportedParserKinds(final String kind, final String defaultIcon) {
         this.kind = kind;
+        this.defaultIcon = defaultIcon;
     }
 
     @Override
     public String toString() {
         return kind;
     }
+
+    public String getDefaultIcon() {
+        return defaultIcon;
+    }
+
 }

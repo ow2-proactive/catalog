@@ -34,7 +34,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  *
- * @see CatalogObjectParserInterface
+ * @see AbstractCatalogObjectParser
  *
  * @author ActiveEon Team
  */

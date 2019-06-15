@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="urn:proactive:jobdescriptor:3.11" xsi:schemaLocation="urn:proactive:jobdescriptor:3.11 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.11/schedulerjob.xsd"  name="workflow_with_script_url" projectName="1. Workflow Parser" priority="normal" onTaskError="continueJobExecution"  maxNumberOfExecution="2" >
+  <variables>
+    <variable name="called_workflow" value="basic-examples/Native_Task" model="PA:Catalog_Object"/>
+  </variables>
+  <genericInformation>
+    <info name="bucketName" value="data-visualization"/>
+    <info name="workflow.icon" value="/automation-dashboard/styles/patterns/img/wf-icons/visdom.png"/>
+    <info name="group" value="public-objects"/>
+  </genericInformation>
+  <taskFlow>
+    <task name="Task_Script" 
+    
+    onTaskError="cancelJob" >
+      <pre>
+        <script>
+          <file url="${PA_CATALOG_REST_URL}/buckets/cloud-automation-scripts/resources/Pre_Trigger_Action/raw" language="groovy"></file>
+        </script>
+      </pre>
+      <scriptExecutable>
+        <script>
+          <file url="${PA_CATALOG_REST_URL}/buckets/cloud-automation-scripts/resources/Service_Start/raw" language="groovy"></file>
+        </script>
+      </scriptExecutable>
+      <controlFlow block="none"></controlFlow>
+      <post>
+        <script>
+          <file url="${PA_CATALOG_REST_URL}/buckets/scripts/resources/update_variables_from_file/raw" language="groovy"></file>
+        </script>
+      </post>
+      <cleaning>
+        <script>
+          <file url="${PA_CATALOG_REST_URL}/buckets/scripts/resources/update_variables_from_system/revisions/1777683355837/raw" language="groovy"></file>
+        </script>
+      </cleaning>
+    </task>
+  </taskFlow>
+</job>

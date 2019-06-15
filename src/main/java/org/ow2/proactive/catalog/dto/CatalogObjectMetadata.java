@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
@@ -62,6 +63,9 @@ public class CatalogObjectMetadata extends ResourceSupport {
     @JsonProperty
     protected final String name;
 
+    @JsonProperty
+    protected final String extension;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     @JsonProperty("commit_time")
     protected final LocalDateTime commitDateTime;
@@ -72,8 +76,13 @@ public class CatalogObjectMetadata extends ResourceSupport {
     @JsonProperty("commit_message")
     protected final String commitMessage;
 
+    @JsonProperty("username")
+    protected final String username;
+
     @JsonProperty("object_key_values")
     protected final List<Metadata> metadataList;
+
+    protected final String projectName;
 
     public CatalogObjectMetadata(CatalogObjectEntity catalogObject) {
         this(catalogObject.getBucket().getBucketName(),
@@ -82,7 +91,9 @@ public class CatalogObjectMetadata extends ResourceSupport {
              catalogObject.getContentType(),
              catalogObject.getRevisions().first().getCommitTime(),
              catalogObject.getRevisions().first().getCommitMessage(),
-             KeyValueEntityToDtoTransformer.to(catalogObject.getRevisions().first().getKeyValueMetadataList()));
+             catalogObject.getRevisions().first().getUsername(),
+             KeyValueEntityToDtoTransformer.to(catalogObject.getRevisions().first().getKeyValueMetadataList()),
+             catalogObject.getExtension());
     }
 
     public CatalogObjectMetadata(CatalogObjectRevisionEntity catalogObject) {
@@ -92,11 +103,13 @@ public class CatalogObjectMetadata extends ResourceSupport {
              catalogObject.getCatalogObject().getContentType(),
              catalogObject.getCommitTime(),
              catalogObject.getCommitMessage(),
-             KeyValueEntityToDtoTransformer.to(catalogObject.getKeyValueMetadataList()));
+             catalogObject.getUsername(),
+             KeyValueEntityToDtoTransformer.to(catalogObject.getKeyValueMetadataList()),
+             catalogObject.getCatalogObject().getExtension());
     }
 
     public CatalogObjectMetadata(String bucketName, String name, String kind, String contentType, long commitTime,
-            String commitMessage, List<Metadata> metadataList) {
+            String commitMessage, String username, List<Metadata> metadataList, String extension) {
         this.bucketName = bucketName;
         this.name = name;
         this.kind = kind;
@@ -104,12 +117,23 @@ public class CatalogObjectMetadata extends ResourceSupport {
         this.commitTimeRaw = String.valueOf(commitTime);
         this.commitDateTime = Instant.ofEpochMilli(commitTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
         this.commitMessage = commitMessage;
+        this.username = username;
         if (metadataList == null) {
             this.metadataList = new ArrayList<>();
         } else {
             this.metadataList = metadataList;
         }
+        this.projectName = getProjectNameIfExistsOrEmptyString();
+        this.extension = extension;
 
+    }
+
+    private String getProjectNameIfExistsOrEmptyString() {
+        Optional<Metadata> projectNameIfExists = metadataList.stream()
+                                                             .filter(property -> property.getKey()
+                                                                                         .equals("project_name"))
+                                                             .findAny();
+        return projectNameIfExists.map(Metadata::getValue).orElse("");
     }
 
 }

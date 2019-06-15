@@ -38,7 +38,6 @@ import org.springframework.stereotype.Component;
  * @since 27/07/2017
  */
 @Component
-
 public class RestApiAccessService {
 
     private final BucketService bucketService;
@@ -55,15 +54,31 @@ public class RestApiAccessService {
         this.schedulerUserAuthenticationService = schedulerUserAuthenticationService;
     }
 
-    public RestApiAccessResponse checkAccessBySessionIdForBucketAndThrowIfDeclined(String sessionId, String bucketName)
-            throws NotAuthenticatedException, AccessDeniedException {
-        RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionForBucketToOwnerOrGroup(sessionId,
-                                                                                                       bucketName);
-        if (!restApiAccessResponse.isAuthorized()) {
-            throw new AccessDeniedException("SessionId: " + sessionId + " is not allowed to access buckets with id " +
-                                            bucketName);
+    public RestApiAccessResponse getUserDataFromSessionidAndCheckAccess(boolean sessionIdRequired, String sessionId,
+            String bucketName) {
+        if (!isAPublicBucket(bucketName) && sessionIdRequired) {
+            return checkBucketPermission(sessionId, bucketName);
+        } else {
+            return RestApiAccessResponse.builder()
+                                        .authorized(true)
+                                        .authenticatedUser(getAuthenticatedUser(sessionIdRequired, sessionId))
+                                        .build();
+
         }
-        return restApiAccessResponse;
+
+    }
+
+    public void checkAccessBySessionIdForBucketAndThrowIfDeclined(boolean sessionIdRequired, String sessionId,
+            String bucketName) {
+        if (!isAPublicBucket(bucketName) && sessionIdRequired) {
+            checkBucketPermission(sessionId, bucketName);
+
+        }
+
+    }
+
+    public boolean isAPublicBucket(String bucketName) {
+        return BucketService.DEFAULT_BUCKET_OWNER.equals(bucketService.getBucketMetadata(bucketName).getOwner());
     }
 
     public RestApiAccessResponse checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(String sessionId,
@@ -74,6 +89,24 @@ public class RestApiAccessService {
             throw new AccessDeniedException("SessionId: " + sessionId +
                                             " is not allowed to access buckets with owner or group " + ownerOrGroup);
         }
+        return restApiAccessResponse;
+    }
+
+    public boolean isBucketAccessibleByUser(boolean sessionIdRequired, String sessionId, String bucketName) {
+        if (!isAPublicBucket(bucketName) && sessionIdRequired) {
+            return this.checkAccessBySessionForBucketToOwnerOrGroup(sessionId, bucketName).isAuthorized();
+        }
+        return true;
+    }
+
+    private RestApiAccessResponse checkBucketPermission(String sessionId, String bucketName) {
+        RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionForBucketToOwnerOrGroup(sessionId,
+                                                                                                       bucketName);
+        if (!restApiAccessResponse.isAuthorized()) {
+            throw new AccessDeniedException("SessionId: " + sessionId + " is not allowed to access buckets with id " +
+                                            bucketName);
+        }
+
         return restApiAccessResponse;
     }
 
@@ -88,4 +121,17 @@ public class RestApiAccessService {
         boolean authorized = authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser, ownerOrGroup);
         return RestApiAccessResponse.builder().authorized(authorized).authenticatedUser(authenticatedUser).build();
     }
+
+    private AuthenticatedUser getAuthenticatedUser(boolean sessionIdRequired, String sessionId) {
+        try {
+            return schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
+        } catch (NotAuthenticatedException nae) {
+            if (sessionIdRequired) {
+                throw nae;
+            }
+        }
+        return AuthenticatedUser.EMPTY;
+
+    }
+
 }

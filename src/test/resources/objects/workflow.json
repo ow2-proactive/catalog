@@ -2,6 +2,7 @@
 	"kind": "workflow",
 	"name": "workflow name",
 	"commitMessage": "First commit",
+	"username": "username",
 	"objectFileName": "myFileName.xml",
 	"contentType": "application/xml"
 }

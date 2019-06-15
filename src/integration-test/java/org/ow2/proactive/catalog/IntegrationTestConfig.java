@@ -27,6 +27,9 @@ package org.ow2.proactive.catalog;
 
 import static org.mockito.Mockito.spy;
 
+import java.io.File;
+import java.util.List;
+
 import javax.sql.DataSource;
 
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
@@ -37,6 +40,7 @@ import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectBuck
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectKindFilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectMetadataFilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectNameFilterHandler;
+import org.ow2.proactive.catalog.mocks.RestApiAccessServiceMock;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
@@ -44,18 +48,32 @@ import org.ow2.proactive.catalog.service.GenericInformationAdder;
 import org.ow2.proactive.catalog.service.GraphqlService;
 import org.ow2.proactive.catalog.service.KeyValueLabelMetadataHelper;
 import org.ow2.proactive.catalog.service.OwnerGroupStringHelper;
+import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.WorkflowXmlManipulator;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
-import org.ow2.proactive.catalog.util.BucketNameValidator;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
+import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
+import org.ow2.proactive.catalog.util.SeparatorUtility;
+import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
+import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.CalendarDefinitionParser;
+import org.ow2.proactive.catalog.util.parser.InfrastructureParser;
+import org.ow2.proactive.catalog.util.parser.NodeSourceParser;
+import org.ow2.proactive.catalog.util.parser.PCWRuleParser;
+import org.ow2.proactive.catalog.util.parser.PolicyParser;
+import org.ow2.proactive.catalog.util.parser.ScriptParser;
+import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+
+import com.google.common.collect.Lists;
 
 import graphql.schema.DataFetcher;
 
@@ -70,16 +88,53 @@ import graphql.schema.DataFetcher;
 @Profile("test")
 public class IntegrationTestConfig {
 
+    @Value("${spring.datasource.driverClassName:}")
+    private String dataSourceDriverClassName;
+
+    @Value("${spring.datasource.url:}")
+    private String dataSourceUrl;
+
+    @Value("${spring.datasource.username:}")
+    private String dataSourceUsername;
+
+    @Value("${spring.datasource.password:}")
+    private String dataSourcePassword;
+
     @Bean
     public DataSource testDataSource() {
-        return createMemDataSource();
+        return createDataSource();
     }
 
-    private DataSource createMemDataSource() {
-        EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-        EmbeddedDatabase db = builder.setType(EmbeddedDatabaseType.HSQL).build();
+    private DataSource createDataSource() {
+        String jdbcUrl = dataSourceUrl;
 
-        return db;
+        if (jdbcUrl.isEmpty()) {
+            jdbcUrl = "jdbc:hsqldb:file:" + getDatabaseDirectory() +
+                      ";create=true;hsqldb.tx=mvcc;hsqldb.applog=1;hsqldb.sqllog=0;hsqldb.write_delay=false";
+        }
+
+        return DataSourceBuilder.create()
+                                .username(dataSourceUsername)
+                                .password(dataSourcePassword)
+                                .url(jdbcUrl)
+                                .driverClassName(dataSourceDriverClassName)
+                                .build();
+    }
+
+    private String getDatabaseDirectory() {
+        String proactiveHome = System.getProperty("proactive.home");
+
+        if (proactiveHome == null) {
+            return System.getProperty("java.io.tmpdir") + File.separator + "proactive" + File.separator + "catalog";
+        }
+
+        return proactiveHome + File.separator + "data" + File.separator + "db" + File.separator + "catalog" +
+               File.separator + "wc";
+    }
+
+    @Bean
+    public OwnerGroupStringHelper ownerGroupStringHelper() {
+        return new OwnerGroupStringHelper();
     }
 
     @Bean
@@ -100,6 +155,11 @@ public class IntegrationTestConfig {
     @Bean
     public DataFetcher dataFetcher() {
         return new CatalogObjectFetcher();
+    }
+
+    @Bean
+    public SeparatorUtility separatorUtility() {
+        return new SeparatorUtility();
     }
 
     @Bean
@@ -138,8 +198,50 @@ public class IntegrationTestConfig {
     }
 
     @Bean
+    public WorkflowParser workflowParser() {
+        return new WorkflowParser();
+    }
+
+    @Bean
+    public PCWRuleParser pcwRuleParser() {
+        return new PCWRuleParser();
+    }
+
+    @Bean
+    public PolicyParser policyParser() {
+        return new PolicyParser();
+    }
+
+    @Bean
+    public InfrastructureParser infrastructureParser() {
+        return new InfrastructureParser();
+    }
+
+    @Bean
+    public NodeSourceParser nodeSourceParser() {
+        return new NodeSourceParser();
+    }
+
+    @Bean
+    public ScriptParser scriptParser() {
+        return new ScriptParser();
+    }
+
+    @Bean
+    public CalendarDefinitionParser calendarDefinitionParser() {
+        return new CalendarDefinitionParser();
+    }
+
+    @Bean
     public KeyValueLabelMetadataHelper keyValueMetadataHelper() {
-        return new KeyValueLabelMetadataHelper(new OwnerGroupStringHelper());
+        List<AbstractCatalogObjectParser> parsers = Lists.newArrayList(workflowParser(),
+                                                                       pcwRuleParser(),
+                                                                       policyParser(),
+                                                                       calendarDefinitionParser(),
+                                                                       infrastructureParser(),
+                                                                       nodeSourceParser(),
+                                                                       scriptParser());
+        return new KeyValueLabelMetadataHelper(new OwnerGroupStringHelper(), parsers);
     }
 
     @Bean
@@ -160,5 +262,21 @@ public class IntegrationTestConfig {
     @Bean
     public BucketNameValidator bucketNameValidator() {
         return new BucketNameValidator();
+    }
+
+    @Bean
+    public KindAndContentTypeValidator kindNameValidator() {
+        return new KindAndContentTypeValidator();
+    }
+
+    @Bean
+    public RevisionCommitMessageBuilder revisionCommitMessageBuilder() {
+        return new RevisionCommitMessageBuilder();
+    }
+
+    @Bean
+    @Primary
+    public RestApiAccessService restApiAccessService() {
+        return new RestApiAccessServiceMock();
     }
 }

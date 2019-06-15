@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(value = HttpStatus.CONFLICT)
 public class BucketAlreadyExistingException extends DataIntegrityViolationException {
 
-    public BucketAlreadyExistingException(String message) {
-        super(message);
+    public BucketAlreadyExistingException(String bucketName, String ownerName) {
+        super("The bucket named " + bucketName + " owned by " + ownerName + " already exists");
     }
 }

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:proactive:jobdescriptor:3.10"
+        xsi:schemaLocation="urn:proactive:jobdescriptor:3.10 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.10/schedulerjob.xsd"
+        name="test_variables"
+        priority="normal"
+        onTaskError="continueJobExecution"
+        maxNumberOfExecution="2"
+>
+  <variables>
+    <variable name="keyWithoutModel" value="valueWithoutModel"/>
+    <variable name="keyInteger" value="1" model="PA:Integer"/>
+    <variable name="keyGeneral" value="valueGeneral" model=""/>
+    <variable name="emptyValue" value="" />
+  </variables>
+  <taskFlow>
+    <task name="Linux_Bash_Task">
+      <description>
+        <![CDATA[ The simplest task, ran by a bash engine. ]]>
+      </description>
+      <variables>
+        <variable name="taskVar" value="taskValue" inherited="false" />
+      </variables>
+      <scriptExecutable>
+        <script>
+          <code language="bash">
+            <![CDATA[
+ls -la
+]]>
+          </code>
+        </script>
+      </scriptExecutable>
+    </task>
+  </taskFlow>
+</job>

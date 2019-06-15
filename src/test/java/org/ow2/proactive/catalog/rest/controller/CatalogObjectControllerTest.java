@@ -26,8 +26,8 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -49,10 +49,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
+import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
@@ -83,6 +85,9 @@ public class CatalogObjectControllerTest {
     @Mock
     private RawObjectResponseCreator rawObjectResponseCreator;
 
+    @Mock
+    private RestApiAccessService restApiAccessService;
+
     @Test
     public void testGetCatalogObjectsAsArchive() throws IOException, NotAuthenticatedException, AccessDeniedException {
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -93,7 +98,12 @@ public class CatalogObjectControllerTest {
         ZipArchiveContent content = new ZipArchiveContent();
         content.setContent(new byte[0]);
         when(catalogObjectService.getCatalogObjectsAsZipArchive("bucket-name", nameList)).thenReturn(content);
-        catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.of(nameList), response);
+        catalogObjectController.list("",
+                                     "bucket-name",
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.of(nameList),
+                                     response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
         verify(response, times(1)).setContentType("application/zip");
@@ -115,7 +125,12 @@ public class CatalogObjectControllerTest {
         content.setContent(new byte[0]);
         content.setPartial(true);
         when(catalogObjectService.getCatalogObjectsAsZipArchive("bucket-name", nameList)).thenReturn(content);
-        catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.of(nameList), response);
+        catalogObjectController.list("",
+                                     "bucket-name",
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.of(nameList),
+                                     response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
         verify(response, never()).setStatus(HttpServletResponse.SC_OK);
     }
@@ -127,8 +142,8 @@ public class CatalogObjectControllerTest {
         when(response.getOutputStream()).thenReturn(sos);
         BucketEntity bucket = mock(BucketEntity.class);
         when(bucketRepository.findOneByBucketName("bucket-name")).thenReturn(bucket);
-        catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.empty(), response);
-        verify(catalogObjectService, times(1)).listCatalogObjects(anyString());
+        catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.empty(), Optional.empty(), response);
+        verify(catalogObjectService, times(1)).listCatalogObjects(anyList());
     }
 
     @Test
@@ -139,9 +154,14 @@ public class CatalogObjectControllerTest {
                                                           "application/xml",
                                                           1400343L,
                                                           "commit message",
+                                                          "username",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          "xml");
         ResponseEntity responseEntity = ResponseEntity.ok().body(1);
+
+        when(restApiAccessService.isAPublicBucket(anyString())).thenReturn(true);
+
         when(catalogObjectService.getCatalogRawObject(anyString(), anyString())).thenReturn(rawObject);
         when(rawObjectResponseCreator.createRawObjectResponse(rawObject)).thenReturn(responseEntity);
         ResponseEntity responseEntityFromController = catalogObjectController.getRaw("", "bucket-name", "name");
@@ -153,8 +173,18 @@ public class CatalogObjectControllerTest {
 
     @Test
     public void testDelete() throws Exception {
-        doNothing().when(catalogObjectService).delete(anyString(), anyString());
-        catalogObjectController.delete("", "bucket-name", "name");
+        CatalogObjectMetadata mock = new CatalogObjectMetadata("bucket-name",
+                                                               "name",
+                                                               "object",
+                                                               "application/xml",
+                                                               1400343L,
+                                                               "commit message",
+                                                               "username",
+                                                               Collections.emptyList(),
+                                                               "xml");
+        when(catalogObjectService.delete(anyString(), anyString())).thenReturn(mock);
+        CatalogObjectMetadata result = catalogObjectController.delete("", "bucket-name", "name");
+        assertThat(mock).isEqualTo(result);
         verify(catalogObjectService, times(1)).delete(anyString(), anyString());
     }
 }

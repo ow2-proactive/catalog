@@ -69,7 +69,8 @@ public class IntegrationTestUtil {
                                                                              .path("");
 
             catalogObjectMetadataList.stream().forEach(catalogObjectMetadata -> {
-                given().pathParam("bucketName", catalogObjectMetadata.get("bucket_name"))
+                given().header("sessionID", "12345")
+                       .pathParam("bucketName", catalogObjectMetadata.get("bucket_name"))
                        .pathParam("name", catalogObjectMetadata.get("name"))
                        .delete(CATALOG_OBJECT_RESOURCE)
                        .then()
@@ -77,7 +78,7 @@ public class IntegrationTestUtil {
             });
         });
 
-        given().delete(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_OK);
+        given().header("sessionID", "12345").delete(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_OK);
     }
 
     public static byte[] getWorkflowAsByteArray(String filename) throws IOException {
@@ -104,7 +105,8 @@ public class IntegrationTestUtil {
      * @return Get bucket ID from response to create an object in it
      */
     public static String createBucket(String bucketName, String bucketOwner) {
-        return given().parameters("name", bucketName, "owner", bucketOwner)
+        return given().header("sessionID", "12345")
+                      .parameters("name", bucketName, "owner", bucketOwner)
                       .when()
                       .post(BUCKETS_RESOURCE)
                       .then()
@@ -123,11 +125,31 @@ public class IntegrationTestUtil {
      */
     public static void postObjectToBucket(String bucketId, String kind, String name, String commitMessage,
             String objectContentType, File file) {
-        given().pathParam("bucketName", bucketId)
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucketId)
                .queryParam("kind", kind)
                .queryParam("name", name)
                .queryParam("commitMessage", commitMessage)
                .queryParam("objectContentType", objectContentType)
+               .multiPart(file)
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE);
+    }
+
+    /**
+     *
+     * @param bucketId
+     * @param kind
+     * @param name
+     * @param commitMessage
+     * @param file
+     */
+    public static void postObjectToBucket(String bucketId, String kind, String name, String commitMessage, File file) {
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucketId)
+               .queryParam("kind", kind)
+               .queryParam("name", name)
+               .queryParam("commitMessage", commitMessage)
                .multiPart(file)
                .when()
                .post(CATALOG_OBJECTS_RESOURCE);

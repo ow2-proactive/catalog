@@ -35,7 +35,9 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
 import org.apache.commons.io.FilenameUtils;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.zeroturnaround.zip.ByteSource;
 import org.zeroturnaround.zip.ZipEntrySource;
@@ -44,6 +46,9 @@ import org.zeroturnaround.zip.ZipUtil;
 
 @Component
 public class ArchiveManagerHelper {
+
+    @Autowired
+    private RawObjectResponseCreator rawObjectResponseCreator;
 
     public static class ZipArchiveContent {
 
@@ -80,10 +85,7 @@ public class ArchiveManagerHelper {
 
         private String name;
 
-        public FileNameAndContent() {
-            content = null;
-            name = null;
-        }
+        private String fileNameWithExtension;
 
         public byte[] getContent() {
             return content;
@@ -101,6 +103,13 @@ public class ArchiveManagerHelper {
             this.name = name;
         }
 
+        public String getFileNameWithExtension() {
+            return fileNameWithExtension;
+        }
+
+        public void setFileNameWithExtension(String fileNameWithExtension) {
+            this.fileNameWithExtension = fileNameWithExtension;
+        }
     }
 
     /**
@@ -123,8 +132,14 @@ public class ArchiveManagerHelper {
                     zipContent.setPartial(true);
                 }
                 return catalogObjectRevision != null;
-            }).map(catalogObjectRevision -> new ByteSource(catalogObjectRevision.getCatalogObject().getId().getName(),
-                                                           catalogObjectRevision.getRawObject()));
+            }).map(catalogObjectRevision -> {
+                CatalogObjectEntity catalogObjectEntity = catalogObjectRevision.getCatalogObject();
+                String fileNameWithExtension = rawObjectResponseCreator.getNameWithFileExtension(catalogObjectEntity.getId()
+                                                                                                                    .getName(),
+                                                                                                 catalogObjectEntity.getExtension(),
+                                                                                                 catalogObjectEntity.getKind());
+                return new ByteSource(fileNameWithExtension, catalogObjectRevision.getRawObject());
+            });
             ZipEntrySource[] sources = streamSources.toArray(size -> new ZipEntrySource[size]);
             ZipUtil.pack(sources, byteArrayOutputStream);
 
@@ -149,7 +164,7 @@ public class ArchiveManagerHelper {
         }
 
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayArchive)) {
-            ZipUtil.iterate(byteArrayInputStream, (in, zipEntry) -> filesList.add(process(in, zipEntry)));
+            ZipUtil.iterate(byteArrayInputStream, (in, zipEntry) -> checkAndAddFileFromZip(filesList, in, zipEntry));
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
@@ -158,15 +173,29 @@ public class ArchiveManagerHelper {
     }
 
     /**
+     * check the name of zip entry, exclude containing folder as extracting file
+     * @param filesList
+     * @param in
+     * @param entry
+     */
+    private void checkAndAddFileFromZip(List<FileNameAndContent> filesList, InputStream in, ZipEntry entry) {
+        String nameZipEntry = FilenameUtils.getName(entry.getName());
+        if (!nameZipEntry.isEmpty()) {
+            filesList.add(process(in, entry));
+        }
+    }
+
+    /**
      * Extract ZIP entry into a byte array
      * @param in entry content
-     * @param zipEntry entry
-     * @param filesList list of files
+     * @param entry ZipEntry
+     * @return FileNameAndContent
      */
     private FileNameAndContent process(InputStream in, ZipEntry entry) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             FileNameAndContent file = new FileNameAndContent();
             file.setName(FilenameUtils.getBaseName(entry.getName()));
+            file.setFileNameWithExtension(FilenameUtils.getName(entry.getName()));
 
             int data = 0;
             while ((data = in.read()) != -1) {

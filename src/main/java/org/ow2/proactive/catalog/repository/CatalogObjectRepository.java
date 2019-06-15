@@ -25,10 +25,14 @@
  */
 package org.ow2.proactive.catalog.repository;
 
+import java.util.List;
+import java.util.Set;
+
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 
 
@@ -41,4 +45,13 @@ public interface CatalogObjectRepository
 
     @EntityGraph("catalogObject.withRevisions")
     CatalogObjectEntity readCatalogObjectRevisionsById(CatalogObjectEntity.CatalogObjectEntityKey key);
+
+    @Query(value = "SELECT DISTINCT cos.kind FROM CatalogObjectEntity cos")
+    Set<String> findAllKinds();
+
+    @Query(value = "SELECT DISTINCT cos.contentType FROM CatalogObjectEntity cos")
+    Set<String> findAllContentTypes();
+
+    @Query(value = "SELECT cos.bucket.bucketName, cos.id.name FROM CatalogObjectEntity cos WHERE lower(cos.kind) LIKE lower(concat('%', ?1, '%')) AND lower(cos.contentType) LIKE lower(concat('%', ?2, '%'))")
+    List<Object[]> findCatalogObjectNameReferenceByKindAndContentType(String kind, String contentType);
 }

@@ -29,18 +29,16 @@ import java.io.ByteArrayInputStream;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.xml.stream.XMLStreamException;
-
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
-import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
 import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.DefaultCatalogObjectParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -59,11 +57,15 @@ public class KeyValueLabelMetadataHelper {
     @SuppressWarnings("FieldCanBeLocal")
     private static final String BUCKET_NAME_KEY = "bucketName";
 
+    private final List<AbstractCatalogObjectParser> parsers;
+
     private final OwnerGroupStringHelper ownerGroupStringHelper;
 
     @Autowired
-    public KeyValueLabelMetadataHelper(OwnerGroupStringHelper ownerGroupStringHelper) {
+    public KeyValueLabelMetadataHelper(OwnerGroupStringHelper ownerGroupStringHelper,
+            List<AbstractCatalogObjectParser> parsers) {
         this.ownerGroupStringHelper = ownerGroupStringHelper;
+        this.parsers = parsers;
     }
 
     public static List<KeyValueLabelMetadataEntity> convertToEntity(List<Metadata> source) {
@@ -79,13 +81,24 @@ public class KeyValueLabelMetadataHelper {
         return keyValueLabelMetadataEntity.getLabel().equals(WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL);
     }
 
+    public List<KeyValueLabelMetadataEntity>
+            getOnlyNotDuplicatedDependsOn(List<KeyValueLabelMetadataEntity> keyValueLabelMetadataEntities) {
+        return new ArrayList<>(new HashSet<>(keyValueLabelMetadataEntities.stream()
+                                                                          .filter(this::isDependsOn)
+                                                                          .collect(Collectors.toList())));
+    }
+
+    private boolean isDependsOn(KeyValueLabelMetadataEntity keyValueLabelMetadataEntity) {
+        return keyValueLabelMetadataEntity.getLabel().equals(WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
+    }
+
     public List<KeyValueLabelMetadataEntity> extractKeyValuesFromRaw(String kind, byte[] rawObject) {
-        try {
-            CatalogObjectParserInterface catalogObjectParser = CatalogObjectParserFactory.get().getParser(kind);
-            return catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
-        } catch (XMLStreamException e) {
-            throw new UnprocessableEntityException(e);
-        }
+        AbstractCatalogObjectParser catalogObjectParser = parsers.stream()
+                                                                 .filter(parser -> parser.isMyKind(kind))
+                                                                 .findFirst()
+                                                                 .orElse(new DefaultCatalogObjectParser());
+        return catalogObjectParser.parse(new ByteArrayInputStream(rawObject));
+
     }
 
     public List<Metadata> convertFromEntity(List<KeyValueLabelMetadataEntity> source) {

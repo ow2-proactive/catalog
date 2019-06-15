@@ -41,6 +41,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
+import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.springframework.http.ResponseEntity;
 
@@ -60,6 +61,9 @@ public class CatalogObjectRevisionControllerTest {
     @Mock
     private RawObjectResponseCreator rawObjectResponseCreator;
 
+    @Mock
+    private RestApiAccessService restApiAccessService;
+
     private static final String BUCKET_ID = "bucket-name";
 
     private static final long COMMIT_TIME = System.currentTimeMillis();
@@ -78,9 +82,14 @@ public class CatalogObjectRevisionControllerTest {
                                                           "application/xml",
                                                           1400343L,
                                                           "commit message",
+                                                          "username",
                                                           Collections.emptyList(),
-                                                          new byte[0]);
+                                                          new byte[0],
+                                                          "xml");
         ResponseEntity responseEntity = ResponseEntity.ok().body(1);
+
+        when(restApiAccessService.isAPublicBucket(anyString())).thenReturn(true);
+
         when(catalogObjectService.getCatalogObjectRevisionRaw(anyString(),
                                                               anyString(),
                                                               anyLong())).thenReturn(rawObject);

@@ -26,17 +26,18 @@
 package org.ow2.proactive.catalog.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserFactory;
-import org.ow2.proactive.catalog.util.parser.CatalogObjectParserInterface;
+import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
+import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.ow2.proactive.scheduler.core.properties.PASchedulerProperties;
 
 
 /**
@@ -50,58 +51,179 @@ public class ProActiveCatalogObjectParserTest {
     public void testParseWorkflow() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow.xml");
 
-        assertThat(result).hasSize(6);
-        assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
-        assertKeyValueDataAre(result.get(1), "name", "Valid Workflow", "job_information");
-        assertKeyValueDataAre(result.get(2), "var1", "var1Value", "variable");
-        assertKeyValueDataAre(result.get(3), "var2", "var2Value", "variable");
-        assertKeyValueDataAre(result.get(4), "genericInfo1", "genericInfo1Value", "generic_information");
-        assertKeyValueDataAre(result.get(5), "genericInfo2", "genericInfo2Value", "generic_information");
+        assertThat(result).hasSize(8);
 
-    }
-
-    private static void assertKeyValueDataAre(KeyValueLabelMetadataEntity data, String key, String value,
-            String label) {
-        assertTrue(data.getKey().equals(key) && data.getValue().equals(value) && data.getLabel().equals(label));
+        assertThat(findValueForKeyAndLabel(result, "project_name", "job_information")).isEqualTo("Project Name");
+        assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("Valid Workflow");
+        assertThat(findValueForKeyAndLabel(result, "var1", "variable")).isEqualTo("var1Value");
+        assertThat(findValueForKeyAndLabel(result, "var2", "variable")).isEqualTo("var2Value");
+        assertThat(findValueForKeyAndLabel(result, "description", "General")).isEqualTo("\n" +
+                                                                                        "         A catalogObject that executes cmd in JVM. \n" +
+                                                                                        "    ");
+        assertThat(findValueForKeyAndLabel(result,
+                                           "genericInfo1",
+                                           "generic_information")).isEqualTo("genericInfo1Value");
+        assertThat(findValueForKeyAndLabel(result,
+                                           "genericInfo2",
+                                           "generic_information")).isEqualTo("genericInfo2Value");
     }
 
     @Test
-    public void testParseWorkflowContainingNoName() throws Exception {
-        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-name.xml");
+    public void testParseWorkflowWithModelVariables() throws Exception {
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_variables_with_model.xml");
 
-        assertThat(result).hasSize(5);
-        assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
-        assertKeyValueDataAre(result.get(1), "var1", "var1Value", "variable");
-        assertKeyValueDataAre(result.get(2), "var2", "var2Value", "variable");
-        assertKeyValueDataAre(result.get(3), "genericInfo1", "genericInfo1Value", "generic_information");
-        assertKeyValueDataAre(result.get(4), "genericInfo2", "genericInfo2Value", "generic_information");
+        assertThat(result).hasSize(7);
+
+        assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("test_variables");
+        assertThat(findValueForKeyAndLabel(result, "keyWithoutModel", "variable")).isEqualTo("valueWithoutModel");
+        assertThat(findValueForKeyAndLabel(result, "keyInteger", "variable")).isEqualTo("1");
+        assertThat(findValueForKeyAndLabel(result, "keyInteger", "variable_model")).isEqualTo("PA:Integer");
+        assertThat(findValueForKeyAndLabel(result, "keyGeneral", "variable")).isEqualTo("valueGeneral");
+        assertThat(findValueForKeyAndLabel(result, "emptyValue", "variable")).isEqualTo("");
+    }
+
+    @Test
+    public void testParseWorkflowWithCatalogObjectModelVariables() throws Exception {
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_variables_with_catalog_object_model.xml");
+        List<String> dependsOnKeys = findKeysForDependsOnLabel(result, WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
+        List<String> revisionValues = findRevisionsForDependsOnLabel(result, WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
+
+        assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("test_variables_with_model");
+        assertThat(dependsOnKeys).contains("basic-examples/Native_Task");
+        assertThat(dependsOnKeys).contains("data-connectors/FTP");
+        assertThat(dependsOnKeys).contains("finance/QuantLib");
+        assertThat(dependsOnKeys).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(dependsOnKeys).contains("data-connectors/SFTP");
+        assertThat(dependsOnKeys).contains("data-connectors/URL");
+        assertThat(dependsOnKeys).hasSize(6);
+        assertThat(revisionValues.stream()
+                                 .filter(revision -> revision.equals(WorkflowParser.LATEST_VERSION))
+                                 .collect(Collectors.toList())).hasSize(4);
+        assertThat(revisionValues.stream()
+                                 .filter(revision -> !revision.equals(WorkflowParser.LATEST_VERSION))
+                                 .collect(Collectors.toList())).hasSize(2);
+    }
+
+    @Test
+    public void testParseWorkflowContainingScriptUrl() throws Exception {
+        PASchedulerProperties.CATALOG_REST_URL.updateProperty("http://localhost:8080/catalog");
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_with_script_url.xml");
+        List<String> dependsOnKeys = findKeysForDependsOnLabel(result, WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
+        List<String> revisionValues = findRevisionsForDependsOnLabel(result, WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL);
+        assertThat(dependsOnKeys).contains("basic-examples/Native_Task");
+        assertThat(dependsOnKeys).contains("cloud-automation-scripts/Service_Start");
+        assertThat(dependsOnKeys).contains("cloud-automation-scripts/Pre_Trigger_Action");
+        assertThat(dependsOnKeys).contains("scripts/update_variables_from_system");
+        assertThat(dependsOnKeys).contains("scripts/update_variables_from_file");
+        assertThat(dependsOnKeys).hasSize(5);
+
+        assertThat(revisionValues.stream()
+                                 .filter(revision -> revision.equals(WorkflowParser.LATEST_VERSION))
+                                 .collect(Collectors.toList())).hasSize(4);
+        assertThat(revisionValues.stream()
+                                 .filter(revision -> !revision.equals(WorkflowParser.LATEST_VERSION))
+                                 .collect(Collectors.toList())).hasSize(1);
+
+    }
+
+    @Test(expected = Exception.class)
+    public void testParseWorkflowContainingWrongScriptUrl() throws Exception {
+        parseWorkflow("workflow-with_wrong_script_url.xml");
+    }
+
+    @Test(expected = ParsingObjectException.class)
+    public void testParseWorkflowContainingNoName() throws Exception {
+        parseWorkflow("workflow-no-name.xml");
     }
 
     @Test
     public void testParseWorkflowContainingNoProjectName() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-project-name.xml");
 
-        assertThat(result).hasSize(5);
-        assertKeyValueDataAre(result.get(0), "name", "Valid Workflow", "job_information");
-        assertKeyValueDataAre(result.get(1), "var1", "var1Value", "variable");
-        assertKeyValueDataAre(result.get(2), "var2", "var2Value", "variable");
-        assertKeyValueDataAre(result.get(3), "genericInfo1", "genericInfo1Value", "generic_information");
-        assertKeyValueDataAre(result.get(4), "genericInfo2", "genericInfo2Value", "generic_information");
+        assertThat(result).hasSize(7);
+
+        assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("Valid Workflow");
+        assertThat(findValueForKeyAndLabel(result, "var1", "variable")).isEqualTo("var1Value");
+        assertThat(findValueForKeyAndLabel(result, "var2", "variable")).isEqualTo("var2Value");
+        assertThat(findValueForKeyAndLabel(result, "description", "General")).isEqualTo("\n" +
+                                                                                        "         A catalogObject that executes cmd in JVM. \n" +
+                                                                                        "    ");
+        assertThat(findValueForKeyAndLabel(result,
+                                           "genericInfo1",
+                                           "generic_information")).isEqualTo("genericInfo1Value");
+        assertThat(findValueForKeyAndLabel(result,
+                                           "genericInfo2",
+                                           "generic_information")).isEqualTo("genericInfo2Value");
+        assertThat(findValueForKeyAndLabel(result,
+                                           "main.icon",
+                                           "General")).isEqualTo("/automation-dashboard/styles/patterns/img/wf-icons/wf-default-icon.png");
     }
 
     @Test
     public void testParseWorkflowContainingNoGenericInformationAndNoVariable() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-generic-information-no-variable.xml");
 
-        assertThat(result).hasSize(2);
-        assertKeyValueDataAre(result.get(0), "project_name", "Project Name", "job_information");
-        assertKeyValueDataAre(result.get(1), "name", "Valid Workflow", "job_information");
+        assertThat(result).hasSize(4);
+
+        assertThat(findValueForKeyAndLabel(result, "project_name", "job_information")).isEqualTo("Project Name");
+        assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("Valid Workflow");
+        assertThat(findValueForKeyAndLabel(result, "description", "General")).isEqualTo("\n" +
+                                                                                        "         A catalogObject that executes cmd in JVM. \n" +
+                                                                                        "    ");
+    }
+
+    @Test
+    public void testParseWorkflowContainingVisualization() throws Exception {
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-visualization.xml");
+
+        assertThat(result).hasSize(5);
+
+        assertThat(findValueForKeyAndLabel(result, "project_name", "job_information")).isEqualTo("Project Name");
+        assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("Valid Workflow");
+        assertThat(findValueForKeyAndLabel(result, "description", "General")).isEqualTo("\n" +
+                                                                                        "         A catalogObject that executes cmd in JVM. \n" +
+                                                                                        "    ");
+        assertThat(findValueForKeyAndLabel(result,
+                                           "visualization",
+                                           "job_information").trim()).isEqualTo(getJobVisualizationExpectedContent());
     }
 
     private List<KeyValueLabelMetadataEntity> parseWorkflow(String xmlFilename) throws XMLStreamException {
-        CatalogObjectParserInterface parser = CatalogObjectParserFactory.get().getParser("workflow");
+        AbstractCatalogObjectParser parser = new WorkflowParser();
 
         return parser.parse(ProActiveCatalogObjectParserTest.class.getResourceAsStream("/workflows/" + xmlFilename));
+    }
+
+    private String findValueForKeyAndLabel(List<KeyValueLabelMetadataEntity> result, String key, String label) {
+        return result.stream()
+                     .filter(metadata -> metadata.getKey().equals(key) && metadata.getLabel().equals(label))
+                     .findAny()
+                     .get()
+                     .getValue();
+    }
+
+    private List<String> findKeysForDependsOnLabel(List<KeyValueLabelMetadataEntity> result, String label) {
+        return result.stream()
+                     .filter(metadata -> metadata.getLabel().equals(label))
+                     .map(KeyValueLabelMetadataEntity::getKey)
+                     .collect(Collectors.toList());
+    }
+
+    private List<String> findRevisionsForDependsOnLabel(List<KeyValueLabelMetadataEntity> result, String label) {
+        return result.stream()
+                     .filter(metadata -> metadata.getLabel().equals(label))
+                     .map(KeyValueLabelMetadataEntity::getValue)
+                     .collect(Collectors.toList());
+    }
+
+    private String getJobVisualizationExpectedContent() {
+        return "<html><head><link rel=\"stylesheet\" href=\"/studio/styles/studio-standalone.css\"><style>\n" +
+               "        #workflow-designer {\n" + "            left:0 !important;\n" +
+               "            top:0 !important;\n" + "            width:1427px;\n" + "            height:905px;\n" +
+               "            }\n" +
+               "        </style></head><body><div style=\"position:relative;top:-259px;left:-350.5px\"><div class=\"task _jsPlumb_endpoint_anchor_ ui-draggable active-task\" id=\"jsPlumb_1_1\" style=\"top: 309px; left: 450.5px;\"><a class=\"task-name\"><img src=\"/studio/images/Groovy.png\" width=\"20px\">&nbsp;<span class=\"name\">Groovy_Task</span></a></div><div class=\"_jsPlumb_endpoint source-endpoint dependency-source-endpoint connected _jsPlumb_endpoint_anchor_ ui-draggable ui-droppable\" style=\"position: absolute; height: 20px; width: 20px; left: 491px; top: 339px;\"><svg style=\"position:absolute;left:0px;top:0px\" width=\"20\" height=\"20\" pointer-events=\"all\" position=\"absolute\" version=\"1.1\"\n" +
+               "      xmlns=\"http://www.w3.org/1999/xhtml\"><circle cx=\"10\" cy=\"10\" r=\"10\" version=\"1.1\"\n" +
+               "      xmlns=\"http://www.w3.org/1999/xhtml\" fill=\"#666\" stroke=\"none\" style=\"\"></circle></svg></div></div></body></html>";
     }
 
 }

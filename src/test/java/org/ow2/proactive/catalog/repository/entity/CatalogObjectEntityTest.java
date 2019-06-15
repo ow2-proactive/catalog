@@ -103,6 +103,7 @@ public class CatalogObjectEntityTest {
     private CatalogObjectRevisionEntity newCatalogObjectRevision(LocalDateTime time) {
         return new CatalogObjectRevisionEntity(null,
                                                "commit message",
+                                               "username",
                                                time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
                                                catalogObject,
                                                Collections.emptyList(),

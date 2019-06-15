@@ -26,30 +26,45 @@
 package org.ow2.proactive.catalog.util.parser;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiConsumer;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.events.XMLEvent;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
+import org.ow2.proactive.catalog.util.SeparatorUtility;
+import org.ow2.proactive.scheduler.common.exception.JobCreationException;
+import org.ow2.proactive.scheduler.common.job.Job;
+import org.ow2.proactive.scheduler.common.job.JobVariable;
+import org.ow2.proactive.scheduler.common.job.TaskFlowJob;
+import org.ow2.proactive.scheduler.common.job.factories.JobFactory;
+import org.ow2.proactive.scheduler.common.task.ScriptTask;
+import org.ow2.proactive.scheduler.common.task.Task;
+import org.ow2.proactive.scheduler.common.task.TaskVariable;
+import org.ow2.proactive.scheduler.core.properties.PASchedulerProperties;
+import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+
+import lombok.NoArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 
 /**
- * ProActiveWorkflowParser aims to parse a ProActive XML workflow (whatever the schema version is)
+ * Parse a ProActive XML workflow (whatever the schema version is)
  * in order to extract some specific values (job name, project name, generic
  * information and variables).
- * <p>
- * No validation is applied for now. Besides parsing stop once required information have
- * been extracted, mainly for performance reasons.
  *
  * @author ActiveEon Team
  */
-public final class WorkflowParser implements CatalogObjectParserInterface {
+@Log4j2
+@NoArgsConstructor
+@Component
+public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private static final String JOB_NAME_KEY = "name";
 
@@ -57,191 +72,269 @@ public final class WorkflowParser implements CatalogObjectParserInterface {
 
     private static final String JOB_AND_PROJECT_LABEL = "job_information";
 
-    private static final String ATTRIBUTE_JOB_NAME = "name";
-
-    private static final String ATTRIBUTE_JOB_PROJECT_NAME = "projectName";
-
     public static final String ATTRIBUTE_GENERIC_INFORMATION_LABEL = "generic_information";
-
-    private static final String ATTRIBUTE_GENERIC_INFORMATION_NAME = "name";
-
-    private static final String ATTRIBUTE_GENERIC_INFORMATION_VALUE = "value";
 
     private static final String ATTRIBUTE_VARIABLE_LABEL = "variable";
 
-    private static final String ATTRIBUTE_VARIABLE_NAME = "name";
+    private static final String ATTRIBUTE_VARIABLE_MODEL_LABEL = "variable_model";
 
-    private static final String ATTRIBUTE_VARIABLE_VALUE = "value";
+    public static final String ATTRIBUTE_DEPENDS_ON_LABEL = "depends_on";
 
-    private static final String ELEMENT_GENERIC_INFORMATION = "genericInformation";
+    private static final String CATALOG_OBJECT_MODEL = "PA:CATALOG_OBJECT";
 
-    private static final String ELEMENT_GENERIC_INFORMATION_INFO = "info";
+    public static final String LATEST_VERSION = "latest";
 
-    private static final String ELEMENT_JOB = "job";
+    public static final String DEPENDS_ON_SEPARATOR = "/";
 
-    private static final String ELEMENT_TASK_FLOW = "taskFlow";
+    private static final String CATALOG_OBJECT_MODEL_REGEXP = "^([^/]+/[^/]+)(/[^/][0-9]{12})?$";
 
-    private static final String ELEMENT_VARIABLE = "variable";
+    // e.g ${PA_CATALOG_REST_URL}/buckets/notification-tools/resources/Web_Validation_Script/revisions/1555683355837/raw
+    private static final String SCRIPT_URL_REGEX = "^/buckets/([^/]+)/resources/([^/]+)(/revisions/([^/][0-9]{12}))?/raw";
 
-    private static final String ELEMENT_VARIABLES = "variables";
+    private static final Pattern URL_PATTERN = Pattern.compile(SCRIPT_URL_REGEX);
 
-    /*
-     * Variables indicating which parts of the document have been parsed. Thanks to these
-     * information, parsing can be stopped once required information have been extracted.
-     */
+    private static final Pattern PATTERN = Pattern.compile(CATALOG_OBJECT_MODEL_REGEXP);
 
-    private boolean jobHandled = false;
+    private static final String JOB_DESCRIPTION_KEY = "description";
 
-    private boolean variablesHandled = false;
+    private static final String JOB_VISUALIZATION_KEY = "visualization";
 
-    private boolean genericInformationHandled = false;
+    SeparatorUtility separatorUtility = new SeparatorUtility();
 
-    /* Below are instance variables containing values which are extracted */
-
-    private ImmutableList<KeyValueLabelMetadataEntity> keyValueMap;
-
-    private static final class XmlInputFactoryLazyHolder {
-
-        private static final XMLInputFactory INSTANCE = XMLInputFactory.newInstance();
-
-    }
-
-    public WorkflowParser() {
-    }
-
-    public List<KeyValueLabelMetadataEntity> parse(InputStream inputStream) throws XMLStreamException {
-
-        XMLStreamReader xmlStreamReader = XmlInputFactoryLazyHolder.INSTANCE.createXMLStreamReader(inputStream);
-        int eventType;
-
-        ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableList.builder();
-        boolean isTaskFlow = false;
+    @Override
+    List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
+        TaskFlowJob job;
         try {
-            while (xmlStreamReader.hasNext() && !allElementHandled()) {
-                eventType = xmlStreamReader.next();
+            job = (TaskFlowJob) JobFactory.getFactory().createJob(inputStream);
+        } catch (JobCreationException e) {
+            throw new ParsingObjectException(e.getMessage(), e);
+        }
+        ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableSet.builder();
 
-                switch (eventType) {
-                    case XMLEvent.START_ELEMENT:
-                        String elementLocalPart = xmlStreamReader.getName().getLocalPart();
+        addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+        addJobNameIfNotNull(keyValueMapBuilder, job);
+        job.getUnresolvedGenericInformation()
+           .forEach((name, value) -> addGenericInformationIfNotNull(keyValueMapBuilder, name, value));
+        job.getUnresolvedVariables()
+           .values()
+           .forEach(jobVariable -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
+        job.getTasks()
+           .forEach(task -> task.getVariables()
+                                .values()
+                                .forEach(taskVariable -> addDependsOnIfCatalogObjectModelExistOnTaskVariable(keyValueMapBuilder,
+                                                                                                             taskVariable)));
+        job.getTasks().forEach(task -> addDependsOnIfScriptUrlExistInEachTaskScripts(keyValueMapBuilder, task));
+        addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+        addJobVizualisationIfNotNullAndNotEmpty(keyValueMapBuilder, job);
 
-                        switch (elementLocalPart) {
-                            case ELEMENT_JOB:
-                                handleJobElement(keyValueMapBuilder, xmlStreamReader);
-                                break;
-                            case ELEMENT_TASK_FLOW:
-                                isTaskFlow = true;
-                                break;
-                            case ELEMENT_GENERIC_INFORMATION_INFO:
-                                if (!isTaskFlow) {
-                                    handleGenericInformationElement(keyValueMapBuilder, xmlStreamReader);
-                                }
-                                break;
-                            case ELEMENT_VARIABLE:
-                                if (!isTaskFlow) {
-                                    handleVariableElement(keyValueMapBuilder, xmlStreamReader);
-                                }
-                                break;
-                        }
+        return new ArrayList<>(keyValueMapBuilder.build());
+    }
 
-                        break;
-                    case XMLEvent.END_ELEMENT:
-                        elementLocalPart = xmlStreamReader.getName().getLocalPart();
+    private void addProjectNameIfNotNullAndNotEmpty(
+            ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
+        String projectName = job.getProjectName();
+        if (checkIfNotNull(projectName) && checkIfNotEmpty(projectName)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(PROJECT_NAME_KEY,
+                                                                   projectName,
+                                                                   JOB_AND_PROJECT_LABEL));
+        }
+    }
 
-                        switch (elementLocalPart) {
-                            case ELEMENT_TASK_FLOW:
-                                isTaskFlow = false;
-                                break;
-                            case ELEMENT_GENERIC_INFORMATION:
-                                if (!isTaskFlow) {
-                                    this.genericInformationHandled = true;
-                                }
-                                break;
-                            case ELEMENT_VARIABLES:
-                                if (!isTaskFlow) {
-                                    this.variablesHandled = true;
-                                }
-                                break;
+    private void addJobNameIfNotNull(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
+        String name = job.getName();
+        if (checkIfNotNull(name)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY, name, JOB_AND_PROJECT_LABEL));
+        }
+    }
 
-                        }
-                    default:
-                        break;
+    private void addGenericInformationIfNotNull(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
+            String name, String value) {
+        if (checkIfNotNull(name, value)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, value, ATTRIBUTE_GENERIC_INFORMATION_LABEL));
+        }
+    }
+
+    private void addVariableIfNotNullAndModelIfNotEmpty(
+            ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, JobVariable jobVariable) {
+        String name = jobVariable.getName();
+        String value = jobVariable.getValue();
+        String model = jobVariable.getModel();
+        if (checkIfNotNull(name, value)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, value, ATTRIBUTE_VARIABLE_LABEL));
+        }
+        if (checkIfNotNull(name, model) && checkIfNotEmpty(name, model)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, model, ATTRIBUTE_VARIABLE_MODEL_LABEL));
+            addDependsOn(keyValueMapBuilder, value, model);
+        }
+    }
+
+    private void addDependsOnIfCatalogObjectModelExistOnTaskVariable(
+            ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, TaskVariable taskVariable) {
+        String name = taskVariable.getName();
+        String value = taskVariable.getValue();
+        String model = taskVariable.getModel();
+        if (checkIfNotNull(name, model) && checkIfNotEmpty(name, model)) {
+            addDependsOn(keyValueMapBuilder, value, model);
+        }
+
+    }
+
+    private void addDependsOnIfScriptUrlExistInEachTaskScripts(
+            ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Task task) {
+
+        if (task.getPreScript() != null && task.getPreScript().getScriptUrl() != null &&
+            !task.getPreScript().getScriptUrl().toString().isEmpty() &&
+            isScriptUrlValid(shortScriptUrl(task.getPreScript().getScriptUrl().toString()))) {
+            addDependsOn(keyValueMapBuilder, shortScriptUrl(task.getPreScript().getScriptUrl().toString()));
+        }
+
+        if (task.getPostScript() != null && task.getPostScript().getScriptUrl() != null &&
+            !task.getPostScript().getScriptUrl().toString().isEmpty() &&
+            isScriptUrlValid(shortScriptUrl(task.getPostScript().getScriptUrl().toString()))) {
+            addDependsOn(keyValueMapBuilder, shortScriptUrl(task.getPostScript().getScriptUrl().toString()));
+        }
+
+        if (task.getFlowScript() != null && task.getFlowScript().getScriptUrl() != null &&
+            !task.getFlowScript().getScriptUrl().toString().isEmpty() &&
+            isScriptUrlValid(shortScriptUrl(task.getFlowScript().getScriptUrl().toString()))) {
+            addDependsOn(keyValueMapBuilder, shortScriptUrl(task.getFlowScript().getScriptUrl().toString()));
+        }
+
+        if (task.getCleaningScript() != null && task.getCleaningScript().getScriptUrl() != null &&
+            !task.getCleaningScript().getScriptUrl().toString().isEmpty() &&
+            isScriptUrlValid(shortScriptUrl(task.getCleaningScript().getScriptUrl().toString()))) {
+            addDependsOn(keyValueMapBuilder, shortScriptUrl(task.getCleaningScript().getScriptUrl().toString()));
+        }
+
+        if (task.getForkEnvironment() != null && task.getForkEnvironment().getEnvScript() != null &&
+            task.getForkEnvironment().getEnvScript().getScriptUrl() != null &&
+            !task.getForkEnvironment().getEnvScript().getScriptUrl().toString().isEmpty() &&
+            isScriptUrlValid(shortScriptUrl(task.getForkEnvironment().getEnvScript().getScriptUrl().toString()))) {
+            addDependsOn(keyValueMapBuilder,
+                         shortScriptUrl(task.getForkEnvironment().getEnvScript().getScriptUrl().toString()));
+        }
+
+        if (task instanceof ScriptTask && ((ScriptTask) task).getScript() != null &&
+            ((ScriptTask) task).getScript().getScriptUrl() != null &&
+            !((ScriptTask) task).getScript().getScriptUrl().toString().isEmpty() &&
+            isScriptUrlValid(shortScriptUrl(((ScriptTask) task).getScript().getScriptUrl().toString()))) {
+            addDependsOn(keyValueMapBuilder, shortScriptUrl(((ScriptTask) task).getScript().getScriptUrl().toString()));
+        }
+
+        if (task.getSelectionScripts() != null) {
+            task.getSelectionScripts().forEach(selectionScript -> {
+                if (selectionScript.getScriptUrl() != null && !selectionScript.getScriptUrl().toString().isEmpty() &&
+                    isScriptUrlValid(shortScriptUrl(selectionScript.getScriptUrl().toString()))) {
+                    addDependsOn(keyValueMapBuilder, shortScriptUrl(selectionScript.getScriptUrl().toString()));
                 }
-            }
+            });
+        }
 
-            this.keyValueMap = keyValueMapBuilder.build();
+    }
 
-            return getKeyValueMap();
-        } finally {
-            xmlStreamReader.close();
+    private void addDependsOn(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, String scriptUrl) {
+
+        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromScriptUrl(scriptUrl),
+                                                               getRevisionFromUrl(scriptUrl).orElse(LATEST_VERSION),
+                                                               ATTRIBUTE_DEPENDS_ON_LABEL));
+
+    }
+
+    private String shortScriptUrl(String scriptUrl) {
+        return scriptUrl.replace(PASchedulerProperties.CATALOG_REST_URL.getValueAsString(), "");
+    }
+
+    private boolean isScriptUrlValid(String scriptUrl) {
+        return scriptUrl.matches(SCRIPT_URL_REGEX);
+    }
+
+    private String getNameAndBucketFromScriptUrl(String scriptUrl) {
+        Matcher matcher = URL_PATTERN.matcher(scriptUrl);
+        matcher.find();
+        return (separatorUtility.getConcatWithSeparator(matcher.group(1), matcher.group(2)));
+
+    }
+
+    private Optional<String> getRevisionFromUrl(String scriptUrl) {
+        Matcher matcher = URL_PATTERN.matcher(scriptUrl);
+        if (matcher.find() && matcher.group(4) != null) {
+            return Optional.of(matcher.group(4));
+        } else {
+            return Optional.empty();
         }
     }
 
-    private void handleGenericInformationElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            XMLStreamReader xmlStreamReader) {
-        handleElementWithMultipleValues(keyValueMapBuilder,
-                                        ATTRIBUTE_GENERIC_INFORMATION_LABEL,
-                                        ATTRIBUTE_GENERIC_INFORMATION_NAME,
-                                        ATTRIBUTE_GENERIC_INFORMATION_VALUE,
-                                        xmlStreamReader);
-    }
-
-    private void handleJobElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            XMLStreamReader xmlStreamReader) {
-        iterateOverAttributes((attributeName, attributeValue) -> {
-            if (attributeName.equals(ATTRIBUTE_JOB_NAME)) {
-                keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY,
-                                                                       attributeValue,
-                                                                       JOB_AND_PROJECT_LABEL));
-            } else if (attributeName.equals(ATTRIBUTE_JOB_PROJECT_NAME)) {
-                keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(PROJECT_NAME_KEY,
-                                                                       attributeValue,
-                                                                       JOB_AND_PROJECT_LABEL));
-            }
-        }, xmlStreamReader);
-        jobHandled = true;
-    }
-
-    private void handleVariableElement(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            XMLStreamReader xmlStreamReader) {
-        handleElementWithMultipleValues(keyValueMapBuilder,
-                                        ATTRIBUTE_VARIABLE_LABEL,
-                                        ATTRIBUTE_VARIABLE_NAME,
-                                        ATTRIBUTE_VARIABLE_VALUE,
-                                        xmlStreamReader);
-    }
-
-    private void handleElementWithMultipleValues(ImmutableList.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            String attributeLabel, String attributeNameForKey, String attributeNameForValue,
-            XMLStreamReader xmlStreamReader) {
-        String[] key = new String[1];
-        String[] value = new String[1];
-
-        iterateOverAttributes((attributeName, attributeValue) -> {
-            if (attributeName.equals(attributeNameForKey)) {
-                key[0] = attributeValue;
-            } else if (attributeName.equals(attributeNameForValue)) {
-                value[0] = attributeValue;
-            }
-        }, xmlStreamReader);
-
-        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(key[0], value[0], attributeLabel));
-    }
-
-    private void iterateOverAttributes(BiConsumer<String, String> attribute, XMLStreamReader xmlStreamReader) {
-        for (int i = 0; i < xmlStreamReader.getAttributeCount(); i++) {
-            String attributeName = xmlStreamReader.getAttributeName(i).getLocalPart();
-            String attributeValue = xmlStreamReader.getAttributeValue(i);
-
-            attribute.accept(attributeName, attributeValue);
+    private void addDependsOn(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, String value,
+            String model) {
+        if (model.equalsIgnoreCase(CATALOG_OBJECT_MODEL)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependsOn(value),
+                                                                   getRevisionFromDependsOn(value).orElse(LATEST_VERSION),
+                                                                   ATTRIBUTE_DEPENDS_ON_LABEL));
         }
     }
 
-    private boolean allElementHandled() {
-        return this.jobHandled && this.genericInformationHandled && this.variablesHandled;
+    private String getNameAndBucketFromDependsOn(String calledWorkflow) {
+        Matcher matcher = PATTERN.matcher(calledWorkflow);
+        if (!(calledWorkflow.matches(CATALOG_OBJECT_MODEL_REGEXP) && matcher.find())) {
+            throw new RuntimeException(String.format("Impossible to parse the PA:CATALOG_OBJECT: %s, parsing error when getting the bucket and the workflow name",
+                                                     calledWorkflow));
+        } else {
+            return (matcher.group(1));
+
+        }
     }
 
-    private ImmutableList<KeyValueLabelMetadataEntity> getKeyValueMap() {
-        return keyValueMap;
+    private Optional<String> getRevisionFromDependsOn(String calledWorkflow) {
+        try {
+            return Optional.of(calledWorkflow.split(DEPENDS_ON_SEPARATOR)[2]);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    private void addJobDescriptionIfNotNullAndNotEmpty(
+            ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
+        String description = job.getDescription();
+        if (checkIfNotNull(description) && checkIfNotEmpty(description)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_DESCRIPTION_KEY, description, GENERAL_LABEL));
+        }
+    }
+
+    private void addJobVizualisationIfNotNullAndNotEmpty(
+            ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
+        String vizualisation = job.getVisualization();
+        if (checkIfNotNull(vizualisation) && checkIfNotEmpty(vizualisation)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_VISUALIZATION_KEY,
+                                                                   vizualisation,
+                                                                   JOB_AND_PROJECT_LABEL));
+        }
+    }
+
+    private boolean checkIfNotNull(String... values) {
+        return Arrays.stream(values).noneMatch(Objects::isNull);
+
+    }
+
+    private boolean checkIfNotEmpty(String... values) {
+        return Arrays.stream(values).noneMatch(String::isEmpty);
+
+    }
+
+    @Override
+    public boolean isMyKind(String kind) {
+        return kind.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase());
+    }
+
+    @Override
+    public String getIconPath(List<KeyValueLabelMetadataEntity> keyValueMetadataEntities) {
+        return keyValueMetadataEntities.stream()
+                                       .filter(keyValue -> keyValue.getLabel()
+                                                                   .equals(ATTRIBUTE_GENERIC_INFORMATION_LABEL) &&
+                                                           keyValue.getKey().equals("workflow.icon"))
+                                       .map(KeyValueLabelMetadataEntity::getValue)
+                                       .findAny()
+                                       .orElse(SupportedParserKinds.WORKFLOW.getDefaultIcon());
+
     }
 
 }

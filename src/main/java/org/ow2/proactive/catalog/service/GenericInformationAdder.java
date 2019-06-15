@@ -46,7 +46,9 @@ public class GenericInformationAdder {
     public byte[] addGenericInformationToRawObjectIfWorkflow(final byte[] rawObject,
             final String catalogObjectEntityKind, Map<String, String> genericInformationMap) {
         byte[] workflowWithReplacedGenericInfo = rawObject;
-        if (catalogObjectEntityKind.equals(SupportedParserKinds.WORKFLOW.toString())) {
+
+        if (catalogObjectEntityKind != null &&
+            catalogObjectEntityKind.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase())) {
             workflowWithReplacedGenericInfo = workflowXmlManipulator.replaceGenericInformationJobLevel(rawObject,
                                                                                                        genericInformationMap);
         }

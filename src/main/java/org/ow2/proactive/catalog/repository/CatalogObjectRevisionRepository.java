@@ -29,9 +29,11 @@ import java.util.List;
 import java.util.UUID;
 
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 
 /**
@@ -41,15 +43,51 @@ import org.springframework.data.jpa.repository.Query;
 public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogObjectRevisionEntity, UUID>,
         JpaSpecificationExecutor<CatalogObjectRevisionEntity> {
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsInBucket(String bucketName);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsInBucket(List<String> bucketNames);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.kind = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindInBucket(String bucketName, String kind);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND lower(cor.catalogObject.kind) LIKE lower(concat(?2, '%')) AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindInBucket(List<String> bucketNames, String kind);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.id.name = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    CatalogObjectRevisionEntity findDefaultCatalogObjectByNameInBucket(String bucketName, String name);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND lower(cor.catalogObject.kind) LIKE lower(concat(?2, '%')) AND lower(cor.catalogObject.contentType) = ?3 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindAndContentTypeInBucket(List<String> bucketNames,
+            String kind, String contentType);
 
-    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.id.name = ?2 AND cor.commitTime = ?3")
-    CatalogObjectRevisionEntity findCatalogObjectRevisionByCommitTime(String bucketName, String name, long commitTime);
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND lower(cor.catalogObject.contentType) = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfContentTypeInBucket(List<String> bucketNames,
+            String contentType);
+
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND cor.catalogObject.id.name = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    CatalogObjectRevisionEntity findDefaultCatalogObjectByNameInBucket(List<String> bucketNames, String name);
+
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND cor.catalogObject.id.name = ?2 AND cor.commitTime = ?3")
+    CatalogObjectRevisionEntity findCatalogObjectRevisionByCommitTime(List<String> bucketNames, String name,
+            long commitTime);
+
+    @Query("SELECT metadata.key FROM CatalogObjectRevisionEntity cor INNER JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
+           WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL +
+           "' AND cor.catalogObject.bucket.bucketName = :bucketName AND cor.catalogObject.id.name = :objectName " +
+           " AND cor.commitTime = :revisionTime")
+    List<String> findDependsOnCatalogObjectNamesFromKeyValueMetadata(@Param("bucketName") String bucketName,
+            @Param("objectName") String objectName, @Param("revisionTime") long commitTime);
+
+    @Query("SELECT metadata.value FROM CatalogObjectRevisionEntity cor INNER JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
+           WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL +
+           "' AND cor.catalogObject.bucket.bucketName = :bucketName AND cor.catalogObject.id.name = :objectName " +
+           " AND cor.commitTime = :revisionTime AND metadata.key = :dependsOnObject")
+    String findRevisionOfDependsOnCatalogObjectFromKeyLabelMetadata(@Param("bucketName") String bucketName,
+            @Param("objectName") String objectName, @Param("revisionTime") long commitTime,
+            @Param("dependsOnObject") String dependsOnObject);
+
+    /**
+     *
+     * @param bucketObjectName
+     * @return a list of objects (checking only the last revision) the depend on the passed bucketObjectName
+     */
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor INNER JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
+           WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL + "' AND metadata.key = :bucketObjectName" +
+           " AND cor.commitTime = cor.catalogObject.lastCommitTime")
+    List<CatalogObjectRevisionEntity>
+            findCalledByCatalogObjectsFromKeyValueMetadata(@Param("bucketObjectName") String bucketObjectName);
+
 }

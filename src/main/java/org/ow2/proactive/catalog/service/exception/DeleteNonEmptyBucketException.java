@@ -39,8 +39,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(value = HttpStatus.FORBIDDEN)
 public class DeleteNonEmptyBucketException extends RuntimeException {
 
-    public DeleteNonEmptyBucketException() {
-        super("Forbidden to delete the non empty bucket");
+    public DeleteNonEmptyBucketException(String bucketName) {
+        super("Forbidden to delete the non empty bucket: " + bucketName);
     }
 
     public DeleteNonEmptyBucketException(Throwable cause) {
