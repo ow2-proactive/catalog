@@ -95,7 +95,7 @@ public class ReportGeneratorHelper {
         boolean drawContent = true;
         boolean drawLines = true;
         float yStart = yStartNewPage;
-        float bottomMargin = 70;
+        float bottomMargin = 70f;
         return new BaseTable(yStart,
                              yStartNewPage,
                              bottomMargin,
@@ -114,16 +114,18 @@ public class ReportGeneratorHelper {
     }
 
     public Set<String> extractBucketSet(CallGraphHolder callGraphHolder) {
-        Set<String> bucketSet = new HashSet<>();
-        callGraphHolder.nodeSet().forEach(graphNode -> bucketSet.add(graphNode.getBucketName()));
-        return bucketSet;
+        return callGraphHolder.nodeSet()
+                              .stream()
+                              .map(graphNode -> graphNode.getBucketName())
+                              .collect(Collectors.toSet());
 
     }
 
     public Set<String> extractObjectSet(CallGraphHolder callGraphHolder) {
-        Set<String> objectSet = new HashSet<>();
-        callGraphHolder.nodeSet().forEach(graphNode -> objectSet.add(graphNode.getObjectName()));
-        return objectSet;
+        return callGraphHolder.nodeSet()
+                              .stream()
+                              .map(graphNode -> graphNode.getObjectName())
+                              .collect(Collectors.toSet());
 
     }
 

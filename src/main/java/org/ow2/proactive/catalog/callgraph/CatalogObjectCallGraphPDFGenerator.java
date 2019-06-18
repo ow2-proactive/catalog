@@ -51,7 +51,7 @@ import be.quodlibet.boxable.BaseTable;
 @Component
 public class CatalogObjectCallGraphPDFGenerator {
 
-    private static final float MARGIN = 10;
+    private static final float MARGIN = 10f;
 
     private static final String MAIN_TITLE = "ProActive Call Graph Report";
 
