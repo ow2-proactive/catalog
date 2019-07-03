@@ -47,6 +47,7 @@ import org.ow2.proactive.catalog.IntegrationTestConfig;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectDependencies;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.dto.CatalogObjectNameReference;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.dto.DependsOnCatalogObject;
 import org.ow2.proactive.catalog.dto.Metadata;
@@ -832,7 +833,52 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                      sessionId,
                                                                                                      Optional.empty(),
                                                                                                      Optional.empty())).hasSize(12);
+    }
 
+    @Test
+    public void testGetCatalogObjectsNameReferenceByKindAndContentTypeInBucketAddedOrder() {
+        // The buckets order in returned list should be in the same order as the buckets was added to DB
+
+        String secondBucketName = "aaa-bucket";
+        BucketMetadata secondBucket = bucketService.createBucket(secondBucketName,
+                                                                 "CatalogObjectServiceIntegrationTest");
+
+        BucketMetadata emptyBucket = bucketService.createBucket("empty-bucket", "CatalogObjectServiceIntegrationTest");
+
+        //Adding the object to the new bucket
+        catalogObjectService.createCatalogObject(secondBucket.getName(),
+                                                 "object-in-new-bucket-0",
+                                                 "rule",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/python",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        //Adding another object to the first bucket
+        String firstObjName = "object-first-bucket-0";
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 firstObjName,
+                                                 "rule",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/python",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        List<CatalogObjectNameReference> catalogObjectNameReferences = catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(false,
+                                                                                                                                                         "123",
+                                                                                                                                                         Optional.empty(),
+                                                                                                                                                         Optional.empty());
+
+        assertThat(catalogObjectNameReferences).hasSize(5);
+        assertThat(catalogObjectNameReferences.get(0).getBucketName()).isEqualTo(bucket.getName());
+        assertThat(catalogObjectNameReferences.get(1).getBucketName()).isEqualTo(bucket.getName());
+        assertThat(catalogObjectNameReferences.get(2).getBucketName()).isEqualTo(bucket.getName());
+        assertThat(catalogObjectNameReferences.get(3).getBucketName()).isEqualTo(bucket.getName());
+        assertThat(catalogObjectNameReferences.get(4).getBucketName()).isEqualTo(secondBucketName);
     }
 
     @Test
