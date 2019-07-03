@@ -33,9 +33,11 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -591,14 +593,17 @@ public class CatalogObjectService {
         List<CatalogObjectNameReference> catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKindAndContentType(kind.orElse(""),
                                                                                                                                                                                                                 contentType.orElse("")));
 
-        return groupCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKindAndContentType).entrySet()
-                                                                                                         .stream()
-                                                                                                         .filter(map -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
-                                                                                                                                                                      sessionId,
-                                                                                                                                                                      map.getKey()))
-                                                                                                         .map(map -> map.getValue())
-                                                                                                         .flatMap(list -> list.stream())
-                                                                                                         .collect(Collectors.toList());
+        Map<String, List<CatalogObjectNameReference>> catalogObjectsGroupedByBucket = groupCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKindAndContentType);
+        List<BucketEntity> buckets = bucketRepository.findAll();
+
+        return buckets.stream()
+                      .filter(bucketEntity -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
+                                                                                            sessionId,
+                                                                                            bucketEntity.getBucketName()))
+                      .map(bucketEntity -> catalogObjectsGroupedByBucket.get(bucketEntity.getBucketName()))
+                      .filter(Objects::nonNull)
+                      .flatMap(Collection::stream)
+                      .collect(Collectors.toList());
     }
 
     private Map<String, List<CatalogObjectNameReference>>
