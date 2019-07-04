@@ -402,6 +402,23 @@ public class CatalogObjectService {
         return buildMetadataWithLink(result);
     }
 
+    public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
+            Optional<String> contentType) {
+        if (bucketsNames.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<CatalogObjectMetadata> metadataList;
+
+        if (kind.isPresent() || contentType.isPresent()) {
+            metadataList = listCatalogObjectsByKindAndContentType(bucketsNames,
+                                                                  kind.orElse(""),
+                                                                  contentType.orElse(""));
+        } else {
+            metadataList = listCatalogObjects(bucketsNames);
+        }
+        return metadataList;
+    }
+
     private List<CatalogObjectMetadata> buildMetadataWithLink(List<CatalogObjectRevisionEntity> result) {
         return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }

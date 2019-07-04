@@ -601,7 +601,8 @@ public class CatalogObjectServiceIntegrationTest {
     @Test
     public void testListCatalogObjectsByKindInBucket() {
         List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentType(Arrays.asList(bucket.getName()),
-                                                                                                   "object", "");
+                                                                                                                 "object",
+                                                                                                                 "");
         assertThat(catalogObjects).hasSize(2);
 
         catalogObjectService.createCatalogObject(bucket.getName(),
@@ -615,10 +616,13 @@ public class CatalogObjectServiceIntegrationTest {
                                                  null);
 
         catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentType(Arrays.asList(bucket.getName()),
-                                                                       "workflow-general", "");
+                                                                                     "workflow-general",
+                                                                                     "");
         assertThat(catalogObjects).hasSize(1);
 
-        catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentType(Arrays.asList(bucket.getName()), "WORKFLOW", "");
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentType(Arrays.asList(bucket.getName()),
+                                                                                     "WORKFLOW",
+                                                                                     "");
         assertThat(catalogObjects).hasSize(2);
     }
 

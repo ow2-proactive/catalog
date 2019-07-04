@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -47,7 +48,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
@@ -109,7 +109,7 @@ public class CatalogObjectControllerTest {
         verify(response, times(1)).setContentType("application/zip");
         verify(response, times(1)).addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
         verify(response, times(1)).addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
-        verify(sos, times(1)).write(Mockito.any());
+        verify(sos, times(1)).write(any());
         verify(sos, times(1)).flush();
     }
 
@@ -143,7 +143,7 @@ public class CatalogObjectControllerTest {
         BucketEntity bucket = mock(BucketEntity.class);
         when(bucketRepository.findOneByBucketName("bucket-name")).thenReturn(bucket);
         catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.empty(), Optional.empty(), response);
-        verify(catalogObjectService, times(1)).listCatalogObjects(anyList());
+        verify(catalogObjectService, times(1)).listCatalogObjects(anyList(), any(Optional.class), any(Optional.class));
     }
 
     @Test
