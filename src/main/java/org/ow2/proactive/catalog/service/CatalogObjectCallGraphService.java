@@ -87,15 +87,10 @@ public class CatalogObjectCallGraphService {
         }
         List<CatalogObjectMetadata> metadataList;
 
-        if (kind.isPresent() && contentType.isPresent()) {
+        if (kind.isPresent() || contentType.isPresent()) {
             metadataList = catalogObjectService.listCatalogObjectsByKindAndContentType(authorisedBucketsNames,
-                                                                                       kind.get(),
-                                                                                       contentType.get());
-        } else if (contentType.isPresent()) {
-            metadataList = catalogObjectService.listCatalogObjectsByContentType(authorisedBucketsNames,
-                                                                                contentType.get());
-        } else if (kind.isPresent()) {
-            metadataList = catalogObjectService.listCatalogObjectsByKind(authorisedBucketsNames, kind.get());
+                                                                                       kind.orElse(""),
+                                                                                       contentType.orElse(""));
         } else {
             metadataList = catalogObjectService.listCatalogObjects(authorisedBucketsNames);
         }

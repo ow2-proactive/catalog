@@ -396,7 +396,7 @@ public class CatalogObjectService {
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketNames) {
-        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        bucketNames.forEach(this::findBucketByNameAndCheck);
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames);
 
         return buildMetadataWithLink(result);
@@ -406,31 +406,13 @@ public class CatalogObjectService {
         return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
-    public List<CatalogObjectMetadata> listCatalogObjectsByKind(List<String> bucketNames, String kind) {
-        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindInBucket(bucketNames,
-                                                                                                                           kind);
-
-        return buildMetadataWithLink(result);
-    }
-
     // find catalog objects by kind and Content-Type
     public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentType(List<String> bucketNames, String kind,
             String contentType) {
-        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        bucketNames.forEach(this::findBucketByNameAndCheck);
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeInBucket(bucketNames,
                                                                                                                                          kind,
                                                                                                                                          contentType);
-
-        return buildMetadataWithLink(result);
-    }
-
-    // find catalog objects by Content-Type
-    public List<CatalogObjectMetadata> listCatalogObjectsByContentType(List<String> bucketNames, String contentType) {
-        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfContentTypeInBucket(bucketNames,
-                                                                                                                                  contentType);
-
         return buildMetadataWithLink(result);
     }
 

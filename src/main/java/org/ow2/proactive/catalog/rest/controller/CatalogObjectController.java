@@ -297,18 +297,11 @@ public class CatalogObjectController {
             return new ResponseEntity<>(status);
         } else {
             List<CatalogObjectMetadata> metadataList;
-            if (kind.isPresent() && contentType.isPresent()) {
+            if (kind.isPresent() || contentType.isPresent()) {
                 metadataList = catalogObjectService.listCatalogObjectsByKindAndContentType(Arrays.asList(bucketName),
-                                                                                           kind.get(),
-                                                                                           contentType.get());
-            } else if (!kind.isPresent() && contentType.isPresent()) {
-                metadataList = catalogObjectService.listCatalogObjectsByContentType(Arrays.asList(bucketName),
-                                                                                    contentType.get());
-            } else if (kind.isPresent() && !contentType.isPresent()) {
-                metadataList = catalogObjectService.listCatalogObjectsByKind(Arrays.asList(bucketName), kind.get());
-            }
-
-            else {
+                                                                                           kind.orElse(""),
+                                                                                           contentType.orElse(""));
+            } else {
                 metadataList = catalogObjectService.listCatalogObjects(Arrays.asList(bucketName));
             }
 
