@@ -65,10 +65,7 @@ import com.mxgraph.util.mxUtils;
 import com.mxgraph.view.mxGraph;
 
 import be.quodlibet.boxable.BaseTable;
-import be.quodlibet.boxable.Cell;
-import be.quodlibet.boxable.HorizontalAlignment;
 import be.quodlibet.boxable.Row;
-import be.quodlibet.boxable.VerticalAlignment;
 import be.quodlibet.boxable.image.Image;
 
 
@@ -81,12 +78,6 @@ import be.quodlibet.boxable.image.Image;
 public class TableCallGraphsBuilder {
 
     private static final String MISSING_CATALOG_OBJECT_STYLE = "fillColor=#C0C0C0;strokeColor=#FF0000;fontSize=8";
-
-    private static final String LIGHT_GRAY = "#D3D3D3";
-
-    private static final String BLACK = "#000000";
-
-    private static final int BIG_FONT = 12;
 
     private static final int MAX_DIAMETER = 3;
 
@@ -106,14 +97,9 @@ public class TableCallGraphsBuilder {
 
         if (globalCallGraph.order() == 0) {
             Row<PDPage> dataRow = table.createRow(10f);
-            createDataCell(dataRow,
-                           100,
-                           "No identified Dependencies among selected Catalog Objects",
-                           BIG_FONT,
-                           HorizontalAlignment.CENTER,
-                           VerticalAlignment.MIDDLE,
-                           LIGHT_GRAY,
-                           BLACK);
+            cellFactory.createDataHeaderCell(dataRow,
+                                             100,
+                                             "No identified Dependencies in the Catalog or among the selected Catalog Objects");
         } else {
 
             // We first compute all graph paths of the globalCallGraph. A graph path is a chain of dependencies starting from a root until a leaf
@@ -351,17 +337,6 @@ public class TableCallGraphsBuilder {
 
         layout.execute(callGraphAdapter.getDefaultParent());
         return mxCellRenderer.createBufferedImage(callGraphAdapter, null, 2, null, true, null);
-
-    }
-
-    private void createDataCell(Row<PDPage> row, float width, String data, int fontSize, HorizontalAlignment align,
-            VerticalAlignment valign, String fillColor, String textColor) {
-        Cell<PDPage> cell = row.createCell(width, data);
-        cell.setFontSize(fontSize);
-        cell.setAlign(align);
-        cell.setValign(valign);
-        cell.setFillColor(java.awt.Color.decode(fillColor));
-        cell.setTextColor(java.awt.Color.decode(textColor));
 
     }
 
