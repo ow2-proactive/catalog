@@ -893,7 +893,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
         given().pathParam("bucketName", bucket.getName())
                .when()
-               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,workflowname2")
+               .get(CATALOG_OBJECTS_RESOURCE + "?listObjectNamesForArchive=workflowname,workflowname2")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
@@ -919,7 +919,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         //get zip file for workflow name's list separated by coma
         given().pathParam("bucketName", bucket.getName())
                .when()
-               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname," + nameWithSpecialSymbols)
+               .get(CATALOG_OBJECTS_RESOURCE + "?listObjectNamesForArchive=workflowname," + nameWithSpecialSymbols)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
@@ -931,7 +931,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
         given().pathParam("bucketName", bucket.getName())
                .when()
-               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,workflownamenonexistent")
+               .get(CATALOG_OBJECTS_RESOURCE + "?listObjectNamesForArchive=workflowname,workflownamenonexistent")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_PARTIAL_CONTENT);

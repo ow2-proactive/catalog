@@ -102,6 +102,7 @@ public class CatalogObjectControllerTest {
                                      "bucket-name",
                                      Optional.empty(),
                                      Optional.empty(),
+                                     Optional.empty(),
                                      Optional.of(nameList),
                                      response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
@@ -129,6 +130,7 @@ public class CatalogObjectControllerTest {
                                      "bucket-name",
                                      Optional.empty(),
                                      Optional.empty(),
+                                     Optional.empty(),
                                      Optional.of(nameList),
                                      response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
@@ -142,8 +144,17 @@ public class CatalogObjectControllerTest {
         when(response.getOutputStream()).thenReturn(sos);
         BucketEntity bucket = mock(BucketEntity.class);
         when(bucketRepository.findOneByBucketName("bucket-name")).thenReturn(bucket);
-        catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.empty(), Optional.empty(), response);
-        verify(catalogObjectService, times(1)).listCatalogObjects(anyList(), any(Optional.class), any(Optional.class));
+        catalogObjectController.list("",
+                                     "bucket-name",
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     response);
+        verify(catalogObjectService, times(1)).listCatalogObjects(anyList(),
+                                                                  any(Optional.class),
+                                                                  any(Optional.class),
+                                                                  any(Optional.class));
     }
 
     @Test
