@@ -26,13 +26,13 @@
 package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.TreeSet;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,7 +85,9 @@ public class CatalogObjectCallGraphServiceTest {
         CatalogObjectMetadata three = createObjectMetadata("bucket6", "three");
 
         List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two, three);
-        when(catalogObjectService.listCatalogObjects(anyList())).thenReturn(objectsMetadata);
+        when(catalogObjectService.listCatalogObjects(anyList(),
+                                                     any(Optional.class),
+                                                     any(Optional.class))).thenReturn(objectsMetadata);
 
         when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
                                                                  kind,
@@ -141,7 +143,9 @@ public class CatalogObjectCallGraphServiceTest {
         CatalogObjectMetadata three = createObjectMetadata("bucket6", "three");
 
         List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two, three);
-        when(catalogObjectService.listCatalogObjectsByKind(anyList(), anyString())).thenReturn(objectsMetadata);
+        when(catalogObjectService.listCatalogObjects(anyList(),
+                                                     any(Optional.class),
+                                                     any(Optional.class))).thenReturn(objectsMetadata);
 
         when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
                                                                  kind,
@@ -168,7 +172,9 @@ public class CatalogObjectCallGraphServiceTest {
         CatalogObjectMetadata three = createObjectMetadata("bucket6", "three");
 
         List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two, three);
-        when(catalogObjectService.listCatalogObjectsByContentType(anyList(), anyString())).thenReturn(objectsMetadata);
+        when(catalogObjectService.listCatalogObjects(anyList(),
+                                                     any(Optional.class),
+                                                     any(Optional.class))).thenReturn(objectsMetadata);
 
         when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
                                                                  kind,
@@ -195,9 +201,9 @@ public class CatalogObjectCallGraphServiceTest {
         CatalogObjectMetadata three = createObjectMetadata("bucket6", "three");
 
         List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two, three);
-        when(catalogObjectService.listCatalogObjectsByKindAndContentType(anyList(),
-                                                                         anyString(),
-                                                                         anyString())).thenReturn(objectsMetadata);
+        when(catalogObjectService.listCatalogObjects(anyList(),
+                                                     any(Optional.class),
+                                                     any(Optional.class))).thenReturn(objectsMetadata);
 
         when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
                                                                  kind,

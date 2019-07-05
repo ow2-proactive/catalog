@@ -25,7 +25,6 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -67,7 +66,9 @@ public class CatalogObjectReportService {
     public byte[] generateBytesReport(List<String> authorisedBucketsNames, Optional<String> kind,
             Optional<String> contentType) {
 
-        List<CatalogObjectMetadata> metadataList = getListOfCatalogObjects(kind, contentType, authorisedBucketsNames);
+        List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(authorisedBucketsNames,
+                                                                                           kind,
+                                                                                           contentType);
 
         return orderCatalogObjectsByBucketAndProjectName(kind, contentType, metadataList);
 
@@ -78,31 +79,6 @@ public class CatalogObjectReportService {
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(metadataList);
 
         return catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket, kind, contentType);
-    }
-
-    private List<CatalogObjectMetadata> getListOfCatalogObjects(Optional<String> kind, Optional<String> contentType,
-            List<String> authorisedBucketsNames) {
-
-        if (authorisedBucketsNames.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        List<CatalogObjectMetadata> metadataList;
-
-        if (kind.isPresent() && contentType.isPresent()) {
-            metadataList = catalogObjectService.listCatalogObjectsByKindAndContentType(authorisedBucketsNames,
-                                                                                       kind.get(),
-                                                                                       contentType.get());
-        } else if (contentType.isPresent()) {
-            metadataList = catalogObjectService.listCatalogObjectsByContentType(authorisedBucketsNames,
-                                                                                contentType.get());
-        } else if (kind.isPresent()) {
-            metadataList = catalogObjectService.listCatalogObjectsByKind(authorisedBucketsNames, kind.get());
-        } else {
-            metadataList = catalogObjectService.listCatalogObjects(authorisedBucketsNames);
-        }
-
-        return metadataList;
     }
 
     private TreeSet<CatalogObjectMetadata> sortObjectsPerBucket(List<CatalogObjectMetadata> metadataList) {

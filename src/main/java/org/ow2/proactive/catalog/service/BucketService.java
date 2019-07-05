@@ -102,14 +102,10 @@ public class BucketService {
     private List<BucketEntity> getBucketEntities(List<String> owners, Optional<String> kind,
             Optional<String> contentType) {
         List<BucketEntity> entities;
-        if (kind.isPresent() && contentType.isPresent()) {
+        if (kind.isPresent() || contentType.isPresent()) {
             entities = bucketRepository.findByOwnerIsInContainingKindAndContentType(owners,
-                                                                                    kind.get(),
-                                                                                    contentType.get());
-        } else if (kind.isPresent()) {
-            entities = bucketRepository.findByOwnerIsInContainingKind(owners, kind.get());
-        } else if (contentType.isPresent()) {
-            entities = bucketRepository.findByOwnerIsInContainingContentType(owners, contentType.get());
+                                                                                    kind.orElse(""),
+                                                                                    contentType.orElse(""));
         } else {
             entities = bucketRepository.findByOwnerIn(owners);
         }
@@ -122,16 +118,8 @@ public class BucketService {
 
         if (!StringUtils.isEmpty(ownerName)) {
             entities = getBucketEntities(owners, kind, contentType);
-        } else if (StringUtils.isEmpty(ownerName)) {
-            if (kind.isPresent() && contentType.isPresent()) {
-                entities = bucketRepository.findContainingKindAndContentType(kind.get(), contentType.get());
-            } else if (kind.isPresent()) {
-                entities = bucketRepository.findContainingKind(kind.get());
-            } else if (contentType.isPresent()) {
-                entities = bucketRepository.findContainingContentType(contentType.get());
-            } else {
-                entities = bucketRepository.findAll();
-            }
+        } else if (kind.isPresent() || contentType.isPresent()) {
+            entities = bucketRepository.findContainingKindAndContentType(kind.orElse(""), contentType.orElse(""));
         } else {
             entities = bucketRepository.findAll();
         }
