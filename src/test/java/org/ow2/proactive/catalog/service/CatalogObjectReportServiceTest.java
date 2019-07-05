@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
@@ -132,7 +133,9 @@ public class CatalogObjectReportServiceTest {
         CatalogObjectMetadata three = createObjectMetadata("bucket6", "three");
 
         List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two, three);
-        when(catalogObjectService.listCatalogObjects(anyList())).thenReturn(objectsMetadata);
+        when(catalogObjectService.listCatalogObjects(anyList(),
+                                                     any(Optional.class),
+                                                     any(Optional.class))).thenReturn(objectsMetadata);
 
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(objectsMetadata);
 
@@ -158,7 +161,9 @@ public class CatalogObjectReportServiceTest {
         CatalogObjectMetadata three = createObjectMetadata("bucket6", "three");
 
         List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two, three);
-        when(catalogObjectService.listCatalogObjectsByKind(anyList(), anyString())).thenReturn(objectsMetadata);
+        when(catalogObjectService.listCatalogObjects(anyList(),
+                                                     any(Optional.class),
+                                                     any(Optional.class))).thenReturn(objectsMetadata);
 
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(objectsMetadata);
 
@@ -184,7 +189,9 @@ public class CatalogObjectReportServiceTest {
         CatalogObjectMetadata three = createObjectMetadata("bucket6", "three");
 
         List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two, three);
-        when(catalogObjectService.listCatalogObjectsByContentType(anyList(), anyString())).thenReturn(objectsMetadata);
+        when(catalogObjectService.listCatalogObjects(anyList(),
+                                                     any(Optional.class),
+                                                     any(Optional.class))).thenReturn(objectsMetadata);
 
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(objectsMetadata);
 
@@ -210,9 +217,9 @@ public class CatalogObjectReportServiceTest {
         CatalogObjectMetadata three = createObjectMetadata("bucket6", "three");
 
         List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two, three);
-        when(catalogObjectService.listCatalogObjectsByKindAndContentType(anyList(),
-                                                                         anyString(),
-                                                                         anyString())).thenReturn(objectsMetadata);
+        when(catalogObjectService.listCatalogObjects(anyList(),
+                                                     any(Optional.class),
+                                                     any(Optional.class))).thenReturn(objectsMetadata);
 
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(objectsMetadata);
 

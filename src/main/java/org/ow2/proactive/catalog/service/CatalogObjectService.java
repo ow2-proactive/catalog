@@ -33,9 +33,11 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -394,41 +396,40 @@ public class CatalogObjectService {
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketNames) {
-        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        bucketNames.forEach(this::findBucketByNameAndCheck);
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames);
 
         return buildMetadataWithLink(result);
+    }
+
+    public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
+            Optional<String> contentType) {
+        if (bucketsNames.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<CatalogObjectMetadata> metadataList;
+
+        if (kind.isPresent() || contentType.isPresent()) {
+            metadataList = listCatalogObjectsByKindAndContentType(bucketsNames,
+                                                                  kind.orElse(""),
+                                                                  contentType.orElse(""));
+        } else {
+            metadataList = listCatalogObjects(bucketsNames);
+        }
+        return metadataList;
     }
 
     private List<CatalogObjectMetadata> buildMetadataWithLink(List<CatalogObjectRevisionEntity> result) {
         return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
-    public List<CatalogObjectMetadata> listCatalogObjectsByKind(List<String> bucketNames, String kind) {
-        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindInBucket(bucketNames,
-                                                                                                                           kind);
-
-        return buildMetadataWithLink(result);
-    }
-
     // find catalog objects by kind and Content-Type
     public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentType(List<String> bucketNames, String kind,
             String contentType) {
-        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
+        bucketNames.forEach(this::findBucketByNameAndCheck);
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeInBucket(bucketNames,
                                                                                                                                          kind,
                                                                                                                                          contentType);
-
-        return buildMetadataWithLink(result);
-    }
-
-    // find catalog objects by Content-Type
-    public List<CatalogObjectMetadata> listCatalogObjectsByContentType(List<String> bucketNames, String contentType) {
-        bucketNames.forEach(bucketName -> findBucketByNameAndCheck(bucketName));
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfContentTypeInBucket(bucketNames,
-                                                                                                                                  contentType);
-
         return buildMetadataWithLink(result);
     }
 
@@ -591,14 +592,17 @@ public class CatalogObjectService {
         List<CatalogObjectNameReference> catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKindAndContentType(kind.orElse(""),
                                                                                                                                                                                                                 contentType.orElse("")));
 
-        return groupCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKindAndContentType).entrySet()
-                                                                                                         .stream()
-                                                                                                         .filter(map -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
-                                                                                                                                                                      sessionId,
-                                                                                                                                                                      map.getKey()))
-                                                                                                         .map(map -> map.getValue())
-                                                                                                         .flatMap(list -> list.stream())
-                                                                                                         .collect(Collectors.toList());
+        Map<String, List<CatalogObjectNameReference>> catalogObjectsGroupedByBucket = groupCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKindAndContentType);
+        List<BucketEntity> buckets = bucketRepository.findAll();
+
+        return buckets.stream()
+                      .filter(bucketEntity -> restApiAccessService.isBucketAccessibleByUser(sessionIdRequired,
+                                                                                            sessionId,
+                                                                                            bucketEntity.getBucketName()))
+                      .map(bucketEntity -> catalogObjectsGroupedByBucket.get(bucketEntity.getBucketName()))
+                      .filter(Objects::nonNull)
+                      .flatMap(Collection::stream)
+                      .collect(Collectors.toList());
     }
 
     private Map<String, List<CatalogObjectNameReference>>
