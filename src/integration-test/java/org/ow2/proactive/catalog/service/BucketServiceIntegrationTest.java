@@ -82,7 +82,10 @@ public class BucketServiceIntegrationTest {
 
     @Test
     public void testThatEmptyOwnerListReturnsAndEmptyListAndDoesNotReturnAnException() {
-        List emptyResult = bucketService.listBuckets(Collections.emptyList(), Optional.empty(), Optional.empty());
+        List emptyResult = bucketService.listBuckets(Collections.emptyList(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty());
         assertThat(emptyResult).isEmpty();
     }
 

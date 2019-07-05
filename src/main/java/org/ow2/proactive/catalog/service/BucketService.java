@@ -88,24 +88,26 @@ public class BucketService {
         return new BucketMetadata(bucketEntity);
     }
 
-    public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType) {
+    public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
+            Optional<String> objectName) {
         if (owners == null) {
             return Collections.emptyList();
         }
 
-        List<BucketEntity> entities = getBucketEntities(owners, kind, contentType);
+        List<BucketEntity> entities = getBucketEntities(owners, kind, contentType, objectName);
 
         log.info("Buckets size {}", entities.size());
         return entities.stream().map(BucketMetadata::new).collect(Collectors.toList());
     }
 
     private List<BucketEntity> getBucketEntities(List<String> owners, Optional<String> kind,
-            Optional<String> contentType) {
+            Optional<String> contentType, Optional<String> objectName) {
         List<BucketEntity> entities;
         if (kind.isPresent() || contentType.isPresent()) {
             entities = bucketRepository.findByOwnerIsInContainingKindAndContentType(owners,
                                                                                     kind.orElse(""),
-                                                                                    contentType.orElse(""));
+                                                                                    contentType.orElse(""),
+                                                                                    objectName.orElse(""));
         } else {
             entities = bucketRepository.findByOwnerIn(owners);
         }
@@ -113,13 +115,20 @@ public class BucketService {
     }
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType) {
+        return listBuckets(ownerName, kind, contentType, Optional.empty());
+    }
+
+    public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
+            Optional<String> objectName) {
         List<BucketEntity> entities;
         List<String> owners = Collections.singletonList(ownerName);
 
         if (!StringUtils.isEmpty(ownerName)) {
-            entities = getBucketEntities(owners, kind, contentType);
-        } else if (kind.isPresent() || contentType.isPresent()) {
-            entities = bucketRepository.findContainingKindAndContentType(kind.orElse(""), contentType.orElse(""));
+            entities = getBucketEntities(owners, kind, contentType, objectName);
+        } else if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
+            entities = bucketRepository.findContainingKindAndContentType(kind.orElse(""),
+                                                                         contentType.orElse(""),
+                                                                         objectName.orElse(""));
         } else {
             entities = bucketRepository.findAll();
         }
@@ -160,7 +169,13 @@ public class BucketService {
     }
 
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
-            Optional<String> contentType, Supplier<List<String>> authenticatedUserGroupsSupplier)
+            Optional<String> contentType, Supplier<List<String>> authenticatedUserGroupsSupplier) {
+        return getBucketsByGroups(ownerName, kind, contentType, Optional.empty(), authenticatedUserGroupsSupplier);
+    }
+
+    public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
+            Optional<String> contentType, Optional<String> objectName,
+            Supplier<List<String>> authenticatedUserGroupsSupplier)
             throws NotAuthenticatedException, AccessDeniedException {
         List<String> groups;
 
@@ -171,6 +186,6 @@ public class BucketService {
             groups = Collections.singletonList(ownerName);
         }
 
-        return listBuckets(groups, kind, contentType);
+        return listBuckets(groups, kind, contentType, objectName);
     }
 }
