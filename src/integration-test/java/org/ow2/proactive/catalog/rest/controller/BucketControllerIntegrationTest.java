@@ -285,6 +285,96 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     }
 
     @Test
+    public void testListBucketsGivenObjectNameAndEmptyBucket() throws UnsupportedEncodingException {
+        final String bucketNameForMyObjects = "bucket-with-object-workflow";
+        final String bucketNameForEmpty = "empty-bucket";
+        final String bucketNameWithSomeObjects = "bucket-with-some-objects";
+        final String bucketNameWithOtherObjects = "bucket-with-other-objects";
+        // Get bucket ID from response to create an object in it
+        String bucketIdWithMyObjects = IntegrationTestUtil.createBucket(bucketNameForMyObjects, "owner");
+
+        IntegrationTestUtil.createBucket(bucketNameForEmpty, "owner");
+
+        // Add an object of kind "my-object-kind" into specific bucket
+        IntegrationTestUtil.postObjectToBucket(bucketIdWithMyObjects,
+                                               "MY-objecT-Kind",
+                                               "my-object-name-1",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        String bucketWithSomeObjectsId = IntegrationTestUtil.createBucket(bucketNameWithSomeObjects, "owner");
+
+        IntegrationTestUtil.postObjectToBucket(bucketWithSomeObjectsId,
+                                               "differentkind",
+                                               "my-object-name-2",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        String bucketIdWithOtherObjects = IntegrationTestUtil.createBucket(bucketNameWithOtherObjects, "owner");
+        // Add an object of kind "my-object-kind" into specific bucket
+        IntegrationTestUtil.postObjectToBucket(bucketIdWithOtherObjects,
+                                               "MY-objecT-Kind",
+                                               "other-names",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        // list buckets by specific Name -> should return one specified bucket and empty bucket
+        given().param("objectName", "my-object-name-1")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(2));
+
+        // list buckets by general Name -> should return one specified buckets and empty bucket
+        given().param("objectName", "my-object-name")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(3));
+
+        // list buckets by non-existing Name -> should return only empty bucket
+        given().param("objectName", "non-existing name")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(1));
+
+        // list buckets by specific kind and Name -> should return one specified bucket and empty bucket
+        given().param("kind", "my-object-kind")
+               .param("objectName", "my-object-name")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(2));
+
+        // list buckets by content-type and Name -> should return two buckets, matching contentType, name pattern, and empty bucket
+        given().param("contentType", MediaType.APPLICATION_ATOM_XML_VALUE)
+               .param("objectName", "my-object")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(3));
+
+        // list buckets by content-type, kind and Name -> should return two buckets, matching contentType, kind and object name pattern, and empty bucket
+        given().param("contentType", MediaType.APPLICATION_ATOM_XML_VALUE)
+               .param("kind", "object-kind")
+               .param("objectName", "object")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(1));
+    }
+
+    @Test
     public void testListBucketsByOwnerIsInContainingKindAndEmptyBucket() throws UnsupportedEncodingException {
         final String BucketAdminOwnerWorkflowKind = "bucket-admin-owner-workflow-kind";
         final String BucketAdminOwnerEmptyBucket = "bucket-admin-owner-empty-bucket";
@@ -390,6 +480,16 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         // list buckets by specific kind and specified Content-Type -> should return one specified bucket and empty bucket
         given().param("kind", "my-object-kind")
                .param("contentType", "my-content")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(1));
+
+        // list buckets by specific kind, specified Content-Type and Object name-> should return one specified bucket and empty bucket
+        given().param("kind", "my-object-kind")
+               .param("contentType", "my-content")
+               .param("objectName", "object")
                .get(BUCKETS_RESOURCE)
                .then()
                .assertThat()
