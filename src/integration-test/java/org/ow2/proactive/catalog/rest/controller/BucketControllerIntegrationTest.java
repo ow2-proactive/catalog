@@ -321,6 +321,14 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
+        // list all buckets by any Name -> should return all buckets with empty bucket
+        given().param("objectName", "")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(4));
+
         // list buckets by specific Name -> should return one specified bucket and empty bucket
         given().param("objectName", "my-object-name-1")
                .get(BUCKETS_RESOURCE)
@@ -372,6 +380,15 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("", hasSize(1));
+
+        // list buckets by specific Name and owner -> should return one specified bucket and empty bucket
+        given().param("objectName", "my-object-name-1")
+               .param("owner", "owner")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(2));
     }
 
     @Test
