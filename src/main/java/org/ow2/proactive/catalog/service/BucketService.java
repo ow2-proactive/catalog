@@ -103,7 +103,7 @@ public class BucketService {
     private List<BucketEntity> getBucketEntities(List<String> owners, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName) {
         List<BucketEntity> entities;
-        if (kind.isPresent() || contentType.isPresent()) {
+        if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
             entities = bucketRepository.findByOwnerIsInContainingKindAndContentType(owners,
                                                                                     kind.orElse(""),
                                                                                     contentType.orElse(""),
