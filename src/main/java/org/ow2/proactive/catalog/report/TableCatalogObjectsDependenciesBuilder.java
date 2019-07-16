@@ -80,6 +80,8 @@ public class TableCatalogObjectsDependenciesBuilder {
 
     private static final float CELL_WIDTH = 100f;
 
+    private static final float CELL_HEIGHT = 10f;
+
     @Autowired
     private SeparatorUtility separatorUtility;
 
@@ -98,7 +100,7 @@ public class TableCatalogObjectsDependenciesBuilder {
             BaseTable table) throws IOException {
 
         if (callGraphHolder.order() == 0) {
-            Row<PDPage> dataRow = table.createRow(10f);
+            Row<PDPage> dataRow = table.createRow(CELL_HEIGHT);
             cellFactory.createDataHeaderCell(dataRow,
                                              CELL_WIDTH,
                                              "No identified Dependencies in the Catalog or among the selected Catalog Objects");
@@ -109,12 +111,10 @@ public class TableCatalogObjectsDependenciesBuilder {
             Map<GraphNode, List<GraphPath<GraphNode, DefaultEdge>>> groupingGraphPathsHavingSameRoot = graphPathsList.stream()
                                                                                                                      .collect(Collectors.groupingBy(GraphPath::getStartVertex,
                                                                                                                                                     Collectors.toList()));
-
             Set<GraphNode> leafNodes = getLeafNodes(callGraphHolder);
             leafNodes.stream()
                      .filter(leafNode -> !leafNode.getObjectKind().equals("N/A"))
                      .collect(Collectors.toSet())
-                     .stream()
                      .forEach(leafNode -> {
                          groupingGraphPathsHavingSameRoot.put(leafNode, new ArrayList<>());
                          catalogObjectMetadataList.add(catalogObjectService.getCatalogObjectMetadata(leafNode.getBucketName(),
@@ -132,7 +132,7 @@ public class TableCatalogObjectsDependenciesBuilder {
             for (Map.Entry<GraphNode, List<GraphPath<GraphNode, DefaultEdge>>> mapEntry : sortGraphPathsPerBucketAndObjectName.entrySet()) {
                 if (!currentBucketName.equals(mapEntry.getKey().getBucketName())) {
                     currentBucketName = mapEntry.getKey().getBucketName();
-                    Row<PDPage> dataRow = table.createRow(10f);
+                    Row<PDPage> dataRow = table.createRow(CELL_HEIGHT);
                     cellFactory.createDataHeaderCell(dataRow, CELL_WIDTH, currentBucketName);
                 }
 
@@ -142,7 +142,7 @@ public class TableCatalogObjectsDependenciesBuilder {
                                                                                                     .getObjectName(),
                                                                                             mapEntry.getKey()
                                                                                                     .getObjectKind());
-                Row<PDPage> tableRow = table.createRow(10f);
+                Row<PDPage> tableRow = table.createRow(CELL_HEIGHT);
                 Cell<PDPage> cell = tableRow.createCell(CELL_WIDTH,
                                                         dataCell(mapEntry.getKey(),
                                                                  mapEntry.getValue(),

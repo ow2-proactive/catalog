@@ -169,7 +169,7 @@ public class TableCallGraphsBuilder {
             GraphNode rootNode = entry.getKey();
             Set<GraphNode> callGraphNodes = new HashSet<>();
             Set<DefaultEdge> callGraphEdges = new HashSet<>();
-            entry.getValue().stream().forEach(graphPath -> {
+            entry.getValue().forEach(graphPath -> {
                 callGraphNodes.addAll(graphPath.getVertexList());
                 callGraphEdges.addAll(graphPath.getEdgeList());
             });
