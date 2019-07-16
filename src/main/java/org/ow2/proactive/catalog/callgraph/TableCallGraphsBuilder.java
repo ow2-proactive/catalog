@@ -86,33 +86,34 @@ public class TableCallGraphsBuilder {
 
     /**
      * This method builds a table of call Graphs which are ordered and grouped by bucket name. The build is composed of three steps
-     * 1. Compute all graph paths of the globalCallGraph. A graph path is a chain of dependencies starting from a root until a leaf
+     * 1. Compute all graph paths of the callGraphHolder. A graph path is a chain of dependencies starting from a root until a leaf
      * 2. Grouping all graph paths having the same root in a single graph
      * 3. Compute call graphs for all roots
-     * In case the oder of the globalCallGraph is zero, an appropriate message is displayed.
-     * @param globalCallGraph
+     * In case the oder of the callGraphHolder is zero, an appropriate message is displayed.
+     *
+     * @param callGraphHolder
      * @param table
      */
-    public void buildCallGraphsTable(CallGraphHolder globalCallGraph, BaseTable table) {
+    public void buildCallGraphsTable(CallGraphHolder callGraphHolder, BaseTable table) {
 
-        if (globalCallGraph.order() == 0) {
+        if (callGraphHolder.order() == 0) {
             Row<PDPage> dataRow = table.createRow(10f);
             cellFactory.createDataHeaderCell(dataRow,
                                              100,
                                              "No identified Dependencies in the Catalog or among the selected Catalog Objects");
         } else {
 
-            // We first compute all graph paths of the globalCallGraph. A graph path is a chain of dependencies starting from a root until a leaf
-            List<GraphPath<GraphNode, DefaultEdge>> graphPathList = computeAllGraphPaths(globalCallGraph);
+            // We first compute all graph paths of the callGraphHolder. A graph path is a chain of dependencies starting from a root until a leaf
+            List<GraphPath<GraphNode, DefaultEdge>> graphPathList = computeAllGraphPaths(callGraphHolder);
 
             //Grouping all graph paths having the same root in a single graph
-            Map<GraphNode, List<GraphPath<GraphNode, DefaultEdge>>> groupingGraphPathsHavingSameRoot = graphPathList.stream()
-                                                                                                                    .collect(Collectors.groupingBy(GraphPath::getStartVertex,
-                                                                                                                                                   Collectors.toList()));
+            Map<GraphNode, List<GraphPath<GraphNode, DefaultEdge>>> groupedGraphPathsHavingSameRoot = graphPathList.stream()
+                                                                                                                   .collect(Collectors.groupingBy(GraphPath::getStartVertex,
+                                                                                                                                                  Collectors.toList()));
             // Compute call graphs for all roots
-            Map<GraphNode, Graph<GraphNode, DefaultEdge>> callGraphHashMap = computeCallGraphForAllRoots(groupingGraphPathsHavingSameRoot,
-                                                                                                         globalCallGraph);
-            Map<GraphNode, Integer> callGraphDiameterHashMap = computeCallGraphsDiameter(groupingGraphPathsHavingSameRoot);
+            Map<GraphNode, Graph<GraphNode, DefaultEdge>> callGraphHashMap = computeCallGraphForAllRoots(groupedGraphPathsHavingSameRoot,
+                                                                                                         callGraphHolder);
+            Map<GraphNode, Integer> callGraphDiameterHashMap = computeCallGraphsDiameter(groupedGraphPathsHavingSameRoot);
             TreeMap<GraphNode, Graph<GraphNode, DefaultEdge>> orderedCallGraphsPerBucket = sortCallGraphsPerBucket(callGraphHashMap);
             String currentBucketName = "";
 
@@ -136,13 +137,14 @@ public class TableCallGraphsBuilder {
 
     /**
      * This method computes the diameter of all call graphs. A diameter is the longest shortest path" (i.e., the longest graph geodesic) between any two graph vertices.
-     * @param groupingGraphPathsHavingSameRoot
+     *
+     * @param groupedGraphPathsHavingSameRoot
      * @return
      */
     private Map<GraphNode, Integer> computeCallGraphsDiameter(
-            Map<GraphNode, List<GraphPath<GraphNode, DefaultEdge>>> groupingGraphPathsHavingSameRoot) {
+            Map<GraphNode, List<GraphPath<GraphNode, DefaultEdge>>> groupedGraphPathsHavingSameRoot) {
         Map<GraphNode, Integer> callGraphDiameterHashMap = new HashMap<>();
-        groupingGraphPathsHavingSameRoot.entrySet().stream().forEach(entry -> {
+        groupedGraphPathsHavingSameRoot.entrySet().stream().forEach(entry -> {
             GraphNode rootNode = entry.getKey();
             int diameter = Collections.max(entry.getValue(), Comparator.comparingInt(GraphPath::getLength)).getLength();
             callGraphDiameterHashMap.put(rootNode, diameter);
@@ -153,45 +155,50 @@ public class TableCallGraphsBuilder {
 
     /**
      * This methods computes the call graph for all node roots
-     * @param mergeGraphPathsHavingSameRoot
-     * @param globalCallGraph
+     *
+     * @param groupedGraphPathsHavingSameRoot
+     * @param callGraphHolder
      * @return
      */
     private Map<GraphNode, Graph<GraphNode, DefaultEdge>> computeCallGraphForAllRoots(
-            Map<GraphNode, List<GraphPath<GraphNode, DefaultEdge>>> mergeGraphPathsHavingSameRoot,
-            CallGraphHolder globalCallGraph) {
+            Map<GraphNode, List<GraphPath<GraphNode, DefaultEdge>>> groupedGraphPathsHavingSameRoot,
+            CallGraphHolder callGraphHolder) {
 
         Map<GraphNode, Graph<GraphNode, DefaultEdge>> callGraphsHashMap = new HashMap<>();
-        mergeGraphPathsHavingSameRoot.entrySet().stream().forEach(entry -> {
+        groupedGraphPathsHavingSameRoot.entrySet().stream().forEach(entry -> {
             GraphNode rootNode = entry.getKey();
             Set<GraphNode> callGraphNodes = new HashSet<>();
-            entry.getValue().stream().forEach(graphPath -> callGraphNodes.addAll(graphPath.getVertexList()));
             Set<DefaultEdge> callGraphEdges = new HashSet<>();
-            entry.getValue().stream().forEach(graphPath -> callGraphEdges.addAll(graphPath.getEdgeList()));
+            entry.getValue().stream().forEach(graphPath -> {
+                callGraphNodes.addAll(graphPath.getVertexList());
+                callGraphEdges.addAll(graphPath.getEdgeList());
+            });
             callGraphsHashMap.put(rootNode,
-                                  new AsSubgraph(globalCallGraph.getDependencyGraph(), callGraphNodes, callGraphEdges));
+                                  new AsSubgraph(callGraphHolder.getCallGraph(), callGraphNodes, callGraphEdges));
         });
         return callGraphsHashMap;
     }
 
     /**
-     * This methods computes all graph paths of the globalCallGraph. A graph path is a chain of dependencies starting from a root until a leaf
-     * @param globalCallGraph
+     * This methods computes all graph paths of the callGraphHolder. A graph path is a chain of dependencies starting from a root until a leaf
+     *
+     * @param callGraphHolder
      * @return
      */
-    private List<GraphPath<GraphNode, DefaultEdge>> computeAllGraphPaths(CallGraphHolder globalCallGraph) {
+    private List<GraphPath<GraphNode, DefaultEdge>> computeAllGraphPaths(CallGraphHolder callGraphHolder) {
 
-        Graph<GraphNode, DefaultEdge> callGraph = globalCallGraph.getDependencyGraph();
+        Graph<GraphNode, DefaultEdge> callGraph = callGraphHolder.getCallGraph();
         List<GraphPath<GraphNode, DefaultEdge>> graphPathList = new ArrayList<>();
         ConnectivityInspector<GraphNode, DefaultEdge> inspector = new ConnectivityInspector(new AsSubgraph(callGraph,
-                                                                                                           globalCallGraph.nodeSet(),
-                                                                                                           globalCallGraph.dependencySet()));
+                                                                                                           callGraphHolder.nodeSet(),
+                                                                                                           callGraphHolder.dependencySet()));
+        Set<GraphNode> rootNodes = new HashSet<>();
+        Set<GraphNode> leafNodes = new HashSet<>();
         inspector.connectedSets().forEach(connectedComponent -> {
             BreadthFirstIterator breadthFirstIterator = new BreadthFirstIterator(new AsSubgraph(callGraph,
                                                                                                 connectedComponent,
-                                                                                                globalCallGraph.dependencySet()));
-            Set<GraphNode> rootNodes = new HashSet<>();
-            Set<GraphNode> leafNodes = new HashSet<>();
+                                                                                                callGraphHolder.dependencySet()));
+
             GraphNode graphNode;
             while (breadthFirstIterator.hasNext()) {
                 graphNode = ((GraphNode) breadthFirstIterator.next());
@@ -202,10 +209,10 @@ public class TableCallGraphsBuilder {
                     leafNodes.add(graphNode);
                 }
             }
-            AllDirectedPaths allDirectedPaths = new AllDirectedPaths(callGraph);
-            graphPathList.addAll(allDirectedPaths.getAllPaths(rootNodes, leafNodes, true, null));
-
         });
+
+        AllDirectedPaths allDirectedPaths = new AllDirectedPaths(callGraph);
+        graphPathList.addAll(allDirectedPaths.getAllPaths(rootNodes, leafNodes, true, null));
 
         //Detect simple cycles and add them to the graph paths list
         CycleDetector<GraphNode, DefaultEdge> cycleDetector = new CycleDetector(callGraph);
@@ -223,6 +230,7 @@ public class TableCallGraphsBuilder {
 
     /**
      * This methods sorts call graphs per bucket then object name
+     *
      * @param callGraphsHashMap
      * @return
      */
@@ -316,6 +324,7 @@ public class TableCallGraphsBuilder {
     /**
      * This methods computes an ARGB color from the hashcode of a catalog object kind to distinguish between vertex visually.
      * In this way, we ensure to have as many color as many different kinds in the catalog.
+     *
      * @param i
      * @return
      */

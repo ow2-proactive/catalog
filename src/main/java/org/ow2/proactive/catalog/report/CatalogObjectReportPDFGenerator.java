@@ -26,12 +26,15 @@
 package org.ow2.proactive.catalog.report;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Set;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.ow2.proactive.catalog.callgraph.CallGraphHolder;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.PDFGenerationException;
 import org.ow2.proactive.catalog.util.ReportGeneratorHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +48,9 @@ public class CatalogObjectReportPDFGenerator {
 
     private static final float MARGIN = 10f;
 
-    private static final String MAIN_TITLE = "ProActive Catalog Report";
+    private static final String FIRST_TITLE = "ProActive Catalog Report";
+
+    private static final String SECOND_TITLE = "ProActive Catalog Object Dependencies Report";
 
     @Autowired
     private TableDataBuilder tableDataBuilder;
@@ -56,8 +61,11 @@ public class CatalogObjectReportPDFGenerator {
     @Autowired
     private ReportGeneratorHelper reportGeneratorHelper;
 
+    @Autowired
+    private TableCatalogObjectsDependenciesBuilder tableCatalogObjectsDependenciesBuilder;
+
     public byte[] generatePDF(Set<CatalogObjectMetadata> orderedObjectsPerBucket, Optional<String> kind,
-            Optional<String> contentType) {
+            Optional<String> contentType, CatalogObjectService catalogObjectService) {
 
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 PDDocument doc = new PDDocument()) {
@@ -66,21 +74,40 @@ public class CatalogObjectReportPDFGenerator {
             reportGeneratorHelper.setFontToUse(doc);
 
             // Initialize Document
-            PDPage page = reportGeneratorHelper.addNewPage(doc);
+            PDPage page1 = reportGeneratorHelper.addNewPage(doc);
 
             // Initialize table
-            BaseTable table = reportGeneratorHelper.initializeTable(doc, MARGIN, page);
+            BaseTable table1 = reportGeneratorHelper.initializeTable(doc, MARGIN, page1);
 
             // Create Header row
-            headersBuilder.createMainHeader(table, MAIN_TITLE);
+            headersBuilder.createMainHeader(table1, FIRST_TITLE);
 
             // Create Header row
-            headersBuilder.createInfoHeader(table, orderedObjectsPerBucket, kind, contentType);
+            headersBuilder.createInfoHeader(table1, orderedObjectsPerBucket, kind, contentType);
 
             // Create table data
-            tableDataBuilder.buildTableData(orderedObjectsPerBucket, table);
+            tableDataBuilder.buildTableData(orderedObjectsPerBucket, table1);
 
-            table.draw();
+            table1.draw();
+
+            PDPage page2 = reportGeneratorHelper.addNewPage(doc);
+
+            // Initialize table
+            BaseTable table2 = reportGeneratorHelper.initializeTable(doc, MARGIN, page2);
+
+            // Create Header row
+            headersBuilder.createMainHeader(table2, SECOND_TITLE);
+
+            // Build call graph
+            CallGraphHolder globalCallGraph = reportGeneratorHelper.buildCatalogCallGraph(new ArrayList(orderedObjectsPerBucket),
+                                                                                          catalogObjectService);
+
+            tableCatalogObjectsDependenciesBuilder.buildCatalogObjectsDependenciesTable(doc,
+                                                                                        globalCallGraph,
+                                                                                        new ArrayList(orderedObjectsPerBucket),
+                                                                                        catalogObjectService,
+                                                                                        table2);
+            table2.draw();
 
             doc.save(byteArrayOutputStream);
 

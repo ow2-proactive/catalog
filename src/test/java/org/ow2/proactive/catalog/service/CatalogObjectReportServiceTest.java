@@ -84,7 +84,8 @@ public class CatalogObjectReportServiceTest {
 
         when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
                                                          kind,
-                                                         contentType)).thenReturn("onetwothree".getBytes());
+                                                         contentType,
+                                                         catalogObjectService)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectReportService.generateBytesReport(authorisedBucketsNames, kind, contentType);
 
@@ -110,7 +111,8 @@ public class CatalogObjectReportServiceTest {
 
         when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
                                                          kind,
-                                                         contentType)).thenReturn("onetwo".getBytes());
+                                                         contentType,
+                                                         catalogObjectService)).thenReturn("onetwo".getBytes());
 
         byte[] content = catalogObjectReportService.generateBytesReportForSelectedObjects(bucketsName,
                                                                                           objectsName,
@@ -141,7 +143,8 @@ public class CatalogObjectReportServiceTest {
 
         when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
                                                          kind,
-                                                         contentType)).thenReturn("onetwothree".getBytes());
+                                                         contentType,
+                                                         catalogObjectService)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectReportService.generateBytesReport(authorisedBucketsNames, kind, contentType);
 
@@ -169,7 +172,8 @@ public class CatalogObjectReportServiceTest {
 
         when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
                                                          kind,
-                                                         contentType)).thenReturn("onetwothree".getBytes());
+                                                         contentType,
+                                                         catalogObjectService)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectReportService.generateBytesReport(authorisedBucketsNames, kind, contentType);
 
@@ -197,7 +201,8 @@ public class CatalogObjectReportServiceTest {
 
         when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
                                                          kind,
-                                                         contentType)).thenReturn("onetwothree".getBytes());
+                                                         contentType,
+                                                         catalogObjectService)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectReportService.generateBytesReport(authorisedBucketsNames, kind, contentType);
 
@@ -225,7 +230,8 @@ public class CatalogObjectReportServiceTest {
 
         when(catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
                                                          kind,
-                                                         contentType)).thenReturn("onetwothree".getBytes());
+                                                         contentType,
+                                                         catalogObjectService)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectReportService.generateBytesReport(authorisedBucketsNames, kind, contentType);
 

@@ -27,7 +27,6 @@ package org.ow2.proactive.catalog.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,6 +37,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.ow2.proactive.catalog.callgraph.CallGraphHolder;
 import org.ow2.proactive.catalog.callgraph.GraphNode;
+import org.ow2.proactive.catalog.dto.CatalogObjectDependencies;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
@@ -114,18 +114,12 @@ public class ReportGeneratorHelper {
     }
 
     public Set<String> extractBucketSet(CallGraphHolder callGraphHolder) {
-        return callGraphHolder.nodeSet()
-                              .stream()
-                              .map(graphNode -> graphNode.getBucketName())
-                              .collect(Collectors.toSet());
+        return callGraphHolder.nodeSet().stream().map(GraphNode::getBucketName).collect(Collectors.toSet());
 
     }
 
     public Set<String> extractObjectSet(CallGraphHolder callGraphHolder) {
-        return callGraphHolder.nodeSet()
-                              .stream()
-                              .map(graphNode -> graphNode.getObjectName())
-                              .collect(Collectors.toSet());
+        return callGraphHolder.nodeSet().stream().map(GraphNode::getObjectName).collect(Collectors.toSet());
 
     }
 

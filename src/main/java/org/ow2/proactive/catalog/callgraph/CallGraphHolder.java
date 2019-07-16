@@ -37,7 +37,7 @@ import org.jgrapht.graph.DefaultEdge;
  */
 public class CallGraphHolder {
 
-    private final DefaultDirectedGraph<GraphNode, DefaultEdge> dependencyGraph = new DefaultDirectedGraph(DefaultEdge.class);
+    private final DefaultDirectedGraph<GraphNode, DefaultEdge> callGraph = new DefaultDirectedGraph(DefaultEdge.class);
 
     public GraphNode addNode(String bucketName, String objectName, String objectKind, boolean isInCatalog) {
         GraphNode graphNode = new GraphNode.Builder().bucketName(bucketName)
@@ -45,33 +45,33 @@ public class CallGraphHolder {
                                                      .objectKind(objectKind)
                                                      .isInCatalog(isInCatalog)
                                                      .build();
-        dependencyGraph.addVertex(graphNode);
+        callGraph.addVertex(graphNode);
         return graphNode;
 
     }
 
     public boolean removeNode(String bucketName, String objectName, String objectKind, boolean isInCatalog) {
-        return dependencyGraph.removeVertex(new GraphNode.Builder().bucketName(bucketName)
-                                                                   .objectName(objectName)
-                                                                   .objectKind(objectKind)
-                                                                   .isInCatalog(isInCatalog)
-                                                                   .build());
+        return callGraph.removeVertex(new GraphNode.Builder().bucketName(bucketName)
+                                                             .objectName(objectName)
+                                                             .objectKind(objectKind)
+                                                             .isInCatalog(isInCatalog)
+                                                             .build());
     }
 
     public DefaultEdge addDependsOnEdge(GraphNode graphNode1, GraphNode graphNode2) {
-        return dependencyGraph.addEdge(graphNode1, graphNode2);
+        return callGraph.addEdge(graphNode1, graphNode2);
     }
 
     public DefaultEdge removeDependsOnEdge(GraphNode graphNode1, GraphNode graphNode2) {
-        return dependencyGraph.removeEdge(graphNode1, graphNode2);
+        return callGraph.removeEdge(graphNode1, graphNode2);
     }
 
     public Set<GraphNode> nodeSet() {
-        return dependencyGraph.vertexSet();
+        return callGraph.vertexSet();
     }
 
     public Set<DefaultEdge> dependencySet() {
-        return dependencyGraph.edgeSet();
+        return callGraph.edgeSet();
     }
 
     /**
@@ -79,7 +79,7 @@ public class CallGraphHolder {
      * @return
      */
     public int order() {
-        return dependencyGraph.vertexSet().size();
+        return callGraph.vertexSet().size();
     }
 
     /**
@@ -87,17 +87,17 @@ public class CallGraphHolder {
      * @return
      */
     public int size() {
-        return dependencyGraph.edgeSet().size();
+        return callGraph.edgeSet().size();
     }
 
-    public DefaultDirectedGraph<GraphNode, DefaultEdge> getDependencyGraph() {
-        return dependencyGraph;
+    public DefaultDirectedGraph<GraphNode, DefaultEdge> getCallGraph() {
+        return callGraph;
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("Dependency Graph=").append(dependencyGraph);
+        sb.append("Call Graph=").append(callGraph);
         return sb.toString();
     }
 }

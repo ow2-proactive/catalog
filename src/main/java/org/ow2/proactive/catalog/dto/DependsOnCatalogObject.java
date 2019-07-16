@@ -42,6 +42,9 @@ public class DependsOnCatalogObject {
     @JsonProperty("bucket_and_object_name")
     private final String bucketAndObjectName;
 
+    @JsonProperty("kind")
+    private final String kind;
+
     @JsonProperty("revision_commit_time")
     private final String revisionCommitTime;
 
@@ -49,11 +52,16 @@ public class DependsOnCatalogObject {
     private final boolean isInCatalog;
 
     public DependsOnCatalogObject(@JsonProperty("bucket_and_object_name") String bucketAndObjectName,
-            @JsonProperty("revision_commit_time") String revisionCommitTime,
+            @JsonProperty("kind") String kind, @JsonProperty("revision_commit_time") String revisionCommitTime,
             @JsonProperty("is_in_catalog") boolean isInCatalog) {
         this.bucketAndObjectName = bucketAndObjectName;
+        this.kind = kind;
         this.isInCatalog = isInCatalog;
         this.revisionCommitTime = revisionCommitTime;
+    }
+
+    public String getKind() {
+        return kind;
     }
 
     public String getBucketAndObjectName() {
