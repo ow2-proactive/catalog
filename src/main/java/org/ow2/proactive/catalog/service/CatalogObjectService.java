@@ -263,18 +263,27 @@ public class CatalogObjectService {
                                                                                                                                        name,
                                                                                                                                        revisionCommitTime);
         List<DependsOnCatalogObject> dependsOnBucketAndObjectNameList = new ArrayList<>();
-        for (String dependOnCatalogObject : dependsOnCatalogObjectsList) {
+
+        String dependOnBucketName;
+        String dependOnObjectName;
+        String dependOnKind;
+        for (String dependOnBucketAndObjectName : dependsOnCatalogObjectsList) {
             String revisionCommitTimeOfDependsOnObject = catalogObjectRevisionRepository.findRevisionOfDependsOnCatalogObjectFromKeyLabelMetadata(bucketName,
                                                                                                                                                   name,
                                                                                                                                                   revisionCommitTime,
-                                                                                                                                                  dependOnCatalogObject);
-            dependsOnBucketAndObjectNameList.add(new DependsOnCatalogObject(dependOnCatalogObject,
+                                                                                                                                                  dependOnBucketAndObjectName);
+            dependOnBucketName = separatorUtility.getSplitBySeparator(dependOnBucketAndObjectName).get(0);
+            dependOnObjectName = separatorUtility.getSplitBySeparator(dependOnBucketAndObjectName).get(1);
+            boolean isCatalogObjectExist = isDependsOnObjectExistInCatalog(dependOnBucketName,
+                                                                           dependOnObjectName,
+                                                                           revisionCommitTimeOfDependsOnObject);
+            dependOnKind = isCatalogObjectExist ? getCatalogObjectMetadata(dependOnBucketName, dependOnObjectName)
+                                                                                                                  .getKind()
+                                                : "N/A";
+            dependsOnBucketAndObjectNameList.add(new DependsOnCatalogObject(dependOnBucketAndObjectName,
+                                                                            dependOnKind,
                                                                             String.valueOf(revisionCommitTime),
-                                                                            isDependsOnObjectExistInCatalog(separatorUtility.getSplitBySeparator(dependOnCatalogObject)
-                                                                                                                            .get(0),
-                                                                                                            separatorUtility.getSplitBySeparator(dependOnCatalogObject)
-                                                                                                                            .get(1),
-                                                                                                            revisionCommitTimeOfDependsOnObject)));
+                                                                            isCatalogObjectExist));
 
         }
         List<CatalogObjectRevisionEntity> calledByCatalogObjectList = catalogObjectRevisionRepository.findCalledByCatalogObjectsFromKeyValueMetadata(separatorUtility.getConcatWithSeparator(bucketName,

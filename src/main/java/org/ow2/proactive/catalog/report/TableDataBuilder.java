@@ -166,8 +166,10 @@ public class TableDataBuilder {
                             .filter(metadata -> metadata.getLabel().equals(AbstractCatalogObjectParser.GENERAL_LABEL) &&
                                                 metadata.getKey().equals("description"))
                             .map(metadata -> metadata.getValue())
-                            .map(description -> description.replace("\n", " ").replace("\r", "").replace("\t", ""))
-                            .map(description -> "<p>" + description + "</p>")
+                            .map(description -> description.replace("     ", "")
+                                                           .replace("\n", " ")
+                                                           .replace("\r", "")
+                                                           .replace("\t", ""))
                             .findAny()
                             .orElse("");
 
