@@ -228,7 +228,7 @@ public class TableCatalogObjectsDependenciesBuilder {
             CatalogObjectDependencies catalogObjectDependencies) {
         StringBuilder dataCell = new StringBuilder();
         String root = nodeBeautify(catalogObjectRoot);
-        dataCell.append("<b>").append(root).append("</b>").append("<br>");
+        dataCell.append(root).append("<br>");
         dataCell.append("<i>").append("Calls: ").append("</i>").append("<br>");
 
         for (GraphPath<GraphNode, DefaultEdge> catalogObjectGraphPath : catalogObjectGraphPathList) {
@@ -243,7 +243,7 @@ public class TableCatalogObjectsDependenciesBuilder {
 
         dataCell.append("<i>").append("Called: ").append("</i>").append("<br>");
         for (String objectCalledBy : catalogObjectDependencies.getCalledByList()) {
-            dataCell.append(MARGIN).append("\u21E0").append(" ").append(objectCalledBy).append("[Workflow]");
+            dataCell.append(MARGIN).append("\u21E0").append(" ").append(parentBeautify(objectCalledBy));
             dataCell.append("<br>");
         }
         return dataCell.toString();
@@ -271,12 +271,32 @@ public class TableCatalogObjectsDependenciesBuilder {
     private String nodeBeautify(GraphNode graphNode) {
         final StringBuilder sb = new StringBuilder();
         sb.append(" ")
-          .append(graphNode.getBucketName())
-          .append('/')
+          .append(("<b>"))
           .append(graphNode.getObjectName())
-          .append("[")
+          .append(("</b>"))
+          .append("   ")
+          .append("(Bucket: ")
+          .append(graphNode.getBucketName())
+          .append(", Kind: ")
           .append(graphNode.getObjectKind())
-          .append("]");
+          .append(")");
+        return sb.toString();
+    }
+
+    private String parentBeautify(String objectCalledBy) {
+        String bucketName = separatorUtility.getSplitBySeparator(objectCalledBy).get(0);
+        String objectName = separatorUtility.getSplitBySeparator(objectCalledBy).get(1);
+        final StringBuilder sb = new StringBuilder();
+        sb.append(" ")
+          .append(("<b>"))
+          .append(objectName)
+          .append(("</b>"))
+          .append("   ")
+          .append("(Bucket: ")
+          .append(bucketName)
+          .append(", Kind: ")
+          .append("Workflow/standard")
+          .append(")");
         return sb.toString();
     }
 

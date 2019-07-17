@@ -50,7 +50,7 @@ public class CatalogObjectReportPDFGenerator {
 
     private static final String FIRST_TITLE = "ProActive Catalog Report";
 
-    private static final String SECOND_TITLE = "ProActive Catalog Object Dependencies Report";
+    private static final String SECOND_TITLE = "Object Dependencies";
 
     @Autowired
     private TableDataBuilder tableDataBuilder;
