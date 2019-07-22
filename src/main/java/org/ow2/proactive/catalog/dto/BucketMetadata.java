@@ -47,14 +47,31 @@ public class BucketMetadata extends ResourceSupport {
     @JsonProperty
     private final String name;
 
+    @JsonProperty
+    private final int objectCount;
+
     public BucketMetadata(BucketEntity bucket) {
         this.name = bucket.getBucketName();
         this.owner = bucket.getOwner();
+        this.objectCount = 0;
+    }
+
+    public BucketMetadata(BucketEntity bucket, int objectCount) {
+        this.name = bucket.getBucketName();
+        this.owner = bucket.getOwner();
+        this.objectCount = objectCount;
+    }
+
+    public BucketMetadata(String name, String owner, int objectCount) {
+        this.name = name;
+        this.owner = owner;
+        this.objectCount = objectCount;
     }
 
     public BucketMetadata(String name, String owner) {
         this.name = name;
         this.owner = owner;
+        this.objectCount = 0;
     }
 
     public String getOwner() {

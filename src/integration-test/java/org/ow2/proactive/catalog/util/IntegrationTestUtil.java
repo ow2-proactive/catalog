@@ -58,6 +58,7 @@ public class IntegrationTestUtil {
                                                                   .statusCode(HttpStatus.SC_OK)
                                                                   .extract()
                                                                   .path("");
+        System.out.println("Number of existing buckets Before=  " + bucketMetadataList.size());
 
         bucketMetadataList.stream().forEach(bucketMetadata -> {
             List<HashMap<String, String>> catalogObjectMetadataList = given().pathParam("bucketName",
@@ -79,6 +80,15 @@ public class IntegrationTestUtil {
         });
 
         given().header("sessionID", "12345").delete(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_OK);
+
+        List<HashMap<String, String>> existingBucketsList = given().get(BUCKETS_RESOURCE)
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .extract()
+                .path("");
+
+        System.out.println("Number of existing buckets After=  " + existingBucketsList.size());
+
     }
 
     public static byte[] getWorkflowAsByteArray(String filename) throws IOException {

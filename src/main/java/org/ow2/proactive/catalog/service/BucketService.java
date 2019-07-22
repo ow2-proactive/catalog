@@ -77,15 +77,15 @@ public class BucketService {
             throw new BucketNameIsNotValidException(name);
         }
 
-        BucketEntity bucket = new BucketEntity(name, owner);
+        BucketEntity bucketEntity = new BucketEntity(name, owner);
 
-        bucket = bucketRepository.save(bucket);
-        return new BucketMetadata(bucket);
+        bucketEntity = bucketRepository.save(bucketEntity);
+        return new BucketMetadata(bucketEntity, 0);
     }
 
     public BucketMetadata getBucketMetadata(String bucketName) {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
-        return new BucketMetadata(bucketEntity);
+        return new BucketMetadata(bucketEntity, bucketEntity.getCatalogObjects().size());
     }
 
     public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
@@ -94,24 +94,33 @@ public class BucketService {
             return Collections.emptyList();
         }
 
-        List<BucketEntity> entities = getBucketEntities(owners, kind, contentType, objectName);
+        List<BucketMetadata> entities = getBucketEntities(owners, kind, contentType, objectName);
 
-        log.info("Buckets size {}", entities.size());
-        return entities.stream().map(BucketMetadata::new).collect(Collectors.toList());
+        log.info("Buckets count {}", entities.size());
+        return entities;
     }
 
-    private List<BucketEntity> getBucketEntities(List<String> owners, Optional<String> kind,
+    private List<BucketMetadata> getBucketEntities(List<String> owners, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName) {
-        List<BucketEntity> entities;
+        List<BucketMetadata> entities;
         if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
-            entities = bucketRepository.findByOwnerIsInContainingKindAndContentType(owners,
-                                                                                    kind.orElse(""),
-                                                                                    contentType.orElse(""),
-                                                                                    objectName.orElse(""));
+            entities = generateBucketMetadataList(bucketRepository.findByOwnerIsInContainingKindAndContentTypeAndObjectName(owners,
+                                                                                                                            kind.orElse(""),
+                                                                                                                            contentType.orElse(""),
+                                                                                                                            objectName.orElse("")));
+
         } else {
-            entities = bucketRepository.findByOwnerIn(owners);
+            entities = generateBucketMetadataList(bucketRepository.findByOwnerIn(owners));
         }
         return entities;
+    }
+
+    private List<BucketMetadata> generateBucketMetadataList(List<BucketEntity> bucketEntityList) {
+        return bucketEntityList.stream()
+                               .map(bucketEntity -> new BucketMetadata(bucketEntity,
+                                                                       bucketEntity.getCatalogObjects().size()))
+                               .collect(Collectors.toList());
+
     }
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType) {
@@ -120,21 +129,26 @@ public class BucketService {
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
             Optional<String> objectName) {
-        List<BucketEntity> entities;
+        List<BucketMetadata> entities;
         List<String> owners = Collections.singletonList(ownerName);
 
         if (!StringUtils.isEmpty(ownerName)) {
             entities = getBucketEntities(owners, kind, contentType, objectName);
         } else if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
-            entities = bucketRepository.findContainingKindAndContentType(kind.orElse(""),
-                                                                         contentType.orElse(""),
-                                                                         objectName.orElse(""));
+            entities = generateBucketMetadataList(bucketRepository.findContainingKindAndContentTypeAndObjectName(kind.orElse(""),
+                                                                                                                 contentType.orElse(""),
+                                                                                                                 objectName.orElse("")));
+
         } else {
-            entities = bucketRepository.findAll();
+            entities = bucketRepository.findAll()
+                                       .stream()
+                                       .map(bucketEntity -> new BucketMetadata(bucketEntity,
+                                                                               bucketEntity.getCatalogObjects().size()))
+                                       .collect(Collectors.toList());
         }
 
-        log.info("Buckets size {}", entities.size());
-        return entities.stream().map(BucketMetadata::new).collect(Collectors.toList());
+        log.info("Buckets count {}", entities.size());
+        return entities;
     }
 
     public void cleanAllEmptyBuckets() {
@@ -147,17 +161,17 @@ public class BucketService {
     }
 
     public BucketMetadata deleteEmptyBucket(String bucketName) {
-        BucketEntity bucket = bucketRepository.findBucketForUpdate(bucketName);
+        BucketEntity bucketEntity = bucketRepository.findBucketForUpdate(bucketName);
 
-        if (bucket == null) {
+        if (bucketEntity == null) {
             throw new BucketNotFoundException(bucketName);
         }
 
-        if (!bucket.getCatalogObjects().isEmpty()) {
+        if (!bucketEntity.getCatalogObjects().isEmpty()) {
             throw new DeleteNonEmptyBucketException(bucketName);
         }
-        bucketRepository.delete(bucket.getId());
-        return new BucketMetadata(bucket);
+        bucketRepository.delete(bucketEntity.getId());
+        return new BucketMetadata(bucketEntity);
     }
 
     private BucketEntity findBucketByNameAndCheck(String bucketName) {
