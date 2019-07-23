@@ -140,11 +140,7 @@ public class BucketService {
                                                                                                                  objectName.orElse("")));
 
         } else {
-            entities = bucketRepository.findAll()
-                                       .stream()
-                                       .map(bucketEntity -> new BucketMetadata(bucketEntity,
-                                                                               bucketEntity.getCatalogObjects().size()))
-                                       .collect(Collectors.toList());
+            entities = generateBucketMetadataList(bucketRepository.findAll());
         }
 
         log.info("Buckets count {}", entities.size());
