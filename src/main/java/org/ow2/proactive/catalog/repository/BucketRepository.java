@@ -65,13 +65,14 @@ public interface BucketRepository extends JpaRepository<BucketEntity, Long>, Jpa
     @Query(value = "SELECT DISTINCT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos" +
                    " WHERE lower(cos.kind) LIKE lower(concat(?1, '%')) AND lower(cos.contentType) LIKE lower(concat(?2, '%'))" +
                    " AND lower(cos.id.name) LIKE lower(concat('%', ?3, '%')) OR bk.catalogObjects IS EMPTY")
-    List<BucketEntity> findContainingKindAndContentType(String kind, String contentType, String objectName);
+    List<BucketEntity> findContainingKindAndContentTypeAndObjectName(String kind, String contentType,
+            String objectName);
 
     @Query(value = "SELECT DISTINCT bk FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos" +
                    " WHERE bk.owner in ?1 AND (lower(cos.kind) LIKE lower(concat(?2, '%'))" +
                    " AND (lower(cos.contentType) LIKE lower(concat(?3, '%')) AND lower(cos.id.name) LIKE lower(concat('%', ?4, '%')))" +
                    " OR bk.catalogObjects IS EMPTY)")
-    List<BucketEntity> findByOwnerIsInContainingKindAndContentType(List<String> owners, String kind, String contentType,
-            String objectName);
+    List<BucketEntity> findByOwnerIsInContainingKindAndContentTypeAndObjectName(List<String> owners, String kind,
+            String contentType, String objectName);
 
 }
