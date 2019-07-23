@@ -79,13 +79,6 @@ public class IntegrationTestUtil {
         });
 
         given().header("sessionID", "12345").delete(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_OK);
-
-        List<HashMap<String, String>> existingBucketsList = given().get(BUCKETS_RESOURCE)
-                                                                   .then()
-                                                                   .statusCode(HttpStatus.SC_OK)
-                                                                   .extract()
-                                                                   .path("");
-
     }
 
     public static byte[] getWorkflowAsByteArray(String filename) throws IOException {
