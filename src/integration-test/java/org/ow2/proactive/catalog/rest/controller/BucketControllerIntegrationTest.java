@@ -30,9 +30,11 @@ import static com.jayway.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -282,6 +284,108 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("", hasSize(3));
+    }
+
+    @Test
+    public void testContentCountGivenObjectName() throws UnsupportedEncodingException {
+        final String firstBucket = "first-bucket";
+        final String emptyBucket = "empty-bucket";
+        final String secondBucket = "second-ucket";
+        final String workflowKind = "workflow";
+        final String pcaKind = "pca";
+        final String ruleKind = "rule";
+
+        // Get bucket ID from response to create an object in it
+        String bucketIdOfFirstBucket = IntegrationTestUtil.createBucket(firstBucket, "owner");
+        String bucketIdOfEmptyBucket = IntegrationTestUtil.createBucket(emptyBucket, "owner");
+        String bucketIdOfSecondBucket = IntegrationTestUtil.createBucket(secondBucket, "owner");
+
+        // Add three objects to the first bucket
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfFirstBucket,
+                                               workflowKind,
+                                               "object1",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfFirstBucket,
+                                               workflowKind,
+                                               "object2",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfFirstBucket,
+                                               pcaKind,
+                                               "abc",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        List<HashMap<String, Object>> bucketEntityWithContentCountList1 = given().param("contentType",
+                                                                                        MediaType.APPLICATION_ATOM_XML_VALUE)
+                                                                                 .param("kind", workflowKind)
+                                                                                 .get(BUCKETS_RESOURCE)
+                                                                                 .then()
+                                                                                 .assertThat()
+                                                                                 .statusCode(HttpStatus.SC_OK)
+                                                                                 .extract()
+                                                                                 .path("");
+
+        assertEquals(2, sumContentCount(bucketEntityWithContentCountList1));
+
+        // Add three objects to the second bucket
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfSecondBucket,
+                                               workflowKind,
+                                               "object-abc",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfSecondBucket,
+                                               ruleKind,
+                                               "object2",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfSecondBucket,
+                                               ruleKind,
+                                               "object3",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        List<HashMap<String, Object>> bucketEntityWithContentCountList2 = given().param("contentType",
+                                                                                        MediaType.APPLICATION_ATOM_XML_VALUE)
+                                                                                 .param("objectName", "abc")
+                                                                                 .get(BUCKETS_RESOURCE)
+                                                                                 .then()
+                                                                                 .assertThat()
+                                                                                 .statusCode(HttpStatus.SC_OK)
+                                                                                 .extract()
+                                                                                 .path("");
+
+        assertEquals(2, sumContentCount(bucketEntityWithContentCountList2));
+
+        List<HashMap<String, Object>> bucketEntityWithContentCountList3 = given().param("contentType",
+                                                                                        MediaType.APPLICATION_ATOM_XML_VALUE)
+                                                                                 .param("kind", workflowKind)
+                                                                                 .param("objectName", "object")
+                                                                                 .get(BUCKETS_RESOURCE)
+                                                                                 .then()
+                                                                                 .assertThat()
+                                                                                 .statusCode(HttpStatus.SC_OK)
+                                                                                 .extract()
+                                                                                 .path("");
+
+        assertEquals(3, sumContentCount(bucketEntityWithContentCountList3));
+
+    }
+
+    private int sumContentCount(List<HashMap<String, Object>> bucketEntityWithContentCountList) {
+
+        return bucketEntityWithContentCountList.stream().mapToInt(map -> (Integer) map.get("objectCount")).sum();
     }
 
     @Test
