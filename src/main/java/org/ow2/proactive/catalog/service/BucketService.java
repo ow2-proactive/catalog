@@ -104,15 +104,23 @@ public class BucketService {
             Optional<String> contentType, Optional<String> objectName) {
         List<BucketMetadata> entities;
         if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
-            entities = generateBucketMetadataList(bucketRepository.findByOwnerIsInContainingKindAndContentTypeAndObjectName(owners,
-                                                                                                                            kind.orElse(""),
-                                                                                                                            contentType.orElse(""),
-                                                                                                                            objectName.orElse("")));
+            entities = generateBucketMetadataListFromObject(bucketRepository.findByOwnerIsInContainingKindAndContentTypeAndObjectName(owners,
+                                                                                                                                      kind.orElse(""),
+                                                                                                                                      contentType.orElse(""),
+                                                                                                                                      objectName.orElse("")));
 
         } else {
             entities = generateBucketMetadataList(bucketRepository.findByOwnerIn(owners));
         }
         return entities;
+    }
+
+    private List<BucketMetadata> generateBucketMetadataListFromObject(List<Object[]> bucketEntityWithContentCountList) {
+        return bucketEntityWithContentCountList.stream()
+                                               .map(bucketEntityWithContentCount -> new BucketMetadata((BucketEntity) bucketEntityWithContentCount[0],
+                                                                                                       ((Long) bucketEntityWithContentCount[1]).intValue()))
+                                               .collect(Collectors.toList());
+
     }
 
     private List<BucketMetadata> generateBucketMetadataList(List<BucketEntity> bucketEntityList) {
@@ -135,9 +143,9 @@ public class BucketService {
         if (!StringUtils.isEmpty(ownerName)) {
             entities = getBucketEntities(owners, kind, contentType, objectName);
         } else if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
-            entities = generateBucketMetadataList(bucketRepository.findContainingKindAndContentTypeAndObjectName(kind.orElse(""),
-                                                                                                                 contentType.orElse(""),
-                                                                                                                 objectName.orElse("")));
+            entities = generateBucketMetadataListFromObject(bucketRepository.findContainingKindAndContentTypeAndObjectName(kind.orElse(""),
+                                                                                                                           contentType.orElse(""),
+                                                                                                                           objectName.orElse("")));
 
         } else {
             entities = generateBucketMetadataList(bucketRepository.findAll());
