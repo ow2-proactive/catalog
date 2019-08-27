@@ -25,12 +25,13 @@
  */
 package org.ow2.proactive.catalog.service.exception;
 
+import org.ow2.proactive.microservices.common.exception.ServerException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
-public class PDFGenerationException extends RuntimeException {
+public class PDFGenerationException extends ServerException {
 
     final public static String ERROR_MESSAGE = "Error while generating the PDF Report: ";
 

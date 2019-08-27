@@ -29,8 +29,8 @@ import java.util.ArrayList;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ow2.proactive.authentication.UserData;
-import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -57,7 +57,7 @@ public class SchedulerUserAuthenticationService {
                                                       .getUserDataFromSessionId(sessionId);
         } catch (Exception exception) {
             throw new NotAuthenticatedException("Could not validate sessionId, validation returned: " +
-                                                exception.getMessage());
+                                                exception.getMessage(), exception);
         }
 
         if (userData == null || StringUtils.isEmpty(userData.getUserName())) {

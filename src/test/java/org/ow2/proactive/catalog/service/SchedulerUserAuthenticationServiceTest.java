@@ -39,8 +39,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.authentication.UserData;
-import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.ow2.proactive_grid_cloud_portal.common.SchedulerRestInterface;
 import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
 

@@ -36,7 +36,7 @@ import java.time.ZoneId;
 import org.ow2.proactive.catalog.rest.controller.CatalogObjectController;
 import org.ow2.proactive.catalog.rest.controller.CatalogObjectRevisionController;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
+import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.core.LinkBuilderSupport;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;

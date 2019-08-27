@@ -95,7 +95,11 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testCreateBucketShouldReturnBadRequestWithoutBody() {
-        when().post(BUCKETS_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+        given().header("sessionID", "12345")
+               .post(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -162,7 +166,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .get(BUCKET_RESOURCE)
                .then()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body(ERROR_MESSAGE, equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
+               .body(ERROR_MESSAGE, equalTo(new BucketNotFoundException("non-existing-bucket").getMessage()));
     }
 
     @Test

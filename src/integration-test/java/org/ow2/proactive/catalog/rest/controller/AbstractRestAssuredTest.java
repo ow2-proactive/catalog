@@ -55,7 +55,7 @@ public abstract class AbstractRestAssuredTest {
 
     protected static final String CATALOG_OBJECTS_REFERENCE = "/buckets/references";
 
-    protected final static String ERROR_MESSAGE = "errorMessage";
+    protected static final String ERROR_MESSAGE = "errorMessage";
 
     @Value("${local.server.port}")
     private int serverPort;

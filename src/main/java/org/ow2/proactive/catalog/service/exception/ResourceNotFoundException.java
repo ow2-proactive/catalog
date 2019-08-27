@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.service.exception;
 
+import org.ow2.proactive.microservices.common.exception.ClientException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -33,7 +34,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author ActiveEon Team
  */
 @ResponseStatus(value = HttpStatus.NOT_FOUND)
-public class ResourceNotFoundException extends RuntimeException {
+public class ResourceNotFoundException extends ClientException {
 
     public ResourceNotFoundException(String message) {
         super(message);

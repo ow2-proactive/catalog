@@ -25,19 +25,13 @@
  */
 package org.ow2.proactive.catalog.rest.exceptiohandler;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.http.HttpStatus;
+import org.ow2.proactive.microservices.common.exception.ExceptionHandlerAdvice;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import lombok.extern.log4j.Log4j;
 
@@ -49,33 +43,16 @@ import lombok.extern.log4j.Log4j;
 @Controller
 @ControllerAdvice
 @Log4j
-public class ExceptionHandlerController {
+public class ExceptionHandlerController extends ExceptionHandlerAdvice {
 
-    @ExceptionHandler(Exception.class)
-    @ResponseBody
-    public ResponseEntity exceptionHandler(HttpServletRequest request, Exception exception) throws Exception {
-        log.warn("Exception: " + exception.getLocalizedMessage());
-
-        HttpStatus responseStatusCode = resolveAnnotatedResponseStatus(exception);
-
-        return ResponseEntity.status(responseStatusCode)
-                             .body(new ExceptionRepresentation(responseStatusCode.value(),
-                                                               exception.getLocalizedMessage(),
-                                                               getStackTrace(exception)));
-    }
-
-    HttpStatus resolveAnnotatedResponseStatus(Exception exception) throws Exception {
-        ResponseStatus annotation = AnnotationUtils.findAnnotation(exception.getClass(), ResponseStatus.class);
-        if (annotation != null) {
-            return annotation.code();
-        } else
-            throw exception;
-    }
-
-    private String getStackTrace(final Throwable throwable) {
-        final StringWriter sw = new StringWriter();
-        final PrintWriter pw = new PrintWriter(sw, true);
-        throwable.printStackTrace(pw);
-        return sw.getBuffer().toString();
+    /**
+     * Check if the binding error is a client error due to a bad session
+     * @param e the exception caught
+     * @return unauthorized or server error
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public @ResponseBody ResponseEntity<Object> dataDataIntegrityException(DataIntegrityViolationException e)
+            throws Exception {
+        return clientErrorHandler(e);
     }
 }

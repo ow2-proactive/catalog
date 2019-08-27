@@ -37,8 +37,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 
 
 /**

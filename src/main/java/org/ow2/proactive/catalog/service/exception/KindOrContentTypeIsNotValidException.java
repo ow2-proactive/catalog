@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.service.exception;
 
+import org.ow2.proactive.microservices.common.exception.ClientException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -39,7 +40,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author ActiveEon Team
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class KindOrContentTypeIsNotValidException extends RuntimeException {
+public class KindOrContentTypeIsNotValidException extends ClientException {
 
     public KindOrContentTypeIsNotValidException(String parameterName, String parameterType) {
         super("The " + parameterType + " name: '" + parameterName +

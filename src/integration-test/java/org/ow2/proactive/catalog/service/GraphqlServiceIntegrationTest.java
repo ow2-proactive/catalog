@@ -46,8 +46,8 @@ import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.graphql.bean.CatalogObjectConnection;
 import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
+import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -85,10 +85,6 @@ public class GraphqlServiceIntegrationTest {
 
     private byte[] workflowAsByteArrayUpdated;
 
-    private long firstCommitTime;
-
-    private long secondCommitTime;
-
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @Before
@@ -100,25 +96,23 @@ public class GraphqlServiceIntegrationTest {
 
         workflowAsByteArray = IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml");
         workflowAsByteArrayUpdated = IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml");
-        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucket.getName(),
-                                                                                       "catalog1",
-                                                                                       "object",
-                                                                                       "commit message",
-                                                                                       "username",
-                                                                                       "application/xml",
-                                                                                       keyValues,
-                                                                                       workflowAsByteArray,
-                                                                                       null);
-        firstCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog1",
+                                                 "object",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
 
         Thread.sleep(1); // to be sure that a new revision time will be different from previous revision time
-        catalogObject = catalogObjectService.createCatalogObjectRevision(bucket.getName(),
-                                                                         "catalog1",
-                                                                         "commit message 2",
-                                                                         "username",
-                                                                         keyValues,
-                                                                         workflowAsByteArrayUpdated);
-        secondCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        catalogObjectService.createCatalogObjectRevision(bucket.getName(),
+                                                         "catalog1",
+                                                         "commit message 2",
+                                                         "username",
+                                                         keyValues,
+                                                         workflowAsByteArrayUpdated);
 
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog2",

@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.service.exception;
 
+import org.ow2.proactive.microservices.common.exception.ClientException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -34,7 +35,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @since 27/07/2017
  */
 @ResponseStatus(value = HttpStatus.FORBIDDEN)
-public class AccessDeniedException extends RuntimeException {
+public class AccessDeniedException extends ClientException {
 
     public AccessDeniedException(String message) {
         super(message);
