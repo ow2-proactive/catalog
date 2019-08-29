@@ -23,7 +23,7 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.exceptiohandler;
+package org.ow2.proactive.catalog.rest.exceptionhandler;
 
 import org.ow2.proactive.microservices.common.exception.ExceptionHandlerAdvice;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 
 
 /**
@@ -42,8 +42,12 @@ import lombok.extern.log4j.Log4j;
  */
 @Controller
 @ControllerAdvice
-@Log4j
+@Log4j2
 public class ExceptionHandlerController extends ExceptionHandlerAdvice {
+
+    public ExceptionHandlerController() {
+        super(log);
+    }
 
     /**
      * Check if the binding error is a client error due to a bad session
