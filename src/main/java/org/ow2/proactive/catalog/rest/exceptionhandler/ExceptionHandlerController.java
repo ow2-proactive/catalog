@@ -28,7 +28,6 @@ package org.ow2.proactive.catalog.rest.exceptionhandler;
 import org.ow2.proactive.microservices.common.exception.ExceptionHandlerAdvice;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -40,7 +39,6 @@ import lombok.extern.log4j.Log4j2;
  * @author ActiveEon Team
  * @since 03/08/2017
  */
-@Controller
 @ControllerAdvice
 @Log4j2
 public class ExceptionHandlerController extends ExceptionHandlerAdvice {
@@ -49,13 +47,8 @@ public class ExceptionHandlerController extends ExceptionHandlerAdvice {
         super(log);
     }
 
-    /**
-     * Check if the binding error is a client error due to a bad session
-     * @param e the exception caught
-     * @return unauthorized or server error
-     */
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public @ResponseBody ResponseEntity<Object> dataDataIntegrityException(DataIntegrityViolationException e)
+    public @ResponseBody ResponseEntity<Object> dataIntegrityExceptionHandler(DataIntegrityViolationException e)
             throws Exception {
         return clientErrorHandler(e);
     }
