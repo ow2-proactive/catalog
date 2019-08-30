@@ -56,10 +56,10 @@ import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
+import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 

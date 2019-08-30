@@ -217,6 +217,8 @@ dependencies {
     // library to build pdf reports
     compile 'com.github.dhorions:boxable'
 
+    compile "org.ow2.proactive:microservices-common:$version"
+
     //support for Oracle DB version 12.1.0.2
     //testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
 

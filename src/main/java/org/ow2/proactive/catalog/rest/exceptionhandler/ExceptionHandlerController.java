@@ -23,24 +23,33 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.rest.exceptiohandler;
+package org.ow2.proactive.catalog.rest.exceptionhandler;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.ow2.proactive.microservices.common.exception.ExceptionHandlerAdvice;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.extern.log4j.Log4j2;
 
 
-@Data
-@AllArgsConstructor
-public class ExceptionRepresentation {
-    @JsonProperty("httpErrorCode")
-    private final Integer statusCode;
+/**
+ * @author ActiveEon Team
+ * @since 03/08/2017
+ */
+@ControllerAdvice
+@Log4j2
+public class ExceptionHandlerController extends ExceptionHandlerAdvice {
 
-    @JsonProperty("errorMessage")
-    private final String errorMessage;
+    public ExceptionHandlerController() {
+        super(log);
+    }
 
-    @JsonProperty("stackTrace")
-    private final String stackTrace;
-
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public @ResponseBody ResponseEntity<Object> dataIntegrityExceptionHandler(DataIntegrityViolationException e)
+            throws Exception {
+        return clientErrorHandler(e);
+    }
 }
