@@ -2,7 +2,7 @@ package org.ow2.proactive.catalog.service;
 
 
 @org.junit.runner.RunWith(org.mockito.runners.MockitoJUnitRunner.class)
-public class CatalogObjectServiceTestDspot {
+public class CatalogObjectServiceTestDspotDspot {
     @org.junit.Test(timeout = 10000)
     public void testCreateCatalogObject_mg2() throws java.lang.Exception {
         org.ow2.proactive.catalog.repository.entity.BucketEntity __DSPOT_o_1079 = new org.ow2.proactive.catalog.repository.entity.BucketEntity("Dve{.(@-Z]%PcaO`;a[0", "2Qxo!cQ2NX1H5-/1v41(");
@@ -13,7 +13,7 @@ public class CatalogObjectServiceTestDspot {
         org.mockito.Mockito.when(this.catalogObjectRevisionRepository.save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectEntity);
         org.mockito.Mockito.when(this.genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(org.mockito.Matchers.any(), org.mockito.Matchers.any(), org.mockito.Matchers.any())).thenReturn(new byte[]{  });
         java.util.List<org.ow2.proactive.catalog.dto.Metadata> keyValues = com.google.common.collect.ImmutableList.of(new org.ow2.proactive.catalog.dto.Metadata("key", "value", null));
-        org.ow2.proactive.catalog.dto.CatalogObjectMetadata catalogObject = this.catalogObjectService.createCatalogObject("bucket", org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.NAME, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.OBJECT, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.COMMIT_MESSAGE, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.APPLICATION_XML, keyValues, null, null);
+        org.ow2.proactive.catalog.dto.CatalogObjectMetadata catalogObject = this.catalogObjectService.createCatalogObject("bucket", org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.NAME, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.OBJECT, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.COMMIT_MESSAGE, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.APPLICATION_XML, keyValues, null, null);
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getCommitMessage()).isEqualTo("commit message");
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getKind()).isEqualTo("object");
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getMetadataList())).isEmpty()).isFalse();
@@ -77,7 +77,7 @@ public class CatalogObjectServiceTestDspot {
             org.mockito.Mockito.when(catalogObjectRevisionRepository.save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectEntity);
             org.mockito.Mockito.when(genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(org.mockito.Matchers.any(), org.mockito.Matchers.any(), org.mockito.Matchers.any())).thenReturn(new byte[]{  });
             java.util.List<org.ow2.proactive.catalog.dto.Metadata> keyValues = com.google.common.collect.ImmutableList.of(new org.ow2.proactive.catalog.dto.Metadata("key", "value", null));
-            org.ow2.proactive.catalog.dto.CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject("bucket", org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.NAME, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.OBJECT, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.COMMIT_MESSAGE, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.APPLICATION_XML, null, null, null);
+            org.ow2.proactive.catalog.dto.CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject("bucket", org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.NAME, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.OBJECT, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.COMMIT_MESSAGE, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.APPLICATION_XML, null, null, null);
             org.junit.Assert.fail("testCreateCatalogObjectnull28500 should have thrown NullPointerException");
         } catch (java.lang.NullPointerException expected) {
             org.junit.Assert.assertEquals(null, expected.getMessage());
@@ -94,7 +94,7 @@ public class CatalogObjectServiceTestDspot {
         org.mockito.Mockito.when(this.catalogObjectRevisionRepository.save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectEntity);
         org.mockito.Mockito.when(this.genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(org.mockito.Matchers.any(), org.mockito.Matchers.any(), org.mockito.Matchers.any())).thenReturn(new byte[]{  });
         java.util.List<org.ow2.proactive.catalog.dto.Metadata> keyValues = com.google.common.collect.ImmutableList.of(new org.ow2.proactive.catalog.dto.Metadata("key", "value", null));
-        org.ow2.proactive.catalog.dto.CatalogObjectMetadata catalogObject = this.catalogObjectService.createCatalogObject("bucket", org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.NAME, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.OBJECT, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.COMMIT_MESSAGE, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.APPLICATION_XML, keyValues, null, null);
+        org.ow2.proactive.catalog.dto.CatalogObjectMetadata catalogObject = this.catalogObjectService.createCatalogObject("bucket", org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.NAME, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.OBJECT, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.COMMIT_MESSAGE, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.APPLICATION_XML, keyValues, null, null);
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getCommitMessage()).isEqualTo("commit message");
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getKind()).isEqualTo("object");
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getMetadataList())).isEmpty()).isFalse();
@@ -130,7 +130,7 @@ public class CatalogObjectServiceTestDspot {
         org.mockito.Mockito.when(this.catalogObjectRevisionRepository.save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectEntity);
         org.mockito.Mockito.when(this.genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(org.mockito.Matchers.any(), org.mockito.Matchers.any(), org.mockito.Matchers.any())).thenReturn(new byte[]{  });
         java.util.List<org.ow2.proactive.catalog.dto.Metadata> keyValues = com.google.common.collect.ImmutableList.of(new org.ow2.proactive.catalog.dto.Metadata("key", "value", null));
-        org.ow2.proactive.catalog.dto.CatalogObjectMetadata catalogObject = this.catalogObjectService.createCatalogObject("bucket", org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.NAME, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.OBJECT, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.COMMIT_MESSAGE, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.APPLICATION_XML, keyValues, null, null);
+        org.ow2.proactive.catalog.dto.CatalogObjectMetadata catalogObject = this.catalogObjectService.createCatalogObject("bucket", org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.NAME, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.OBJECT, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.COMMIT_MESSAGE, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.APPLICATION_XML, keyValues, null, null);
         catalogObjectEntity.addKeyValue(__DSPOT_keyValueMetadata_1080);
         boolean o_testCreateCatalogObject_mg3_mg26__38 = __DSPOT_keyValueMetadata_1080.equals(__DSPOT_o_1087);
         com.google.common.truth.Truth.assertThat(o_testCreateCatalogObject_mg3_mg26__38).isFalse();
@@ -147,7 +147,7 @@ public class CatalogObjectServiceTestDspot {
         org.mockito.Mockito.when(this.catalogObjectRevisionRepository.save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectRevisionEntity);
         java.util.List<org.ow2.proactive.catalog.dto.Metadata> keyvalues = com.google.common.collect.ImmutableList.of(new org.ow2.proactive.catalog.dto.Metadata("key", "value", null));
         org.mockito.Mockito.when(this.keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(org.mockito.Matchers.any(), org.mockito.Matchers.any())).thenReturn(java.util.Collections.emptyList());
-        org.ow2.proactive.catalog.dto.CatalogObjectMetadata catalogObject = this.catalogObjectService.createCatalogObjectRevision("bucket", org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.NAME, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.COMMIT_MESSAGE, keyvalues, null);
+        org.ow2.proactive.catalog.dto.CatalogObjectMetadata catalogObject = this.catalogObjectService.createCatalogObjectRevision("bucket", org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.NAME, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.COMMIT_MESSAGE, keyvalues, null);
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getCommitMessage()).isEqualTo("commit message");
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getKind()).isEqualTo("object");
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getMetadataList())).isEmpty()).isFalse();
@@ -175,7 +175,7 @@ public class CatalogObjectServiceTestDspot {
     private org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity newCatalogObjectEntity(long now) {
         org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity catalogObjectEntity = org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity.builder().id(new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity.CatalogObjectEntityKey(1L, "catalog")).kind("object").contentType("application/xml").lastCommitTime(now).build();
         java.util.List<org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity> keyvalues = com.google.common.collect.ImmutableList.of(new org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity("key", "value", null));
-        org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity catalogObjectRevisionEntity = org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity.builder().commitMessage(org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.COMMIT_MESSAGE).commitTime(now).catalogObject(catalogObjectEntity).build();
+        org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity catalogObjectRevisionEntity = org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity.builder().commitMessage(org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.COMMIT_MESSAGE).commitTime(now).catalogObject(catalogObjectEntity).build();
         catalogObjectRevisionEntity.addKeyValueList(keyvalues);
         catalogObjectEntity.addRevision(catalogObjectRevisionEntity);
         return catalogObjectEntity;
@@ -184,7 +184,7 @@ public class CatalogObjectServiceTestDspot {
     private org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity newCatalogObjectRevisionEntity(org.ow2.proactive.catalog.repository.entity.BucketEntity bucketEntity, long now) {
         org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity catalogObjectEntity = org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity.builder().id(new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity.CatalogObjectEntityKey(1L, "catalog")).kind("object").bucket(bucketEntity).contentType("application/xml").lastCommitTime(now).build();
         java.util.List<org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity> keyvalues = com.google.common.collect.ImmutableList.of(new org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity("key", "value", null));
-        org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity catalogObjectRevisionEntity = org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity.builder().commitMessage(org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.COMMIT_MESSAGE).commitTime(now).catalogObject(catalogObjectEntity).build();
+        org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity catalogObjectRevisionEntity = org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity.builder().commitMessage(org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspotDspot.COMMIT_MESSAGE).commitTime(now).catalogObject(catalogObjectEntity).build();
         catalogObjectRevisionEntity.addKeyValueList(keyvalues);
         catalogObjectEntity.addRevision(catalogObjectRevisionEntity);
         return catalogObjectRevisionEntity;

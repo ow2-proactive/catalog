@@ -21,7 +21,7 @@ import org.ow2.proactive.catalog.service.RestApiAccessService;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class CatalogObjectReportControllerTestDspot {
+public class CatalogObjectReportControllerTestDspotDspot {
     @InjectMocks
     private CatalogObjectReportController catalogObjectReportController;
 
