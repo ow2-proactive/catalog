@@ -2,8 +2,8 @@ package org.ow2.proactive.catalog.service;
 
 
 @org.junit.runner.RunWith(org.mockito.runners.MockitoJUnitRunner.class)
-public class BucketServiceTestDspotDspot {
-    private static final java.lang.String DEFAULT_BUCKET_NAME = "BucketServiceTestDspotDspot";
+public class BucketServiceTestDspotDspotDspot {
+    private static final java.lang.String DEFAULT_BUCKET_NAME = "BucketServiceTestDspotDspotDspot";
 
     @org.mockito.InjectMocks
     private org.ow2.proactive.catalog.service.BucketService bucketService;
@@ -24,7 +24,7 @@ public class BucketServiceTestDspotDspot {
         org.ow2.proactive.catalog.repository.entity.BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", java.time.LocalDateTime.now());
         org.mockito.Mockito.when(bucketRepository.save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.BucketEntity.class))).thenReturn(mockedBucket);
         org.mockito.Mockito.when(bucketNameValidator.isValid(org.mockito.Matchers.anyString())).thenReturn(true);
-        org.ow2.proactive.catalog.dto.BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", org.ow2.proactive.catalog.service.BucketServiceTestDspotDspot.DEFAULT_BUCKET_NAME);
+        org.ow2.proactive.catalog.dto.BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", org.ow2.proactive.catalog.service.BucketServiceTestDspotDspotDspot.DEFAULT_BUCKET_NAME);
         org.ow2.proactive.catalog.repository.entity.BucketEntity o_testCreateBucket_mg1__16 = org.mockito.Mockito.verify(bucketRepository, org.mockito.Mockito.times(1)).save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.BucketEntity.class));
         boolean o_testCreateBucket_mg1__20 = org.mockito.Mockito.verify(bucketNameValidator, org.mockito.Mockito.times(1)).isValid(org.mockito.Matchers.anyString());
         mockedBucket.getBucketName();
@@ -44,7 +44,7 @@ public class BucketServiceTestDspotDspot {
         org.ow2.proactive.catalog.repository.entity.BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", java.time.LocalDateTime.now());
         org.mockito.Mockito.when(bucketRepository.save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.BucketEntity.class))).thenReturn(mockedBucket);
         org.mockito.Mockito.when(bucketNameValidator.isValid(org.mockito.Matchers.anyString())).thenReturn(true);
-        org.ow2.proactive.catalog.dto.BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", org.ow2.proactive.catalog.service.BucketServiceTestDspotDspot.DEFAULT_BUCKET_NAME);
+        org.ow2.proactive.catalog.dto.BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", org.ow2.proactive.catalog.service.BucketServiceTestDspotDspotDspot.DEFAULT_BUCKET_NAME);
         org.ow2.proactive.catalog.repository.entity.BucketEntity o_testCreateBucket_mg1__16 = org.mockito.Mockito.verify(bucketRepository, org.mockito.Mockito.times(1)).save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.BucketEntity.class));
         boolean o_testCreateBucket_mg1__20 = org.mockito.Mockito.verify(bucketNameValidator, org.mockito.Mockito.times(1)).isValid(org.mockito.Matchers.anyString());
         mockedBucket.getBucketName();

@@ -5,7 +5,7 @@ package org.ow2.proactive.catalog.service;
 public class CatalogObjectServiceTestDspot {
     @org.junit.Test(timeout = 10000)
     public void testCreateCatalogObject_mg2() throws java.lang.Exception {
-        org.ow2.proactive.catalog.repository.entity.BucketEntity __DSPOT_o_1079 = new org.ow2.proactive.catalog.repository.entity.BucketEntity("Dve{.(@-Z]%PcaO`;a[0", "2Qxo!cQ2NX1H5-/1v41(");
+        org.ow2.proactive.catalog.repository.entity.BucketEntity __DSPOT_o_1161 = new org.ow2.proactive.catalog.repository.entity.BucketEntity();
         org.ow2.proactive.catalog.repository.entity.BucketEntity bucketEntity = new org.ow2.proactive.catalog.repository.entity.BucketEntity("bucket", "toto");
         org.mockito.Mockito.when(this.kindAndContentTypeValidator.isValid(org.mockito.Matchers.anyString())).thenReturn(true);
         org.mockito.Mockito.when(this.bucketRepository.findOneByBucketName(org.mockito.Matchers.anyString())).thenReturn(bucketEntity);
@@ -24,7 +24,7 @@ public class CatalogObjectServiceTestDspot {
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getLinks())).isEmpty()).isTrue();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).hasLinks()).isFalse();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getId()).isNull();
-        boolean o_testCreateCatalogObject_mg2__31 = bucketEntity.equals(__DSPOT_o_1079);
+        boolean o_testCreateCatalogObject_mg2__31 = bucketEntity.equals(__DSPOT_o_1161);
         com.google.common.truth.Truth.assertThat(o_testCreateCatalogObject_mg2__31).isFalse();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getCommitMessage()).isEqualTo("commit message");
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getKind()).isEqualTo("object");
@@ -68,7 +68,7 @@ public class CatalogObjectServiceTestDspot {
     private org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator kindAndContentTypeValidator;
 
     @org.junit.Test(timeout = 10000)
-    public void testCreateCatalogObjectnull28500_failAssert0() throws java.lang.Exception {
+    public void testCreateCatalogObjectnull28699_failAssert0() throws java.lang.Exception {
         try {
             org.ow2.proactive.catalog.repository.entity.BucketEntity bucketEntity = new org.ow2.proactive.catalog.repository.entity.BucketEntity("bucket", "toto");
             org.mockito.Mockito.when(kindAndContentTypeValidator.isValid(org.mockito.Matchers.anyString())).thenReturn(true);
@@ -78,7 +78,7 @@ public class CatalogObjectServiceTestDspot {
             org.mockito.Mockito.when(genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(org.mockito.Matchers.any(), org.mockito.Matchers.any(), org.mockito.Matchers.any())).thenReturn(new byte[]{  });
             java.util.List<org.ow2.proactive.catalog.dto.Metadata> keyValues = com.google.common.collect.ImmutableList.of(new org.ow2.proactive.catalog.dto.Metadata("key", "value", null));
             org.ow2.proactive.catalog.dto.CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject("bucket", org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.NAME, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.OBJECT, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.COMMIT_MESSAGE, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.APPLICATION_XML, null, null, null);
-            org.junit.Assert.fail("testCreateCatalogObjectnull28500 should have thrown NullPointerException");
+            org.junit.Assert.fail("testCreateCatalogObjectnull28699 should have thrown NullPointerException");
         } catch (java.lang.NullPointerException expected) {
             org.junit.Assert.assertEquals(null, expected.getMessage());
         }
@@ -86,7 +86,7 @@ public class CatalogObjectServiceTestDspot {
 
     @org.junit.Test(timeout = 10000)
     public void testCreateCatalogObject_mg6() throws java.lang.Exception {
-        org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity __DSPOT_o_1083 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity();
+        java.lang.Object __DSPOT_o_1165 = new java.lang.Object();
         org.ow2.proactive.catalog.repository.entity.BucketEntity bucketEntity = new org.ow2.proactive.catalog.repository.entity.BucketEntity("bucket", "toto");
         org.mockito.Mockito.when(this.kindAndContentTypeValidator.isValid(org.mockito.Matchers.anyString())).thenReturn(true);
         org.mockito.Mockito.when(this.bucketRepository.findOneByBucketName(org.mockito.Matchers.anyString())).thenReturn(bucketEntity);
@@ -105,7 +105,7 @@ public class CatalogObjectServiceTestDspot {
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getLinks())).isEmpty()).isTrue();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).hasLinks()).isFalse();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getId()).isNull();
-        boolean o_testCreateCatalogObject_mg6__31 = catalogObjectEntity.equals(__DSPOT_o_1083);
+        boolean o_testCreateCatalogObject_mg6__31 = catalogObjectEntity.equals(__DSPOT_o_1165);
         com.google.common.truth.Truth.assertThat(o_testCreateCatalogObject_mg6__31).isFalse();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getCommitMessage()).isEqualTo("commit message");
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getKind()).isEqualTo("object");
@@ -120,9 +120,9 @@ public class CatalogObjectServiceTestDspot {
     }
 
     @org.junit.Test(timeout = 10000)
-    public void testCreateCatalogObject_mg3_mg26() throws java.lang.Exception {
-        org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity __DSPOT_o_1087 = new org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity(new org.ow2.proactive.catalog.dto.Metadata("8pe[GPgVCdUE<=^JJty`", "jl[>{YeIijo*2M##hqV}", "oiplPbds>H3!m8pr>^wf"));
-        org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity __DSPOT_keyValueMetadata_1080 = new org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity(new org.ow2.proactive.catalog.dto.Metadata(new org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity(new org.ow2.proactive.catalog.dto.Metadata("8l@ke/#J&`.mVsyV$mWh", "Q}c+|Zzw4!Lazzsz76HC", "S.4JR@q]B7eW&*KzAwpZ"))));
+    public void testCreateCatalogObject_mg3_mg29() throws java.lang.Exception {
+        org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity __DSPOT_o_1172 = new org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity(new org.ow2.proactive.catalog.dto.Metadata("D8*#Z{ H94wSTi:*WrHb", "Poj&4?ragE8kPc/p?qA9", "@!@Ha_*D^eG!D>]S!lrd"));
+        org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity __DSPOT_keyValueMetadata_1162 = new org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity("tV5^Jc/%pGK]4*1r0aRT", "RID9KfO*{85e7YBb&j?h", "x1If127X{/-{ZqYokA58");
         org.ow2.proactive.catalog.repository.entity.BucketEntity bucketEntity = new org.ow2.proactive.catalog.repository.entity.BucketEntity("bucket", "toto");
         org.mockito.Mockito.when(this.kindAndContentTypeValidator.isValid(org.mockito.Matchers.anyString())).thenReturn(true);
         org.mockito.Mockito.when(this.bucketRepository.findOneByBucketName(org.mockito.Matchers.anyString())).thenReturn(bucketEntity);
@@ -131,14 +131,14 @@ public class CatalogObjectServiceTestDspot {
         org.mockito.Mockito.when(this.genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(org.mockito.Matchers.any(), org.mockito.Matchers.any(), org.mockito.Matchers.any())).thenReturn(new byte[]{  });
         java.util.List<org.ow2.proactive.catalog.dto.Metadata> keyValues = com.google.common.collect.ImmutableList.of(new org.ow2.proactive.catalog.dto.Metadata("key", "value", null));
         org.ow2.proactive.catalog.dto.CatalogObjectMetadata catalogObject = this.catalogObjectService.createCatalogObject("bucket", org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.NAME, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.OBJECT, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.COMMIT_MESSAGE, org.ow2.proactive.catalog.service.CatalogObjectServiceTestDspot.APPLICATION_XML, keyValues, null, null);
-        catalogObjectEntity.addKeyValue(__DSPOT_keyValueMetadata_1080);
-        boolean o_testCreateCatalogObject_mg3_mg26__38 = __DSPOT_keyValueMetadata_1080.equals(__DSPOT_o_1087);
-        com.google.common.truth.Truth.assertThat(o_testCreateCatalogObject_mg3_mg26__38).isFalse();
+        catalogObjectEntity.addKeyValue(__DSPOT_keyValueMetadata_1162);
+        boolean o_testCreateCatalogObject_mg3_mg29__35 = __DSPOT_keyValueMetadata_1162.equals(__DSPOT_o_1172);
+        com.google.common.truth.Truth.assertThat(o_testCreateCatalogObject_mg3_mg29__35).isFalse();
     }
 
     @org.junit.Test(timeout = 10000)
-    public void testCreateCatalogObjectRevision_mg866() throws java.lang.Exception {
-        java.lang.Object __DSPOT_o_1451 = new java.lang.Object();
+    public void testCreateCatalogObjectRevision_mg788() throws java.lang.Exception {
+        java.lang.Object __DSPOT_o_1486 = new java.lang.Object();
         org.ow2.proactive.catalog.repository.entity.BucketEntity bucketEntity = new org.ow2.proactive.catalog.repository.entity.BucketEntity("bucket", "owner");
         org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity catalogObjectEntity = newCatalogObjectEntity(java.lang.System.currentTimeMillis());
         org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity catalogObjectRevisionEntity = newCatalogObjectRevisionEntity(bucketEntity, java.lang.System.currentTimeMillis());
@@ -158,8 +158,8 @@ public class CatalogObjectServiceTestDspot {
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getLinks())).isEmpty()).isTrue();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).hasLinks()).isFalse();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getId()).isNull();
-        boolean o_testCreateCatalogObjectRevision_mg866__34 = catalogObjectEntity.equals(__DSPOT_o_1451);
-        com.google.common.truth.Truth.assertThat(o_testCreateCatalogObjectRevision_mg866__34).isFalse();
+        boolean o_testCreateCatalogObjectRevision_mg788__34 = catalogObjectEntity.equals(__DSPOT_o_1486);
+        com.google.common.truth.Truth.assertThat(o_testCreateCatalogObjectRevision_mg788__34).isFalse();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getCommitMessage()).isEqualTo("commit message");
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getKind()).isEqualTo("object");
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.dto.CatalogObjectMetadata) (catalogObject)).getMetadataList())).isEmpty()).isFalse();

@@ -2,7 +2,7 @@ package org.ow2.proactive.catalog.graphql.handler.catalogobject;
 
 
 @org.junit.runner.RunWith(org.mockito.runners.MockitoJUnitRunner.class)
-public class CatalogObjectAndOrGroupFilterHandlerTestDspotDspot {
+public class CatalogObjectAndOrGroupFilterHandlerTestDspotDspotDspot {
     @org.mockito.InjectMocks
     private org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectAndOrGroupFilterHandler andFilterHandler;
 

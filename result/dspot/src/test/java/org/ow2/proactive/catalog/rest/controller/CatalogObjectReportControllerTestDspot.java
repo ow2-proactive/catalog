@@ -35,7 +35,7 @@ public class CatalogObjectReportControllerTestDspot {
     private RestApiAccessService restApiAccessService;
 
     @Test(timeout = 10000)
-    public void getReportnull5439_failAssert0() throws Exception {
+    public void getReportnull5459_failAssert0() throws Exception {
         try {
             List<String> ownerName = Lists.newArrayList("xxx");
             Optional<String> kind = Optional.empty();
@@ -52,7 +52,7 @@ public class CatalogObjectReportControllerTestDspot {
             Mockito.verify(response, Mockito.times(1)).setCharacterEncoding("UTF-8");
             Mockito.verify(sos, Mockito.times(1)).write(content);
             Mockito.verify(sos, Mockito.times(1)).flush();
-            org.junit.Assert.fail("getReportnull5439 should have thrown NullPointerException");
+            org.junit.Assert.fail("getReportnull5459 should have thrown NullPointerException");
         } catch (NullPointerException expected) {
             Assert.assertEquals(null, expected.getMessage());
         }
