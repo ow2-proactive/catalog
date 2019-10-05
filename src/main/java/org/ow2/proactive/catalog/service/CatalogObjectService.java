@@ -263,18 +263,27 @@ public class CatalogObjectService {
                                                                                                                                        name,
                                                                                                                                        revisionCommitTime);
         List<DependsOnCatalogObject> dependsOnBucketAndObjectNameList = new ArrayList<>();
-        for (String dependOnCatalogObject : dependsOnCatalogObjectsList) {
+
+        String dependOnBucketName;
+        String dependOnObjectName;
+        String dependOnKind;
+        for (String dependOnBucketAndObjectName : dependsOnCatalogObjectsList) {
             String revisionCommitTimeOfDependsOnObject = catalogObjectRevisionRepository.findRevisionOfDependsOnCatalogObjectFromKeyLabelMetadata(bucketName,
                                                                                                                                                   name,
                                                                                                                                                   revisionCommitTime,
-                                                                                                                                                  dependOnCatalogObject);
-            dependsOnBucketAndObjectNameList.add(new DependsOnCatalogObject(dependOnCatalogObject,
+                                                                                                                                                  dependOnBucketAndObjectName);
+            dependOnBucketName = separatorUtility.getSplitBySeparator(dependOnBucketAndObjectName).get(0);
+            dependOnObjectName = separatorUtility.getSplitBySeparator(dependOnBucketAndObjectName).get(1);
+            boolean isCatalogObjectExist = isDependsOnObjectExistInCatalog(dependOnBucketName,
+                                                                           dependOnObjectName,
+                                                                           revisionCommitTimeOfDependsOnObject);
+            dependOnKind = isCatalogObjectExist ? getCatalogObjectMetadata(dependOnBucketName, dependOnObjectName)
+                                                                                                                  .getKind()
+                                                : "N/A";
+            dependsOnBucketAndObjectNameList.add(new DependsOnCatalogObject(dependOnBucketAndObjectName,
+                                                                            dependOnKind,
                                                                             String.valueOf(revisionCommitTime),
-                                                                            isDependsOnObjectExistInCatalog(separatorUtility.getSplitBySeparator(dependOnCatalogObject)
-                                                                                                                            .get(0),
-                                                                                                            separatorUtility.getSplitBySeparator(dependOnCatalogObject)
-                                                                                                                            .get(1),
-                                                                                                            revisionCommitTimeOfDependsOnObject)));
+                                                                            isCatalogObjectExist));
 
         }
         List<CatalogObjectRevisionEntity> calledByCatalogObjectList = catalogObjectRevisionRepository.findCalledByCatalogObjectsFromKeyValueMetadata(separatorUtility.getConcatWithSeparator(bucketName,
@@ -404,15 +413,21 @@ public class CatalogObjectService {
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
             Optional<String> contentType) {
+        return listCatalogObjects(bucketsNames, kind, contentType, Optional.empty());
+    }
+
+    public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
+            Optional<String> contentType, Optional<String> objectNameFilter) {
         if (bucketsNames.isEmpty()) {
             return new ArrayList<>();
         }
         List<CatalogObjectMetadata> metadataList;
 
-        if (kind.isPresent() || contentType.isPresent()) {
+        if (kind.isPresent() || contentType.isPresent() || objectNameFilter.isPresent()) {
             metadataList = listCatalogObjectsByKindAndContentType(bucketsNames,
                                                                   kind.orElse(""),
-                                                                  contentType.orElse(""));
+                                                                  contentType.orElse(""),
+                                                                  objectNameFilter.orElse(""));
         } else {
             metadataList = listCatalogObjects(bucketsNames);
         }
@@ -425,11 +440,12 @@ public class CatalogObjectService {
 
     // find catalog objects by kind and Content-Type
     public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentType(List<String> bucketNames, String kind,
-            String contentType) {
+            String contentType, String objectName) {
         bucketNames.forEach(this::findBucketByNameAndCheck);
         List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeInBucket(bucketNames,
                                                                                                                                          kind,
-                                                                                                                                         contentType);
+                                                                                                                                         contentType,
+                                                                                                                                         objectName);
         return buildMetadataWithLink(result);
     }
 

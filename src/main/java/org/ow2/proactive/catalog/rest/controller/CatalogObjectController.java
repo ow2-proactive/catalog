@@ -49,11 +49,11 @@ import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
+import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -264,7 +264,8 @@ public class CatalogObjectController {
             @PathVariable String bucketName,
             @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
             @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
-            @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "name", required = false) Optional<List<String>> names,
+            @ApiParam(value = "Filter according to Object Name.") @RequestParam(value = "objectName", required = false) Optional<String> objectNameFilter,
+            @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
@@ -298,7 +299,8 @@ public class CatalogObjectController {
         } else {
             List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Arrays.asList(bucketName),
                                                                                                kind,
-                                                                                               contentType);
+                                                                                               contentType,
+                                                                                               objectNameFilter);
 
             for (CatalogObjectMetadata catalogObject : metadataList) {
                 catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));

@@ -1,3 +1,5 @@
+import com.github.jk1.license.render.*
+
 buildscript {
     repositories {
         jcenter()
@@ -14,8 +16,9 @@ buildscript {
         classpath 'com.diffplug.gradle.spotless:spotless:2.4.0'
         classpath 'org.ow2.proactive:coding-rules:1.0.0'
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.5.0'
-        classpath "io.spring.gradle:dependency-management-plugin:0.3.0.RELEASE"
+        classpath "io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE"
         classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1"
+        classpath 'com.github.jk1:gradle-license-report:1.7'
     }
 
     dependencies {
@@ -37,7 +40,7 @@ apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'war'
 apply plugin: 'org.sonarqube'
-
+apply plugin: 'com.github.jk1.dependency-license-report'
 
 group = 'org.ow2.proactive'
 
@@ -75,6 +78,11 @@ generateGrammarSource {
     arguments += ["-visitor", "-long-messages"]
     maxHeapSize = "64m"
     outputDirectory = file("$generatedSrcDir/org/ow2/proactive/catalog/rest/query/parser")
+}
+
+licenseReport {
+    configurations = ['runtime']
+    renderers = [new InventoryHtmlReportRenderer()]
 }
 
 repositories {
@@ -208,6 +216,8 @@ dependencies {
 
     // library to build pdf reports
     compile 'com.github.dhorions:boxable'
+
+    compile "org.ow2.proactive:microservices-common:$version"
 
     //support for Oracle DB version 12.1.0.2
     //testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'

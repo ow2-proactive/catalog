@@ -580,6 +580,118 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    public void testGetCatalogObjectsByObjectKindAndContentTypeAndName() {
+        String pcaKind = "pca";
+        String scriptTaskKind = "Script/task";
+        String groovyContentType = "text/x-groovy";
+
+        // Add an object of kind "pca" into first bucket
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", pcaKind)
+               .queryParam("name", "pca-WorkflowName")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        // Add an object of kind "pca" into first bucket
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", pcaKind)
+               .queryParam("name", "pca-other-object-name")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        // Add an object of kind "script" into first bucket
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", scriptTaskKind)
+               .queryParam("name", "pca-other-object-name-2")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", groovyContentType)
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        //check general name
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("objectName", "workflow")
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(2));
+
+        //check specific name
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("objectName", "pca-workflowname")
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+        //check specific 'pca' name and kind
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("objectName", "pca-workflowname")
+               .queryParam("kind", "pca")
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+        //check specific name and content-type
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("objectName", "object-name")
+               .queryParam("contentType", groovyContentType)
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+        //check specific name and kind, content-type
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("objectName", "name")
+               .queryParam("kind", "pca")
+               .queryParam("contentType", MediaType.APPLICATION_XML.toString())
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(2));
+
+        //check specific name and kind, content-type
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("objectName", "workflow")
+               .queryParam("kind", "pca")
+               .queryParam("contentType", MediaType.APPLICATION_XML.toString())
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+    }
+
+    @Test
     public void testGetCatalogObjectsNameReferenceByKindAndContentType() {
         String workflowKind = "workflow";
         String pcaKind = "pca";
@@ -893,7 +1005,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
         given().pathParam("bucketName", bucket.getName())
                .when()
-               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,workflowname2")
+               .get(CATALOG_OBJECTS_RESOURCE + "?listObjectNamesForArchive=workflowname,workflowname2")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
@@ -919,7 +1031,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         //get zip file for workflow name's list separated by coma
         given().pathParam("bucketName", bucket.getName())
                .when()
-               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname," + nameWithSpecialSymbols)
+               .get(CATALOG_OBJECTS_RESOURCE + "?listObjectNamesForArchive=workflowname," + nameWithSpecialSymbols)
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
@@ -931,7 +1043,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
 
         given().pathParam("bucketName", bucket.getName())
                .when()
-               .get(CATALOG_OBJECTS_RESOURCE + "?name=workflowname,workflownamenonexistent")
+               .get(CATALOG_OBJECTS_RESOURCE + "?listObjectNamesForArchive=workflowname,workflownamenonexistent")
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_PARTIAL_CONTENT);
@@ -949,7 +1061,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .queryParam("name", "workflow_existing")
                .queryParam("commitMessage", firstCommitMessage)
                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
-               .multiPart(IntegrationTestUtil.getArchiveFile("workflow_0.xml"))
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
@@ -1065,7 +1177,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .queryParam("kind", "workflow")
                .queryParam("commitMessage", "Import from archive")
                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
-               .multiPart(IntegrationTestUtil.getArchiveFile("workflow_0.xml"))
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()

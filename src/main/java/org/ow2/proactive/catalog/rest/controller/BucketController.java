@@ -37,8 +37,8 @@ import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
-import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
+import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -119,7 +119,8 @@ public class BucketController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
+            @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
+            @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName)
             throws NotAuthenticatedException, AccessDeniedException {
 
         if (sessionIdRequired) {
@@ -129,10 +130,11 @@ public class BucketController {
             return bucketService.getBucketsByGroups(ownerName,
                                                     kind,
                                                     contentType,
+                                                    objectName,
                                                     () -> restApiAccessResponse.getAuthenticatedUser().getGroups());
 
         } else {
-            return bucketService.listBuckets(ownerName, kind, contentType);
+            return bucketService.listBuckets(ownerName, kind, contentType, objectName);
         }
     }
 

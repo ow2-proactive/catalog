@@ -39,8 +39,8 @@ import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
-import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
+import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -77,10 +77,10 @@ public class BucketService {
             throw new BucketNameIsNotValidException(name);
         }
 
-        BucketEntity bucket = new BucketEntity(name, owner);
+        BucketEntity bucketEntity = new BucketEntity(name, owner);
 
-        bucket = bucketRepository.save(bucket);
-        return new BucketMetadata(bucket);
+        bucketEntity = bucketRepository.save(bucketEntity);
+        return new BucketMetadata(bucketEntity, 0);
     }
 
     public BucketMetadata getBucketMetadata(String bucketName) {
@@ -88,44 +88,71 @@ public class BucketService {
         return new BucketMetadata(bucketEntity);
     }
 
-    public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType) {
+    public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
+            Optional<String> objectName) {
         if (owners == null) {
             return Collections.emptyList();
         }
 
-        List<BucketEntity> entities = getBucketEntities(owners, kind, contentType);
+        List<BucketMetadata> entities = getBucketEntities(owners, kind, contentType, objectName);
 
-        log.info("Buckets size {}", entities.size());
-        return entities.stream().map(BucketMetadata::new).collect(Collectors.toList());
+        log.info("Buckets count {}", entities.size());
+        return entities;
     }
 
-    private List<BucketEntity> getBucketEntities(List<String> owners, Optional<String> kind,
-            Optional<String> contentType) {
-        List<BucketEntity> entities;
-        if (kind.isPresent() || contentType.isPresent()) {
-            entities = bucketRepository.findByOwnerIsInContainingKindAndContentType(owners,
-                                                                                    kind.orElse(""),
-                                                                                    contentType.orElse(""));
+    private List<BucketMetadata> getBucketEntities(List<String> owners, Optional<String> kind,
+            Optional<String> contentType, Optional<String> objectName) {
+        List<BucketMetadata> entities;
+        if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
+            entities = generateBucketMetadataListFromObject(bucketRepository.findByOwnerIsInContainingKindAndContentTypeAndObjectName(owners,
+                                                                                                                                      kind.orElse(""),
+                                                                                                                                      contentType.orElse(""),
+                                                                                                                                      objectName.orElse("")));
+
         } else {
-            entities = bucketRepository.findByOwnerIn(owners);
+            entities = generateBucketMetadataList(bucketRepository.findByOwnerIn(owners));
         }
         return entities;
     }
 
+    private List<BucketMetadata> generateBucketMetadataListFromObject(List<Object[]> bucketEntityWithContentCountList) {
+        return bucketEntityWithContentCountList.stream()
+                                               .map(bucketEntityWithContentCount -> new BucketMetadata((BucketEntity) bucketEntityWithContentCount[0],
+                                                                                                       ((Long) bucketEntityWithContentCount[1]).intValue()))
+                                               .collect(Collectors.toList());
+
+    }
+
+    private List<BucketMetadata> generateBucketMetadataList(List<BucketEntity> bucketEntityList) {
+        return bucketEntityList.stream()
+                               .map(bucketEntity -> new BucketMetadata(bucketEntity,
+                                                                       bucketEntity.getCatalogObjects().size()))
+                               .collect(Collectors.toList());
+
+    }
+
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType) {
-        List<BucketEntity> entities;
+        return listBuckets(ownerName, kind, contentType, Optional.empty());
+    }
+
+    public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
+            Optional<String> objectName) {
+        List<BucketMetadata> entities;
         List<String> owners = Collections.singletonList(ownerName);
 
         if (!StringUtils.isEmpty(ownerName)) {
-            entities = getBucketEntities(owners, kind, contentType);
-        } else if (kind.isPresent() || contentType.isPresent()) {
-            entities = bucketRepository.findContainingKindAndContentType(kind.orElse(""), contentType.orElse(""));
+            entities = getBucketEntities(owners, kind, contentType, objectName);
+        } else if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
+            entities = generateBucketMetadataListFromObject(bucketRepository.findContainingKindAndContentTypeAndObjectName(kind.orElse(""),
+                                                                                                                           contentType.orElse(""),
+                                                                                                                           objectName.orElse("")));
+
         } else {
-            entities = bucketRepository.findAll();
+            entities = generateBucketMetadataList(bucketRepository.findAll());
         }
 
-        log.info("Buckets size {}", entities.size());
-        return entities.stream().map(BucketMetadata::new).collect(Collectors.toList());
+        log.info("Buckets count {}", entities.size());
+        return entities;
     }
 
     public void cleanAllEmptyBuckets() {
@@ -138,17 +165,17 @@ public class BucketService {
     }
 
     public BucketMetadata deleteEmptyBucket(String bucketName) {
-        BucketEntity bucket = bucketRepository.findBucketForUpdate(bucketName);
+        BucketEntity bucketEntity = bucketRepository.findBucketForUpdate(bucketName);
 
-        if (bucket == null) {
+        if (bucketEntity == null) {
             throw new BucketNotFoundException(bucketName);
         }
 
-        if (!bucket.getCatalogObjects().isEmpty()) {
+        if (!bucketEntity.getCatalogObjects().isEmpty()) {
             throw new DeleteNonEmptyBucketException(bucketName);
         }
-        bucketRepository.delete(bucket.getId());
-        return new BucketMetadata(bucket);
+        bucketRepository.delete(bucketEntity.getId());
+        return new BucketMetadata(bucketEntity);
     }
 
     private BucketEntity findBucketByNameAndCheck(String bucketName) {
@@ -160,7 +187,13 @@ public class BucketService {
     }
 
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
-            Optional<String> contentType, Supplier<List<String>> authenticatedUserGroupsSupplier)
+            Optional<String> contentType, Supplier<List<String>> authenticatedUserGroupsSupplier) {
+        return getBucketsByGroups(ownerName, kind, contentType, Optional.empty(), authenticatedUserGroupsSupplier);
+    }
+
+    public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
+            Optional<String> contentType, Optional<String> objectName,
+            Supplier<List<String>> authenticatedUserGroupsSupplier)
             throws NotAuthenticatedException, AccessDeniedException {
         List<String> groups;
 
@@ -171,6 +204,6 @@ public class BucketService {
             groups = Collections.singletonList(ownerName);
         }
 
-        return listBuckets(groups, kind, contentType);
+        return listBuckets(groups, kind, contentType, objectName);
     }
 }

@@ -74,7 +74,7 @@ public class CatalogObjectCallGraphPDFGenerator {
                 PDDocument doc = new PDDocument()) {
 
             // Build call graph
-            CallGraphHolder globalCallGraph = reportGeneratorHelper.buildCatalogCallGraph(catalogObjectMetadataList,
+            CallGraphHolder callGraphHolder = reportGeneratorHelper.buildCatalogCallGraph(catalogObjectMetadataList,
                                                                                           catalogObjectService);
 
             //Load font for all languages
@@ -92,13 +92,13 @@ public class CatalogObjectCallGraphPDFGenerator {
             // Create Header row
 
             headersBuilder.createInfoHeader(table,
-                                            reportGeneratorHelper.extractBucketSet(globalCallGraph),
-                                            reportGeneratorHelper.extractObjectSet(globalCallGraph),
+                                            reportGeneratorHelper.extractBucketSet(callGraphHolder),
+                                            reportGeneratorHelper.extractObjectSet(callGraphHolder),
                                             kind,
                                             contentType);
 
             //Create call graphs table
-            tableCallGraphsBuilder.buildCallGraphsTable(globalCallGraph, table);
+            tableCallGraphsBuilder.buildCallGraphsTable(callGraphHolder, table);
 
             table.draw();
 

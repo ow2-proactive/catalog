@@ -56,10 +56,10 @@ import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
+import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
@@ -102,6 +102,7 @@ public class CatalogObjectControllerTest {
                                      "bucket-name",
                                      Optional.empty(),
                                      Optional.empty(),
+                                     Optional.empty(),
                                      Optional.of(nameList),
                                      response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
@@ -129,6 +130,7 @@ public class CatalogObjectControllerTest {
                                      "bucket-name",
                                      Optional.empty(),
                                      Optional.empty(),
+                                     Optional.empty(),
                                      Optional.of(nameList),
                                      response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
@@ -142,8 +144,17 @@ public class CatalogObjectControllerTest {
         when(response.getOutputStream()).thenReturn(sos);
         BucketEntity bucket = mock(BucketEntity.class);
         when(bucketRepository.findOneByBucketName("bucket-name")).thenReturn(bucket);
-        catalogObjectController.list("", "bucket-name", Optional.empty(), Optional.empty(), Optional.empty(), response);
-        verify(catalogObjectService, times(1)).listCatalogObjects(anyList(), any(Optional.class), any(Optional.class));
+        catalogObjectController.list("",
+                                     "bucket-name",
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     response);
+        verify(catalogObjectService, times(1)).listCatalogObjects(anyList(),
+                                                                  any(Optional.class),
+                                                                  any(Optional.class),
+                                                                  any(Optional.class));
     }
 
     @Test

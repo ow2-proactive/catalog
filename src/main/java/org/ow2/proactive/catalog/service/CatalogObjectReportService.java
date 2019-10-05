@@ -78,7 +78,10 @@ public class CatalogObjectReportService {
             List<CatalogObjectMetadata> metadataList) {
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(metadataList);
 
-        return catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket, kind, contentType);
+        return catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
+                                                           kind,
+                                                           contentType,
+                                                           catalogObjectService);
     }
 
     private TreeSet<CatalogObjectMetadata> sortObjectsPerBucket(List<CatalogObjectMetadata> metadataList) {
@@ -87,7 +90,7 @@ public class CatalogObjectReportService {
         sortBasedOnName = sortBasedOnName.thenComparing(Comparator.comparing(CatalogObjectMetadata::getProjectName));
         sortBasedOnName = sortBasedOnName.thenComparing(Comparator.comparing(CatalogObjectMetadata::getName));
 
-        TreeSet<CatalogObjectMetadata> sortedObjects = new TreeSet<CatalogObjectMetadata>(sortBasedOnName);
+        TreeSet<CatalogObjectMetadata> sortedObjects = new TreeSet<>(sortBasedOnName);
 
         sortedObjects.addAll(metadataList);
 

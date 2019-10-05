@@ -27,9 +27,9 @@ package org.ow2.proactive.catalog.mocks;
 
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.exception.NotAuthenticatedException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
+import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 
 import com.google.common.collect.Lists;
 

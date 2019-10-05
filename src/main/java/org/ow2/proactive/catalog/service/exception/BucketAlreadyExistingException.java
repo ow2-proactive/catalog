@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.service.exception;
 
+import org.ow2.proactive.microservices.common.exception.ClientException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -38,7 +39,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author ActiveEon Team
  */
 @ResponseStatus(value = HttpStatus.CONFLICT)
-public class BucketAlreadyExistingException extends DataIntegrityViolationException {
+public class BucketAlreadyExistingException extends ClientException {
 
     public BucketAlreadyExistingException(String bucketName, String ownerName) {
         super("The bucket named " + bucketName + " owned by " + ownerName + " already exists");

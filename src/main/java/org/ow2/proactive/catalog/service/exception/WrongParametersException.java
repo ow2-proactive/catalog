@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.service.exception;
 
+import org.ow2.proactive.microservices.common.exception.ClientException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -33,7 +34,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author ActiveEon Team
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class WrongParametersException extends RuntimeException {
+public class WrongParametersException extends ClientException {
 
     public WrongParametersException(String message) {
         super("Wrong parameters: " + message);

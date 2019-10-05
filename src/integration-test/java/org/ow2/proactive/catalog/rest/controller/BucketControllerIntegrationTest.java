@@ -30,9 +30,11 @@ import static com.jayway.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -93,7 +95,11 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     @Test
     public void testCreateBucketShouldReturnBadRequestWithoutBody() {
-        when().post(BUCKETS_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_BAD_REQUEST);
+        given().header("sessionID", "12345")
+               .post(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
@@ -160,7 +166,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .get(BUCKET_RESOURCE)
                .then()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body(ERROR_MESSAGE, equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
+               .body(ERROR_MESSAGE, equalTo(new BucketNotFoundException("non-existing-bucket").getMessage()));
     }
 
     @Test
@@ -285,6 +291,215 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     }
 
     @Test
+    public void testContentCountGivenObjectName() throws UnsupportedEncodingException {
+        final String firstBucket = "first-bucket";
+        final String emptyBucket = "empty-bucket";
+        final String secondBucket = "second-ucket";
+        final String workflowKind = "workflow";
+        final String pcaKind = "pca";
+        final String ruleKind = "rule";
+
+        // Get bucket ID from response to create an object in it
+        String bucketIdOfFirstBucket = IntegrationTestUtil.createBucket(firstBucket, "owner");
+        String bucketIdOfEmptyBucket = IntegrationTestUtil.createBucket(emptyBucket, "owner");
+        String bucketIdOfSecondBucket = IntegrationTestUtil.createBucket(secondBucket, "owner");
+
+        // Add three objects to the first bucket
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfFirstBucket,
+                                               workflowKind,
+                                               "object1",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfFirstBucket,
+                                               workflowKind,
+                                               "object2",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfFirstBucket,
+                                               pcaKind,
+                                               "abc",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        List<HashMap<String, Object>> bucketEntityWithContentCountList1 = given().param("contentType",
+                                                                                        MediaType.APPLICATION_ATOM_XML_VALUE)
+                                                                                 .param("kind", workflowKind)
+                                                                                 .get(BUCKETS_RESOURCE)
+                                                                                 .then()
+                                                                                 .assertThat()
+                                                                                 .statusCode(HttpStatus.SC_OK)
+                                                                                 .extract()
+                                                                                 .path("");
+
+        assertEquals(2, sumContentCount(bucketEntityWithContentCountList1));
+
+        // Add three objects to the second bucket
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfSecondBucket,
+                                               workflowKind,
+                                               "object-abc",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfSecondBucket,
+                                               ruleKind,
+                                               "object2",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfSecondBucket,
+                                               ruleKind,
+                                               "object3",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        List<HashMap<String, Object>> bucketEntityWithContentCountList2 = given().param("contentType",
+                                                                                        MediaType.APPLICATION_ATOM_XML_VALUE)
+                                                                                 .param("objectName", "abc")
+                                                                                 .get(BUCKETS_RESOURCE)
+                                                                                 .then()
+                                                                                 .assertThat()
+                                                                                 .statusCode(HttpStatus.SC_OK)
+                                                                                 .extract()
+                                                                                 .path("");
+
+        assertEquals(2, sumContentCount(bucketEntityWithContentCountList2));
+
+        List<HashMap<String, Object>> bucketEntityWithContentCountList3 = given().param("contentType",
+                                                                                        MediaType.APPLICATION_ATOM_XML_VALUE)
+                                                                                 .param("kind", workflowKind)
+                                                                                 .param("objectName", "object")
+                                                                                 .get(BUCKETS_RESOURCE)
+                                                                                 .then()
+                                                                                 .assertThat()
+                                                                                 .statusCode(HttpStatus.SC_OK)
+                                                                                 .extract()
+                                                                                 .path("");
+
+        assertEquals(3, sumContentCount(bucketEntityWithContentCountList3));
+
+    }
+
+    private int sumContentCount(List<HashMap<String, Object>> bucketEntityWithContentCountList) {
+
+        return bucketEntityWithContentCountList.stream().mapToInt(map -> (Integer) map.get("objectCount")).sum();
+    }
+
+    @Test
+    public void testListBucketsGivenObjectNameAndEmptyBucket() throws UnsupportedEncodingException {
+        final String bucketNameForMyObjects = "bucket-with-object-workflow";
+        final String bucketNameForEmpty = "empty-bucket";
+        final String bucketNameWithSomeObjects = "bucket-with-some-objects";
+        final String bucketNameWithOtherObjects = "bucket-with-other-objects";
+        // Get bucket ID from response to create an object in it
+        String bucketIdWithMyObjects = IntegrationTestUtil.createBucket(bucketNameForMyObjects, "owner");
+
+        IntegrationTestUtil.createBucket(bucketNameForEmpty, "owner");
+
+        // Add an object of kind "my-object-kind" into specific bucket
+        IntegrationTestUtil.postObjectToBucket(bucketIdWithMyObjects,
+                                               "MY-objecT-Kind",
+                                               "my-object-name-1",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        String bucketWithSomeObjectsId = IntegrationTestUtil.createBucket(bucketNameWithSomeObjects, "owner");
+
+        IntegrationTestUtil.postObjectToBucket(bucketWithSomeObjectsId,
+                                               "differentkind",
+                                               "my-object-name-2",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        String bucketIdWithOtherObjects = IntegrationTestUtil.createBucket(bucketNameWithOtherObjects, "owner");
+        // Add an object of kind "my-object-kind" into specific bucket
+        IntegrationTestUtil.postObjectToBucket(bucketIdWithOtherObjects,
+                                               "MY-objecT-Kind",
+                                               "other-names",
+                                               "first commit",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        // list all buckets by any Name -> should return all buckets with empty bucket
+        given().param("objectName", "")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(4));
+
+        // list buckets by specific Name -> should return one specified bucket and empty bucket
+        given().param("objectName", "my-object-name-1")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(2));
+
+        // list buckets by general Name -> should return one specified buckets and empty bucket
+        given().param("objectName", "my-object-name")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(3));
+
+        // list buckets by non-existing Name -> should return only empty bucket
+        given().param("objectName", "non-existing name")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(1));
+
+        // list buckets by specific kind and Name -> should return one specified bucket and empty bucket
+        given().param("kind", "my-object-kind")
+               .param("objectName", "my-object-name")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(2));
+
+        // list buckets by content-type and Name -> should return two buckets, matching contentType, name pattern, and empty bucket
+        given().param("contentType", MediaType.APPLICATION_ATOM_XML_VALUE)
+               .param("objectName", "my-object")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(3));
+
+        // list buckets by content-type, kind and Name -> should return two buckets, matching contentType, kind and object name pattern, and empty bucket
+        given().param("contentType", MediaType.APPLICATION_ATOM_XML_VALUE)
+               .param("kind", "object-kind")
+               .param("objectName", "object")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(1));
+
+        // list buckets by specific Name and owner -> should return one specified bucket and empty bucket
+        given().param("objectName", "my-object-name-1")
+               .param("owner", "owner")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(2));
+    }
+
+    @Test
     public void testListBucketsByOwnerIsInContainingKindAndEmptyBucket() throws UnsupportedEncodingException {
         final String BucketAdminOwnerWorkflowKind = "bucket-admin-owner-workflow-kind";
         final String BucketAdminOwnerEmptyBucket = "bucket-admin-owner-empty-bucket";
@@ -390,6 +605,16 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         // list buckets by specific kind and specified Content-Type -> should return one specified bucket and empty bucket
         given().param("kind", "my-object-kind")
                .param("contentType", "my-content")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(1));
+
+        // list buckets by specific kind, specified Content-Type and Object name-> should return one specified bucket and empty bucket
+        given().param("kind", "my-object-kind")
+               .param("contentType", "my-content")
+               .param("objectName", "object")
                .get(BUCKETS_RESOURCE)
                .then()
                .assertThat()
