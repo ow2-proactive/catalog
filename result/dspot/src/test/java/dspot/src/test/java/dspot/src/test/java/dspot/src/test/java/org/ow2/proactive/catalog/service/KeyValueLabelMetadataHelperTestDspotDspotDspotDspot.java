@@ -2,7 +2,7 @@ package org.ow2.proactive.catalog.service;
 
 
 @org.junit.runner.RunWith(org.mockito.runners.MockitoJUnitRunner.class)
-public class KeyValueLabelMetadataHelperTestDspot {
+public class KeyValueLabelMetadataHelperTestDspotDspotDspotDspot {
     @org.mockito.InjectMocks
     private org.ow2.proactive.catalog.service.KeyValueLabelMetadataHelper keyValueLabelMetadataHelper;
 

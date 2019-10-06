@@ -1,7 +1,7 @@
 package org.ow2.proactive.catalog.repository.entity;
 
 
-public class BucketEntityTestDspot {
+public class BucketEntityTestDspotDspotDspotDspot {
     private final java.lang.String DEFAULT_BUCKET_NAME = "test";
 
     private final java.lang.String DEFAULT_BUCKET_USER = "BucketTestUser";

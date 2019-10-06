@@ -15,7 +15,7 @@ public class BucketEntityTestDspotDspot {
 
     @org.junit.Test(timeout = 10000)
     public void testAddWorkflow_mg2() throws java.lang.Exception {
-        org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity __DSPOT_o_215 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity();
+        org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity __DSPOT_o_211 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity();
         org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity catalogObject = new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getKind()).isNull();
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getRevisions())).isEmpty()).isTrue();
@@ -28,7 +28,7 @@ public class BucketEntityTestDspotDspot {
         catalogObject.setBucket(bucket);
         catalogObject.setId(new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity.CatalogObjectEntityKey(null, "name"));
         bucket.addCatalogObject(catalogObject);
-        boolean o_testAddWorkflow_mg2__9 = catalogObject.equals(__DSPOT_o_215);
+        boolean o_testAddWorkflow_mg2__9 = catalogObject.equals(__DSPOT_o_211);
         com.google.common.truth.Truth.assertThat(o_testAddWorkflow_mg2__9).isFalse();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getKind()).isNull();
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getRevisions())).isEmpty()).isTrue();
@@ -48,8 +48,8 @@ public class BucketEntityTestDspotDspot {
 
     @org.junit.Test(timeout = 10000)
     public void testAddWorkflow_mg1_mg16() throws java.lang.Exception {
-        org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity __DSPOT_o_223 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity();
-        org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity __DSPOT_catalogObjectRevision_214 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity();
+        org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity __DSPOT_o_219 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity();
+        org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity __DSPOT_catalogObjectRevision_210 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity();
         org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity catalogObject = new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getKind()).isNull();
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getRevisions())).isEmpty()).isTrue();
@@ -62,8 +62,8 @@ public class BucketEntityTestDspotDspot {
         catalogObject.setBucket(bucket);
         catalogObject.setId(new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity.CatalogObjectEntityKey(null, "name"));
         bucket.addCatalogObject(catalogObject);
-        catalogObject.addRevision(__DSPOT_catalogObjectRevision_214);
-        boolean o_testAddWorkflow_mg1_mg16__12 = __DSPOT_catalogObjectRevision_214.equals(__DSPOT_o_223);
+        catalogObject.addRevision(__DSPOT_catalogObjectRevision_210);
+        boolean o_testAddWorkflow_mg1_mg16__12 = __DSPOT_catalogObjectRevision_210.equals(__DSPOT_o_219);
         com.google.common.truth.Truth.assertThat(o_testAddWorkflow_mg1_mg16__12).isFalse();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getKind()).isNull();
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getRevisions())).isEmpty()).isFalse();
@@ -82,10 +82,10 @@ public class BucketEntityTestDspotDspot {
     }
 
     @org.junit.Test(timeout = 10000)
-    public void testAddWorkflow_mg1_mg11_mg97() throws java.lang.Exception {
-        java.lang.Object __DSPOT_o_275 = new java.lang.Object();
-        org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity __DSPOT_keyValueMetadata_218 = new org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity(new org.ow2.proactive.catalog.dto.Metadata(new org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity("g1e/q[NKD[/hFAO[^U-(", "XuVkZS^{}YexJ,;oHv!L", "b^R/Cg|3RC!0fPw#b@By")));
-        org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity __DSPOT_catalogObjectRevision_214 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity();
+    public void testAddWorkflow_mg1_mg11_mg74() throws java.lang.Exception {
+        org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity __DSPOT_o_249 = new org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity(new org.ow2.proactive.catalog.dto.Metadata("`8U^L|U2^w&]RipC8T[d", "Xo/B!IcY}7hT0[e!2k?W", "P/q=qf@xV4RP-Rlv;5Zd"));
+        org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity __DSPOT_keyValueMetadata_214 = new org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity(new org.ow2.proactive.catalog.dto.Metadata(new org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity(new org.ow2.proactive.catalog.dto.Metadata("#fwjn]5N[9_#G7nLKEf<", "rz={[YT&^U6Y]Kg1e/q[", "NKD[/hFAO[^U-(XuVkZS"))));
+        org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity __DSPOT_catalogObjectRevision_210 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity();
         org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity catalogObject = new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getKind()).isNull();
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getRevisions())).isEmpty()).isTrue();
@@ -98,10 +98,10 @@ public class BucketEntityTestDspotDspot {
         catalogObject.setBucket(bucket);
         catalogObject.setId(new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity.CatalogObjectEntityKey(null, "name"));
         bucket.addCatalogObject(catalogObject);
-        catalogObject.addRevision(__DSPOT_catalogObjectRevision_214);
-        __DSPOT_catalogObjectRevision_214.addKeyValue(__DSPOT_keyValueMetadata_218);
-        boolean o_testAddWorkflow_mg1_mg11_mg97__17 = __DSPOT_keyValueMetadata_218.equals(__DSPOT_o_275);
-        com.google.common.truth.Truth.assertThat(o_testAddWorkflow_mg1_mg11_mg97__17).isFalse();
+        catalogObject.addRevision(__DSPOT_catalogObjectRevision_210);
+        __DSPOT_catalogObjectRevision_210.addKeyValue(__DSPOT_keyValueMetadata_214);
+        boolean o_testAddWorkflow_mg1_mg11_mg74__19 = __DSPOT_keyValueMetadata_214.equals(__DSPOT_o_249);
+        com.google.common.truth.Truth.assertThat(o_testAddWorkflow_mg1_mg11_mg74__19).isFalse();
         com.google.common.truth.Truth.assertThat(((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getKind()).isNull();
         com.google.common.truth.Truth.assertThat(((java.util.Collection) (((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getRevisions())).isEmpty()).isFalse();
         com.google.common.truth.Truth.assertThat(((long) (((org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity) (catalogObject)).getLastCommitTime()))).isEqualTo(0L);

@@ -41,40 +41,12 @@ public class CatalogObjectAndOrGroupFilterHandlerTestDspotDspot {
     @org.junit.Test(timeout = 10000)
     public void testHandleMethod_literalMutationNumber14_failAssert0() throws java.lang.Exception {
         try {
-            java.util.Optional<org.springframework.data.jpa.domain.Specification<org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity>> specification = this.andFilterHandler.handle(this.whereArgs);
-            org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification orSpecification = ((org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification) (specification.get()));
-            org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification leftAnd = ((org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification) (orSpecification.getFieldSpecifications().get((-1))));
-            org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification rightAnd = ((org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification) (orSpecification.getFieldSpecifications().get(1)));
-            org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification rightAndChildOr = ((org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification) (rightAnd.getFieldSpecifications().get(1)));
-            org.junit.Assert.fail("testHandleMethod_literalMutationNumber14 should have thrown ArrayIndexOutOfBoundsException");
-        } catch (java.lang.ArrayIndexOutOfBoundsException expected) {
-            org.junit.Assert.assertEquals("-1", expected.getMessage());
-        }
-    }
-
-    @org.junit.Test(timeout = 10000)
-    public void testHandleMethodlitNum67_failAssert0() throws java.lang.Exception {
-        try {
-            java.util.Optional<org.springframework.data.jpa.domain.Specification<org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity>> specification = andFilterHandler.handle(whereArgs);
-            org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification orSpecification = ((org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification) (specification.get()));
-            org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification leftAnd = ((org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification) (orSpecification.getFieldSpecifications().get(0)));
-            org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification rightAnd = ((org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification) (orSpecification.getFieldSpecifications().get(1)));
-            org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification rightAndChildOr = ((org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification) (rightAnd.getFieldSpecifications().get(-2098187935)));
-            org.junit.Assert.fail("testHandleMethodlitNum67 should have thrown ArrayIndexOutOfBoundsException");
-        } catch (java.lang.ArrayIndexOutOfBoundsException expected) {
-            org.junit.Assert.assertEquals(null, expected.getMessage());
-        }
-    }
-
-    @org.junit.Test(timeout = 10000)
-    public void testHandleMethodlitNum19_failAssert0() throws java.lang.Exception {
-        try {
             java.util.Optional<org.springframework.data.jpa.domain.Specification<org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity>> specification = andFilterHandler.handle(whereArgs);
             org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification orSpecification = ((org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification) (specification.get()));
             org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification leftAnd = ((org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification) (orSpecification.getFieldSpecifications().get(-1)));
             org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification rightAnd = ((org.ow2.proactive.catalog.repository.specification.catalogobject.AndSpecification) (orSpecification.getFieldSpecifications().get(1)));
             org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification rightAndChildOr = ((org.ow2.proactive.catalog.repository.specification.catalogobject.OrSpecification) (rightAnd.getFieldSpecifications().get(1)));
-            org.junit.Assert.fail("testHandleMethodlitNum19 should have thrown ArrayIndexOutOfBoundsException");
+            org.junit.Assert.fail("testHandleMethod_literalMutationNumber14 should have thrown ArrayIndexOutOfBoundsException");
         } catch (java.lang.ArrayIndexOutOfBoundsException expected) {
             org.junit.Assert.assertEquals("-1", expected.getMessage());
         }

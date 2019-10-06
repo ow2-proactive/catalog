@@ -18,9 +18,9 @@ public class BucketServiceTestDspot {
     private org.ow2.proactive.catalog.util.name.validator.BucketNameValidator bucketNameValidator;
 
     @org.junit.Test(timeout = 10000)
-    public void testCreateBucket_mg1_mg16() throws java.lang.Exception {
-        org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity __DSPOT_o_513 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity();
-        org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity __DSPOT_catalogObject_507 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity();
+    public void testCreateBucket_mg1_mg18() throws java.lang.Exception {
+        org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity __DSPOT_o_524 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity();
+        org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity __DSPOT_catalogObject_517 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity();
         org.ow2.proactive.catalog.repository.entity.BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", java.time.LocalDateTime.now());
         org.mockito.Mockito.when(bucketRepository.save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.BucketEntity.class))).thenReturn(mockedBucket);
         org.mockito.Mockito.when(bucketNameValidator.isValid(org.mockito.Matchers.anyString())).thenReturn(true);
@@ -31,30 +31,30 @@ public class BucketServiceTestDspot {
         bucketMetadata.getName();
         mockedBucket.getOwner();
         bucketMetadata.getOwner();
-        mockedBucket.addCatalogObject(__DSPOT_catalogObject_507);
-        boolean o_testCreateBucket_mg1_mg16__35 = __DSPOT_catalogObject_507.equals(__DSPOT_o_513);
-        org.junit.Assert.assertFalse(o_testCreateBucket_mg1_mg16__35);
+        mockedBucket.addCatalogObject(__DSPOT_catalogObject_517);
+        boolean o_testCreateBucket_mg1_mg18__35 = __DSPOT_catalogObject_517.equals(__DSPOT_o_524);
+        org.junit.Assert.assertFalse(o_testCreateBucket_mg1_mg18__35);
     }
 
     @org.junit.Test(timeout = 10000)
-    public void testCreateBucket_mg1_mg22_mg87() throws java.lang.Exception {
-        org.ow2.proactive.catalog.repository.entity.BucketEntity __DSPOT_o_535 = new org.ow2.proactive.catalog.repository.entity.BucketEntity();
-        org.ow2.proactive.catalog.repository.entity.BucketEntity __DSPOT_o_519 = new org.ow2.proactive.catalog.repository.entity.BucketEntity();
-        org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity __DSPOT_catalogObject_507 = new org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity();
+    public void testCreateBucket_mg3_mg20_mg85() throws java.lang.Exception {
+        org.ow2.proactive.catalog.repository.entity.BucketEntity __DSPOT_o_543 = new org.ow2.proactive.catalog.repository.entity.BucketEntity(">t$9[7L1G=%Cl1t^iP.v", "=JJv#]Or;=b$]&*jK4]w");
+        org.ow2.proactive.catalog.repository.entity.BucketEntity __DSPOT_o_526 = new org.ow2.proactive.catalog.repository.entity.BucketEntity(";8Q[Wm4{}}1)E.EL``)1", "[S@0Kr-c{b_{git%Dk#2");
+        org.ow2.proactive.catalog.dto.BucketMetadata __DSPOT_o_519 = new org.ow2.proactive.catalog.dto.BucketMetadata(";R?&,0.F%Q%Rh<DFMF%&", "a%r^,B-LGF}>oXfZQ)#l");
         org.ow2.proactive.catalog.repository.entity.BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", java.time.LocalDateTime.now());
         org.mockito.Mockito.when(bucketRepository.save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.BucketEntity.class))).thenReturn(mockedBucket);
         org.mockito.Mockito.when(bucketNameValidator.isValid(org.mockito.Matchers.anyString())).thenReturn(true);
         org.ow2.proactive.catalog.dto.BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", org.ow2.proactive.catalog.service.BucketServiceTestDspot.DEFAULT_BUCKET_NAME);
-        org.ow2.proactive.catalog.repository.entity.BucketEntity o_testCreateBucket_mg1__16 = org.mockito.Mockito.verify(bucketRepository, org.mockito.Mockito.times(1)).save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.BucketEntity.class));
-        boolean o_testCreateBucket_mg1__20 = org.mockito.Mockito.verify(bucketNameValidator, org.mockito.Mockito.times(1)).isValid(org.mockito.Matchers.anyString());
+        org.ow2.proactive.catalog.repository.entity.BucketEntity o_testCreateBucket_mg3__16 = org.mockito.Mockito.verify(bucketRepository, org.mockito.Mockito.times(1)).save(org.mockito.Matchers.any(org.ow2.proactive.catalog.repository.entity.BucketEntity.class));
+        boolean o_testCreateBucket_mg3__20 = org.mockito.Mockito.verify(bucketNameValidator, org.mockito.Mockito.times(1)).isValid(org.mockito.Matchers.anyString());
         mockedBucket.getBucketName();
         bucketMetadata.getName();
         mockedBucket.getOwner();
         bucketMetadata.getOwner();
-        mockedBucket.addCatalogObject(__DSPOT_catalogObject_507);
-        boolean o_testCreateBucket_mg1_mg22__35 = mockedBucket.equals(__DSPOT_o_519);
-        boolean o_testCreateBucket_mg1_mg22_mg87__40 = __DSPOT_o_519.equals(__DSPOT_o_535);
-        org.junit.Assert.assertFalse(o_testCreateBucket_mg1_mg22_mg87__40);
+        boolean o_testCreateBucket_mg3__28 = bucketMetadata.equals(__DSPOT_o_519);
+        boolean o_testCreateBucket_mg3_mg20__37 = mockedBucket.equals(__DSPOT_o_526);
+        boolean o_testCreateBucket_mg3_mg20_mg85__42 = __DSPOT_o_526.equals(__DSPOT_o_543);
+        org.junit.Assert.assertFalse(o_testCreateBucket_mg3_mg20_mg85__42);
     }
 
     private void listBucket(java.lang.String owner, java.util.Optional<java.lang.String> kind, java.util.Optional<java.lang.String> contentType) {

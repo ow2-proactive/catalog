@@ -7,7 +7,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 
-public class CatalogObjectRevisionEntityTestDspot {
+public class CatalogObjectRevisionEntityTestDspotDspotDspotDspot {
     @Test(timeout = 10000)
     public void testAddKeyValue_mg4() throws Exception {
         CatalogObjectRevisionEntity __DSPOT_o_296 = new CatalogObjectRevisionEntity();
