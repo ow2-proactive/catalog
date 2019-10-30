@@ -34,7 +34,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.ow2.proactive.catalog.callgraph.CallGraphHolder;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.exception.PDFGenerationException;
 import org.ow2.proactive.catalog.util.ReportGeneratorHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +64,7 @@ public class CatalogObjectReportPDFGenerator {
     private TableCatalogObjectsDependenciesBuilder tableCatalogObjectsDependenciesBuilder;
 
     public byte[] generatePDF(Set<CatalogObjectMetadata> orderedObjectsPerBucket, Optional<String> kind,
-            Optional<String> contentType, CatalogObjectService catalogObjectService) {
+            Optional<String> contentType) {
 
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 PDDocument doc = new PDDocument()) {
@@ -99,13 +98,11 @@ public class CatalogObjectReportPDFGenerator {
             headersBuilder.createMainHeader(table2, SECOND_TITLE);
 
             // Build call graph
-            CallGraphHolder globalCallGraph = reportGeneratorHelper.buildCatalogCallGraph(new ArrayList(orderedObjectsPerBucket),
-                                                                                          catalogObjectService);
+            CallGraphHolder globalCallGraph = reportGeneratorHelper.buildCatalogCallGraph(new ArrayList(orderedObjectsPerBucket));
 
             tableCatalogObjectsDependenciesBuilder.buildCatalogObjectsDependenciesTable(doc,
                                                                                         globalCallGraph,
                                                                                         new ArrayList(orderedObjectsPerBucket),
-                                                                                        catalogObjectService,
                                                                                         table2);
             table2.draw();
 

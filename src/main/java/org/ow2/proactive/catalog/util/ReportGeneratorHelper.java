@@ -75,6 +75,9 @@ public class ReportGeneratorHelper {
     @Autowired
     private SeparatorUtility separatorUtility;
 
+    @Autowired
+    private CatalogObjectService catalogObjectService;
+
     public void setFontToUse(PDDocument doc) throws IOException {
         FontUtils.setSansFontsAsDefault(doc);
         addFontTypeIfFileExists(doc, ttfFontPath, "font");
@@ -123,8 +126,7 @@ public class ReportGeneratorHelper {
 
     }
 
-    public CallGraphHolder buildCatalogCallGraph(List<CatalogObjectMetadata> catalogObjectMetadataList,
-            CatalogObjectService catalogObjectService) {
+    public CallGraphHolder buildCatalogCallGraph(List<CatalogObjectMetadata> catalogObjectMetadataList) {
 
         CallGraphHolder callGraphHolder = new CallGraphHolder();
         for (CatalogObjectMetadata catalogObjectMetadata : catalogObjectMetadataList) {

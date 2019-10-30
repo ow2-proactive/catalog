@@ -91,8 +91,7 @@ public class CatalogObjectCallGraphServiceTest {
 
         when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
                                                                  kind,
-                                                                 contentType,
-                                                                 catalogObjectService)).thenReturn("onetwothree".getBytes());
+                                                                 contentType)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
                                                                               kind,
@@ -119,8 +118,7 @@ public class CatalogObjectCallGraphServiceTest {
 
         when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
                                                                  kind,
-                                                                 contentType,
-                                                                 catalogObjectService)).thenReturn("onetwo".getBytes());
+                                                                 contentType)).thenReturn("onetwo".getBytes());
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForSelectedObjects(bucketsName,
                                                                                                 objectsName,
@@ -149,8 +147,7 @@ public class CatalogObjectCallGraphServiceTest {
 
         when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
                                                                  kind,
-                                                                 contentType,
-                                                                 catalogObjectService)).thenReturn("onetwothree".getBytes());
+                                                                 contentType)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
                                                                               kind,
@@ -178,8 +175,7 @@ public class CatalogObjectCallGraphServiceTest {
 
         when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
                                                                  kind,
-                                                                 contentType,
-                                                                 catalogObjectService)).thenReturn("onetwothree".getBytes());
+                                                                 contentType)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
                                                                               kind,
@@ -207,8 +203,7 @@ public class CatalogObjectCallGraphServiceTest {
 
         when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
                                                                  kind,
-                                                                 contentType,
-                                                                 catalogObjectService)).thenReturn("onetwothree".getBytes());
+                                                                 contentType)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
                                                                               kind,
@@ -230,8 +225,7 @@ public class CatalogObjectCallGraphServiceTest {
 
         when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
                                                                  kind,
-                                                                 contentType,
-                                                                 catalogObjectService)).thenReturn("onetwothree".getBytes());
+                                                                 contentType)).thenReturn("onetwothree".getBytes());
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
                                                                               kind,

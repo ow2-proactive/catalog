@@ -60,10 +60,7 @@ public class CatalogObjectCallGraphService {
                                                                                            kind,
                                                                                            contentType);
 
-        return catalogObjectCallGraphPDFGenerator.generatePdfImage(metadataList,
-                                                                   kind,
-                                                                   contentType,
-                                                                   catalogObjectService);
+        return catalogObjectCallGraphPDFGenerator.generatePdfImage(metadataList, kind, contentType);
 
     }
 
@@ -73,10 +70,7 @@ public class CatalogObjectCallGraphService {
         List<CatalogObjectMetadata> metadataList = catalogObjectService.listSelectedCatalogObjects(bucketName,
                                                                                                    catalogObjectsNames);
 
-        return catalogObjectCallGraphPDFGenerator.generatePdfImage(metadataList,
-                                                                   kind,
-                                                                   contentType,
-                                                                   catalogObjectService);
+        return catalogObjectCallGraphPDFGenerator.generatePdfImage(metadataList, kind, contentType);
 
     }
 }
