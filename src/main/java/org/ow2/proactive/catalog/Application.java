@@ -58,6 +58,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 import com.fasterxml.classmate.TypeResolver;
 import com.google.common.base.Predicate;
+import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
@@ -74,6 +75,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableAutoConfiguration(exclude = { MultipartAutoConfiguration.class })
 @EnableSwagger2
 @EnableTransactionManagement
+@EnableEncryptableProperties
 @EntityScan(basePackages = "org.ow2.proactive.catalog.repository.entity")
 @PropertySource("classpath:application.properties")
 public class Application extends WebMvcConfigurerAdapter {

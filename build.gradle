@@ -179,6 +179,11 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-log4j2'
     compile 'org.springframework.boot:spring-boot-starter-web'
 
+    compile group: 'org.jasypt', name: 'jasypt', version: '1.9.3'
+    // when upgrading the following library version, make sure the default encryption settings did not change
+    // see scheduling/PropertyDecrypter.java for default settings
+    compile group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot', version: '1.9'
+
     //logger
     compile "org.apache.logging.log4j:log4j-web"
 
