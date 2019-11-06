@@ -33,8 +33,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.jheaps.annotations.VisibleForTesting;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
+import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -51,9 +53,11 @@ public class TableDataBuilder {
 
     private static final float TOTAL_NUMBER_OF_COLUMNS = 11f;
 
-    private static final float SINGLE_COLUMN = (100 / TOTAL_NUMBER_OF_COLUMNS);
+    @VisibleForTesting
+    static final float SINGLE_COLUMN = (100 / TOTAL_NUMBER_OF_COLUMNS);
 
-    private static final float DOUBLE_COLUMN = (100 / TOTAL_NUMBER_OF_COLUMNS) * 2;
+    @VisibleForTesting
+    static final float DOUBLE_COLUMN = (100 / TOTAL_NUMBER_OF_COLUMNS) * 2;
 
     @Value("${pa.scheduler.url}")
     private String schedulerUrl;
@@ -84,12 +88,13 @@ public class TableDataBuilder {
             cellFactory.createDataCell(dataRow, DOUBLE_COLUMN, getDescription(catalogObject), HorizontalAlignment.LEFT);
             cellFactory.createKeyValueContentDataCell(dataRow,
                                                       DOUBLE_COLUMN,
-                                                      getKeyValuesAsUnorderedHTMLList(catalogObject, "variable"));
+                                                      getKeyValuesAsUnorderedHTMLList(catalogObject,
+                                                                                      WorkflowParser.ATTRIBUTE_VARIABLE_LABEL));
 
             cellFactory.createKeyValueContentDataCell(dataRow,
                                                       DOUBLE_COLUMN,
                                                       getKeyValuesAsUnorderedHTMLList(catalogObject,
-                                                                                      "generic_information"));
+                                                                                      WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL));
             cellFactory.createIconCell(dataRow, SINGLE_COLUMN, getIcon(catalogObject));
 
         }
@@ -164,7 +169,7 @@ public class TableDataBuilder {
         return catalogObject.getMetadataList()
                             .stream()
                             .filter(metadata -> metadata.getLabel().equals(AbstractCatalogObjectParser.GENERAL_LABEL) &&
-                                                metadata.getKey().equals("description"))
+                                                metadata.getKey().equals(WorkflowParser.JOB_DESCRIPTION_KEY))
                             .map(metadata -> metadata.getValue())
                             .map(description -> description.replace("     ", "")
                                                            .replace("\n", " ")
