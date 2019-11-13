@@ -58,6 +58,8 @@ import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import be.quodlibet.boxable.BaseTable;
 import be.quodlibet.boxable.Cell;
 import be.quodlibet.boxable.Row;
@@ -84,13 +86,15 @@ public class TableCatalogObjectsDependenciesBuilder {
 
     private static final String MARGIN = "                  ";
 
-    private static final float CELL_WIDTH = 100f;
+    @VisibleForTesting
+    static final float CELL_WIDTH = 100f;
 
-    private static final float CELL_HEIGHT = 10f;
+    @VisibleForTesting
+    static final float CELL_HEIGHT = 10f;
 
     /**
      * This method builds a table of catalog objects dependencies ordered and grouped by bucket and object name.
-     *  In case the oder of the callGraphHolder is zero, an appropriate message is displayed.
+     *  In case the order of the callGraphHolder is zero, an appropriate message is displayed.
      * @param doc
      * @param callGraphHolder
      * @param catalogObjectMetadataList
