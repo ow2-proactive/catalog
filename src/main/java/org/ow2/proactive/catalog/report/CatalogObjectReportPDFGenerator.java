@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.report;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Set;
@@ -39,17 +40,22 @@ import org.ow2.proactive.catalog.util.ReportGeneratorHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import be.quodlibet.boxable.BaseTable;
 
 
 @Component
 public class CatalogObjectReportPDFGenerator {
 
-    private static final float MARGIN = 10f;
+    @VisibleForTesting
+    static final float MARGIN = 10f;
 
-    private static final String FIRST_TITLE = "ProActive Catalog Report";
+    @VisibleForTesting
+    static final String FIRST_TITLE = "ProActive Catalog Report";
 
-    private static final String SECOND_TITLE = "Object Dependencies";
+    @VisibleForTesting
+    static final String SECOND_TITLE = "Object Dependencies";
 
     @Autowired
     private TableDataBuilder tableDataBuilder;
@@ -110,7 +116,7 @@ public class CatalogObjectReportPDFGenerator {
 
             return byteArrayOutputStream.toByteArray();
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new PDFGenerationException(e);
         }
     }
