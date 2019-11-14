@@ -127,6 +127,9 @@ public class CatalogObjectService {
     @Value("${kind.separator}")
     protected String kindSeparator;
 
+    @VisibleForTesting
+    static final String KIND_NOT_FOUND = "N/A";
+
     private AutoDetectParser mediaTypeFileParser = new AutoDetectParser();
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
@@ -279,15 +282,15 @@ public class CatalogObjectService {
                                                                            revisionCommitTimeOfDependsOnObject);
             dependOnKind = isCatalogObjectExist ? getCatalogObjectMetadata(dependOnBucketName, dependOnObjectName)
                                                                                                                   .getKind()
-                                                : "N/A";
+                                                : KIND_NOT_FOUND;
             dependsOnBucketAndObjectNameList.add(new DependsOnCatalogObject(dependOnBucketAndObjectName,
                                                                             dependOnKind,
                                                                             String.valueOf(revisionCommitTime),
                                                                             isCatalogObjectExist));
 
         }
-        List<CatalogObjectRevisionEntity> calledByCatalogObjectList = catalogObjectRevisionRepository.findCalledByCatalogObjectsFromKeyValueMetadata(separatorUtility.getConcatWithSeparator(bucketName,
-                                                                                                                                                                                             name));
+        String input = separatorUtility.getConcatWithSeparator(bucketName, name);
+        List<CatalogObjectRevisionEntity> calledByCatalogObjectList = catalogObjectRevisionRepository.findCalledByCatalogObjectsFromKeyValueMetadata(input);
         List<String> calledByBucketAndObjectNameList = calledByCatalogObjectList.stream()
                                                                                 .map(revisionEntity -> separatorUtility.getConcatWithSeparator(revisionEntity.getCatalogObject()
                                                                                                                                                              .getBucket()
