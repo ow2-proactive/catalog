@@ -33,6 +33,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.ow2.proactive.catalog.service.CatalogObjectService.KIND_NOT_FOUND;
 
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -47,8 +48,11 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.ow2.proactive.catalog.dto.CatalogObjectDependencies;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
+import org.ow2.proactive.catalog.dto.DependsOnCatalogObject;
 import org.ow2.proactive.catalog.dto.Metadata;
+import org.ow2.proactive.catalog.graphql.bean.CatalogObject;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
@@ -61,6 +65,7 @@ import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundExceptio
 import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
 import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
 import org.ow2.proactive.catalog.service.exception.WrongParametersException;
+import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 
@@ -107,6 +112,9 @@ public class CatalogObjectServiceTest {
 
     @Mock
     private KindAndContentTypeValidator kindAndContentTypeValidator;
+
+    @Mock
+    private SeparatorUtility separatorUtility;
 
     @Test(expected = BucketNotFoundException.class)
     public void testCreateCatalogObjectWithInvalidBucket() {
@@ -326,6 +334,67 @@ public class CatalogObjectServiceTest {
     @Test(expected = CatalogObjectNotFoundException.class)
     public void testCatalogObjectWithRevisionCommitTimeNotFound() {
         catalogObjectService.getObjectDependencies(BUCKET, OBJECT, REVISION_COMMIT_TIME);
+
+    }
+
+    @Test
+    public void testGetObjectDependencies() {
+
+        when(separatorUtility.getSplitBySeparator(anyString())).thenCallRealMethod();
+        when(separatorUtility.getConcatWithSeparator(anyString(), anyString())).thenCallRealMethod();
+        SeparatorUtility sep = new SeparatorUtility();
+
+        long commitTime = 1L;
+        String revisionCommitInString = String.format("%d", commitTime);
+        long bucketId = 2L;
+        String dependency1Name = "dep1Name";
+        String dependency1 = sep.getConcatWithSeparator(BUCKET, dependency1Name);
+        String dependency2 = sep.getConcatWithSeparator(BUCKET, "dep2");
+        String kind = "kind";
+        List<String> dependencies = Arrays.asList(dependency1, dependency2);
+
+        CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
+                                                                                             .commitTime(commitTime)
+                                                                                             .build();
+        CatalogObjectRevisionEntity objectDependency1 = CatalogObjectRevisionEntity.builder()
+                                                                                   .catalogObject(CatalogObjectEntity.builder()
+                                                                                                                     .bucket(new BucketEntity(BUCKET,
+                                                                                                                                              "owner"))
+                                                                                                                     .kind(kind)
+                                                                                                                     .id(new CatalogObjectEntity.CatalogObjectEntityKey(bucketId,
+                                                                                                                                                                        dependency1Name))
+                                                                                                                     .build())
+                                                                                   .build();
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(BUCKET),
+                                                                                    OBJECT)).thenReturn(catalogObjectRevisionEntity);
+        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(BUCKET),
+                                                                                    dependency1Name)).thenReturn(objectDependency1);
+        when(catalogObjectRevisionRepository.findDependsOnCatalogObjectNamesFromKeyValueMetadata(BUCKET,
+                                                                                                 OBJECT,
+                                                                                                 commitTime)).thenReturn(dependencies);
+        when(catalogObjectRevisionRepository.findRevisionOfDependsOnCatalogObjectFromKeyLabelMetadata(BUCKET,
+                                                                                                      OBJECT,
+                                                                                                      commitTime,
+                                                                                                      dependency1)).thenReturn(WorkflowParser.LATEST_VERSION);
+        when(catalogObjectRevisionRepository.findRevisionOfDependsOnCatalogObjectFromKeyLabelMetadata(BUCKET,
+                                                                                                      OBJECT,
+                                                                                                      commitTime,
+                                                                                                      dependency2)).thenReturn(revisionCommitInString);
+        when(catalogObjectRevisionRepository.findCalledByCatalogObjectsFromKeyValueMetadata(sep.getConcatWithSeparator(BUCKET,
+                                                                                                                       OBJECT))).thenReturn(Collections.singletonList(objectDependency1));
+
+        CatalogObjectDependencies catalogObjectDependencies = catalogObjectService.getObjectDependencies(BUCKET,
+                                                                                                         OBJECT);
+        assertThat(catalogObjectDependencies.getDependsOnList()).containsExactly(new DependsOnCatalogObject(dependency1,
+                                                                                                            kind,
+                                                                                                            revisionCommitInString,
+                                                                                                            true),
+                                                                                 new DependsOnCatalogObject(dependency2,
+                                                                                                            KIND_NOT_FOUND,
+                                                                                                            revisionCommitInString,
+                                                                                                            false));
+        assertThat(catalogObjectDependencies.getCalledByList()).containsExactly(sep.getConcatWithSeparator(BUCKET,
+                                                                                                           dependency1Name));
 
     }
 

@@ -79,7 +79,11 @@ public class CellFactory {
     }
 
     public void createDataCell(Row<PDPage> row, float width, String data) {
-        createDataCell(row, width, data, MEDIUM_FONT);
+        createDataCell(row, width, data, MEDIUM_FONT, HorizontalAlignment.CENTER, VerticalAlignment.TOP, WHITE, BLACK);
+    }
+
+    public void createDataCell(Row<PDPage> row, float width, String data, HorizontalAlignment align) {
+        createDataCell(row, width, data, MEDIUM_FONT, align, VerticalAlignment.TOP, WHITE, BLACK);
     }
 
     public void createDataHeaderCell(Row<PDPage> row, float width, String title) {
@@ -99,14 +103,6 @@ public class CellFactory {
 
     public void createKeyValueContentDataCell(Row<PDPage> row, float width, String data) {
         createDataCell(row, width, data, SMALL_FONT, HorizontalAlignment.LEFT, VerticalAlignment.TOP, WHITE, BLACK);
-    }
-
-    public void createDataCell(Row<PDPage> row, float width, String data, int fontSize) {
-        createDataCell(row, width, data, fontSize, HorizontalAlignment.CENTER, VerticalAlignment.TOP, WHITE, BLACK);
-    }
-
-    public void createDataCell(Row<PDPage> row, float width, String data, HorizontalAlignment align) {
-        createDataCell(row, width, data, MEDIUM_FONT, align, VerticalAlignment.TOP, WHITE, BLACK);
     }
 
     public void createIconCell(Row<PDPage> row, float width, String url_path) {

@@ -74,7 +74,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     public static final String ATTRIBUTE_GENERIC_INFORMATION_LABEL = "generic_information";
 
-    private static final String ATTRIBUTE_VARIABLE_LABEL = "variable";
+    public static final String ATTRIBUTE_VARIABLE_LABEL = "variable";
 
     private static final String ATTRIBUTE_VARIABLE_MODEL_LABEL = "variable_model";
 
@@ -95,7 +95,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private static final Pattern PATTERN = Pattern.compile(CATALOG_OBJECT_MODEL_REGEXP);
 
-    private static final String JOB_DESCRIPTION_KEY = "description";
+    public static final String JOB_DESCRIPTION_KEY = "description";
 
     private static final String JOB_VISUALIZATION_KEY = "visualization";
 

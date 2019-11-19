@@ -68,14 +68,13 @@ public class CatalogObjectCallGraphPDFGenerator {
     private ReportGeneratorHelper reportGeneratorHelper;
 
     public byte[] generatePdfImage(List<CatalogObjectMetadata> catalogObjectMetadataList, Optional<String> kind,
-            Optional<String> contentType, CatalogObjectService catalogObjectService) {
+            Optional<String> contentType) {
 
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 PDDocument doc = new PDDocument()) {
 
             // Build call graph
-            CallGraphHolder callGraphHolder = reportGeneratorHelper.buildCatalogCallGraph(catalogObjectMetadataList,
-                                                                                          catalogObjectService);
+            CallGraphHolder callGraphHolder = reportGeneratorHelper.buildCatalogCallGraph(catalogObjectMetadataList);
 
             //Load font for all languages
             reportGeneratorHelper.setFontToUse(doc);

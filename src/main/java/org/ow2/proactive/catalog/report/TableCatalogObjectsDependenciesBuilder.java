@@ -58,6 +58,8 @@ import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import be.quodlibet.boxable.BaseTable;
 import be.quodlibet.boxable.Cell;
 import be.quodlibet.boxable.Row;
@@ -74,30 +76,33 @@ public class TableCatalogObjectsDependenciesBuilder {
     @Autowired
     private CellFactory cellFactory;
 
+    @Autowired
+    private SeparatorUtility separatorUtility;
+
+    @Autowired
+    private CatalogObjectService catalogObjectService;
+
     private static final String FONT_NAME = "arial-unicode-ms.ttf";
 
     private static final String MARGIN = "                  ";
 
-    private static final float CELL_WIDTH = 100f;
+    @VisibleForTesting
+    static final float CELL_WIDTH = 100f;
 
-    private static final float CELL_HEIGHT = 10f;
-
-    @Autowired
-    private SeparatorUtility separatorUtility;
+    @VisibleForTesting
+    static final float CELL_HEIGHT = 10f;
 
     /**
      * This method builds a table of catalog objects dependencies ordered and grouped by bucket and object name.
-     *  In case the oder of the callGraphHolder is zero, an appropriate message is displayed.
+     *  In case the order of the callGraphHolder is zero, an appropriate message is displayed.
      * @param doc
      * @param callGraphHolder
      * @param catalogObjectMetadataList
-     * @param catalogObjectService
      * @param table
      * @throws IOException
      */
     public void buildCatalogObjectsDependenciesTable(PDDocument doc, CallGraphHolder callGraphHolder,
-            List<CatalogObjectMetadata> catalogObjectMetadataList, CatalogObjectService catalogObjectService,
-            BaseTable table) throws IOException {
+            List<CatalogObjectMetadata> catalogObjectMetadataList, BaseTable table) throws IOException {
 
         if (callGraphHolder.order() == 0) {
             Row<PDPage> dataRow = table.createRow(CELL_HEIGHT);

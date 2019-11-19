@@ -27,6 +27,8 @@ package org.ow2.proactive.catalog.callgraph;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,6 +40,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -52,6 +55,7 @@ import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.BreadthFirstIterator;
 import org.ow2.proactive.catalog.report.CellFactory;
+import org.ow2.proactive.catalog.report.TableDataBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -67,6 +71,7 @@ import com.mxgraph.view.mxGraph;
 import be.quodlibet.boxable.BaseTable;
 import be.quodlibet.boxable.Row;
 import be.quodlibet.boxable.image.Image;
+import lombok.extern.log4j.Log4j2;
 
 
 /**
@@ -75,6 +80,7 @@ import be.quodlibet.boxable.image.Image;
  */
 
 @Component
+@Log4j2
 public class TableCallGraphsBuilder {
 
     private static final String MISSING_CATALOG_OBJECT_STYLE = "fillColor=#C0C0C0;strokeColor=#FF0000;fontSize=8";
@@ -125,14 +131,51 @@ public class TableCallGraphsBuilder {
                     cellFactory.createDataCellBucketName(dataRow, 100, currentBucketName);
                 }
                 Row<PDPage> callGraphRow = table.createRow(10f);
-                callGraphRow.createImageCell(100,
-                                             new Image(generateBufferedImage(orderedCallGraphsPerBucket.get(mapEntry.getKey()),
-                                                                             callGraphDiameterHashMap.get((mapEntry.getKey())))).scale(350,
-                                                                                                                                       250))
-                            .scaleToFit();
+                Image image;
+                try {
+                    image = new Image(generateBufferedImage(orderedCallGraphsPerBucket.get(mapEntry.getKey()),
+                                                            callGraphDiameterHashMap.get((mapEntry.getKey())))).scale(350,
+                                                                                                                      250);
+                } catch (Throwable e) {
+                    image = new Image(createBufferedImageFromString("Graph generation is not supported by OpenJDK"));
+                    log.warn("Unable to generate graph. Usually this issue is due to the usage of OpenJDK instead of OracleJDK",
+                             e);
+                }
+                callGraphRow.createImageCell(100, image).scaleToFit();
             }
         }
 
+    }
+
+    /**
+     * Generate an image containing a String
+     * @param s the string that will be displayed
+     * @return a Buffered image containing the string
+     */
+    private BufferedImage createBufferedImageFromString(String s) {
+        int width = 400;
+        int height = 100;
+
+        // Constructs a BufferedImage of one of the predefined image types.
+        BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        try {
+            // Create a graphics which can be used to draw into the buffered image
+            Graphics2D g2d = bufferedImage.createGraphics();
+
+            // fill all the image with white
+            g2d.setColor(Color.white);
+            g2d.fillRect(0, 0, width, height);
+
+            // create a string with black
+            g2d.setColor(Color.black);
+            g2d.drawString(s, 10, 50);
+
+            // Disposes of this graphics context and releases any system resources that it is using.
+            g2d.dispose();
+        } catch (Throwable t) {
+            log.warn("The server do not have a Graphical context, therefore it cannot generate image.", t);
+        }
+        return bufferedImage;
     }
 
     /**

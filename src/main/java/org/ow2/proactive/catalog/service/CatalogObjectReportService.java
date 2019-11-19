@@ -78,10 +78,7 @@ public class CatalogObjectReportService {
             List<CatalogObjectMetadata> metadataList) {
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(metadataList);
 
-        return catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket,
-                                                           kind,
-                                                           contentType,
-                                                           catalogObjectService);
+        return catalogObjectReportPDFGenerator.generatePDF(orderedObjectsPerBucket, kind, contentType);
     }
 
     private TreeSet<CatalogObjectMetadata> sortObjectsPerBucket(List<CatalogObjectMetadata> metadataList) {
