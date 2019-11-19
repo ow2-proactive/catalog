@@ -147,26 +147,34 @@ public class TableCallGraphsBuilder {
 
     }
 
+    /**
+     * Generate an image containing a String
+     * @param s the string that will be displayed
+     * @return a Buffered image containing the string
+     */
     private BufferedImage createBufferedImageFromString(String s) {
         int width = 400;
         int height = 100;
 
         // Constructs a BufferedImage of one of the predefined image types.
         BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        try {
+            // Create a graphics which can be used to draw into the buffered image
+            Graphics2D g2d = bufferedImage.createGraphics();
 
-        // Create a graphics which can be used to draw into the buffered image
-        Graphics2D g2d = bufferedImage.createGraphics();
+            // fill all the image with white
+            g2d.setColor(Color.white);
+            g2d.fillRect(0, 0, width, height);
 
-        // fill all the image with white
-        g2d.setColor(Color.white);
-        g2d.fillRect(0, 0, width, height);
+            // create a string with black
+            g2d.setColor(Color.black);
+            g2d.drawString(s, 10, 50);
 
-        // create a string with black
-        g2d.setColor(Color.black);
-        g2d.drawString(s, 10, 50);
-
-        // Disposes of this graphics context and releases any system resources that it is using.
-        g2d.dispose();
+            // Disposes of this graphics context and releases any system resources that it is using.
+            g2d.dispose();
+        } catch (Throwable t) {
+            log.warn("The server do not have a Graphical context, therefore it cannot generate image.", t);
+        }
         return bufferedImage;
     }
 
