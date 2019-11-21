@@ -427,10 +427,10 @@ public class CatalogObjectService {
         List<CatalogObjectMetadata> metadataList;
 
         if (kind.isPresent() || contentType.isPresent() || objectNameFilter.isPresent()) {
-            metadataList = listCatalogObjectsByKindAndContentType(bucketsNames,
-                                                                  kind.orElse(""),
-                                                                  contentType.orElse(""),
-                                                                  objectNameFilter.orElse(""));
+            metadataList = listCatalogObjectsByKindAndContentTypeAndObjectName(bucketsNames,
+                                                                               kind.orElse(""),
+                                                                               contentType.orElse(""),
+                                                                               objectNameFilter.orElse(""));
         } else {
             metadataList = listCatalogObjects(bucketsNames);
         }
@@ -441,14 +441,14 @@ public class CatalogObjectService {
         return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
-    // find catalog objects by kind and Content-Type
-    public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentType(List<String> bucketNames, String kind,
-            String contentType, String objectName) {
+    // find catalog objects by kind and Content-Type and objectName
+    public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentTypeAndObjectName(List<String> bucketNames,
+            String kind, String contentType, String objectName) {
         bucketNames.forEach(this::findBucketByNameAndCheck);
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeInBucket(bucketNames,
-                                                                                                                                         kind,
-                                                                                                                                         contentType,
-                                                                                                                                         objectName);
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeAndObjectNameInBucket(bucketNames,
+                                                                                                                                                      kind,
+                                                                                                                                                      contentType,
+                                                                                                                                                      objectName);
         return buildMetadataWithLink(result);
     }
 
