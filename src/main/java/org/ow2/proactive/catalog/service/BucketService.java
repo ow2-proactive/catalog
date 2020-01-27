@@ -83,9 +83,17 @@ public class BucketService {
         return new BucketMetadata(bucketEntity, 0);
     }
 
+    public BucketMetadata updateOwnerByBucketName(String name, String owner) throws DataIntegrityViolationException {
+        BucketEntity bucketEntity = findBucketByNameAndCheck(name);
+        bucketEntity.setOwner(owner);
+
+        bucketEntity = bucketRepository.save(bucketEntity);
+        return new BucketMetadata(bucketEntity, bucketEntity.getCatalogObjects().size());
+    }
+
     public BucketMetadata getBucketMetadata(String bucketName) {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
-        return new BucketMetadata(bucketEntity);
+        return new BucketMetadata(bucketEntity, bucketEntity.getCatalogObjects().size());
     }
 
     public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
