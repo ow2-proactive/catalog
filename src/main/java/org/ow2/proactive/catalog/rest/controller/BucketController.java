@@ -100,20 +100,20 @@ public class BucketController {
     @ApiOperation(value = "Update bucket owner")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
-    @RequestMapping(method = PUT)
+    @RequestMapping(value = "/{bucketName}", method = PUT)
     @ResponseStatus(HttpStatus.OK)
     public BucketMetadata updateBucketOwner(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the existing Bucket ") @RequestParam(value = "existingBucketName", required = true) String existingBucketName,
+            @ApiParam(value = "The name of the existing Bucket ") @PathVariable String bucketName,
             @ApiParam(value = "The new name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String newOwnerName)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
             restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId, newOwnerName);
         }
         try {
-            return bucketService.updateOwnerByBucketName(existingBucketName, newOwnerName);
+            return bucketService.updateOwnerByBucketName(bucketName, newOwnerName);
         } catch (DataIntegrityViolationException exception) {
-            throw new BucketAlreadyExistingException(existingBucketName, newOwnerName);
+            throw new BucketAlreadyExistingException(bucketName, newOwnerName);
         }
     }
 

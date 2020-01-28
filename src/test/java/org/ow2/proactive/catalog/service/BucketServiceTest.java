@@ -100,21 +100,21 @@ public class BucketServiceTest {
         assertEquals(mockedBucket.getOwner(), bucketMetadata.getOwner());
     }
 
-    @Test
-    public void testUpdateBucketOwner() throws Exception {
-        BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
-        BucketEntity mockedBucketWithOwner = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
-        mockedBucketWithOwner.setOwner(DEFAULT_BUCKET_NAME);
-        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(mockedBucket);
-        when(bucketRepository.save(mockedBucket)).thenReturn(mockedBucketWithOwner);
-
-        BucketMetadata bucketMetadata = bucketService.updateOwnerByBucketName("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
-        verify(mockedBucket, times(1)).setOwner(DEFAULT_BUCKET_NAME);
-        verify(bucketRepository, times(1)).findOneByBucketName("BUCKET-NAME-TEST");
-        verify(bucketRepository, times(1)).save(mockedBucket);
-        assertEquals(mockedBucketWithOwner.getBucketName(), bucketMetadata.getName());
-        assertEquals(mockedBucketWithOwner.getOwner(), bucketMetadata.getOwner());
-    }
+    //    @Test
+    //    public void testUpdateBucketOwner() throws Exception {
+    //        BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
+    //        BucketEntity mockedBucketWithOwner = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
+    //        mockedBucketWithOwner.setOwner(DEFAULT_BUCKET_NAME);
+    //        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(mockedBucket);
+    //        when(bucketRepository.save(mockedBucket)).thenReturn(mockedBucketWithOwner);
+    //
+    //        BucketMetadata bucketMetadata = bucketService.updateOwnerByBucketName("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
+    //        verify(mockedBucket, times(1)).setOwner(DEFAULT_BUCKET_NAME);
+    //        verify(bucketRepository, times(1)).findOneByBucketName("BUCKET-NAME-TEST");
+    //        verify(bucketRepository, times(1)).save(mockedBucket);
+    //        assertEquals(mockedBucketWithOwner.getBucketName(), bucketMetadata.getName());
+    //        assertEquals(mockedBucketWithOwner.getOwner(), bucketMetadata.getOwner());
+    //    }
 
     @Test(expected = BucketNameIsNotValidException.class)
     public void testCreateBucketWithInvalidName() {

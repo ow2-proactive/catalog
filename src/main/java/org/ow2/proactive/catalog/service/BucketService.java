@@ -93,7 +93,7 @@ public class BucketService {
 
     public BucketMetadata getBucketMetadata(String bucketName) {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
-        return new BucketMetadata(bucketEntity, bucketEntity.getCatalogObjects().size());
+        return new BucketMetadata(bucketEntity);
     }
 
     public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
