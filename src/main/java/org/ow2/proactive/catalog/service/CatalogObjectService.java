@@ -409,9 +409,14 @@ public class CatalogObjectService {
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketNames) {
         bucketNames.forEach(this::findBucketByNameAndCheck);
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames);
+        List<CatalogObjectRevisionEntity> result = listCatalogObjectsEntities(bucketNames);
 
         return buildMetadataWithLink(result);
+    }
+
+    public List<CatalogObjectRevisionEntity> listCatalogObjectsEntities(List<String> bucketNames) {
+        bucketNames.forEach(this::findBucketByNameAndCheck);
+        return catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames);
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
