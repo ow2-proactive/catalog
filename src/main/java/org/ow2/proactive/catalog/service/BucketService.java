@@ -95,27 +95,17 @@ public class BucketService {
 
         bucketEntity = bucketRepository.save(bucketEntity);
 
-        //create a new revision for objects when the bucket owner is updated
-        List<CatalogObjectRevisionEntity> objectsList = catalogObjectService.listCatalogObjectsEntities(Arrays.asList(bucketName));
-
-        objectsList.stream().filter(obj -> obj.getCatalogObject().getKind().toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase()))
-        .forEach(obj -> catalogObjectService.createCatalogObjectRevision("update bucket owner",
-                obj.getUsername(),
-                keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
-                catalogObjectRevision.getRawObject(),
-                catalogObjectRevision.getCatalogObject()));
-
-
-        buildCatalogObjectRevisionEntity(restoreCommitMessage,
-                catalogObjectRevision.getUsername(),
-                keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
-                catalogObjectRevision.getRawObject(),
-                catalogObjectRevision.getCatalogObject());
-
-        catalogObjectService.getCatalogObjectRevision()
-        catalogObjectService.createCatalogObjectRevision()
+        createRevisionForObjects(bucketName, "Update the bucket owner", SupportedParserKinds.WORKFLOW);
 
         return new BucketMetadata(bucketEntity, bucketEntity.getCatalogObjects().size());
+    }
+
+    //create a new revision for objects when the bucket owner is updated
+    protected void createRevisionForObjects(String bucketName, String commitMessage, SupportedParserKinds objectsKind){
+        List<CatalogObjectRevisionEntity> objectsList = catalogObjectService.listCatalogObjectsEntities(Arrays.asList(bucketName));
+
+        objectsList.stream().filter(obj -> obj.getCatalogObject().getKind().toLowerCase().startsWith(objectsKind.toString().toLowerCase()))
+                .forEach(obj -> catalogObjectService.restore(obj,commitMessage));
     }
 
     public BucketMetadata getBucketMetadata(String bucketName) {

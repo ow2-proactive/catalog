@@ -571,7 +571,12 @@ public class CatalogObjectService {
         String restoreCommitMessage = revisionCommitMessageBuilder.build(catalogObjectRevision.getCommitMessage(),
                                                                          commitTime);
 
-        CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(restoreCommitMessage,
+        return restore(catalogObjectRevision, restoreCommitMessage);
+    }
+
+    public CatalogObjectMetadata restore(CatalogObjectRevisionEntity catalogObjectRevision, String commitMessage) {
+
+        CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(commitMessage,
                                                                                         catalogObjectRevision.getUsername(),
                                                                                         keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
                                                                                         catalogObjectRevision.getRawObject(),
