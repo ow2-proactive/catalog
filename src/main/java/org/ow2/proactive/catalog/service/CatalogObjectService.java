@@ -415,7 +415,6 @@ public class CatalogObjectService {
     }
 
     public List<CatalogObjectRevisionEntity> listCatalogObjectsEntities(List<String> bucketNames) {
-        bucketNames.forEach(this::findBucketByNameAndCheck);
         return catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames);
     }
 
