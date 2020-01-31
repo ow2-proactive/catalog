@@ -42,7 +42,6 @@ import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
-import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -61,6 +60,8 @@ import lombok.extern.log4j.Log4j2;
 public class BucketService {
 
     public static final String DEFAULT_BUCKET_OWNER = OwnerGroupStringHelper.GROUP_PREFIX + "public-objects";
+
+    protected static final String COMMIT_MESSAGE_UPDATE_BUCKET = "Update the bucket owner";
 
     @Autowired
     private BucketRepository bucketRepository;
@@ -89,23 +90,23 @@ public class BucketService {
         return new BucketMetadata(bucketEntity, 0);
     }
 
-    public BucketMetadata updateOwnerByBucketName(String bucketName, String owner) throws DataIntegrityViolationException {
+    public BucketMetadata updateOwnerByBucketName(String bucketName, String owner)
+            throws DataIntegrityViolationException {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
         bucketEntity.setOwner(owner);
 
         bucketEntity = bucketRepository.save(bucketEntity);
 
-        createRevisionForObjects(bucketName, "Update the bucket owner", SupportedParserKinds.WORKFLOW);
+        createRevisionForObjects(bucketName, COMMIT_MESSAGE_UPDATE_BUCKET);
 
         return new BucketMetadata(bucketEntity, bucketEntity.getCatalogObjects().size());
     }
 
     //create a new revision for objects when the bucket owner is updated
-    protected void createRevisionForObjects(String bucketName, String commitMessage, SupportedParserKinds objectsKind){
+    protected void createRevisionForObjects(String bucketName, String commitMessage) {
         List<CatalogObjectRevisionEntity> objectsList = catalogObjectService.listCatalogObjectsEntities(Arrays.asList(bucketName));
 
-        objectsList.stream().filter(obj -> obj.getCatalogObject().getKind().toLowerCase().startsWith(objectsKind.toString().toLowerCase()))
-                .forEach(obj -> catalogObjectService.restore(obj,commitMessage));
+        objectsList.forEach(obj -> catalogObjectService.createCatalogObjectRevision(obj, commitMessage));
     }
 
     public BucketMetadata getBucketMetadata(String bucketName) {

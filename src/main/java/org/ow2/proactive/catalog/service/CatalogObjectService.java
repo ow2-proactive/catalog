@@ -531,6 +531,16 @@ public class CatalogObjectService {
         return new CatalogObjectMetadata(revisionEntity);
     }
 
+    public CatalogObjectMetadata createCatalogObjectRevision(CatalogObjectRevisionEntity catalogObjectRevision,
+            String commitMessage) {
+        return createCatalogObjectRevision(catalogObjectRevision.getCatalogObject().getBucket().getBucketName(),
+                                           catalogObjectRevision.getCatalogObject().getId().getName(),
+                                           commitMessage,
+                                           catalogObjectRevision.getUsername(),
+                                           keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
+                                           catalogObjectRevision.getRawObject());
+    }
+
     public List<CatalogObjectMetadata> listCatalogObjectRevisions(String bucketName, String name) {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
         findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
@@ -571,12 +581,7 @@ public class CatalogObjectService {
         String restoreCommitMessage = revisionCommitMessageBuilder.build(catalogObjectRevision.getCommitMessage(),
                                                                          commitTime);
 
-        return restore(catalogObjectRevision, restoreCommitMessage);
-    }
-
-    public CatalogObjectMetadata restore(CatalogObjectRevisionEntity catalogObjectRevision, String commitMessage) {
-
-        CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(commitMessage,
+        CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(restoreCommitMessage,
                                                                                         catalogObjectRevision.getUsername(),
                                                                                         keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
                                                                                         catalogObjectRevision.getRawObject(),

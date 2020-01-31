@@ -148,6 +148,72 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
+    public void testAddGenericInformationToObjects() {
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
+                                                                                                    "object-name-3");
+
+        assertThat(catalogObjectMetadata.getKind()).isEqualTo("workflow");
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(3);
+
+        List<Metadata> genericInfo = catalogObjectMetadata.getMetadataList()
+                                                          .stream()
+                                                          .filter(metadata -> metadata.getLabel()
+                                                                                      .equals(WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL))
+                                                          .collect(Collectors.toList());
+        assertThat(genericInfo).hasSize(2);
+        assertThat(genericInfo).contains(new Metadata(KeyValueLabelMetadataHelper.BUCKET_NAME_KEY,
+                                                      bucket.getName(),
+                                                      WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL));
+        assertThat(genericInfo).contains(new Metadata(KeyValueLabelMetadataHelper.GROUP_KEY,
+                                                      bucket.getOwner(),
+                                                      WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL));
+    }
+
+    @Test
+    public void testUpdateBucketOwnerForObjects() {
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
+                                                                                                    "object-name-3");
+
+        assertThat(catalogObjectMetadata.getKind()).isEqualTo("workflow");
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(3);
+
+        assertThat(catalogObjectMetadata.getMetadataList()).contains(new Metadata(KeyValueLabelMetadataHelper.BUCKET_NAME_KEY,
+                                                                                  bucket.getName(),
+                                                                                  WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL));
+        assertThat(catalogObjectMetadata.getMetadataList()).contains(new Metadata(KeyValueLabelMetadataHelper.GROUP_KEY,
+                                                                                  bucket.getOwner(),
+                                                                                  WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL));
+
+        String newOwner = "newOwner";
+        bucketService.updateOwnerByBucketName(bucket.getName(), newOwner);
+
+        //check the update of metadata key value for different kind objects
+        CatalogObjectMetadata catalogObjectMetadataWorkflow = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
+                                                                                                            "object-name-3");
+        assertThat(catalogObjectMetadataWorkflow.getKind()).isEqualTo("workflow");
+        assertThat(catalogObjectMetadataWorkflow.getMetadataList()).hasSize(3);
+
+        assertThat(catalogObjectMetadataWorkflow.getMetadataList()).contains(new Metadata(KeyValueLabelMetadataHelper.BUCKET_NAME_KEY,
+                                                                                          bucket.getName(),
+                                                                                          WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL));
+        assertThat(catalogObjectMetadataWorkflow.getMetadataList()).contains(new Metadata(KeyValueLabelMetadataHelper.GROUP_KEY,
+                                                                                          newOwner,
+                                                                                          WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL));
+
+        CatalogObjectMetadata catalogObjectMetadataSomeKind = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
+                                                                                                            "object-name-1");
+        assertThat(catalogObjectMetadataSomeKind.getKind()).isEqualTo("object");
+        assertThat(catalogObjectMetadataSomeKind.getMetadataList()).hasSize(3);
+
+        assertThat(catalogObjectMetadataSomeKind.getMetadataList()).contains(new Metadata(KeyValueLabelMetadataHelper.BUCKET_NAME_KEY,
+                                                                                          bucket.getName(),
+                                                                                          WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL));
+        assertThat(catalogObjectMetadataSomeKind.getMetadataList()).contains(new Metadata(KeyValueLabelMetadataHelper.GROUP_KEY,
+                                                                                          newOwner,
+                                                                                          WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL));
+    }
+
+    @Test
     public void testWorkflowCatalogObjectWithDependsOnModel() throws IOException {
         String aObject = "A_Object";
         String bObject = "B_Object";

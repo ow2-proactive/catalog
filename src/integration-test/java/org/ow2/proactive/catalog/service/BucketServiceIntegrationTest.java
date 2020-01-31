@@ -129,15 +129,20 @@ public class BucketServiceIntegrationTest {
 
     @Test
     public void testUpdateBucketOwner() {
-        bucketService.updateOwnerByBucketName("bucket", "newOwner");
+        BucketMetadata bucketMetadataOrigin = bucketService.getBucketMetadata("bucket");
+        assertThat(bucketMetadataOrigin.getOwner()).isEqualTo(bucket.getOwner());
 
-        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets("newOwner",
-                                                                         Optional.empty(),
-                                                                         Optional.empty());
+        String newOwner = "newOwner";
+        bucketService.updateOwnerByBucketName("bucket", newOwner);
+
+        BucketMetadata bucketMetadataUpdatedOwner = bucketService.getBucketMetadata("bucket");
+        assertThat(bucketMetadataUpdatedOwner.getOwner()).isEqualTo(newOwner);
+
+        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets(newOwner, Optional.empty(), Optional.empty());
         assertThat(bucketMetadatas).hasSize(1);
         BucketMetadata bucketMetadata = bucketService.getBucketMetadata(bucket.getName());
         assertThat(bucketMetadata).isNotNull();
-        assertThat(bucketMetadata.getOwner()).isEqualTo("newOwner");
+        assertThat(bucketMetadata.getOwner()).isEqualTo(newOwner);
         assertThat(bucketMetadata.getName()).isEqualTo(bucket.getName());
     }
 
