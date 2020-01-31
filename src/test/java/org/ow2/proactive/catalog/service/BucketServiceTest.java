@@ -106,6 +106,7 @@ public class BucketServiceTest {
 
     @Test
     public void testUpdateBucketOwner() throws Exception {
+        String bucketName = "BUCKET-NAME-TEST";
         BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
         BucketEntity mockedBucketWithOwner = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
         mockedBucketWithOwner.setOwner(DEFAULT_BUCKET_NAME);
@@ -119,13 +120,13 @@ public class BucketServiceTest {
 
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(mockedBucket);
         when(bucketRepository.save(mockedBucket)).thenReturn(mockedBucketWithOwner);
-        when(catalogObjectService.listCatalogObjectsEntities((Arrays.asList("BUCKET-NAME-TEST")))).thenReturn(objectsList);
+        when(catalogObjectService.listCatalogObjectsEntities((Arrays.asList(bucketName)))).thenReturn(objectsList);
 
-        BucketMetadata bucketMetadata = bucketService.updateOwnerByBucketName("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
+        BucketMetadata bucketMetadata = bucketService.updateOwnerByBucketName(bucketName, DEFAULT_BUCKET_NAME);
         verify(mockedBucket, times(1)).setOwner(DEFAULT_BUCKET_NAME);
-        verify(bucketRepository, times(1)).findOneByBucketName("BUCKET-NAME-TEST");
+        verify(bucketRepository, times(1)).findOneByBucketName(bucketName);
         verify(bucketRepository, times(1)).save(mockedBucket);
-        verify(catalogObjectService, times(1)).listCatalogObjectsEntities(Arrays.asList("BUCKET-NAME-TEST"));
+        verify(catalogObjectService, times(1)).listCatalogObjectsEntities(Arrays.asList(bucketName));
         verify(catalogObjectService, times(1)).createCatalogObjectRevision(catalogObjectRevisionEntity,
                                                                            BucketService.COMMIT_MESSAGE_UPDATE_BUCKET);
         assertEquals(mockedBucketWithOwner.getBucketName(), bucketMetadata.getName());
