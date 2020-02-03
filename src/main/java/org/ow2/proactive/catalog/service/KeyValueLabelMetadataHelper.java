@@ -52,10 +52,10 @@ import org.springframework.stereotype.Component;
 public class KeyValueLabelMetadataHelper {
 
     @SuppressWarnings("FieldCanBeLocal")
-    private static final String GROUP_KEY = "group";
+    public static final String GROUP_KEY = "group";
 
     @SuppressWarnings("FieldCanBeLocal")
-    private static final String BUCKET_NAME_KEY = "bucketName";
+    public static final String BUCKET_NAME_KEY = "bucketName";
 
     private final List<AbstractCatalogObjectParser> parsers;
 

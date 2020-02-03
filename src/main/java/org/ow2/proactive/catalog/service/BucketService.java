@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
@@ -59,6 +61,8 @@ public class BucketService {
 
     public static final String DEFAULT_BUCKET_OWNER = OwnerGroupStringHelper.GROUP_PREFIX + "public-objects";
 
+    protected static final String COMMIT_MESSAGE_UPDATE_BUCKET = "Update the bucket owner";
+
     @Autowired
     private BucketRepository bucketRepository;
 
@@ -67,6 +71,9 @@ public class BucketService {
 
     @Autowired
     private OwnerGroupStringHelper ownerGroupStringHelper;
+
+    @Autowired
+    CatalogObjectService catalogObjectService;
 
     public BucketMetadata createBucket(String name) {
         return createBucket(name, DEFAULT_BUCKET_OWNER);
@@ -81,6 +88,25 @@ public class BucketService {
 
         bucketEntity = bucketRepository.save(bucketEntity);
         return new BucketMetadata(bucketEntity, 0);
+    }
+
+    public BucketMetadata updateOwnerByBucketName(String bucketName, String owner)
+            throws DataIntegrityViolationException {
+        BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
+        bucketEntity.setOwner(owner);
+
+        bucketEntity = bucketRepository.save(bucketEntity);
+
+        createRevisionForObjects(bucketName, COMMIT_MESSAGE_UPDATE_BUCKET);
+
+        return new BucketMetadata(bucketEntity, bucketEntity.getCatalogObjects().size());
+    }
+
+    //create a new revision for objects when the bucket owner is updated
+    protected void createRevisionForObjects(String bucketName, String commitMessage) {
+        List<CatalogObjectRevisionEntity> objectsList = catalogObjectService.listCatalogObjectsEntities(Arrays.asList(bucketName));
+
+        objectsList.forEach(obj -> catalogObjectService.createCatalogObjectRevision(obj, commitMessage));
     }
 
     public BucketMetadata getBucketMetadata(String bucketName) {

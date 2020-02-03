@@ -26,7 +26,6 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -233,6 +232,34 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("", hasSize(2));
+    }
+
+    @Test
+    public void testUpdateBucketOwner() {
+        final String bucketName = "bucket-of-love";
+        final String userAlice = "Alice";
+        final String userBob = "Bob";
+        given().header("sessionID", "12345")
+               .parameters("name", bucketName, "owner", userAlice)
+               .when()
+               .post(BUCKETS_RESOURCE);
+
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucketName)
+               .parameters("owner", userBob)
+               .when()
+               .put(BUCKET_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK);
+
+        // list bob buckets
+        given().param("owner", userBob)
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(1));
     }
 
     @Test

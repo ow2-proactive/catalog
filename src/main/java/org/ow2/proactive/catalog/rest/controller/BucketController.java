@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.rest.controller;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.util.List;
 import java.util.Optional;
@@ -92,6 +93,27 @@ public class BucketController {
             return bucketService.createBucket(bucketName, ownerName);
         } catch (DataIntegrityViolationException exception) {
             throw new BucketAlreadyExistingException(bucketName, ownerName);
+        }
+    }
+
+    @SuppressWarnings("DefaultAnnotationParam")
+    @ApiOperation(value = "Update bucket owner")
+    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @RequestMapping(value = "/{bucketName}", method = PUT)
+    @ResponseStatus(HttpStatus.OK)
+    public BucketMetadata updateBucketOwner(
+            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @ApiParam(value = "The name of the existing Bucket ") @PathVariable String bucketName,
+            @ApiParam(value = "The new name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String newOwnerName)
+            throws NotAuthenticatedException, AccessDeniedException {
+        if (sessionIdRequired) {
+            restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId, newOwnerName);
+        }
+        try {
+            return bucketService.updateOwnerByBucketName(bucketName, newOwnerName);
+        } catch (DataIntegrityViolationException exception) {
+            throw new BucketAlreadyExistingException(bucketName, newOwnerName);
         }
     }
 

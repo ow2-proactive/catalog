@@ -128,6 +128,25 @@ public class BucketServiceIntegrationTest {
     }
 
     @Test
+    public void testUpdateBucketOwner() {
+        BucketMetadata bucketMetadataOrigin = bucketService.getBucketMetadata("bucket");
+        assertThat(bucketMetadataOrigin.getOwner()).isEqualTo(bucket.getOwner());
+
+        String newOwner = "newOwner";
+        bucketService.updateOwnerByBucketName("bucket", newOwner);
+
+        BucketMetadata bucketMetadataUpdatedOwner = bucketService.getBucketMetadata("bucket");
+        assertThat(bucketMetadataUpdatedOwner.getOwner()).isEqualTo(newOwner);
+
+        List<BucketMetadata> bucketMetadatas = bucketService.listBuckets(newOwner, Optional.empty(), Optional.empty());
+        assertThat(bucketMetadatas).hasSize(1);
+        BucketMetadata bucketMetadata = bucketService.getBucketMetadata(bucket.getName());
+        assertThat(bucketMetadata).isNotNull();
+        assertThat(bucketMetadata.getOwner()).isEqualTo(newOwner);
+        assertThat(bucketMetadata.getName()).isEqualTo(bucket.getName());
+    }
+
+    @Test
     public void testListBucketByOwnerAndCaseInsensitiveByKind() {
         bucket = bucketService.createBucket("bucket-workflow", "owner");
         catalogObjectService.createCatalogObject(bucket.getName(),

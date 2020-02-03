@@ -409,9 +409,13 @@ public class CatalogObjectService {
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketNames) {
         bucketNames.forEach(this::findBucketByNameAndCheck);
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames);
+        List<CatalogObjectRevisionEntity> result = listCatalogObjectsEntities(bucketNames);
 
         return buildMetadataWithLink(result);
+    }
+
+    public List<CatalogObjectRevisionEntity> listCatalogObjectsEntities(List<String> bucketNames) {
+        return catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames);
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
@@ -524,6 +528,16 @@ public class CatalogObjectService {
                                                                                       catalogObject);
 
         return new CatalogObjectMetadata(revisionEntity);
+    }
+
+    public CatalogObjectMetadata createCatalogObjectRevision(CatalogObjectRevisionEntity catalogObjectRevision,
+            String commitMessage) {
+        return createCatalogObjectRevision(catalogObjectRevision.getCatalogObject().getBucket().getBucketName(),
+                                           catalogObjectRevision.getCatalogObject().getId().getName(),
+                                           commitMessage,
+                                           catalogObjectRevision.getUsername(),
+                                           keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
+                                           catalogObjectRevision.getRawObject());
     }
 
     public List<CatalogObjectMetadata> listCatalogObjectRevisions(String bucketName, String name) {

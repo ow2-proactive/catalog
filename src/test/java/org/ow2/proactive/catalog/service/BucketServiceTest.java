@@ -36,6 +36,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -52,10 +54,12 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
+import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
 
 
 /**
@@ -69,7 +73,7 @@ public class BucketServiceTest {
     @InjectMocks
     private BucketService bucketService;
 
-    @InjectMocks
+    @Mock
     private CatalogObjectService catalogObjectService;
 
     @Mock
@@ -98,6 +102,35 @@ public class BucketServiceTest {
         verify(bucketNameValidator, times(1)).isValid(anyString());
         assertEquals(mockedBucket.getBucketName(), bucketMetadata.getName());
         assertEquals(mockedBucket.getOwner(), bucketMetadata.getOwner());
+    }
+
+    @Test
+    public void testUpdateBucketOwner() throws Exception {
+        String bucketName = "BUCKET-NAME-TEST";
+        BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
+        BucketEntity mockedBucketWithOwner = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
+        mockedBucketWithOwner.setOwner(DEFAULT_BUCKET_NAME);
+        List<CatalogObjectRevisionEntity> objectsList = new ArrayList<>();
+        CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
+                                                                                             .catalogObject(CatalogObjectEntity.builder()
+                                                                                                                               .kind(SupportedParserKinds.WORKFLOW.toString())
+                                                                                                                               .build())
+                                                                                             .build();
+        objectsList.add(catalogObjectRevisionEntity);
+
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(mockedBucket);
+        when(bucketRepository.save(mockedBucket)).thenReturn(mockedBucketWithOwner);
+        when(catalogObjectService.listCatalogObjectsEntities((Arrays.asList(bucketName)))).thenReturn(objectsList);
+
+        BucketMetadata bucketMetadata = bucketService.updateOwnerByBucketName(bucketName, DEFAULT_BUCKET_NAME);
+        verify(mockedBucket, times(1)).setOwner(DEFAULT_BUCKET_NAME);
+        verify(bucketRepository, times(1)).findOneByBucketName(bucketName);
+        verify(bucketRepository, times(1)).save(mockedBucket);
+        verify(catalogObjectService, times(1)).listCatalogObjectsEntities(Arrays.asList(bucketName));
+        verify(catalogObjectService, times(1)).createCatalogObjectRevision(catalogObjectRevisionEntity,
+                                                                           BucketService.COMMIT_MESSAGE_UPDATE_BUCKET);
+        assertEquals(mockedBucketWithOwner.getBucketName(), bucketMetadata.getName());
+        assertEquals(mockedBucketWithOwner.getOwner(), bucketMetadata.getOwner());
     }
 
     @Test(expected = BucketNameIsNotValidException.class)
