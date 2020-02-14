@@ -28,9 +28,11 @@ package org.ow2.proactive.catalog.util.parser;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,8 +49,6 @@ import org.ow2.proactive.scheduler.common.task.Task;
 import org.ow2.proactive.scheduler.common.task.TaskVariable;
 import org.ow2.proactive.scheduler.core.properties.PASchedulerProperties;
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.ImmutableSet;
 
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -109,7 +109,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         } catch (JobCreationException e) {
             throw new ParsingObjectException(e.getMessage(), e);
         }
-        ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder = ImmutableSet.builder();
+        Set keyValueMapBuilder = new LinkedHashSet();
 
         addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobNameIfNotNull(keyValueMapBuilder, job);
@@ -127,11 +127,10 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobVizualisationIfNotNullAndNotEmpty(keyValueMapBuilder, job);
 
-        return new ArrayList<>(keyValueMapBuilder.build());
+        return new ArrayList<>(keyValueMapBuilder);
     }
 
-    private void addProjectNameIfNotNullAndNotEmpty(
-            ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
+    private void addProjectNameIfNotNullAndNotEmpty(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
         String projectName = job.getProjectName();
         if (checkIfNotNull(projectName) && checkIfNotEmpty(projectName)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(PROJECT_NAME_KEY,
@@ -140,22 +139,22 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         }
     }
 
-    private void addJobNameIfNotNull(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
+    private void addJobNameIfNotNull(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
         String name = job.getName();
         if (checkIfNotNull(name)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY, name, JOB_AND_PROJECT_LABEL));
         }
     }
 
-    private void addGenericInformationIfNotNull(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder,
-            String name, String value) {
+    private void addGenericInformationIfNotNull(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, String name,
+            String value) {
         if (checkIfNotNull(name, value)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, value, ATTRIBUTE_GENERIC_INFORMATION_LABEL));
         }
     }
 
-    private void addVariableIfNotNullAndModelIfNotEmpty(
-            ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, JobVariable jobVariable) {
+    private void addVariableIfNotNullAndModelIfNotEmpty(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder,
+            JobVariable jobVariable) {
         String name = jobVariable.getName();
         String value = jobVariable.getValue();
         String model = jobVariable.getModel();
@@ -169,7 +168,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     }
 
     private void addDependsOnIfCatalogObjectModelExistOnTaskVariable(
-            ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, TaskVariable taskVariable) {
+            Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, TaskVariable taskVariable) {
         String name = taskVariable.getName();
         String value = taskVariable.getValue();
         String model = taskVariable.getModel();
@@ -179,8 +178,8 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     }
 
-    private void addDependsOnIfScriptUrlExistInEachTaskScripts(
-            ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Task task) {
+    private void addDependsOnIfScriptUrlExistInEachTaskScripts(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder,
+            Task task) {
 
         if (task.getPreScript() != null && task.getPreScript().getScriptUrl() != null &&
             !task.getPreScript().getScriptUrl().toString().isEmpty() &&
@@ -232,7 +231,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     }
 
-    private void addDependsOn(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, String scriptUrl) {
+    private void addDependsOn(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, String scriptUrl) {
 
         keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromScriptUrl(scriptUrl),
                                                                getRevisionFromUrl(scriptUrl).orElse(LATEST_VERSION),
@@ -264,8 +263,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         }
     }
 
-    private void addDependsOn(ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, String value,
-            String model) {
+    private void addDependsOn(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, String value, String model) {
         if (model.equalsIgnoreCase(CATALOG_OBJECT_MODEL)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependsOn(value),
                                                                    getRevisionFromDependsOn(value).orElse(LATEST_VERSION),
@@ -292,16 +290,14 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         }
     }
 
-    private void addJobDescriptionIfNotNullAndNotEmpty(
-            ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
+    private void addJobDescriptionIfNotNullAndNotEmpty(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
         String description = job.getDescription();
         if (checkIfNotNull(description) && checkIfNotEmpty(description)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_DESCRIPTION_KEY, description, GENERAL_LABEL));
         }
     }
 
-    private void addJobVizualisationIfNotNullAndNotEmpty(
-            ImmutableSet.Builder<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
+    private void addJobVizualisationIfNotNullAndNotEmpty(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
         String vizualisation = job.getVisualization();
         if (checkIfNotNull(vizualisation) && checkIfNotEmpty(vizualisation)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_VISUALIZATION_KEY,

@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.util;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -80,6 +81,24 @@ public class ProActiveCatalogObjectParserTest {
         assertThat(findValueForKeyAndLabel(result, "keyInteger", "variable_model")).isEqualTo("PA:Integer");
         assertThat(findValueForKeyAndLabel(result, "keyGeneral", "variable")).isEqualTo("valueGeneral");
         assertThat(findValueForKeyAndLabel(result, "emptyValue", "variable")).isEqualTo("");
+    }
+
+    @Test
+    public void testParseWorkflowWithVariablesOrder() throws Exception {
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_variables_with_model.xml");
+
+        assertThat(result).hasSize(7);
+        assertKeyValueDataAre(result.get(0), "name", "test_variables", "job_information");
+        assertKeyValueDataAre(result.get(1), "keyWithoutModel", "valueWithoutModel", "variable");
+        assertKeyValueDataAre(result.get(2), "keyInteger", "1", "variable");
+        assertKeyValueDataAre(result.get(3), "keyInteger", "PA:Integer", "variable_model");
+        assertKeyValueDataAre(result.get(4), "keyGeneral", "valueGeneral", "variable");
+        assertKeyValueDataAre(result.get(5), "emptyValue", "", "variable");
+    }
+
+    private static void assertKeyValueDataAre(KeyValueLabelMetadataEntity data, String key, String value,
+            String label) {
+        assertTrue(data.getKey().equals(key) && data.getValue().equals(value) && data.getLabel().equals(label));
     }
 
     @Test
