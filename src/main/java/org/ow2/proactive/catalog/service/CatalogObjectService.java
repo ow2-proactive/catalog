@@ -622,8 +622,9 @@ public class CatalogObjectService {
 
     public List<CatalogObjectNameReference> getAccessibleCatalogObjectsNameReferenceByKindAndContentType(
             boolean sessionIdRequired, String sessionId, Optional<String> kind, Optional<String> contentType) {
-        List<CatalogObjectNameReference> catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRepository.findCatalogObjectNameReferenceByKindAndContentType(kind.orElse(""),
-                                                                                                                                                                                                                contentType.orElse("")));
+
+        List<CatalogObjectNameReference> catalogObjectsNameReferenceByKindAndContentType = generateCatalogObjectsNameReferenceByKind(catalogObjectRevisionRepository.findCatalogObjectNameReferenceByKindAndContentType(kind.orElse(""),
+                                                                                                                                                                                                                        contentType.orElse("")));
 
         Map<String, List<CatalogObjectNameReference>> catalogObjectsGroupedByBucket = groupCatalogObjectsNameReferencePerBucket(catalogObjectsNameReferenceByKindAndContentType);
         List<BucketEntity> buckets = bucketRepository.findAll();
@@ -645,12 +646,14 @@ public class CatalogObjectService {
                                            .collect(Collectors.groupingBy(CatalogObjectNameReference::getBucketName));
     }
 
-    private List<CatalogObjectNameReference>
-            generateCatalogObjectsNameReferenceByKind(List<Object[]> catalogObjectsNameReferenceByKind) {
-        return catalogObjectsNameReferenceByKind.stream()
-                                                .map(item -> new CatalogObjectNameReference(String.valueOf(item[0]),
-                                                                                            String.valueOf(item[1])))
-                                                .collect(Collectors.toList());
+    private List<CatalogObjectNameReference> generateCatalogObjectsNameReferenceByKind(
+            List<CatalogObjectRevisionEntity> catalogObjectsRevisionEntityList) {
+
+        return buildMetadataWithLink(catalogObjectsRevisionEntityList).stream()
+                                                                      .map(item -> new CatalogObjectNameReference(item.getBucketName(),
+                                                                                                                  item.getProjectName(),
+                                                                                                                  item.getName()))
+                                                                      .collect(Collectors.toList());
 
     }
 
