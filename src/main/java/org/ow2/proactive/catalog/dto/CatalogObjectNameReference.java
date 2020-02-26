@@ -40,11 +40,15 @@ public class CatalogObjectNameReference {
     @JsonProperty("bucket_name")
     private final String bucketName;
 
+    @JsonProperty("project_name")
+    private final String projectName;
+
     @JsonProperty("name")
     private final String name;
 
-    public CatalogObjectNameReference(String bucketName, String name) {
+    public CatalogObjectNameReference(String bucketName, String projectName, String name) {
         this.bucketName = bucketName;
+        this.projectName = projectName;
         this.name = name;
     }
 }
