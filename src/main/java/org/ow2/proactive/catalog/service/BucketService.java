@@ -143,8 +143,9 @@ public class BucketService {
 
     private List<BucketMetadata> generateBucketMetadataListFromObject(List<Object[]> bucketEntityWithContentCountList) {
         return bucketEntityWithContentCountList.stream()
-                                               .map(bucketEntityWithContentCount -> new BucketMetadata((BucketEntity) bucketEntityWithContentCount[0],
-                                                                                                       ((Long) bucketEntityWithContentCount[1]).intValue()))
+                                               .map(bucketEntityWithContentCount -> new BucketMetadata((String) bucketEntityWithContentCount[0],
+                                                                                                       (String) bucketEntityWithContentCount[1],
+                                                                                                       ((Long) bucketEntityWithContentCount[2]).intValue()))
                                                .collect(Collectors.toList());
 
     }
