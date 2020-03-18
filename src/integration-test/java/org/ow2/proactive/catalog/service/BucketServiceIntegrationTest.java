@@ -170,7 +170,9 @@ public class BucketServiceIntegrationTest {
         org.hamcrest.MatcherAssert.assertThat(bucketMetadatas,
                                               org.hamcrest.Matchers.hasItem(org.hamcrest.beans.HasPropertyWithValue.hasProperty("name",
                                                                                                                                 org.hamcrest.CoreMatchers.is(bucket.getName()))));
-
+        //check the order of retrieved buckets
+        assertThat(bucketMetadatas.get(1).getOwner()).isEqualTo(bucket.getOwner());
+        assertThat(bucketMetadatas.get(1).getName()).isEqualTo(bucket.getName());
     }
 
     @Test
@@ -259,6 +261,11 @@ public class BucketServiceIntegrationTest {
                                                                                   Optional.of("WORKFLOW"),
                                                                                   Optional.empty());
         assertThat(bucketMetadatasWorkflows).hasSize(4);
+        //check the order of retrieved buckets
+        assertThat(bucketMetadatasWorkflows.get(2).getOwner()).isEqualTo(bucketWfStandard.getOwner());
+        assertThat(bucketMetadatasWorkflows.get(2).getName()).isEqualTo(bucketWfStandard.getName());
+        assertThat(bucketMetadatasWorkflows.get(3).getOwner()).isEqualTo(bucketWfPCA.getOwner());
+        assertThat(bucketMetadatasWorkflows.get(3).getName()).isEqualTo(bucketWfPCA.getName());
 
         org.hamcrest.MatcherAssert.assertThat(bucketMetadatasWorkflows,
                                               org.hamcrest.Matchers.hasItem(org.hamcrest.beans.HasPropertyWithValue.hasProperty("name",
