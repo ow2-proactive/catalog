@@ -60,6 +60,7 @@ import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
+import org.springframework.data.domain.Sort;
 
 
 /**
@@ -88,8 +89,9 @@ public class BucketServiceTest {
         verify(bucketRepository, times(0)).findByOwnerIsInContainingKindAndContentTypeAndObjectName(any(),
                                                                                                     any(),
                                                                                                     any(),
-                                                                                                    any());
-        verify(bucketRepository, times(0)).findByOwnerIn(any());
+                                                                                                    any(),
+                                                                                                    any(Sort.class));
+        verify(bucketRepository, times(0)).findByOwnerIn(any(), any(Sort.class));
     }
 
     @Test
@@ -210,13 +212,14 @@ public class BucketServiceTest {
         when(bucketRepository.findAll()).thenReturn(Collections.emptyList());
         bucketService.listBuckets(owner, (kind), (contentType));
         if (!StringUtils.isEmpty(owner)) {
-            verify(bucketRepository, times(1)).findByOwnerIn(anyList());
+            verify(bucketRepository, times(1)).findByOwnerIn(anyList(), any(Sort.class));
         } else if (kind.isPresent()) {
             verify(bucketRepository, times(1)).findContainingKindAndContentTypeAndObjectName(anyString(),
                                                                                              anyString(),
-                                                                                             anyString());
+                                                                                             anyString(),
+                                                                                             any(Sort.class));
         } else {
-            verify(bucketRepository, times(1)).findAll();
+            verify(bucketRepository, times(1)).findAll(any(Sort.class));
         }
     }
 

@@ -45,6 +45,7 @@ import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,6 +63,8 @@ public class BucketService {
     public static final String DEFAULT_BUCKET_OWNER = OwnerGroupStringHelper.GROUP_PREFIX + "public-objects";
 
     protected static final String COMMIT_MESSAGE_UPDATE_BUCKET = "Update the bucket owner";
+
+    protected final Sort sortById = new Sort(Sort.Direction.ASC, "id");
 
     @Autowired
     private BucketRepository bucketRepository;
@@ -133,10 +136,11 @@ public class BucketService {
             entities = generateBucketMetadataListFromObject(bucketRepository.findByOwnerIsInContainingKindAndContentTypeAndObjectName(owners,
                                                                                                                                       kind.orElse(""),
                                                                                                                                       contentType.orElse(""),
-                                                                                                                                      objectName.orElse("")));
+                                                                                                                                      objectName.orElse(""),
+                                                                                                                                      sortById));
 
         } else {
-            entities = generateBucketMetadataList(bucketRepository.findByOwnerIn(owners));
+            entities = generateBucketMetadataList(bucketRepository.findByOwnerIn(owners, sortById));
         }
         return entities;
     }
@@ -172,10 +176,11 @@ public class BucketService {
         } else if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
             entities = generateBucketMetadataListFromObject(bucketRepository.findContainingKindAndContentTypeAndObjectName(kind.orElse(""),
                                                                                                                            contentType.orElse(""),
-                                                                                                                           objectName.orElse("")));
+                                                                                                                           objectName.orElse(""),
+                                                                                                                           sortById));
 
         } else {
-            entities = generateBucketMetadataList(bucketRepository.findAll());
+            entities = generateBucketMetadataList(bucketRepository.findAll(sortById));
         }
 
         log.info("Buckets count {}", entities.size());
