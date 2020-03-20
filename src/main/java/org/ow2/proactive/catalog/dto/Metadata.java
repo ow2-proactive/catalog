@@ -48,14 +48,14 @@ public class Metadata {
 
     public Metadata(String key, String value, String label) {
         this.key = key;
-        this.value = value;
-        this.label = label;
+        this.value = Objects.toString(value, "");
+        this.label = Objects.toString(label, "");
     }
 
     public Metadata(KeyValueLabelMetadataEntity entity) {
         this.key = entity.getKey();
-        this.value = entity.getValue();
-        this.label = entity.getLabel();
+        this.value = Objects.toString(entity.getValue(), "");
+        this.label = Objects.toString(entity.getLabel(), "");
     }
 
     @Override
