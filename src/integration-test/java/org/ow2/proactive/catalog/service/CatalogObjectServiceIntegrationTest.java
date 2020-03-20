@@ -170,6 +170,35 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
+    public void testValueLabelEmptyMetadata() {
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
+                                                                                                    "object-name-3");
+        List<Metadata> metadataList = catalogObjectMetadata.getMetadataList();
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(3);
+
+        Metadata nullValueMetadata = new Metadata("test-key", null, null);
+        metadataList.add(nullValueMetadata);
+
+        CatalogObjectMetadata catalogObjectMetadataNewKeyValue = catalogObjectService.createCatalogObjectRevision(bucket.getName(),
+                                                                                                                  "object-name-3",
+                                                                                                                  "commit message 2",
+                                                                                                                  "username",
+                                                                                                                  metadataList,
+                                                                                                                  workflowAsByteArrayUpdated);
+
+        assertThat(catalogObjectMetadataNewKeyValue.getMetadataList()).hasSize(4);
+
+        Optional<Metadata> emptyValueMetadata = catalogObjectMetadataNewKeyValue.getMetadataList()
+                                                                                .stream()
+                                                                                .filter(metadata -> metadata.getKey()
+                                                                                                            .equals(nullValueMetadata.getKey()))
+                                                                                .findFirst();
+        assertThat(emptyValueMetadata.isPresent()).isTrue();
+        assertThat(emptyValueMetadata.get().getValue()).isEmpty();
+        assertThat(emptyValueMetadata.get().getLabel()).isEmpty();
+    }
+
+    @Test
     public void testUpdateBucketOwnerForObjects() {
         CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
                                                                                                     "object-name-3");
