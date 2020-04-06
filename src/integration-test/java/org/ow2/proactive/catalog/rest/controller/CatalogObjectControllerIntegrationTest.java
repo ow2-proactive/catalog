@@ -368,7 +368,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                //check link references
                .body("object[0].links[0].href",
                      containsString("/buckets/" + bucket.getName() + "/resources/" + encodedObjectName + "/raw"))
-               .body("object[0].links[0].rel", is("content"));
+               .body("object[0].links[0].rel", is("content"))
+               .body("object[0].links[1].href", is("buckets/" + bucket.getName() + "/resources/" + encodedObjectName))
+               .body("object[0].links[1].rel", is("relative"));
 
         //check get the raw object, created on previous request with specific name
         Response rawResponse = given().urlEncodingEnabled(true)

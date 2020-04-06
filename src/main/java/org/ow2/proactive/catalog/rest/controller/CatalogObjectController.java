@@ -129,6 +129,7 @@ public class CatalogObjectController {
                                                                                            FilenameUtils.getExtension(file.getOriginalFilename()));
 
             catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
+            catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
 
             return new CatalogObjectMetadataList(catalogObject);
         } else {
@@ -141,6 +142,7 @@ public class CatalogObjectController {
 
             for (CatalogObjectMetadata catalogObject : catalogObjects) {
                 catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
+                catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
             }
 
             return new CatalogObjectMetadataList(catalogObjects);
