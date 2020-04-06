@@ -25,10 +25,9 @@
  */
 package org.ow2.proactive.catalog.util;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -38,9 +37,6 @@ import org.ow2.proactive.catalog.rest.controller.CatalogObjectRevisionController
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.hateoas.Link;
-import org.springframework.hateoas.core.LinkBuilderSupport;
-import org.springframework.hateoas.mvc.ControllerLinkBuilder;
-import org.springframework.web.util.UriComponents;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -63,12 +59,7 @@ public class LinkUtil {
     public static Link createLink(String bucketName, String name, LocalDateTime commitTime)
             throws NotAuthenticatedException, AccessDeniedException {
         try {
-            long epochMilli = commitTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-            String absoluteLink = linkTo(methodOn(CatalogObjectRevisionController.class).getRaw(null,
-                                                                                                bucketName,
-                                                                                                encodeUrl(name),
-                                                                                                epochMilli));
-
+            String absoluteLink = getControllerURL() + createObjectURL(bucketName, name, commitTime) + "/raw";
             return new Link(absoluteLink).withRel("content");
         } catch (UnsupportedEncodingException e) {
             log.error("{} cannot be encoded", name, e);
@@ -86,11 +77,7 @@ public class LinkUtil {
     public static Link createLink(String bucketName, String name)
             throws NotAuthenticatedException, AccessDeniedException {
         try {
-            String absoluteLink = linkTo(methodOn(CatalogObjectController.class).getRaw(null,
-                                                                                        bucketName,
-                                                                                        encodeUrl(name)
-
-            ));
+            String absoluteLink = getControllerURL() + createObjectURL(bucketName, name) + "/raw";
             return new Link(absoluteLink).withRel("content");
         } catch (UnsupportedEncodingException e) {
             log.error("{} cannot be encoded", name, e);
@@ -110,9 +97,7 @@ public class LinkUtil {
     public static Link createRelativeLink(String bucketName, String objectName, LocalDateTime commitTime) {
         Link link = null;
         try {
-            long epochMilli = commitTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-            link = new Link("buckets/" + bucketName + "/resources/" + encodeUrl(objectName) + "/revisions/" +
-                            epochMilli).withRel("relative");
+            link = new Link(createObjectURL(bucketName, objectName, commitTime)).withRel("relative");
 
         } catch (UnsupportedEncodingException e) {
             log.error("{} cannot be encoded", objectName, e);
@@ -131,39 +116,12 @@ public class LinkUtil {
     public static Link createRelativeLink(String bucketName, String objectName) {
         Link link = null;
         try {
-            link = new Link("buckets/" + bucketName + "/resources/" + encodeUrl(objectName)).withRel("relative");
+            link = new Link(createObjectURL(bucketName, objectName)).withRel("relative");
 
         } catch (UnsupportedEncodingException e) {
             log.error("{} cannot be encoded", objectName, e);
         }
         return link;
-    }
-
-    // ControllerLinkBuilder.linkTo has a problem: it double-URL-encodes characters!
-    // e.g. ' ' (whitespace) is encoded to '%2525' instead of '%20'
-    // TODO remove hack when https://github.com/spring-projects/spring-hateoas/issues/40 is resolved
-    private static final Field uriComponentsField;
-    static {
-        try {
-            uriComponentsField = LinkBuilderSupport.class.getDeclaredField("uriComponents");
-            uriComponentsField.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Method is created to avoid double encoding
-     * @param invocationValue
-     * @return encoded link
-     */
-    public static String linkTo(Object invocationValue) {
-        try {
-            final UriComponents uriComponents = (UriComponents) uriComponentsField.get(ControllerLinkBuilder.linkTo(invocationValue));
-            return uriComponents.toString();
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public static final String SPACE_ENCODED_AS_PERCENT_20 = "%20";
@@ -180,6 +138,20 @@ public class LinkUtil {
      */
     private static String encodeUrl(String valueToEncode) throws UnsupportedEncodingException {
         return URLEncoder.encode(valueToEncode, "UTF-8").replace(SPACE_ENCODED_AS_PLUS, SPACE_ENCODED_AS_PERCENT_20);
+    }
+
+    private static String createObjectURL(String bucketName, String objectName) throws UnsupportedEncodingException {
+        return "buckets/" + bucketName + "/resources/" + encodeUrl(objectName);
+    }
+
+    private static String createObjectURL(String bucketName, String objectName, LocalDateTime commitTime)
+            throws UnsupportedEncodingException {
+        long epochMilli = commitTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        return "buckets/" + bucketName + "/resources/" + encodeUrl(objectName) + "/revisions/" + epochMilli;
+    }
+
+    private static String getControllerURL() {
+        return linkTo((CatalogObjectController.class)).toString().replace("buckets", "");
     }
 
 }
