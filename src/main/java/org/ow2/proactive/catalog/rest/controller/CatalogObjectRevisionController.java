@@ -108,6 +108,9 @@ public class CatalogObjectRevisionController {
         catalogObjectRevision.add(LinkUtil.createLink(bucketName,
                                                       catalogObjectRevision.getName(),
                                                       catalogObjectRevision.getCommitDateTime()));
+        catalogObjectRevision.add(LinkUtil.createRelativeLink(bucketName,
+                                                              catalogObjectRevision.getName(),
+                                                              catalogObjectRevision.getCommitDateTime()));
         return catalogObjectRevision;
     }
 
