@@ -96,12 +96,12 @@ public class ObjectNameValidatorTest {
     public void testCheckObjectNameWithSpecialSymbols() {
         assertThat(objectNameValidator.isValid("name&test#'%new")).isTrue();
         assertThat(objectNameValidator.isValid("name${v}")).isTrue();
-        assertThat(objectNameValidator.isValid("?,.:+=%``")).isTrue();
+        assertThat(objectNameValidator.isValid("?.:+=%``")).isTrue();
         assertThat(objectNameValidator.isValid("$*^¨_-°")).isTrue();
         assertThat(objectNameValidator.isValid(")@#&é\\'")).isTrue();
-        assertThat(objectNameValidator.isValid("?,.:+=%``$*^¨_-°)@#&é\\';")).isTrue();
-        assertThat(objectNameValidator.isValid("[$&+,:;=?@#|'<>.-^*()%!]\"{}§è!à")).isTrue();
-        assertThat(objectNameValidator.isValid("workflow$with&specific&symbols+in name:$&%[$&+,:;=?@#|'<>.-^*()%!]\"{}§è!à ae.extension")).isTrue();
+        assertThat(objectNameValidator.isValid("?.:+=%``$*^¨_-°)@#&é\\';")).isTrue();
+        assertThat(objectNameValidator.isValid("[$&+:;=?@#|'<>.-^*()%!]\"{}§è!à")).isTrue();
+        assertThat(objectNameValidator.isValid("workflow$with&specific&symbols+in name:$&%[$&+:;=?@#|'<>.-^*()%!]\"{}§è!à ae.extension")).isTrue();
     }
 
     @Test
