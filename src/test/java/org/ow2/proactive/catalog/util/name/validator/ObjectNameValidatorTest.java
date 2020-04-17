@@ -114,10 +114,10 @@ public class ObjectNameValidatorTest {
     }
 
     @Test
-    public void testCheckObjectNameWithSemicolonSymbols() {
-        assertThat(objectNameValidator.isValid("name;new;y")).isTrue();
-        assertThat(objectNameValidator.isValid("name;")).isTrue();
-        assertThat(objectNameValidator.isValid(";name")).isTrue();
-        assertThat(objectNameValidator.isValid(";")).isTrue();
+    public void testCheckObjectNameWithCommaSymbols() {
+        assertThat(objectNameValidator.isValid("name,new,y")).isFalse();
+        assertThat(objectNameValidator.isValid("name,")).isFalse();
+        assertThat(objectNameValidator.isValid(",name")).isFalse();
+        assertThat(objectNameValidator.isValid(",")).isFalse();
     }
 }

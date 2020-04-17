@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * This Exception is thrown when a CREATE request for object has been
  * received but the object name is not valid, according to next rules:
  * tthe object name should not be empty, should start and finish with non-whitespace character
- * and can contain all characters except forward slash.
+ * and can contain all characters except forward slash and comma.
  * The HTTP status is 400, "Bad Request"
  *
  * @author ActiveEon Team
@@ -44,7 +44,7 @@ public class ObjectNameIsNotValidException extends ClientException {
 
     public ObjectNameIsNotValidException(String objectName) {
         super("The object name: '" + objectName + "' is not valid. " +
-              "\n The object name should not be empty, should start and finish with non-whitespace character and can contain all characters except forward slash.");
+              "\n The object name should not be empty, should start and finish with non-whitespace character and can contain all characters except forward slash and comma.");
     }
 
     public ObjectNameIsNotValidException(Throwable cause) {

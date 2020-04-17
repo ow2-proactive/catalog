@@ -29,11 +29,11 @@ import org.springframework.stereotype.Component;
 
 
 /**
- * According to this validator: the object name should not be empty, should start and finish with non-whitespace character and can contain all characters except forward slash.
+ * According to this validator: the object name should not be empty, should start and finish with non-whitespace character and can contain all characters except forward slash and comma.
  */
 @Component
 public class ObjectNameValidator extends NameValidator {
-    protected static final String VALID_OBJECT_NAME_PATTERN = "^[^\\s\\/]+(\\s+[^\\s\\/]+)*$";
+    protected static final String VALID_OBJECT_NAME_PATTERN = "^[^\\s\\/,]+(\\s+[^\\s\\/,]+)*$";
 
     public ObjectNameValidator() {
         super(VALID_OBJECT_NAME_PATTERN);
