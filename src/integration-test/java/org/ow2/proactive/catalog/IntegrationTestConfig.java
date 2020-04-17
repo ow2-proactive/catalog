@@ -56,6 +56,7 @@ import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
+import org.ow2.proactive.catalog.util.name.validator.ObjectNameValidator;
 import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
 import org.ow2.proactive.catalog.util.parser.CalendarDefinitionParser;
 import org.ow2.proactive.catalog.util.parser.InfrastructureParser;
@@ -267,6 +268,11 @@ public class IntegrationTestConfig {
     @Bean
     public KindAndContentTypeValidator kindNameValidator() {
         return new KindAndContentTypeValidator();
+    }
+
+    @Bean
+    public ObjectNameValidator objectNameValidator() {
+        return new ObjectNameValidator();
     }
 
     @Bean

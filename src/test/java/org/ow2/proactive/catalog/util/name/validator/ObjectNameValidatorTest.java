@@ -101,6 +101,7 @@ public class ObjectNameValidatorTest {
         assertThat(objectNameValidator.isValid(")@#&é\\'")).isTrue();
         assertThat(objectNameValidator.isValid("?,.:+=%``$*^¨_-°)@#&é\\';")).isTrue();
         assertThat(objectNameValidator.isValid("[$&+,:;=?@#|'<>.-^*()%!]\"{}§è!à")).isTrue();
+        assertThat(objectNameValidator.isValid("workflow$with&specific&symbols+in name:$&%[$&+,:;=?@#|'<>.-^*()%!]\"{}§è!à ae.extension")).isTrue();
     }
 
     @Test
