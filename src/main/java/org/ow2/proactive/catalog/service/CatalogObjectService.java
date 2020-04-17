@@ -60,13 +60,7 @@ import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
-import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
-import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingException;
-import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
-import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
-import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
-import org.ow2.proactive.catalog.service.exception.UnprocessableEntityException;
-import org.ow2.proactive.catalog.service.exception.WrongParametersException;
+import org.ow2.proactive.catalog.service.exception.*;
 import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
@@ -74,6 +68,7 @@ import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
+import org.ow2.proactive.catalog.util.name.validator.ObjectNameValidator;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -117,6 +112,9 @@ public class CatalogObjectService {
 
     @Autowired
     private KindAndContentTypeValidator kindAndContentTypeValidator;
+
+    @Autowired
+    private ObjectNameValidator objectNameValidator;
 
     @Autowired
     private RestApiAccessService restApiAccessService;
@@ -182,6 +180,9 @@ public class CatalogObjectService {
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
             String username, String contentType, List<Metadata> metadataList, byte[] rawObject, String extension) {
+        if (!objectNameValidator.isValid(name)) {
+            throw new ObjectNameIsNotValidException(name);
+        }
         if (!kindAndContentTypeValidator.isValid(kind)) {
             throw new KindOrContentTypeIsNotValidException(kind, "kind");
         }

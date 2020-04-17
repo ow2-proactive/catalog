@@ -4,7 +4,7 @@
  * Workflows & Scheduling, Orchestration, Cloud Automation
  * and Big Data Analysis on Enterprise Grids & Clouds.
  *
- * Copyright (c) 2007 - 2020 ActiveEon
+ * Copyright (c) 2007 - 2017 ActiveEon
  * Contact: contact@activeeon.com
  *
  * This library is free software: you can redistribute it and/or
@@ -29,11 +29,11 @@ import org.springframework.stereotype.Component;
 
 
 /**
- * According to this validator: the object name should not be empty, should start and finish with non-whitespace character and can contain all characters except forward slash and ';'.
+ * According to this validator: the object name should not be empty, should start and finish with non-whitespace character and can contain all characters except forward slash.
  */
 @Component
 public class ObjectNameValidator extends NameValidator {
-    protected static final String VALID_OBJECT_NAME_PATTERN = "^[^\\s^\\/^;]+(\\s+[^\\s^\\/^;]+)*$";
+    protected static final String VALID_OBJECT_NAME_PATTERN = "^[^\\s\\/]+(\\s+[^\\s\\/]+)*$";
 
     public ObjectNameValidator() {
         super(VALID_OBJECT_NAME_PATTERN);
