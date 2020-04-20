@@ -51,10 +51,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
-import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
-import org.ow2.proactive.catalog.service.exception.CatalogObjectAlreadyExistingException;
-import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
-import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
+import org.ow2.proactive.catalog.service.exception.*;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -316,6 +313,23 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body(ERROR_MESSAGE,
                      equalTo(new KindOrContentTypeIsNotValidException(wrongContentType,
                                                                       "Content-Type").getLocalizedMessage()));
+    }
+
+    @Test
+    public void testCreateObjectWrongName() {
+        String wrongName = "app/json-/";
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", "workflow/pca")
+               .queryParam("name", wrongName)
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", "application/json")
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_BAD_REQUEST)
+               .body(ERROR_MESSAGE, equalTo(new ObjectNameIsNotValidException(wrongName).getLocalizedMessage()));
     }
 
     @Test

@@ -36,12 +36,7 @@ import static org.mockito.Mockito.when;
 import static org.ow2.proactive.catalog.service.CatalogObjectService.KIND_NOT_FOUND;
 
 import java.time.ZoneId;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,13 +55,10 @@ import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
-import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
-import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
-import org.ow2.proactive.catalog.service.exception.KindOrContentTypeIsNotValidException;
-import org.ow2.proactive.catalog.service.exception.RevisionNotFoundException;
-import org.ow2.proactive.catalog.service.exception.WrongParametersException;
+import org.ow2.proactive.catalog.service.exception.*;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
+import org.ow2.proactive.catalog.util.name.validator.ObjectNameValidator;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 
 import com.google.common.collect.ImmutableList;
@@ -114,10 +106,14 @@ public class CatalogObjectServiceTest {
     private KindAndContentTypeValidator kindAndContentTypeValidator;
 
     @Mock
+    private ObjectNameValidator objectNameValidator;
+
+    @Mock
     private SeparatorUtility separatorUtility;
 
     @Test(expected = BucketNotFoundException.class)
     public void testCreateCatalogObjectWithInvalidBucket() {
+        when(objectNameValidator.isValid(anyString())).thenReturn(true);
         when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
         catalogObjectService.createCatalogObject("bucket",
@@ -165,6 +161,7 @@ public class CatalogObjectServiceTest {
     @Test
     public void testCreateCatalogObject() {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
+        when(objectNameValidator.isValid(anyString())).thenReturn(true);
         when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity,
@@ -208,6 +205,23 @@ public class CatalogObjectServiceTest {
                                                   NAME,
                                                   Optional.empty(),
                                                   Optional.empty());
+    }
+
+    @Test(expected = ObjectNameIsNotValidException.class)
+    public void testCreateObjectWithInvalidName() {
+        BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
+        when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
+        when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
+        CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject("bucket",
+                                                                                       "bad/name",
+                                                                                       OBJECT,
+                                                                                       COMMIT_MESSAGE,
+                                                                                       USERNAME,
+                                                                                       APPLICATION_XML,
+                                                                                       new LinkedList<>(),
+                                                                                       null,
+                                                                                       null);
+
     }
 
     @Test(expected = BucketNotFoundException.class)
