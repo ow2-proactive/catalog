@@ -203,8 +203,8 @@ public class WorkflowXmlManipulatorTest {
     @Test
     public void testThatWorkflowHasGenericInfoRemovedIfAlreadyThere() {
         String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithGenericInfo,
-                                                                                                        Collections.emptyMap(),
-                                                                                                        ""));
+                                                                                                               Collections.emptyMap(),
+                                                                                                               ""));
         assertThat(emptyGenericInfo).contains("<genericInformation/>");
         assertThat(emptyGenericInfo).doesNotContain("<info name="); // Generic Info has no Entry
     }

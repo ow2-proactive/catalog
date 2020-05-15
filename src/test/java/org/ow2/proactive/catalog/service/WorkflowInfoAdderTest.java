@@ -60,7 +60,9 @@ public class WorkflowInfoAdderTest {
                                                                                   Collections.emptyMap(),
                                                                                   "");
 
-        verify(workflowXmlManipulator).replaceGenericInformationAndNameOnJobLevel(Mockito.any(), Mockito.any(), Mockito.any());
+        verify(workflowXmlManipulator).replaceGenericInformationAndNameOnJobLevel(Mockito.any(),
+                                                                                  Mockito.any(),
+                                                                                  Mockito.any());
     }
 
     @Test
@@ -71,8 +73,8 @@ public class WorkflowInfoAdderTest {
                                                                                   "");
 
         verify(workflowXmlManipulator, times(0)).replaceGenericInformationAndNameOnJobLevel(Mockito.any(),
-                                                                                     Mockito.any(),
-                                                                                     Mockito.any());
+                                                                                            Mockito.any(),
+                                                                                            Mockito.any());
     }
 
 }

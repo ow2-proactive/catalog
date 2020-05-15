@@ -53,8 +53,8 @@ import org.xml.sax.InputSource;
 @Component
 public class WorkflowXmlManipulator {
 
-    public byte[] replaceGenericInformationAndNameOnJobLevel(final byte[] xmlWorkflow, Map<String, String> genericInfoMap,
-                                                             String jobName) {
+    public byte[] replaceGenericInformationAndNameOnJobLevel(final byte[] xmlWorkflow,
+            Map<String, String> genericInfoMap, String jobName) {
         if (xmlWorkflow == null) {
             return new byte[] {};
         }
