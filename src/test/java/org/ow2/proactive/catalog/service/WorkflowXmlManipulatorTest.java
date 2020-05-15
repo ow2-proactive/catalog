@@ -184,8 +184,8 @@ public class WorkflowXmlManipulatorTest {
     @Test
     public void testThatWorkflowHasGenericInfoTagAdded() {
         String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithoutGenericInfo,
-                                                                                                        Collections.emptyMap(),
-                                                                                                        ""));
+                                                                                                               Collections.emptyMap(),
+                                                                                                               ""));
         assertThat(emptyGenericInfo).contains("<genericInformation/>");
         assertThat(emptyGenericInfo).doesNotContain("<info name="); // Generic Info has no Entry
     }
@@ -193,8 +193,8 @@ public class WorkflowXmlManipulatorTest {
     @Test
     public void testThatFormattingDoesNotChangePythonIdentation() {
         String formattedWorkflow = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithoutGenericInfo,
-                                                                                                         Collections.emptyMap(),
-                                                                                                         ""));
+                                                                                                                Collections.emptyMap(),
+                                                                                                                ""));
         Matcher pythonCodeMatcher = pythonCodePattern.matcher(formattedWorkflow);
         assertTrue("Unmodified python code should be found in " + formattedWorkflow, pythonCodeMatcher.find());
 
@@ -210,10 +210,19 @@ public class WorkflowXmlManipulatorTest {
     }
 
     @Test
+    public void testThatWorkflowHasJobNameReplaced() {
+        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                               Collections.emptyMap(),
+                                                                                                               "newJobName"));
+        assertThat(emptyGenericInfo).contains("name=\"newJobName\"");
+        assertThat(emptyGenericInfo).doesNotContain("name=\"TestGenericInfo\"");
+    }
+
+    @Test
     public void testThatWorkflowHasGenericInfoReplacedIfAlreadyThere() {
         String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithGenericInfo,
-                                                                                                        this.getTwoSimpleEntries(),
-                                                                                                        ""));
+                                                                                                               this.getTwoSimpleEntries(),
+                                                                                                               ""));
         assertThat(emptyGenericInfo).contains("<genericInformation>");
         assertThat(emptyGenericInfo).contains("</genericInformation>");
         assertThat(emptyGenericInfo).contains("<info name=\"firstTestKey\"");
@@ -225,8 +234,8 @@ public class WorkflowXmlManipulatorTest {
     @Test
     public void testThatWorkflowHasGenericInfoReplacedOnlyOnJobLevelBeforeTaskFlowButNotInTask() {
         String genericInfoAdded = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(workflowWithGenericInfoAtJobAndTaskLevel_BeforeTaskFlow,
-                                                                                                        this.getTwoSimpleEntries(),
-                                                                                                        ""));
+                                                                                                               this.getTwoSimpleEntries(),
+                                                                                                               ""));
 
         Matcher matcherGenericInfoInsideTask = genericInformationPatternInsideTaskFlow.matcher(genericInfoAdded);
         String genericInfoInTaskFlow = null;
@@ -254,8 +263,8 @@ public class WorkflowXmlManipulatorTest {
     @Test
     public void testThatWorkflowHasGenericInfoReplacedOnlyOnJobLevelAfterTaskFlowButNotInTask() {
         String genericInfoAdded = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(workflowWithGenericInfoAtJobAndTaskLevel_AfterTaskFlow,
-                                                                                                        this.getTwoSimpleEntries(),
-                                                                                                        ""));
+                                                                                                               this.getTwoSimpleEntries(),
+                                                                                                               ""));
 
         Matcher matcherGenericInfoInsideTask = genericInformationPatternInsideTaskFlow.matcher(genericInfoAdded);
         String genericInfoInTaskFlow = null;
@@ -283,8 +292,8 @@ public class WorkflowXmlManipulatorTest {
     @Test
     public void testThatWorkflowHasGenericAllGenericInfoAddedIfItWasNotThereBefore() {
         String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithoutGenericInfo,
-                                                                                                        this.getTwoSimpleEntries(),
-                                                                                                        ""));
+                                                                                                               this.getTwoSimpleEntries(),
+                                                                                                               ""));
         assertThat(emptyGenericInfo).contains("<genericInformation>");
         assertThat(emptyGenericInfo).contains("</genericInformation>");
         assertThat(emptyGenericInfo).contains("<info name=\"firstTestKey\"");
@@ -302,14 +311,16 @@ public class WorkflowXmlManipulatorTest {
     @Test
     public void testThatEmptyByteArrayIsReturnedIfXmlWorkflowIsNull() {
         byte[] nullByteArray = workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(null,
-                                                                                          Collections.emptyMap(),
-                                                                                          "");
+                                                                                                 Collections.emptyMap(),
+                                                                                                 "");
         assertThat(nullByteArray.length).isEqualTo(0);
     }
 
     @Test
     public void testThatEmptyByteArrayIsReturnedIfGenericInfoIsEntriesNull() {
-        byte[] nullByteArray = workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(new byte[] {}, null, "");
+        byte[] nullByteArray = workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(new byte[] {},
+                                                                                                 null,
+                                                                                                 "");
         assertThat(nullByteArray.length).isEqualTo(0);
     }
 
