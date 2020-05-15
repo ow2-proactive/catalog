@@ -44,11 +44,11 @@ import org.ow2.proactive.catalog.mocks.RestApiAccessServiceMock;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
-import org.ow2.proactive.catalog.service.GenericInformationAdder;
 import org.ow2.proactive.catalog.service.GraphqlService;
 import org.ow2.proactive.catalog.service.KeyValueLabelMetadataHelper;
 import org.ow2.proactive.catalog.service.OwnerGroupStringHelper;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
+import org.ow2.proactive.catalog.service.WorkflowInfoAdder;
 import org.ow2.proactive.catalog.service.WorkflowXmlManipulator;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
@@ -246,8 +246,8 @@ public class IntegrationTestConfig {
     }
 
     @Bean
-    public GenericInformationAdder genericInformationAdder() {
-        return new GenericInformationAdder();
+    public WorkflowInfoAdder genericInformationAdder() {
+        return new WorkflowInfoAdder();
     }
 
     @Bean

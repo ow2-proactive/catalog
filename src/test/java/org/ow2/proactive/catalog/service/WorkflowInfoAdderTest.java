@@ -44,31 +44,37 @@ import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
  * @since 14/08/2017
  */
 @RunWith(MockitoJUnitRunner.class)
-public class GenericInformationAdderTest {
+public class WorkflowInfoAdderTest {
 
     @InjectMocks
-    private GenericInformationAdder genericInformationAdder;
+    private WorkflowInfoAdder genericInformationAdder;
 
     @Mock
     private WorkflowXmlManipulator workflowXmlManipulator;
 
     @Test
     public void testThatWorkflowParserKindTriggersXmlManipulation() {
-        genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(new byte[] {},
-                                                                           SupportedParserKinds.WORKFLOW.toString() +
-                                                                                          "specific-workflow-kind",
-                                                                           Collections.emptyMap());
+        genericInformationAdder.addGenericInformationJobNameToRawObjectIfWorkflow(new byte[] {},
+                                                                                  SupportedParserKinds.WORKFLOW.toString() +
+                                                                                                 "specific-workflow-kind",
+                                                                                  Collections.emptyMap(),
+                                                                                  "");
 
-        verify(workflowXmlManipulator).replaceGenericInformationJobLevel(Mockito.any(), Mockito.any());
+        verify(workflowXmlManipulator).replaceGenericInformationAndNameOnJobLevel(Mockito.any(),
+                                                                                  Mockito.any(),
+                                                                                  Mockito.any());
     }
 
     @Test
     public void testThatOtherKindNotTriggersXmlManipulation() {
-        genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(new byte[] {},
-                                                                           SupportedParserKinds.PCW_RULE.toString(),
-                                                                           Collections.emptyMap());
+        genericInformationAdder.addGenericInformationJobNameToRawObjectIfWorkflow(new byte[] {},
+                                                                                  SupportedParserKinds.PCW_RULE.toString(),
+                                                                                  Collections.emptyMap(),
+                                                                                  "");
 
-        verify(workflowXmlManipulator, times(0)).replaceGenericInformationJobLevel(Mockito.any(), Mockito.any());
+        verify(workflowXmlManipulator, times(0)).replaceGenericInformationAndNameOnJobLevel(Mockito.any(),
+                                                                                            Mockito.any(),
+                                                                                            Mockito.any());
     }
 
 }

@@ -53,7 +53,8 @@ import org.xml.sax.InputSource;
 @Component
 public class WorkflowXmlManipulator {
 
-    public byte[] replaceGenericInformationJobLevel(final byte[] xmlWorkflow, Map<String, String> genericInfoMap) {
+    public byte[] replaceGenericInformationAndNameOnJobLevel(final byte[] xmlWorkflow,
+            Map<String, String> genericInfoMap, String jobName) {
         if (xmlWorkflow == null) {
             return new byte[] {};
         }
@@ -68,6 +69,7 @@ public class WorkflowXmlManipulator {
                                         .parse(new InputSource(new StringReader(new String(xmlWorkflow))));
 
             Element rootElement = doc.getDocumentElement();
+            replaceJobName(rootElement, jobName);
             replaceOrAddGenericInfoElement(genericInfoMap, doc, rootElement);
 
             Transformer xformer = TransformerFactory.newInstance().newTransformer();
@@ -103,6 +105,15 @@ public class WorkflowXmlManipulator {
                     return;
             }
         }
+    }
+
+    private Element replaceJobName(Element element, String jobName) {
+        return replaceAttributeValue(element, "name", jobName);
+    }
+
+    private Element replaceAttributeValue(Element element, String attrName, String attrValue) {
+        element.setAttribute(attrName, attrValue);
+        return element;
     }
 
     private Element createInfoElement(Document doc, String name, String value) {
