@@ -183,11 +183,11 @@ public class WorkflowXmlManipulatorTest {
 
     @Test
     public void testThatWorkflowHasGenericInfoTagAdded() {
-        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithoutGenericInfo,
+        String modifiedWorkflow = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithoutGenericInfo,
                                                                                                                Collections.emptyMap(),
                                                                                                                ""));
-        assertThat(emptyGenericInfo).contains("<genericInformation/>");
-        assertThat(emptyGenericInfo).doesNotContain("<info name="); // Generic Info has no Entry
+        assertThat(modifiedWorkflow).contains("<genericInformation/>");
+        assertThat(modifiedWorkflow).doesNotContain("<info name="); // Generic Info has no Entry
     }
 
     @Test
@@ -202,33 +202,33 @@ public class WorkflowXmlManipulatorTest {
 
     @Test
     public void testThatWorkflowHasGenericInfoRemovedIfAlreadyThere() {
-        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithGenericInfo,
+        String modifiedWorkflow = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithGenericInfo,
                                                                                                                Collections.emptyMap(),
                                                                                                                ""));
-        assertThat(emptyGenericInfo).contains("<genericInformation/>");
-        assertThat(emptyGenericInfo).doesNotContain("<info name="); // Generic Info has no Entry
+        assertThat(modifiedWorkflow).contains("<genericInformation/>");
+        assertThat(modifiedWorkflow).doesNotContain("<info name="); // Generic Info has no Entry
     }
 
     @Test
     public void testThatWorkflowHasJobNameReplaced() {
-        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithGenericInfo,
+        String modifiedWorkflow = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithGenericInfo,
                                                                                                                Collections.emptyMap(),
                                                                                                                "newJobName"));
-        assertThat(emptyGenericInfo).contains("name=\"newJobName\"");
-        assertThat(emptyGenericInfo).doesNotContain("name=\"TestGenericInfo\"");
+        assertThat(modifiedWorkflow).contains("name=\"newJobName\"");
+        assertThat(modifiedWorkflow).doesNotContain("name=\"TestGenericInfo\"");
     }
 
     @Test
     public void testThatWorkflowHasGenericInfoReplacedIfAlreadyThere() {
-        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithGenericInfo,
+        String modifiedWorkflow = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithGenericInfo,
                                                                                                                this.getTwoSimpleEntries(),
                                                                                                                ""));
-        assertThat(emptyGenericInfo).contains("<genericInformation>");
-        assertThat(emptyGenericInfo).contains("</genericInformation>");
-        assertThat(emptyGenericInfo).contains("<info name=\"firstTestKey\"");
-        assertThat(emptyGenericInfo).contains("value=\"firstTestValue\"");
-        assertThat(emptyGenericInfo).contains("<info name=\"secondTestKey\"");
-        assertThat(emptyGenericInfo).contains("value=\"secondTestValue\"");
+        assertThat(modifiedWorkflow).contains("<genericInformation>");
+        assertThat(modifiedWorkflow).contains("</genericInformation>");
+        assertThat(modifiedWorkflow).contains("<info name=\"firstTestKey\"");
+        assertThat(modifiedWorkflow).contains("value=\"firstTestValue\"");
+        assertThat(modifiedWorkflow).contains("<info name=\"secondTestKey\"");
+        assertThat(modifiedWorkflow).contains("value=\"secondTestValue\"");
     }
 
     @Test
@@ -291,15 +291,15 @@ public class WorkflowXmlManipulatorTest {
 
     @Test
     public void testThatWorkflowHasGenericAllGenericInfoAddedIfItWasNotThereBefore() {
-        String emptyGenericInfo = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithoutGenericInfo,
+        String modifiedWorkflow = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithoutGenericInfo,
                                                                                                                this.getTwoSimpleEntries(),
                                                                                                                ""));
-        assertThat(emptyGenericInfo).contains("<genericInformation>");
-        assertThat(emptyGenericInfo).contains("</genericInformation>");
-        assertThat(emptyGenericInfo).contains("<info name=\"firstTestKey\"");
-        assertThat(emptyGenericInfo).contains("value=\"firstTestValue\"");
-        assertThat(emptyGenericInfo).contains("<info name=\"secondTestKey\"");
-        assertThat(emptyGenericInfo).contains("value=\"secondTestValue\"");
+        assertThat(modifiedWorkflow).contains("<genericInformation>");
+        assertThat(modifiedWorkflow).contains("</genericInformation>");
+        assertThat(modifiedWorkflow).contains("<info name=\"firstTestKey\"");
+        assertThat(modifiedWorkflow).contains("value=\"firstTestValue\"");
+        assertThat(modifiedWorkflow).contains("<info name=\"secondTestKey\"");
+        assertThat(modifiedWorkflow).contains("value=\"secondTestValue\"");
     }
 
     @Test
