@@ -105,7 +105,7 @@ public class CatalogObjectService {
     private KeyValueLabelMetadataHelper keyValueLabelMetadataHelper;
 
     @Autowired
-    private GenericInformationAdder genericInformationAdder;
+    private WorkflowInfoAdder genericInformationAdder;
 
     @Autowired
     private RevisionCommitMessageBuilder revisionCommitMessageBuilder;
@@ -378,9 +378,11 @@ public class CatalogObjectService {
 
         List<KeyValueLabelMetadataEntity> genericInformationWithBucketDataList = keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(keyValues,
                                                                                                                                                             genericInfoBucketData);
-        byte[] workflowWithReplacedGenericInfo = genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(rawObject,
-                                                                                                                    catalogObjectEntity.getKind(),
-                                                                                                                    keyValueLabelMetadataHelper.toMap(keyValueLabelMetadataHelper.getOnlyGenericInformation(genericInformationWithBucketDataList)));
+        byte[] workflowWithReplacedGenericInfo = genericInformationAdder.addGenericInformationJobNameToRawObjectIfWorkflow(rawObject,
+                                                                                                                           catalogObjectEntity.getKind(),
+                                                                                                                           keyValueLabelMetadataHelper.toMap(keyValueLabelMetadataHelper.getOnlyGenericInformation(genericInformationWithBucketDataList)),
+                                                                                                                           catalogObjectEntity.getId()
+                                                                                                                                              .getName());
 
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)

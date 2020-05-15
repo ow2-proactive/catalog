@@ -38,19 +38,20 @@ import org.springframework.stereotype.Component;
  */
 @SuppressWarnings("WeakerAccess")
 @Component
-public class GenericInformationAdder {
+public class WorkflowInfoAdder {
 
     @Autowired
     private WorkflowXmlManipulator workflowXmlManipulator;
 
-    public byte[] addGenericInformationToRawObjectIfWorkflow(final byte[] rawObject,
-            final String catalogObjectEntityKind, Map<String, String> genericInformationMap) {
+    public byte[] addGenericInformationJobNameToRawObjectIfWorkflow(final byte[] rawObject,
+            final String catalogObjectEntityKind, Map<String, String> genericInformationMap, final String jobName) {
         byte[] workflowWithReplacedGenericInfo = rawObject;
 
         if (catalogObjectEntityKind != null &&
             catalogObjectEntityKind.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase())) {
-            workflowWithReplacedGenericInfo = workflowXmlManipulator.replaceGenericInformationJobLevel(rawObject,
-                                                                                                       genericInformationMap);
+            workflowWithReplacedGenericInfo = workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(rawObject,
+                                                                                                         genericInformationMap,
+                                                                                                         jobName);
         }
         return workflowWithReplacedGenericInfo;
     }

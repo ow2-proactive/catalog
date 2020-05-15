@@ -47,7 +47,6 @@ import org.ow2.proactive.catalog.dto.CatalogObjectDependencies;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.DependsOnCatalogObject;
 import org.ow2.proactive.catalog.dto.Metadata;
-import org.ow2.proactive.catalog.graphql.bean.CatalogObject;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
@@ -100,7 +99,7 @@ public class CatalogObjectServiceTest {
     private KeyValueLabelMetadataHelper keyValueLabelMetadataHelper;
 
     @Mock
-    private GenericInformationAdder genericInformationAdder;
+    private WorkflowInfoAdder genericInformationAdder;
 
     @Mock
     private KindAndContentTypeValidator kindAndContentTypeValidator;
@@ -167,9 +166,10 @@ public class CatalogObjectServiceTest {
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity,
                                                                                          System.currentTimeMillis());
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectEntity);
-        when(genericInformationAdder.addGenericInformationToRawObjectIfWorkflow(any(),
-                                                                                any(),
-                                                                                any())).thenReturn(new byte[] {});
+        when(genericInformationAdder.addGenericInformationJobNameToRawObjectIfWorkflow(any(),
+                                                                                       any(),
+                                                                                       any(),
+                                                                                       any())).thenReturn(new byte[] {});
         List<Metadata> keyValues = ImmutableList.of(new Metadata("key", "value", null));
 
         CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject("bucket",
