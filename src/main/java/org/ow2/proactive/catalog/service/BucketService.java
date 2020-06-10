@@ -132,16 +132,28 @@ public class BucketService {
     private List<BucketMetadata> getBucketEntities(List<String> owners, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName) {
         List<BucketMetadata> entities;
+        long startTimeWholeMethod = System.currentTimeMillis();
         if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
-            entities = generateBucketMetadataListFromObject(bucketRepository.findByOwnerIsInContainingKindAndContentTypeAndObjectName(owners,
-                                                                                                                                      kind.orElse(""),
-                                                                                                                                      contentType.orElse(""),
-                                                                                                                                      objectName.orElse(""),
-                                                                                                                                      sortById));
+            long startTime = System.currentTimeMillis();
+            List<Object[]> bucketsFromDB = bucketRepository.findByOwnerIsInContainingKindAndContentTypeAndObjectName(owners,
+                                                                                                                     kind.orElse(""),
+                                                                                                                     contentType.orElse(""),
+                                                                                                                     objectName.orElse(""),
+                                                                                                                     sortById);
+
+            log.info("The DB request with filtering to Get bucket lists done in " +
+                     (System.currentTimeMillis() - startTime) + " ms.");
+            entities = generateBucketMetadataListFromObject(bucketsFromDB);
 
         } else {
-            entities = generateBucketMetadataList(bucketRepository.findByOwnerIn(owners, sortById));
+            long startTime = System.currentTimeMillis();
+            List<BucketEntity> bucketsFromDB = bucketRepository.findByOwnerIn(owners, sortById);
+            log.info("The DB request without filtering to Get bucket lists done in " +
+                     (System.currentTimeMillis() - startTime) + " ms.");
+            entities = generateBucketMetadataList(bucketsFromDB);
         }
+        log.info("The whole getBucketEntities method to Get bucket lists done in " +
+                 (System.currentTimeMillis() - startTimeWholeMethod) + " ms.");
         return entities;
     }
 
@@ -228,6 +240,7 @@ public class BucketService {
             Supplier<List<String>> authenticatedUserGroupsSupplier)
             throws NotAuthenticatedException, AccessDeniedException {
         List<String> groups;
+        long startTime = System.currentTimeMillis();
 
         if (ownerName == null) {
             groups = ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(authenticatedUserGroupsSupplier.get());
@@ -236,6 +249,9 @@ public class BucketService {
             groups = Collections.singletonList(ownerName);
         }
 
-        return listBuckets(groups, kind, contentType, objectName);
+        List<BucketMetadata> bucketsByGroups = listBuckets(groups, kind, contentType, objectName);
+        log.info("The getBucketsByGroups method to Get bucket lists done in " +
+                 (System.currentTimeMillis() - startTime) + " ms.");
+        return bucketsByGroups;
     }
 }
