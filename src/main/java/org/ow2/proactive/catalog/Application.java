@@ -122,35 +122,21 @@ public class Application extends WebMvcConfigurerAdapter {
     }
 
     @Bean
-    @Profile("default")
-    public DataSource defaultDataSource() {
-        String jdbcUrl = dataSourceUrl;
-
-        if (jdbcUrl.isEmpty()) {
-            jdbcUrl = "jdbc:hsqldb:file:" + getDatabaseDirectory() +
-                      ";create=true;hsqldb.tx=mvcc;hsqldb.applog=1;hsqldb.sqllog=0;hsqldb.write_delay=false";
-        }
-
-        return DataSourceBuilder.create()
-                                .username(dataSourceUsername)
-                                .password(dataSourcePassword)
-                                .url(jdbcUrl)
-                                .driverClassName(dataSourceDriverClassName)
-                                .build();
-    }
-
-    @Bean
     @Profile("test")
     public DataSource testDataSource() {
         return createDataSource();
     }
 
     private DataSource createDataSource() {
-
+        String jdbcUrl = dataSourceUrl;
+        if (jdbcUrl.isEmpty()) {
+            jdbcUrl = "jdbc:hsqldb:file:" + getDatabaseDirectory() +
+                      ";create=true;hsqldb.tx=mvcc;hsqldb.applog=1;hsqldb.sqllog=0;hsqldb.write_delay=false";
+        }
         return DataSourceBuilder.create()
                                 .username(dataSourceUsername)
                                 .password(dataSourcePassword)
-                                .url(dataSourceUrl)
+                                .url(jdbcUrl)
                                 .driverClassName(dataSourceDriverClassName)
                                 .build();
     }
