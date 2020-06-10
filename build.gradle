@@ -267,6 +267,10 @@ dependencies {
     integrationTestCompile 'com.google.code.gson:gson'
     integrationTestCompile 'com.jayway.restassured:rest-assured'
     integrationTestCompile 'org.springframework.boot:spring-boot-starter-test'
+
+    integrationTestRuntime('org.hibernate:hibernate-hikaricp:5.1.0.Final') {
+        exclude group: 'org.javassist', module: 'javassist'
+    }
 }
 
 test {
