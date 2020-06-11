@@ -153,8 +153,8 @@ public class BucketController {
         if (sessionIdRequired) {
             RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
                                                                                                                                        ownerName);
-            log.info("Check Access By Session Id For Owner Or Group " +
-                    (System.currentTimeMillis() - startTime) + " ms.");
+            log.info("Check Access By Session Id For Owner Or Group " + (System.currentTimeMillis() - startTime) +
+                     " ms.");
             listBucket = bucketService.getBucketsByGroups(ownerName,
                                                           kind,
                                                           contentType,
