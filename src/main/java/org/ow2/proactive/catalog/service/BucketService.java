@@ -135,14 +135,20 @@ public class BucketService {
         long startTimeWholeMethod = System.currentTimeMillis();
         if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
             long startTime = System.currentTimeMillis();
-            List<Object[]> bucketsFromDB = bucketRepository.findByOwnerIsInContainingKindAndContentTypeAndObjectName(owners,
-                                                                                                                     kind.orElse(""),
-                                                                                                                     contentType.orElse(""),
-                                                                                                                     objectName.orElse(""),
-                                                                                                                     sortById);
-
-            log.info("The DB request with filtering to Get bucket lists done in " +
-                     (System.currentTimeMillis() - startTime) + " ms.");
+            List<Object[]> bucketsFromDB;
+            if (contentType.isPresent() || objectName.isPresent()) {
+                bucketsFromDB = bucketRepository.findByOwnerIsInContainingKindAndContentTypeAndObjectName(owners,
+                                                                                                          kind.orElse(""),
+                                                                                                          contentType.orElse(""),
+                                                                                                          objectName.orElse(""),
+                                                                                                          sortById);
+                log.info("The DB request with filtering all parameters to Get bucket lists done in " +
+                         (System.currentTimeMillis() - startTime) + " ms.");
+            } else { // only kind.isPresent()
+                bucketsFromDB = bucketRepository.findByOwnerIsInContainingKind(owners, kind.orElse(""), sortById);
+                log.info("The DB request with filtering only kind parameter to Get bucket lists done in " +
+                         (System.currentTimeMillis() - startTime) + " ms.");
+            }
             entities = generateBucketMetadataListFromObject(bucketsFromDB);
 
         } else {

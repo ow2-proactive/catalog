@@ -68,10 +68,20 @@ public interface BucketRepository extends JpaRepository<BucketEntity, Long>, Jpa
             Sort sort);
 
     @Query(value = "SELECT bk.bucketName, bk.owner, COUNT(cos.id.name) as objectCount, bk.id FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos" +
+                   " WHERE lower(cos.kind) LIKE lower(concat(?1, '%')) " +
+                   " OR bk.catalogObjects IS EMPTY GROUP BY bk.bucketName, bk.owner, bk.id")
+    List<Object[]> findContainingKind(String kind, Sort sort);
+
+    @Query(value = "SELECT bk.bucketName, bk.owner, COUNT(cos.id.name) as objectCount, bk.id FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos" +
                    " WHERE bk.owner in ?1 AND (lower(cos.kind) LIKE lower(concat(?2, '%'))" +
                    " AND (lower(cos.contentType) LIKE lower(concat(?3, '%')) AND lower(cos.id.name) LIKE lower(concat('%', ?4, '%')))" +
                    " OR bk.catalogObjects IS EMPTY) GROUP BY bk.bucketName, bk.owner, bk.id")
     List<Object[]> findByOwnerIsInContainingKindAndContentTypeAndObjectName(List<String> owners, String kind,
             String contentType, String objectName, Sort sort);
+
+    @Query(value = "SELECT bk.bucketName, bk.owner, COUNT(cos.id.name) as objectCount, bk.id FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos" +
+                   " WHERE bk.owner in ?1 AND (lower(cos.kind) LIKE lower(concat(?2, '%'))" +
+                   " OR bk.catalogObjects IS EMPTY) GROUP BY bk.bucketName, bk.owner, bk.id")
+    List<Object[]> findByOwnerIsInContainingKind(List<String> owners, String kind, Sort sort);
 
 }
