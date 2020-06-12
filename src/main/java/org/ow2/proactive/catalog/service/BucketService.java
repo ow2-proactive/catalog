@@ -142,24 +142,24 @@ public class BucketService {
                                                                                                           contentType.orElse(""),
                                                                                                           objectName.orElse(""),
                                                                                                           sortById);
-                log.info("The DB request with filtering all parameters to Get bucket lists done in " +
-                         (System.currentTimeMillis() - startTime) + " ms.");
+                log.debug("The DB request with filtering all parameters to Get bucket lists done in " +
+                          (System.currentTimeMillis() - startTime) + " ms.");
             } else { // only kind.isPresent()
                 bucketsFromDB = bucketRepository.findByOwnerIsInContainingKind(owners, kind.orElse(""), sortById);
-                log.info("The DB request with filtering only kind parameter '" + kind.get() +
-                         "' to Get bucket lists done in " + (System.currentTimeMillis() - startTime) + " ms.");
+                log.debug("The DB request with filtering only kind parameter '" + kind.get() +
+                          "' to Get bucket lists done in " + (System.currentTimeMillis() - startTime) + " ms.");
             }
             entities = generateBucketMetadataListFromObject(bucketsFromDB);
 
         } else {
             long startTime = System.currentTimeMillis();
             List<BucketEntity> bucketsFromDB = bucketRepository.findByOwnerIn(owners, sortById);
-            log.info("The DB request without filtering to Get bucket lists done in " +
-                     (System.currentTimeMillis() - startTime) + " ms.");
+            log.debug("The DB request without filtering to Get bucket lists done in " +
+                      (System.currentTimeMillis() - startTime) + " ms.");
             entities = generateBucketMetadataList(bucketsFromDB);
         }
-        log.info("The whole getBucketEntities method to Get bucket lists done in " +
-                 (System.currentTimeMillis() - startTimeWholeMethod) + " ms.");
+        log.debug("The whole getBucketEntities method to Get bucket lists done in " +
+                  (System.currentTimeMillis() - startTimeWholeMethod) + " ms.");
         return entities;
     }
 
@@ -262,8 +262,8 @@ public class BucketService {
         }
 
         List<BucketMetadata> bucketsByGroups = listBuckets(groups, kind, contentType, objectName);
-        log.info("The getBucketsByGroups method to Get bucket lists done in " +
-                 (System.currentTimeMillis() - startTime) + " ms.");
+        log.debug("The getBucketsByGroups method to Get bucket lists done in " +
+                  (System.currentTimeMillis() - startTime) + " ms.");
         return bucketsByGroups;
     }
 }
