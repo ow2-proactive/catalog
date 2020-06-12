@@ -148,8 +148,13 @@ public class BucketController {
             throws NotAuthenticatedException, AccessDeniedException {
 
         List<BucketMetadata> listBucket;
-        log.info("====== Test case started ======== /n");
+        log.info("====== Test case started ======== ");
         long startTime = System.currentTimeMillis();
+
+        //transform empty String into an empty Optional
+        kind = kind.filter(s -> !s.isEmpty());
+        contentType = contentType.filter(s -> !s.isEmpty());
+        objectName = objectName.filter(s -> !s.isEmpty());
         if (sessionIdRequired) {
             RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
                                                                                                                                        ownerName);
@@ -167,7 +172,7 @@ public class BucketController {
         }
         log.info("The whole controller request to Get bucket lists done in " +
                  (System.currentTimeMillis() - startTime) + " ms.");
-        log.info("====== Test case finished ======== /n");
+        log.info("====== Test case finished ======== \\n");
         return listBucket;
     }
 
