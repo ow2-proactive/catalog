@@ -148,7 +148,7 @@ public class BucketController {
             throws NotAuthenticatedException, AccessDeniedException {
 
         List<BucketMetadata> listBucket;
-        log.debug("====== Test case started ======== ");
+        log.debug("====== Get buckets list request started ======== ");
         long startTime = System.currentTimeMillis();
 
         //transform empty String into an empty Optional
@@ -172,7 +172,7 @@ public class BucketController {
         }
         log.debug("The whole controller request to Get bucket lists done in " +
                   (System.currentTimeMillis() - startTime) + " ms.");
-        log.debug("====== Test case finished ======== \\n");
+        log.debug("====== Get buckets list request finished ======== \\n");
         return listBucket;
     }
 

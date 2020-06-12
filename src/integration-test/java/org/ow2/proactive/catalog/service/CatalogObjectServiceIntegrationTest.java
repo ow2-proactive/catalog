@@ -147,47 +147,6 @@ public class CatalogObjectServiceIntegrationTest {
         bucketService.cleanAll();
     }
 
-    /*
-     * @Test
-     * public void testBenchmarkListBuckets() throws IOException {
-     * int nbObjects = 1000;
-     * System.out.println("Loading Objects...");
-     * long startTime = System.currentTimeMillis();
-     * byte[] ruleAsByteArray = IntegrationTestUtil.getPCWRuleAsByteArray("CPURule.xml");
-     * for (int i = 0; i < nbObjects; i++) {
-     * catalogObjectService.createCatalogObject(bucket.getName(),
-     * "workflow-name-" + i,
-     * "workflow",
-     * "commit message",
-     * "username",
-     * "application/xml",
-     * keyValues,
-     * workflowAsByteArray,
-     * null);
-     * catalogObjectService.createCatalogObject(bucket.getName(),
-     * "rule-name-" + i,
-     * "rule",
-     * "commit message",
-     * "username",
-     * "application/xml",
-     * keyValues,
-     * ruleAsByteArray,
-     * null);
-     * }
-     * System.out.println("... done in " + (System.currentTimeMillis() - startTime) + " ms.");
-     * 
-     * System.out.println("Listing buckets containing workflows...");
-     * startTime = System.currentTimeMillis();
-     * bucketService.listBuckets("username", Optional.of("workflow"), Optional.empty());
-     * System.out.println("... done in " + (System.currentTimeMillis() - startTime) + " ms.");
-     * System.out.println("Listing buckets containing rules...");
-     * startTime = System.currentTimeMillis();
-     * bucketService.listBuckets("username", Optional.of("rule"), Optional.empty());
-     * System.out.println("... done in " + (System.currentTimeMillis() - startTime) + " ms.");
-     * 
-     * }
-     */
-
     @Test
     public void testAddGenericInformationToObjects() {
         CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
