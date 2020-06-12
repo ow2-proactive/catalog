@@ -95,6 +95,19 @@ public class BucketServiceTest {
     }
 
     @Test
+    public void testListBucketsWithProvidedKindOnly() {
+        Optional kind = Optional.of("kind");
+        List<String> owners = new ArrayList<>();
+        assertThat(bucketService.listBuckets(owners, kind, Optional.empty(), Optional.empty())).isEmpty();
+        verify(bucketRepository, times(0)).findByOwnerIsInContainingKindAndContentTypeAndObjectName(any(),
+                                                                                                    any(),
+                                                                                                    any(),
+                                                                                                    any(),
+                                                                                                    any(Sort.class));
+        verify(bucketRepository, times(1)).findByOwnerIsInContainingKind(any(List.class), anyString(), any(Sort.class));
+    }
+
+    @Test
     public void testCreateBucket() throws Exception {
         BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
@@ -214,10 +227,13 @@ public class BucketServiceTest {
         if (!StringUtils.isEmpty(owner)) {
             verify(bucketRepository, times(1)).findByOwnerIn(anyList(), any(Sort.class));
         } else if (kind.isPresent()) {
-            verify(bucketRepository, times(1)).findContainingKindAndContentTypeAndObjectName(anyString(),
-                                                                                             anyString(),
-                                                                                             anyString(),
-                                                                                             any(Sort.class));
+            if (contentType.isPresent())
+                verify(bucketRepository, times(1)).findContainingKindAndContentTypeAndObjectName(anyString(),
+                                                                                                 anyString(),
+                                                                                                 anyString(),
+                                                                                                 any(Sort.class));
+            else
+                verify(bucketRepository, times(1)).findContainingKind(anyString(), any(Sort.class));
         } else {
             verify(bucketRepository, times(1)).findAll(any(Sort.class));
         }

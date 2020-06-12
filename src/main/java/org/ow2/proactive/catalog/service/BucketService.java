@@ -146,8 +146,8 @@ public class BucketService {
                          (System.currentTimeMillis() - startTime) + " ms.");
             } else { // only kind.isPresent()
                 bucketsFromDB = bucketRepository.findByOwnerIsInContainingKind(owners, kind.orElse(""), sortById);
-                log.info("The DB request with filtering only kind parameter to Get bucket lists done in " +
-                         (System.currentTimeMillis() - startTime) + " ms.");
+                log.info("The DB request with filtering only kind parameter '" + kind.get() +
+                         "' to Get bucket lists done in " + (System.currentTimeMillis() - startTime) + " ms.");
             }
             entities = generateBucketMetadataListFromObject(bucketsFromDB);
 
@@ -192,10 +192,16 @@ public class BucketService {
         if (!StringUtils.isEmpty(ownerName)) {
             entities = getBucketEntities(owners, kind, contentType, objectName);
         } else if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
-            entities = generateBucketMetadataListFromObject(bucketRepository.findContainingKindAndContentTypeAndObjectName(kind.orElse(""),
-                                                                                                                           contentType.orElse(""),
-                                                                                                                           objectName.orElse(""),
-                                                                                                                           sortById));
+            List<Object[]> bucketsFromDB;
+            if (contentType.isPresent() || objectName.isPresent()) {
+                bucketsFromDB = bucketRepository.findContainingKindAndContentTypeAndObjectName(kind.orElse(""),
+                                                                                               contentType.orElse(""),
+                                                                                               objectName.orElse(""),
+                                                                                               sortById);
+            } else { // only kind.isPresent()
+                bucketsFromDB = bucketRepository.findContainingKind(kind.orElse(""), sortById);
+            }
+            entities = generateBucketMetadataListFromObject(bucketsFromDB);
 
         } else {
             entities = generateBucketMetadataList(bucketRepository.findAll(sortById));
