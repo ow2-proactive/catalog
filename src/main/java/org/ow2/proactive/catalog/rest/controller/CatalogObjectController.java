@@ -274,6 +274,10 @@ public class CatalogObjectController {
         restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
                                                                                sessionId,
                                                                                bucketName);
+        //transform empty String into an empty Optional
+        kind = kind.filter(s -> !s.isEmpty());
+        contentType = contentType.filter(s -> !s.isEmpty());
+        objectNameFilter = objectNameFilter.filter(s -> !s.isEmpty());
         if (names.isPresent()) {
 
             ZipArchiveContent zipArchiveContent = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName,
