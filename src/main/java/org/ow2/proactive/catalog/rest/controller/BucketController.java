@@ -158,8 +158,7 @@ public class BucketController {
         if (sessionIdRequired) {
             RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
                                                                                                                                        ownerName);
-            log.debug("Check Access By Session Id For Owner Or Group " + (System.currentTimeMillis() - startTime) +
-                      " ms.");
+            log.debug("bucket list timer : validate session : " + (System.currentTimeMillis() - startTime) + " ms");
             listBucket = bucketService.getBucketsByGroups(ownerName,
                                                           kind,
                                                           contentType,
@@ -170,9 +169,8 @@ public class BucketController {
         } else {
             listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName);
         }
-        log.debug("The whole controller request to Get bucket lists done in " +
-                  (System.currentTimeMillis() - startTime) + " ms.");
-        log.debug("====== Get buckets list request finished ======== \\n");
+        log.debug("bucket list timer : total : " + (System.currentTimeMillis() - startTime) + " ms");
+        log.debug("====== Get buckets list request finished ========");
         return listBucket;
     }
 

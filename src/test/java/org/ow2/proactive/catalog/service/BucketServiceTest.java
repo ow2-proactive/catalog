@@ -227,13 +227,14 @@ public class BucketServiceTest {
         if (!StringUtils.isEmpty(owner)) {
             verify(bucketRepository, times(1)).findByOwnerIn(anyList(), any(Sort.class));
         } else if (kind.isPresent()) {
-            if (contentType.isPresent())
+            if (contentType.isPresent()) {
                 verify(bucketRepository, times(1)).findContainingKindAndContentTypeAndObjectName(anyString(),
                                                                                                  anyString(),
                                                                                                  anyString(),
                                                                                                  any(Sort.class));
-            else
+            } else {
                 verify(bucketRepository, times(1)).findContainingKind(anyString(), any(Sort.class));
+            }
         } else {
             verify(bucketRepository, times(1)).findAll(any(Sort.class));
         }
