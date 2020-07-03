@@ -128,15 +128,10 @@ public class Application extends WebMvcConfigurerAdapter {
     }
 
     private DataSource createDataSource() {
-        String jdbcUrl = dataSourceUrl;
-        if (jdbcUrl.isEmpty()) {
-            jdbcUrl = "jdbc:hsqldb:file:" + getDatabaseDirectory() +
-                      ";create=true;hsqldb.tx=mvcc;hsqldb.applog=1;hsqldb.sqllog=0;hsqldb.write_delay=false";
-        }
         return DataSourceBuilder.create()
                                 .username(dataSourceUsername)
                                 .password(dataSourcePassword)
-                                .url(jdbcUrl)
+                                .url(dataSourceUrl)
                                 .driverClassName(dataSourceDriverClassName)
                                 .build();
     }
