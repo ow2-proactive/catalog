@@ -35,11 +35,7 @@ import javax.sql.DataSource;
 import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
-import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectAndOrGroupFilterHandler;
-import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectBucketNameFilterHandler;
-import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectKindFilterHandler;
-import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectMetadataFilterHandler;
-import org.ow2.proactive.catalog.graphql.handler.catalogobject.CatalogObjectNameFilterHandler;
+import org.ow2.proactive.catalog.graphql.handler.catalogobject.*;
 import org.ow2.proactive.catalog.mocks.RestApiAccessServiceMock;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.BucketService;
@@ -164,6 +160,11 @@ public class IntegrationTestConfig {
     @Bean
     public FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> catalogObjectKindFilterHandler() {
         return new CatalogObjectKindFilterHandler();
+    }
+
+    @Bean
+    public FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> catalogObjectContentTypeFilterHandler() {
+        return new CatalogObjectContentTypeFilterHandler();
     }
 
     @Bean
