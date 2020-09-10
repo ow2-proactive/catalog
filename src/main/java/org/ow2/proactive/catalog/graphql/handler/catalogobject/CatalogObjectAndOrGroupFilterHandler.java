@@ -70,6 +70,10 @@ public class CatalogObjectAndOrGroupFilterHandler
     private FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> kindHandler;
 
     @Autowired
+    @Qualifier("catalogObjectContentTypeFilterHandler")
+    private FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> contentTypeHandler;
+
+    @Autowired
     @Qualifier("catalogObjectNameFilterHandler")
     private FilterHandler<CatalogObjectWhereArgs, CatalogObjectRevisionEntity> nameHandler;
 
@@ -83,6 +87,7 @@ public class CatalogObjectAndOrGroupFilterHandler
     public void init() {
         fieldFilterHandlers.add(bucketIdHandler);
         fieldFilterHandlers.add(kindHandler);
+        fieldFilterHandlers.add(contentTypeHandler);
         fieldFilterHandlers.add(nameHandler);
         fieldFilterHandlers.add(metadataHandler);
     }

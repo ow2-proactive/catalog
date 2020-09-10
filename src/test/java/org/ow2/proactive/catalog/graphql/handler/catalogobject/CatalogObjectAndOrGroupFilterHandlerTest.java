@@ -67,6 +67,9 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
     private CatalogObjectKindFilterHandler kindHandler;
 
     @Mock
+    private CatalogObjectContentTypeFilterHandler contentTypeHandler;
+
+    @Mock
     private CatalogObjectNameFilterHandler nameHandler;
 
     @Mock
@@ -80,6 +83,7 @@ public class CatalogObjectAndOrGroupFilterHandlerTest {
         when(bucketIdHandler.handle(any(CatalogObjectWhereArgs.class))).thenCallRealMethod();
         when(nameHandler.handle(any(CatalogObjectWhereArgs.class))).thenCallRealMethod();
         when(kindHandler.handle(any(CatalogObjectWhereArgs.class))).thenReturn(Optional.empty());
+        when(contentTypeHandler.handle(any(CatalogObjectWhereArgs.class))).thenReturn(Optional.empty());
         when(metadataHandler.handle(any(CatalogObjectWhereArgs.class))).thenReturn(Optional.empty());
 
         CatalogObjectWhereArgs bucketid = CatalogObjectWhereArgs.builder()

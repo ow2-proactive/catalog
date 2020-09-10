@@ -39,6 +39,13 @@ input CatalogObjectKindWhereArgs{
     ne: String
 }
 
+input CatalogObjectContentTypeWhereArgs{
+    like: String
+    notLike: String
+    eq: String
+    ne: String
+}
+
 input CatalogObjectNameWhereArgs{
     like: String
     notLike: String
@@ -52,6 +59,7 @@ input CatalogObjectWhereArgs {
    bucketNameArg: CatalogObjectBucketNameWhereArgs
    nameArg: CatalogObjectNameWhereArgs
    kindArg: CatalogObjectKindWhereArgs
+   contentTypeArg: CatalogObjectKindWhereArgs
    metadataArg: CatalogObjectMetadataWhereArgs
 }
 
