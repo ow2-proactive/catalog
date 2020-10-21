@@ -28,6 +28,8 @@ package org.ow2.proactive.catalog.rest.controller;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.util.Optional;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -71,8 +73,22 @@ public class BucketControllerTest {
 
     @Test
     public void testList() throws Exception {
-        bucketController.list(null, null, null, null, null);
-        verify(bucketService, times(1)).listBuckets((String) null, null, null, null);
+        Optional kind = Optional.ofNullable("kind");
+        Optional type = Optional.ofNullable("type");
+        bucketController.list(null, null, kind, type, Optional.ofNullable(null));
+        verify(bucketService, times(1)).listBuckets((String) null, kind, type, Optional.empty());
+    }
+
+    @Test
+    public void testEmptyParamsGetBucketsList() throws Exception {
+        Optional kind = Optional.ofNullable("");
+        Optional type = Optional.ofNullable("");
+        Optional name = Optional.ofNullable("");
+        bucketController.list(null, null, kind, type, name);
+        verify(bucketService, times(1)).listBuckets((String) null,
+                                                    Optional.empty(),
+                                                    Optional.empty(),
+                                                    Optional.empty());
     }
 
     @Test

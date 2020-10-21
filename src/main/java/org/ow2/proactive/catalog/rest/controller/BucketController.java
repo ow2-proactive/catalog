@@ -55,11 +55,13 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.log4j.Log4j2;
 
 
 /**
  * @author ActiveEon Team
  */
+@Log4j2
 @RestController
 @RequestMapping(value = "/buckets")
 public class BucketController {
@@ -145,19 +147,31 @@ public class BucketController {
             @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName)
             throws NotAuthenticatedException, AccessDeniedException {
 
+        List<BucketMetadata> listBucket;
+        log.debug("====== Get buckets list request started ======== ");
+        long startTime = System.currentTimeMillis();
+
+        //transform empty String into an empty Optional
+        kind = kind.filter(s -> !s.isEmpty());
+        contentType = contentType.filter(s -> !s.isEmpty());
+        objectName = objectName.filter(s -> !s.isEmpty());
         if (sessionIdRequired) {
             RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
                                                                                                                                        ownerName);
-
-            return bucketService.getBucketsByGroups(ownerName,
-                                                    kind,
-                                                    contentType,
-                                                    objectName,
-                                                    () -> restApiAccessResponse.getAuthenticatedUser().getGroups());
+            log.debug("bucket list timer : validate session : " + (System.currentTimeMillis() - startTime) + " ms");
+            listBucket = bucketService.getBucketsByGroups(ownerName,
+                                                          kind,
+                                                          contentType,
+                                                          objectName,
+                                                          () -> restApiAccessResponse.getAuthenticatedUser()
+                                                                                     .getGroups());
 
         } else {
-            return bucketService.listBuckets(ownerName, kind, contentType, objectName);
+            listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName);
         }
+        log.debug("bucket list timer : total : " + (System.currentTimeMillis() - startTime) + " ms");
+        log.debug("====== Get buckets list request finished ========");
+        return listBucket;
     }
 
     @ApiOperation(value = "Delete the empty buckets")

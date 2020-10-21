@@ -145,6 +145,35 @@ public class GraphqlServiceIntegrationTest {
                                                  keyValues,
                                                  workflowAsByteArray,
                                                  null);
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog5",
+                                                 "nodesource",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/json",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog6",
+                                                 "script",
+                                                 "commit message",
+                                                 "username",
+                                                 "text/groovy",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog7",
+                                                 "script",
+                                                 "commit message",
+                                                 "username",
+                                                 "text/python",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
 
     }
 
@@ -167,8 +196,8 @@ public class GraphqlServiceIntegrationTest {
         assertThat(map.get("data")).isNotNull();
         Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
         CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
-        assertThat(connection.getEdges()).hasSize(4);
-        assertThat(connection.getTotalCount()).isEqualTo(4);
+        assertThat(connection.getEdges()).hasSize(7);
+        assertThat(connection.getTotalCount()).isEqualTo(7);
         assertThat(connection.getTotalPage()).isEqualTo(1);
         assertThat(connection.isHasNext()).isFalse();
         assertThat(connection.isHasPrevious()).isFalse();
@@ -192,9 +221,9 @@ public class GraphqlServiceIntegrationTest {
         Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
         CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
         assertThat(connection.getEdges()).hasSize(2);
-        assertThat(connection.getTotalCount()).isEqualTo(4);
-        assertThat(connection.getTotalPage()).isEqualTo(2);
-        assertThat(connection.isHasNext()).isFalse();
+        assertThat(connection.getTotalCount()).isEqualTo(7);
+        assertThat(connection.getTotalPage()).isEqualTo(4);
+        assertThat(connection.isHasNext()).isTrue();
         assertThat(connection.isHasPrevious()).isTrue();
         assertThat(connection.getPage()).isEqualTo(1);
         assertThat(connection.getSize()).isEqualTo(2);
@@ -256,8 +285,8 @@ public class GraphqlServiceIntegrationTest {
         assertThat(map.get("data")).isNotNull();
         Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
         CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
-        assertThat(connection.getEdges()).hasSize(4);
-        assertThat(connection.getTotalCount()).isEqualTo(4);
+        assertThat(connection.getEdges()).hasSize(7);
+        assertThat(connection.getTotalCount()).isEqualTo(7);
         assertThat(connection.getTotalPage()).isEqualTo(1);
 
         query = "{\n" + "  allCatalogObjects(where:{bucketNameArg:{eq:\"" + bucket.getName() + "\"}}) {\n" +
@@ -272,8 +301,8 @@ public class GraphqlServiceIntegrationTest {
         assertThat(map.get("data")).isNotNull();
         objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
         connection = mapper.convertValue(objects, CatalogObjectConnection.class);
-        assertThat(connection.getEdges()).hasSize(4);
-        assertThat(connection.getTotalCount()).isEqualTo(4);
+        assertThat(connection.getEdges()).hasSize(7);
+        assertThat(connection.getTotalCount()).isEqualTo(7);
         assertThat(connection.getTotalPage()).isEqualTo(1);
     }
 
@@ -292,9 +321,70 @@ public class GraphqlServiceIntegrationTest {
         assertThat(map.get("data")).isNotNull();
         Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
         CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
-        assertThat(connection.getEdges()).hasSize(4);
-        assertThat(connection.getTotalCount()).isEqualTo(4);
+        assertThat(connection.getEdges()).hasSize(7);
+        assertThat(connection.getTotalCount()).isEqualTo(7);
         assertThat(connection.getTotalPage()).isEqualTo(1);
+    }
+
+    @Test
+    public void testContentTypeQuery() {
+        String query = "{\n" + "  allCatalogObjects(where:{contentTypeArg:{eq:\"application/json\"}}) {\n" +
+                       "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" +
+                       "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
+                       "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" +
+                       "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
+                       "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(1);
+        assertThat(connection.getTotalCount()).isEqualTo(1);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+        assertThat(connection.getEdges()
+                             .stream()
+                             .anyMatch(e -> !e.getContentType().equals("application/json"))).isFalse();
+
+        query = "{\n" +
+                "  allCatalogObjects(where:{AND:[{contentTypeArg:{ne:\"application/xml\"}}, {contentTypeArg:{ne:\"application/json\"}}]}) {\n" +
+                "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" + "      contentType\n" +
+                "      metadata {\n" + "        key\n" + "        value\n" + "        label\n" + "      }\n" +
+                "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
+                "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+
+        map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(2);
+        assertThat(connection.getTotalCount()).isEqualTo(2);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+        assertThat(connection.isHasNext()).isFalse();
+        assertThat(connection.isHasPrevious()).isFalse();
+
+        query = "{\n" + "  allCatalogObjects(where:{contentTypeArg:{like:\"%text%\"}}) {\n" + "    edges {\n" +
+                "      bucketName\n" + "      name\n" + "      kind\n" + "      contentType\n" + "      metadata {\n" +
+                "        key\n" + "        value\n" + "        label\n" + "      }\n" + "      commitMessage\n" +
+                "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
+                "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
+
+        map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(2);
+        assertThat(connection.getTotalCount()).isEqualTo(2);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
+        assertThat(connection.isHasNext()).isFalse();
+        assertThat(connection.isHasPrevious()).isFalse();
+        assertThat(connection.getEdges().stream().anyMatch(e -> !e.getContentType().contains("text"))).isFalse();
     }
 
     @Test
@@ -328,8 +418,8 @@ public class GraphqlServiceIntegrationTest {
         assertThat(map.get("data")).isNotNull();
         objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
         connection = mapper.convertValue(objects, CatalogObjectConnection.class);
-        assertThat(connection.getEdges()).hasSize(2);
-        assertThat(connection.getTotalCount()).isEqualTo(2);
+        assertThat(connection.getEdges()).hasSize(5);
+        assertThat(connection.getTotalCount()).isEqualTo(5);
         assertThat(connection.getTotalPage()).isEqualTo(1);
         assertThat(connection.isHasNext()).isFalse();
         assertThat(connection.isHasPrevious()).isFalse();
@@ -353,6 +443,27 @@ public class GraphqlServiceIntegrationTest {
         assertThat(connection.isHasNext()).isFalse();
         assertThat(connection.isHasPrevious()).isFalse();
         assertThat(connection.getEdges().stream().anyMatch(e -> !e.getKind().contains("work"))).isFalse();
+    }
+
+    @Test
+    public void testKindAndContentTypeQuery() {
+        String query = "{\n" +
+                       "  allCatalogObjects(where:{AND:[{contentTypeArg:{eq:\"text/groovy\"}}, {kindArg:{eq:\"script\"}}]}) {\n" +
+                       "    edges {\n" + "      bucketName\n" + "      name\n" + "      kind\n" +
+                       "      contentType\n" + "      metadata {\n" + "        key\n" + "        value\n" +
+                       "        label\n" + "      }\n" + "      commitMessage\n" + "      commitDateTime\n" +
+                       "    link}\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
+                       "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
+
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+
+        assertThat(map.get("errors")).isNull();
+        assertThat(map.get("data")).isNotNull();
+        Map objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
+        CatalogObjectConnection connection = mapper.convertValue(objects, CatalogObjectConnection.class);
+        assertThat(connection.getEdges()).hasSize(1);
+        assertThat(connection.getTotalCount()).isEqualTo(1);
+        assertThat(connection.getTotalPage()).isEqualTo(1);
     }
 
     @Test
@@ -386,8 +497,8 @@ public class GraphqlServiceIntegrationTest {
         assertThat(map.get("data")).isNotNull();
         objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
         connection = mapper.convertValue(objects, CatalogObjectConnection.class);
-        assertThat(connection.getEdges()).hasSize(2);
-        assertThat(connection.getTotalCount()).isEqualTo(2);
+        assertThat(connection.getEdges()).hasSize(5);
+        assertThat(connection.getTotalCount()).isEqualTo(5);
         assertThat(connection.getTotalPage()).isEqualTo(1);
         assertThat(connection.isHasNext()).isFalse();
         assertThat(connection.isHasPrevious()).isFalse();
@@ -404,8 +515,8 @@ public class GraphqlServiceIntegrationTest {
         assertThat(map.get("data")).isNotNull();
         objects = (Map) ((Map) map.get("data")).get("allCatalogObjects");
         connection = mapper.convertValue(objects, CatalogObjectConnection.class);
-        assertThat(connection.getEdges()).hasSize(4);
-        assertThat(connection.getTotalCount()).isEqualTo(4);
+        assertThat(connection.getEdges()).hasSize(7);
+        assertThat(connection.getTotalCount()).isEqualTo(7);
         assertThat(connection.getTotalPage()).isEqualTo(1);
         assertThat(connection.isHasNext()).isFalse();
         assertThat(connection.isHasPrevious()).isFalse();

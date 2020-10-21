@@ -30,6 +30,7 @@ import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Component;
  * @since 27/07/2017
  */
 @Component
+@Lazy
 public class RestApiAccessService {
 
     private final BucketService bucketService;
