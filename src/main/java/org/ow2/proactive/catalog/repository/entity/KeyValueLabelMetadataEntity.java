@@ -80,7 +80,7 @@ public class KeyValueLabelMetadataEntity implements Serializable {
 
     @Lob
     @Column(name = "PA_VALUE", nullable = true, length = Integer.MAX_VALUE)
-    @Type(type = "org.hibernate.type.TextType")
+    @Type(type = "org.hibernate.type.MaterializedClobType")
     protected String value;
 
     @SuppressWarnings("DefaultAnnotationParam")
