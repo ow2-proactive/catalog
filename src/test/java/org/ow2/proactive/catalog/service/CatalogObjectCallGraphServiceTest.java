@@ -221,7 +221,9 @@ public class CatalogObjectCallGraphServiceTest {
         Optional<String> contentType = Optional.empty();
 
         List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList();
-        when(catalogObjectService.listCatalogObjects(anyList())).thenReturn(objectsMetadata);
+        when(catalogObjectService.listCatalogObjects(anyList(),
+                                                     any(Integer.class),
+                                                     any(Integer.class))).thenReturn(objectsMetadata);
 
         when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
                                                                  kind,

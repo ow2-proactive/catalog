@@ -73,6 +73,9 @@ import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -221,7 +224,7 @@ public class CatalogObjectService {
         InputStream is = new BufferedInputStream(new ByteArrayInputStream(file.getContent()));
         Detector detector = mediaTypeFileParser.getDetector();
         org.apache.tika.metadata.Metadata md = new org.apache.tika.metadata.Metadata();
-        md.set(org.apache.tika.metadata.Metadata.RESOURCE_NAME_KEY, file.getFileNameWithExtension());
+        md.set(org.apache.tika.metadata.TikaMetadataKeys.RESOURCE_NAME_KEY, file.getFileNameWithExtension());
         MediaType mediaType = MediaType.OCTET_STREAM;
         try {
             mediaType = detector.detect(is, md);
@@ -410,36 +413,38 @@ public class CatalogObjectService {
         return GenericInfoBucketData.builder().bucketName(bucket.getBucketName()).group(bucket.getOwner()).build();
     }
 
-    public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketNames) {
+    public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketNames, int pageNo, int pageSize) {
         bucketNames.forEach(this::findBucketByNameAndCheck);
-        List<CatalogObjectRevisionEntity> result = listCatalogObjectsEntities(bucketNames);
+        List<CatalogObjectRevisionEntity> result = listCatalogObjectsEntities(bucketNames, pageNo, pageSize);
 
         return buildMetadataWithLink(result);
     }
 
-    public List<CatalogObjectRevisionEntity> listCatalogObjectsEntities(List<String> bucketNames) {
-        return catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames);
+    public List<CatalogObjectRevisionEntity> listCatalogObjectsEntities(List<String> bucketNames, int pageNo,
+            int pageSize) {
+        Pageable paging = new PageRequest(pageNo, pageSize);
+        Page<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames,
+                                                                                                                     paging);
+        return result.getContent();
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
             Optional<String> contentType) {
-        return listCatalogObjects(bucketsNames, kind, contentType, Optional.empty());
+        return listCatalogObjects(bucketsNames, kind, contentType, Optional.empty(), 0, Integer.MAX_VALUE);
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
-            Optional<String> contentType, Optional<String> objectNameFilter) {
-        if (bucketsNames.isEmpty()) {
-            return new ArrayList<>();
-        }
+            Optional<String> contentType, Optional<String> objectNameFilter, int pageNo, int pageSize) {
         List<CatalogObjectMetadata> metadataList;
-
         if (kind.isPresent() || contentType.isPresent() || objectNameFilter.isPresent()) {
             metadataList = listCatalogObjectsByKindAndContentTypeAndObjectName(bucketsNames,
                                                                                kind.orElse(""),
                                                                                contentType.orElse(""),
-                                                                               objectNameFilter.orElse(""));
+                                                                               objectNameFilter.orElse(""),
+                                                                               pageNo,
+                                                                               pageSize);
         } else {
-            metadataList = listCatalogObjects(bucketsNames);
+            metadataList = listCatalogObjects(bucketsNames, pageNo, pageSize);
         }
         return metadataList;
     }
@@ -448,15 +453,18 @@ public class CatalogObjectService {
         return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
-    // find catalog objects by kind and Content-Type and objectName
+    // find pageable catalog objects by kind and Content-Type and objectName
     public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentTypeAndObjectName(List<String> bucketNames,
-            String kind, String contentType, String objectName) {
+            String kind, String contentType, String objectName, int pageNo, int pageSize) {
+        Pageable paging = new PageRequest(pageNo, pageSize);
         bucketNames.forEach(this::findBucketByNameAndCheck);
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeAndObjectNameInBucket(bucketNames,
+        Page<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeAndObjectNameInBucket(bucketNames,
                                                                                                                                                       kind,
                                                                                                                                                       contentType,
-                                                                                                                                                      objectName);
-        return buildMetadataWithLink(result);
+                                                                                                                                                      objectName,
+                                                                                                                                                      paging);
+
+        return buildMetadataWithLink(result.getContent());
     }
 
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {
@@ -472,11 +480,10 @@ public class CatalogObjectService {
 
     private List<CatalogObjectRevisionEntity> getCatalogObjects(String bucketName, List<String> catalogObjectsNames) {
         findBucketByNameAndCheck(bucketName);
-        List<CatalogObjectRevisionEntity> revisions = catalogObjectsNames.stream()
-                                                                         .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
-                                                                                                                                                             name))
-                                                                         .collect(Collectors.toList());
-        return revisions;
+        return catalogObjectsNames.stream()
+                                  .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
+                                                                                                                      name))
+                                  .collect(Collectors.toList());
     }
 
     public CatalogObjectMetadata delete(String bucketName, String name) throws CatalogObjectNotFoundException {

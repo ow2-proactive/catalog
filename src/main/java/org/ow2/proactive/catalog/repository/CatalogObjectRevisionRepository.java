@@ -30,6 +30,9 @@ import java.util.UUID;
 
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -44,13 +47,13 @@ public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogOb
         JpaSpecificationExecutor<CatalogObjectRevisionEntity> {
 
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsInBucket(List<String> bucketNames);
+    Page<CatalogObjectRevisionEntity> findDefaultCatalogObjectsInBucket(List<String> bucketNames, Pageable pageable);
 
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1" +
            " AND lower(cor.catalogObject.kind) LIKE lower(concat(?2, '%')) AND lower(cor.catalogObject.contentType) LIKE lower(concat(?3, '%'))" +
            " AND lower(cor.catalogObject.id.name) LIKE lower(concat('%', ?4, '%')) AND cor.catalogObject.lastCommitTime = cor.commitTime")
-    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindAndContentTypeAndObjectNameInBucket(
-            List<String> bucketNames, String kind, String contentType, String objectName);
+    Page<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindAndContentTypeAndObjectNameInBucket(
+            List<String> bucketNames, String kind, String contentType, String objectName, Pageable pageable);
 
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND cor.catalogObject.id.name = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
     CatalogObjectRevisionEntity findDefaultCatalogObjectByNameInBucket(List<String> bucketNames, String name);

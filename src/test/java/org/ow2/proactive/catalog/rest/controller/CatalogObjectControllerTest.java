@@ -104,6 +104,8 @@ public class CatalogObjectControllerTest {
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.of(nameList),
+                                     0,
+                                     Integer.MAX_VALUE,
                                      response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
@@ -132,6 +134,8 @@ public class CatalogObjectControllerTest {
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.of(nameList),
+                                     0,
+                                     Integer.MAX_VALUE,
                                      response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
         verify(response, never()).setStatus(HttpServletResponse.SC_OK);
@@ -150,11 +154,15 @@ public class CatalogObjectControllerTest {
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
+                                     0,
+                                     Integer.MAX_VALUE,
                                      response);
         verify(catalogObjectService, times(1)).listCatalogObjects(anyList(),
                                                                   any(Optional.class),
                                                                   any(Optional.class),
-                                                                  any(Optional.class));
+                                                                  any(Optional.class),
+                                                                  any(Integer.class),
+                                                                  any(Integer.class));
     }
 
     @Test

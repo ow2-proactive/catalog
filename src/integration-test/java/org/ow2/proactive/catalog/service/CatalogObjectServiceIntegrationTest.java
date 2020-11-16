@@ -255,7 +255,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "first commit message of A_Object",
                                                  "username",
                                                  "application/xml",
-                                                 Collections.EMPTY_LIST,
+                                                 Collections.emptyList(),
                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow_variables_with_catalog_object_model-2.xml"),
                                                  null);
 
@@ -289,14 +289,14 @@ public class CatalogObjectServiceIntegrationTest {
         CatalogObjectDependencies catalogObjectDependencyListOfAObjectFirstCommit = catalogObjectService.getObjectDependencies(bucketName,
                                                                                                                                aObject,
                                                                                                                                firstCommitTimeDependsOn);
-        List<String> BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit = catalogObjectDependencyListOfAObjectFirstCommit.getDependsOnList()
+        List<String> bucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit = catalogObjectDependencyListOfAObjectFirstCommit.getDependsOnList()
                                                                                                                                  .stream()
                                                                                                                                  .map(DependsOnCatalogObject::getBucketAndObjectName)
                                                                                                                                  .collect(Collectors.toList());
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).hasSize(3);
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("data-connectors/FTP");
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("finance/QuantLib");
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).hasSize(3);
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("data-connectors/FTP");
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("finance/QuantLib");
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
         assertThat(catalogObjectDependencyListOfAObjectFirstCommit.getCalledByList()).hasSize(0);
 
         // Second commit of the bucket/A_Object to the catalog which has the dependency bucket/A_Object' depends on bucket/B_Object
@@ -309,16 +309,16 @@ public class CatalogObjectServiceIntegrationTest {
         //if no revision number is specified, get ObjectDependencyList of the  last revision of the given object
         CatalogObjectDependencies catalogObjectDependencyListOfAObjectSecondCommit = catalogObjectService.getObjectDependencies(bucketName,
                                                                                                                                 aObject);
-        List<String> BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit = catalogObjectDependencyListOfAObjectSecondCommit.getDependsOnList()
+        List<String> bucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit = catalogObjectDependencyListOfAObjectSecondCommit.getDependsOnList()
                                                                                                                                    .stream()
                                                                                                                                    .map(DependsOnCatalogObject::getBucketAndObjectName)
                                                                                                                                    .collect(Collectors.toList());
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).hasSize(4);
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains(separatorUtility.getConcatWithSeparator(bucketName,
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).hasSize(4);
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains(separatorUtility.getConcatWithSeparator(bucketName,
                                                                                                                                  bObject));
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains("data-connectors/FTP");
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains("finance/QuantLib");
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains("data-connectors/FTP");
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains("finance/QuantLib");
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
         assertThat(catalogObjectDependencyListOfAObjectSecondCommit.getCalledByList()).hasSize(0);
 
         //  Create a new catalog object 'bucket/B_Object' which is called by 'bucket/A_Object' and check that its calledBy list is not empty
@@ -328,20 +328,20 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "commit message",
                                                  "username",
                                                  "application/xml",
-                                                 Collections.EMPTY_LIST,
+                                                 Collections.emptyList(),
                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow_variables_with_catalog_object_model-2.xml"),
                                                  null);
 
         CatalogObjectDependencies catalogObjectDependencyListOfBObject = catalogObjectService.getObjectDependencies(bucketName,
                                                                                                                     bObject);
-        List<String> BucketAndObjectNameDependsOnListOfBObjectFromDB = catalogObjectDependencyListOfBObject.getDependsOnList()
+        List<String> bucketAndObjectNameDependsOnListOfBObjectFromDB = catalogObjectDependencyListOfBObject.getDependsOnList()
                                                                                                            .stream()
                                                                                                            .map(DependsOnCatalogObject::getBucketAndObjectName)
                                                                                                            .collect(Collectors.toList());
-        assertThat(BucketAndObjectNameDependsOnListOfBObjectFromDB).hasSize(3);
-        assertThat(BucketAndObjectNameDependsOnListOfBObjectFromDB).contains("data-connectors/FTP");
-        assertThat(BucketAndObjectNameDependsOnListOfBObjectFromDB).contains("finance/QuantLib");
-        assertThat(BucketAndObjectNameDependsOnListOfBObjectFromDB).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
+        assertThat(bucketAndObjectNameDependsOnListOfBObjectFromDB).hasSize(3);
+        assertThat(bucketAndObjectNameDependsOnListOfBObjectFromDB).contains("data-connectors/FTP");
+        assertThat(bucketAndObjectNameDependsOnListOfBObjectFromDB).contains("finance/QuantLib");
+        assertThat(bucketAndObjectNameDependsOnListOfBObjectFromDB).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
         assertThat(catalogObjectDependencyListOfBObject.getCalledByList()).hasSize(1);
         assertThat(catalogObjectDependencyListOfBObject.getCalledByList()).contains(separatorUtility.getConcatWithSeparator(bucketName,
                                                                                                                             aObject));
@@ -365,7 +365,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                       "commit message for B_Object",
                                                                                                                       "username",
                                                                                                                       "application/xml",
-                                                                                                                      Collections.EMPTY_LIST,
+                                                                                                                      Collections.emptyList(),
                                                                                                                       IntegrationTestUtil.getWorkflowAsByteArray("workflow_variables_with_catalog_object_model-2.xml"),
                                                                                                                       null);
         catalogObjectMetadataOfFirstVersionOfBObject.getCommitDateTime()
@@ -379,7 +379,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "commit message for C_Object",
                                                  "username",
                                                  "application/xml",
-                                                 Collections.EMPTY_LIST,
+                                                 Collections.emptyList(),
                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow_variables_with_catalog_object_model-2.xml"),
                                                  null);
 
@@ -390,7 +390,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                       "First commit message of A_Object",
                                                                                                                       "username",
                                                                                                                       "application/xml",
-                                                                                                                      Collections.EMPTY_LIST,
+                                                                                                                      Collections.emptyList(),
                                                                                                                       IntegrationTestUtil.getWorkflowAsByteArray("workflow_variables_with_catalog_object_model-first-commit.xml"),
                                                                                                                       null);
 
@@ -402,16 +402,16 @@ public class CatalogObjectServiceIntegrationTest {
         //Retrieve the CatalogObjectDependencies of the bucket/A_Object
         CatalogObjectDependencies catalogObjectDependencyListOfAObjectFirstCommit = catalogObjectService.getObjectDependencies(bucketName,
                                                                                                                                aObject);
-        List<String> BucketAndObjectNameDependsOnListOfAObjectFromDB = catalogObjectDependencyListOfAObjectFirstCommit.getDependsOnList()
+        List<String> bucketAndObjectNameDependsOnListOfAObjectFromDB = catalogObjectDependencyListOfAObjectFirstCommit.getDependsOnList()
                                                                                                                       .stream()
                                                                                                                       .map(DependsOnCatalogObject::getBucketAndObjectName)
                                                                                                                       .collect(Collectors.toList());
 
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDB).contains(separatorUtility.getConcatWithSeparator(bucketName,
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDB).contains(separatorUtility.getConcatWithSeparator(bucketName,
                                                                                                                      bObject));
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDB).contains(separatorUtility.getConcatWithSeparator(bucketName,
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDB).contains(separatorUtility.getConcatWithSeparator(bucketName,
                                                                                                                      cObject));
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDB).hasSize(2);
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDB).hasSize(2);
 
         // Check that the bucket/A_Object workflow has the info that the bucket/B_Object workflow is in the Catalog --> isInCatalog=True
         assertTrue(catalogObjectDependencyListOfAObjectFirstCommit.getDependsOnList()
@@ -461,14 +461,14 @@ public class CatalogObjectServiceIntegrationTest {
         CatalogObjectDependencies catalogObjectDependencyListOfAObjectSecondCommit = catalogObjectService.getObjectDependencies(bucketName,
                                                                                                                                 aObject,
                                                                                                                                 secondCommitTimeOfAObject);
-        List<String> BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit = catalogObjectDependencyListOfAObjectSecondCommit.getDependsOnList()
+        List<String> bucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit = catalogObjectDependencyListOfAObjectSecondCommit.getDependsOnList()
                                                                                                                                    .stream()
                                                                                                                                    .map(DependsOnCatalogObject::getBucketAndObjectName)
                                                                                                                                    .collect(Collectors.toList());
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).hasSize(2);
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains(separatorUtility.getConcatWithSeparator(bucketName,
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).hasSize(2);
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains(separatorUtility.getConcatWithSeparator(bucketName,
                                                                                                                                  dObject));
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains(separatorUtility.getConcatWithSeparator(bucketName,
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBSecondCommit).contains(separatorUtility.getConcatWithSeparator(bucketName,
                                                                                                                                  eObject));
         assertThat(catalogObjectDependencyListOfAObjectSecondCommit.getCalledByList()).hasSize(0);
 
@@ -491,16 +491,16 @@ public class CatalogObjectServiceIntegrationTest {
         catalogObjectDependencyListOfAObjectFirstCommit = catalogObjectService.getObjectDependencies(bucketName,
                                                                                                      aObject,
                                                                                                      firstCommitTimeOfAObject);
-        List<String> BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit = catalogObjectDependencyListOfAObjectFirstCommit.getDependsOnList()
+        List<String> bucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit = catalogObjectDependencyListOfAObjectFirstCommit.getDependsOnList()
                                                                                                                                  .stream()
                                                                                                                                  .map(DependsOnCatalogObject::getBucketAndObjectName)
                                                                                                                                  .collect(Collectors.toList());
 
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains(separatorUtility.getConcatWithSeparator(bucketName,
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains(separatorUtility.getConcatWithSeparator(bucketName,
                                                                                                                                 bObject));
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains(separatorUtility.getConcatWithSeparator(bucketName,
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains(separatorUtility.getConcatWithSeparator(bucketName,
                                                                                                                                 cObject));
-        assertThat(BucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).hasSize(2);
+        assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).hasSize(2);
 
         /************ FOURTH TEST ****************/
 
@@ -566,7 +566,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "First commit message of A_Object",
                                                  "username",
                                                  "application/xml",
-                                                 Collections.EMPTY_LIST,
+                                                 Collections.emptyList(),
                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow_variables_with_catalog_object_model-with-commit-time.xml"),
                                                  null);
 
@@ -585,7 +585,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                  "first commit message",
                                                  "username",
                                                  "application/xml",
-                                                 Collections.EMPTY_LIST,
+                                                 Collections.emptyList(),
                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow_with_script_url.xml"),
                                                  null);
 
@@ -620,23 +620,25 @@ public class CatalogObjectServiceIntegrationTest {
         CatalogObjectDependencies catalogObjectDependencyList = catalogObjectService.getObjectDependencies(bucketName,
                                                                                                            workflowName,
                                                                                                            firstCommitTimeDependsOn);
-        List<String> BucketAndObjectNameDependsOnListFromDB = catalogObjectDependencyList.getDependsOnList()
+        List<String> bucketAndObjectNameDependsOnListFromDB = catalogObjectDependencyList.getDependsOnList()
                                                                                          .stream()
                                                                                          .map(DependsOnCatalogObject::getBucketAndObjectName)
                                                                                          .collect(Collectors.toList());
-        assertThat(BucketAndObjectNameDependsOnListFromDB).hasSize(5);
-        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("basic-examples/Native_Task");
-        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("cloud-automation-scripts/Service_Start");
-        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("cloud-automation-scripts/Pre_Trigger_Action");
-        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("scripts/update_variables_from_system");
-        assertThat(BucketAndObjectNameDependsOnListFromDB).contains("scripts/update_variables_from_file");
+        assertThat(bucketAndObjectNameDependsOnListFromDB).hasSize(5);
+        assertThat(bucketAndObjectNameDependsOnListFromDB).contains("basic-examples/Native_Task");
+        assertThat(bucketAndObjectNameDependsOnListFromDB).contains("cloud-automation-scripts/Service_Start");
+        assertThat(bucketAndObjectNameDependsOnListFromDB).contains("cloud-automation-scripts/Pre_Trigger_Action");
+        assertThat(bucketAndObjectNameDependsOnListFromDB).contains("scripts/update_variables_from_system");
+        assertThat(bucketAndObjectNameDependsOnListFromDB).contains("scripts/update_variables_from_file");
         assertThat(catalogObjectDependencyList.getCalledByList()).hasSize(0);
 
     }
 
     @Test
     public void testListCatalogObjectsInBucket() {
-        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjects(Arrays.asList(bucket.getName()));
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjects(Arrays.asList(bucket.getName()),
+                                                                                             0,
+                                                                                             Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(3);
     }
 
@@ -674,10 +676,10 @@ public class CatalogObjectServiceIntegrationTest {
 
     @Test(expected = KindOrContentTypeIsNotValidException.class)
     public void testUpdateObjectMetadataWrongKind() {
-        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucket.getName(),
-                                                                                                "object-name-1",
-                                                                                                Optional.of("updated-kind//a asdf"),
-                                                                                                Optional.of("updated-contentType"));
+        catalogObjectService.updateObjectMetadata(bucket.getName(),
+                                                  "object-name-1",
+                                                  Optional.of("updated-kind//a asdf"),
+                                                  Optional.of("updated-contentType"));
     }
 
     @Test(expected = KindOrContentTypeIsNotValidException.class)
@@ -698,7 +700,9 @@ public class CatalogObjectServiceIntegrationTest {
         List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
                                                                                                                               "object",
                                                                                                                               "",
-                                                                                                                              "");
+                                                                                                                              "",
+                                                                                                                              0,
+                                                                                                                              Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(2);
 
         catalogObjectService.createCatalogObject(bucket.getName(),
@@ -714,14 +718,215 @@ public class CatalogObjectServiceIntegrationTest {
         catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
                                                                                                   "workflow-general",
                                                                                                   "",
-                                                                                                  "");
+                                                                                                  "",
+                                                                                                  0,
+                                                                                                  Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(1);
 
         catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
                                                                                                   "WORKFLOW",
                                                                                                   "",
-                                                                                                  "");
+                                                                                                  "",
+                                                                                                  0,
+                                                                                                  Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(2);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testPageableCatalogObjectsInBucketWrongPageNumber() {
+        catalogObjectService.listCatalogObjects(Arrays.asList(bucket.getName()), -1, Integer.MAX_VALUE);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testPageableCatalogObjectsInBucketWrongPageSize() {
+        catalogObjectService.listCatalogObjects(Arrays.asList(bucket.getName()), 0, 0);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testPageableCatalogObjectsByFiltersInBucketWrongParameters() {
+        catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                 "",
+                                                                                 "",
+                                                                                 "",
+                                                                                 -1,
+                                                                                 0);
+    }
+
+    @Test
+    public void testPageableCatalogObjectsInBucket() {
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjects(Arrays.asList(bucket.getName()),
+                                                                                             0,
+                                                                                             2);
+        assertThat(catalogObjects).hasSize(2);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog4",
+                                                 "workflow-general",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog5",
+                                                 "workflow-general",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjects = catalogObjectService.listCatalogObjects(Arrays.asList(bucket.getName()), 2, 2);
+        assertThat(catalogObjects).hasSize(1);
+
+    }
+
+    @Test
+    public void testPageableCatalogObjectsByEmptyFilters() {
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                                              "",
+                                                                                                                              "",
+                                                                                                                              "",
+                                                                                                                              1,
+                                                                                                                              2);
+        assertThat(catalogObjects).hasSize(1);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog6",
+                                                 "workflow-general",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog4",
+                                                 "workflow-general",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog5",
+                                                 "workflow-general",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                  "",
+                                                                                                  "",
+                                                                                                  "",
+                                                                                                  2,
+                                                                                                  3);
+        assertThat(catalogObjects).hasSize(0);
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                  "",
+                                                                                                  "",
+                                                                                                  "",
+                                                                                                  2,
+                                                                                                  2);
+        assertThat(catalogObjects).hasSize(2);
+
+    }
+
+    @Test
+    public void testPageableCatalogObjectsByKindAndContentTypeInBucket() {
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                                              "object",
+                                                                                                                              "",
+                                                                                                                              "",
+                                                                                                                              0,
+                                                                                                                              3);
+        assertThat(catalogObjects).hasSize(2);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog4",
+                                                 "workflow-general",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog5",
+                                                 "workflow/pca",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog6",
+                                                 "workflow/standard",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                  "workflow",
+                                                                                                  "",
+                                                                                                  "",
+                                                                                                  1,
+                                                                                                  3);
+        assertThat(catalogObjects).hasSize(1);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog7",
+                                                 "Script",
+                                                 "commit message",
+                                                 "username",
+                                                 "text/x-python",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog8",
+                                                 "Script",
+                                                 "commit message",
+                                                 "username",
+                                                 "text/x-groovy",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog9",
+                                                 "Script",
+                                                 "commit message",
+                                                 "username",
+                                                 "text/x-sh",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                  "Script",
+                                                                                                  "text",
+                                                                                                  "",
+                                                                                                  1,
+                                                                                                  2);
+        assertThat(catalogObjects).hasSize(1);
+
     }
 
     @Test
@@ -945,7 +1150,7 @@ public class CatalogObjectServiceIntegrationTest {
         BucketMetadata secondBucket = bucketService.createBucket(secondBucketName,
                                                                  "CatalogObjectServiceIntegrationTest");
 
-        BucketMetadata emptyBucket = bucketService.createBucket("empty-bucket", "CatalogObjectServiceIntegrationTest");
+        bucketService.createBucket("empty-bucket", "CatalogObjectServiceIntegrationTest");
 
         //Adding the object to the new bucket
         catalogObjectService.createCatalogObject(secondBucket.getName(),

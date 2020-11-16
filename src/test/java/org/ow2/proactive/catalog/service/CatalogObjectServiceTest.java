@@ -264,7 +264,7 @@ public class CatalogObjectServiceTest {
     @Test(expected = BucketNotFoundException.class)
     public void testGetCatalogObjectWithInvalidBucket() {
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
-        catalogObjectService.listCatalogObjects(Arrays.asList("wrong-bucket"));
+        catalogObjectService.listCatalogObjects(Arrays.asList("wrong-bucket"), 0, Integer.MAX_VALUE);
     }
 
     @Test

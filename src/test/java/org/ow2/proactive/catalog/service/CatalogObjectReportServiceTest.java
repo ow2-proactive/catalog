@@ -78,7 +78,9 @@ public class CatalogObjectReportServiceTest {
         Optional<String> contentType = Optional.empty();
 
         List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList();
-        when(catalogObjectService.listCatalogObjects(anyList())).thenReturn(objectsMetadata);
+        when(catalogObjectService.listCatalogObjects(anyList(),
+                                                     any(Integer.class),
+                                                     any(Integer.class))).thenReturn(objectsMetadata);
 
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(objectsMetadata);
 
