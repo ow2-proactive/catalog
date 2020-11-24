@@ -115,6 +115,7 @@ public class TableCatalogObjectsDependenciesBuilderTest {
 
         final CatalogObjectMetadata catalogObjectMetadata = new CatalogObjectMetadata(bucketName,
                                                                                       objectName,
+                                                                                      "projectName",
                                                                                       kind,
                                                                                       "projectName",
                                                                                       1L,

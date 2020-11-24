@@ -109,6 +109,7 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName,
             @ApiParam(value = "Name of the object or empty when a ZIP archive is uploaded (All objects inside the archive are stored inside the catalog).") @RequestParam(required = false) Optional<String> name,
+            @ApiParam(value = "Project of the object") @RequestParam(value = "projectName", required = false, defaultValue = "") String projectName,
             @ApiParam(value = "Kind of the new object", required = true) @RequestParam String kind,
             @ApiParam(value = "Commit message", required = true) @RequestParam String commitMessage,
             @ApiParam(value = "The Content-Type of CatalogRawObject - MIME type", required = true) @RequestParam String objectContentType,
@@ -120,6 +121,7 @@ public class CatalogObjectController {
         if (name.isPresent()) {
             CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketName,
                                                                                            name.get(),
+                                                                                           projectName,
                                                                                            kind,
                                                                                            commitMessage,
                                                                                            restApiAccessResponse.getAuthenticatedUser()
@@ -134,6 +136,7 @@ public class CatalogObjectController {
             return new CatalogObjectMetadataList(catalogObject);
         } else {
             List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketName,
+                                                                                                   projectName,
                                                                                                    kind,
                                                                                                    commitMessage,
                                                                                                    restApiAccessResponse.getAuthenticatedUser()
@@ -178,7 +181,7 @@ public class CatalogObjectController {
                                                                                                  contentType);
     }
 
-    @ApiOperation(value = "Update a catalog object metadata, like kind and Content-Type")
+    @ApiOperation(value = "Update a catalog object metadata, like kind, Content-Type and project name")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"),
@@ -189,12 +192,13 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String name,
             @ApiParam(value = "The new kind of an object", required = false) @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "The new Content-Type of an object - MIME type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType)
+            @ApiParam(value = "The new Content-Type of an object - MIME type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType,
+            @ApiParam(value = "The new project name of an object", required = false) @RequestParam(value = "projectName", required = false) Optional<String> projectName)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
         restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
                                                                                sessionId,
                                                                                bucketName);
-        return catalogObjectService.updateObjectMetadata(bucketName, name, kind, contentType);
+        return catalogObjectService.updateObjectMetadata(bucketName, name, kind, contentType, projectName);
     }
 
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")

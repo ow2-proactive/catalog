@@ -244,6 +244,7 @@ public class CatalogObjectCallGraphServiceTest {
                                                                       WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL));
         CatalogObjectMetadata catalogObjectMetadata = new CatalogObjectMetadata(bucketName,
                                                                                 name,
+                                                                                "projectName",
                                                                                 "kind",
                                                                                 "contentType",
                                                                                 System.currentTimeMillis(),

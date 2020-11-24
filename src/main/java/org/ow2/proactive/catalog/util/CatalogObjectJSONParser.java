@@ -53,6 +53,8 @@ public final class CatalogObjectJSONParser {
 
         private String name;
 
+        private String projectName;
+
         private String kind;
 
         private String commitMessage;
@@ -69,6 +71,14 @@ public final class CatalogObjectJSONParser {
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        public String getProjectName() {
+            return projectName;
+        }
+
+        public void setProjectName(String projectName) {
+            this.projectName = projectName;
         }
 
         public String getKind() {

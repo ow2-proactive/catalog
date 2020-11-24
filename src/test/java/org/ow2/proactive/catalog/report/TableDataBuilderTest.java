@@ -78,6 +78,7 @@ public class TableDataBuilderTest {
         final String objectName = "objectName";
         final String bucketName = "bucketName";
         final String kind = "kind";
+        final String contentType = "contentType";
         final String projectName = "projectName";
         final String description = "objectDescription";
         final String variable1Key = "var1Key";
@@ -114,8 +115,9 @@ public class TableDataBuilderTest {
         Set<CatalogObjectMetadata> catalogObjectMetadataSet = new HashSet<>();
         catalogObjectMetadataSet.add(new CatalogObjectMetadata(bucketName,
                                                                objectName,
-                                                               kind,
                                                                projectName,
+                                                               kind,
+                                                               contentType,
                                                                1400343L,
                                                                "commit message",
                                                                "username",

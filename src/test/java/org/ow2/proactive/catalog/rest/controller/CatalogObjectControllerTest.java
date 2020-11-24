@@ -88,6 +88,8 @@ public class CatalogObjectControllerTest {
     @Mock
     private RestApiAccessService restApiAccessService;
 
+    private static final String PROJECT_NAME = "projectName";
+
     @Test
     public void testGetCatalogObjectsAsArchive() throws IOException, NotAuthenticatedException, AccessDeniedException {
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -169,6 +171,7 @@ public class CatalogObjectControllerTest {
     public void testGetRaw() throws Exception {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           "name",
+                                                          PROJECT_NAME,
                                                           "object",
                                                           "application/xml",
                                                           1400343L,
@@ -194,6 +197,7 @@ public class CatalogObjectControllerTest {
     public void testDelete() throws Exception {
         CatalogObjectMetadata mock = new CatalogObjectMetadata("bucket-name",
                                                                "name",
+                                                               PROJECT_NAME,
                                                                "object",
                                                                "application/xml",
                                                                1400343L,

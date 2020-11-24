@@ -30,7 +30,6 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
 import java.io.IOException;
-import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +40,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.IntegrationTestConfig;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
-import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.graphql.bean.CatalogObjectConnection;
 import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
@@ -87,6 +85,8 @@ public class GraphqlServiceIntegrationTest {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    private static final String EMPTY_STRING = "";
+
     @Before
     public void setup() throws IOException, NotAuthenticatedException, AccessDeniedException, InterruptedException {
         doReturn("link").when(catalogObjectMapper).generatLink(anyString(), anyString());
@@ -98,6 +98,7 @@ public class GraphqlServiceIntegrationTest {
         workflowAsByteArrayUpdated = IntegrationTestUtil.getWorkflowAsByteArray("workflow-updated.xml");
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog1",
+                                                 EMPTY_STRING,
                                                  "object",
                                                  "commit message",
                                                  "username",
@@ -116,6 +117,7 @@ public class GraphqlServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog2",
+                                                 EMPTY_STRING,
                                                  "object",
                                                  "commit message",
                                                  "username",
@@ -128,6 +130,7 @@ public class GraphqlServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog3",
+                                                 EMPTY_STRING,
                                                  "workflow",
                                                  "commit message",
                                                  "username",
@@ -138,6 +141,7 @@ public class GraphqlServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog4",
+                                                 EMPTY_STRING,
                                                  "workflow",
                                                  "commit message",
                                                  "username",
@@ -147,6 +151,7 @@ public class GraphqlServiceIntegrationTest {
                                                  null);
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog5",
+                                                 EMPTY_STRING,
                                                  "nodesource",
                                                  "commit message",
                                                  "username",
@@ -157,6 +162,7 @@ public class GraphqlServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog6",
+                                                 EMPTY_STRING,
                                                  "script",
                                                  "commit message",
                                                  "username",
@@ -167,6 +173,7 @@ public class GraphqlServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog7",
+                                                 EMPTY_STRING,
                                                  "script",
                                                  "commit message",
                                                  "username",
@@ -551,6 +558,7 @@ public class GraphqlServiceIntegrationTest {
 
         catalogObjectService.createCatalogObject(bucket2.getName(),
                                                  "catalog1",
+                                                 EMPTY_STRING,
                                                  "object",
                                                  "commit message",
                                                  "username",

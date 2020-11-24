@@ -105,7 +105,7 @@ public class KeyValueLabelMetadataEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "KeyValueLabelMetadataEntity{" + "key='" + key + '\'' + ", value='" + value + '\'' + ", type='" + label +
-               '\'' + '}';
+        return "KeyValueLabelMetadataEntity{" + "key='" + key + '\'' + ", value='" + value + '\'' + ", label='" +
+               label + '\'' + '}';
     }
 }

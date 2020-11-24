@@ -277,27 +277,30 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
         // Add an object of kind "my-object-kind" into specific bucket
         IntegrationTestUtil.postObjectToBucket(bucketIdWithMyObjects,
-                                               "MY-objecT-Kind",
                                                "myobjectname",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               "MY-objecT-Kind",
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         // Add an object of kind "my-object-general" into specific bucket
         IntegrationTestUtil.postObjectToBucket(bucketIdWithmyObjectsGeneral,
-                                               "My-oBJeCt-General",
                                                "myobjectname",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               "My-oBJeCt-General",
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         String bucketWithSomeObjectsId = IntegrationTestUtil.createBucket(bucketNameWithSomeObjects, "owner");
 
         IntegrationTestUtil.postObjectToBucket(bucketWithSomeObjectsId,
-                                               "differentkind",
                                                "myobjectname",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               "differentkind",
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         // list buckets by specific kind -> should return one specified bucket and empty bucket
@@ -333,24 +336,27 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
         // Add three objects to the first bucket
         IntegrationTestUtil.postObjectToBucket(bucketIdOfFirstBucket,
-                                               workflowKind,
                                                "object1",
-                                               "first commit",
-                                               MediaType.APPLICATION_ATOM_XML_VALUE,
-                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
-
-        IntegrationTestUtil.postObjectToBucket(bucketIdOfFirstBucket,
+                                               "myobjectprojectname",
                                                workflowKind,
-                                               "object2",
-                                               "first commit",
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postObjectToBucket(bucketIdOfFirstBucket,
-                                               pcaKind,
-                                               "abc",
-                                               "first commit",
+                                               "object2",
+                                               "myobjectprojectname",
+                                               workflowKind,
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postObjectToBucket(bucketIdOfFirstBucket,
+                                               "abc",
+                                               "myobjectprojectname",
+                                               pcaKind,
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         List<HashMap<String, Object>> bucketEntityWithContentCountList1 = given().param("contentType",
@@ -367,24 +373,27 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
         // Add three objects to the second bucket
         IntegrationTestUtil.postObjectToBucket(bucketIdOfSecondBucket,
-                                               workflowKind,
                                                "object-abc",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               workflowKind,
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postObjectToBucket(bucketIdOfSecondBucket,
-                                               ruleKind,
                                                "object2",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               ruleKind,
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postObjectToBucket(bucketIdOfSecondBucket,
-                                               ruleKind,
                                                "object3",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               ruleKind,
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         List<HashMap<String, Object>> bucketEntityWithContentCountList2 = given().param("contentType",
@@ -432,28 +441,31 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
         // Add an object of kind "my-object-kind" into specific bucket
         IntegrationTestUtil.postObjectToBucket(bucketIdWithMyObjects,
-                                               "MY-objecT-Kind",
                                                "my-object-name-1",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               "MY-objecT-Kind",
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         String bucketWithSomeObjectsId = IntegrationTestUtil.createBucket(bucketNameWithSomeObjects, "owner");
 
         IntegrationTestUtil.postObjectToBucket(bucketWithSomeObjectsId,
-                                               "differentkind",
                                                "my-object-name-2",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               "differentkind",
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         String bucketIdWithOtherObjects = IntegrationTestUtil.createBucket(bucketNameWithOtherObjects, "owner");
         // Add an object of kind "my-object-kind" into specific bucket
         IntegrationTestUtil.postObjectToBucket(bucketIdWithOtherObjects,
-                                               "MY-objecT-Kind",
                                                "other-names",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               "MY-objecT-Kind",
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         // list all buckets by any Name -> should return all buckets with empty bucket
@@ -546,25 +558,28 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
         IntegrationTestUtil.postDefaultWorkflowToBucket(bucketAdminOwnerWorkflowKindId);
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerOtherKindId,
-                                               "other-kind",
                                                "my workflow",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               "other-kind",
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postDefaultWorkflowToBucket(BucketAdminOwnerMixedKindId);
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
-                                               "other-kind",
                                                "other object",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               "other-kind",
                                                MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
-                                               "other-kind",
                                                "other new object",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               "other-kind",
                                                "bucket-admin-owner-content-type",
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
@@ -574,10 +589,11 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
-                                               "new-kind-2",
                                                "other new object",
-                                               "first commit",
+                                               "myobjectprojectname",
+                                               "new-kind-2",
                                                "new-content-2",
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postDefaultWorkflowToBucket(BucketUserOwnerWorkflowKindId);
