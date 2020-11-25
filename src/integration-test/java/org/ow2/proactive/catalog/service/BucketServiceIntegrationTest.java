@@ -62,7 +62,7 @@ public class BucketServiceIntegrationTest {
 
     private List<Metadata> keyValues;
 
-    private static final String EMPTY_STRING = "";
+    private static final String PROJECT_NAME = "projectName";
 
     @Before
     public void createBucket() {
@@ -92,7 +92,7 @@ public class BucketServiceIntegrationTest {
         bucket = bucketService.createBucket("bucketnotempty", "emptyBucketTest");
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
-                                                 EMPTY_STRING,
+                                                 PROJECT_NAME,
                                                  "object",
                                                  "commit message",
                                                  "username",
@@ -150,7 +150,7 @@ public class BucketServiceIntegrationTest {
         bucket = bucketService.createBucket("bucket-workflow", "owner");
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
-                                                 EMPTY_STRING,
+                                                 PROJECT_NAME,
                                                  "WORKFLOW",
                                                  "commit message",
                                                  "username",
@@ -181,7 +181,7 @@ public class BucketServiceIntegrationTest {
         bucket = bucketService.createBucket("bucket-workflow", "owner");
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
-                                                 EMPTY_STRING,
+                                                 PROJECT_NAME,
                                                  "Workflow",
                                                  "commit message",
                                                  "username",
@@ -194,7 +194,7 @@ public class BucketServiceIntegrationTest {
         BucketMetadata bucketWfStandard = bucketService.createBucket("bucket-wf-standard", "owner");
         catalogObjectService.createCatalogObject(bucketWfStandard.getName(),
                                                  "catalog",
-                                                 EMPTY_STRING,
+                                                 PROJECT_NAME,
                                                  "WorkFlow/Standard",
                                                  "commit message",
                                                  "username",
@@ -207,7 +207,7 @@ public class BucketServiceIntegrationTest {
         BucketMetadata bucketWfPCA = bucketService.createBucket("bucket-wf-pca", "owner");
         catalogObjectService.createCatalogObject(bucketWfPCA.getName(),
                                                  "catalog",
-                                                 EMPTY_STRING,
+                                                 PROJECT_NAME,
                                                  "workflow/PCA",
                                                  "commit message",
                                                  "username",
@@ -220,7 +220,7 @@ public class BucketServiceIntegrationTest {
         BucketMetadata bucketNotWf = bucketService.createBucket("bucket-not-workflow", "different-owner");
         catalogObjectService.createCatalogObject(bucketNotWf.getName(),
                                                  "catalog",
-                                                 EMPTY_STRING,
+                                                 PROJECT_NAME,
                                                  "not-workflow",
                                                  "commit message",
                                                  "username",

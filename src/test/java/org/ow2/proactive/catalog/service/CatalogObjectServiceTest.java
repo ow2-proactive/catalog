@@ -528,7 +528,7 @@ public class CatalogObjectServiceTest {
         List<KeyValueLabelMetadataEntity> keyvalues = ImmutableList.of(new KeyValueLabelMetadataEntity("key",
                                                                                                        "value",
                                                                                                        null));
-        catalogObjectService.createCatalogObjectRevision("bucket", NAME, COMMIT_MESSAGE, USERNAME, null);
+        catalogObjectService.createCatalogObjectRevision("bucket", NAME, PROJECT_NAME, COMMIT_MESSAGE, USERNAME, null);
     }
 
     @Test
@@ -545,6 +545,7 @@ public class CatalogObjectServiceTest {
                                                                                         any())).thenReturn(Collections.emptyList());
         CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObjectRevision("bucket",
                                                                                                NAME,
+                                                                                               PROJECT_NAME,
                                                                                                COMMIT_MESSAGE,
                                                                                                USERNAME,
                                                                                                keyvalues,

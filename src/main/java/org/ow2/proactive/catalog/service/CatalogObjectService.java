@@ -131,8 +131,6 @@ public class CatalogObjectService {
     @VisibleForTesting
     static final String KIND_NOT_FOUND = "N/A";
 
-    private static final String EMPTY_STRING = "";
-
     private AutoDetectParser mediaTypeFileParser = new AutoDetectParser();
 
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String projectName, String kind,
@@ -178,6 +176,7 @@ public class CatalogObjectService {
             } else {
                 return this.createCatalogObjectRevision(bucketName,
                                                         objectName,
+                                                        projectName,
                                                         commitMessage,
                                                         username,
                                                         file.getContent());
@@ -358,7 +357,7 @@ public class CatalogObjectService {
         return bucketEntity;
     }
 
-    private CatalogObjectRevisionEntity findCatalogObjectByNameAndBucketAndCheck(String bucketName, String name) {
+    protected CatalogObjectRevisionEntity findCatalogObjectByNameAndBucketAndCheck(String bucketName, String name) {
         CatalogObjectRevisionEntity catalogObject = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
                                                                                                                            name);
         if (catalogObject == null) {
@@ -377,7 +376,7 @@ public class CatalogObjectService {
             throw new NullPointerException("Cannot build catalog object!");
         }
 
-        //priority is given to the metadataList
+        //here the priority is given to the metadataList
         List<KeyValueLabelMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? keyValueLabelMetadataHelper.extractKeyValuesFromRaw(catalogObjectEntity.getKind(),
                                                                                                                                                   rawObject)
                                                                                             : keyValueMetadataEntities;
@@ -398,7 +397,8 @@ public class CatalogObjectService {
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)
                                                                                              .username(username)
-                                                                                             .projectName(projectName)
+                                                                                             .projectName(!projectName.isEmpty() ? projectName
+                                                                                                                                 : getProjectNameIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(keyValues)))
                                                                                              .commitTime(LocalDateTime.now()
                                                                                                                       .atZone(ZoneId.systemDefault())
                                                                                                                       .toInstant()
@@ -409,10 +409,6 @@ public class CatalogObjectService {
                                                                                              .build();
 
         genericInformationWithBucketDataList.forEach(keyValue -> keyValue.setCatalogObjectRevision(catalogObjectRevisionEntity));
-
-        System.out.println("commit message= " + catalogObjectRevisionEntity.getCommitMessage());
-        System.out.println("projectName= " + catalogObjectRevisionEntity.getProjectName());
-
         catalogObjectEntity.addRevision(catalogObjectRevisionEntity);
         return catalogObjectRevisionRepository.save(catalogObjectRevisionEntity);
     }
@@ -521,18 +517,19 @@ public class CatalogObjectService {
      * ####################  Revision Operations ###################
      **/
 
-    public CatalogObjectMetadata createCatalogObjectRevision(String bucketName, String name, String commitMessage,
-            String username, byte[] rawObject) {
+    public CatalogObjectMetadata createCatalogObjectRevision(String bucketName, String name, String projectName,
+            String commitMessage, String username, byte[] rawObject) {
         return this.createCatalogObjectRevision(bucketName,
                                                 name,
+                                                projectName,
                                                 commitMessage,
                                                 username,
                                                 Collections.emptyList(),
                                                 rawObject);
     }
 
-    public CatalogObjectMetadata createCatalogObjectRevision(String bucketName, String name, String commitMessage,
-            String username, List<Metadata> metadataListParsed, byte[] rawObject) {
+    public CatalogObjectMetadata createCatalogObjectRevision(String bucketName, String name, String projectName,
+            String commitMessage, String username, List<Metadata> metadataListParsed, byte[] rawObject) {
 
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
         CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
@@ -544,7 +541,7 @@ public class CatalogObjectService {
 
         CatalogObjectRevisionEntity revisionEntity = buildCatalogObjectRevisionEntity(commitMessage,
                                                                                       username,
-                                                                                      getProjectNameIfExistsOrEmptyString(metadataListParsed),
+                                                                                      projectName,
                                                                                       rawObject,
                                                                                       catalogObject,
                                                                                       metadataListParsed);
@@ -552,7 +549,7 @@ public class CatalogObjectService {
         return new CatalogObjectMetadata(revisionEntity);
     }
 
-    private String getProjectNameIfExistsOrEmptyString(List<Metadata> metadataListParsed) {
+    protected String getProjectNameIfExistsOrEmptyString(List<Metadata> metadataListParsed) {
         Optional<Metadata> projectNameIfExists = metadataListParsed.stream()
                                                                    .filter(property -> property.getKey()
                                                                                                .equals("project_name"))
@@ -564,6 +561,7 @@ public class CatalogObjectService {
             String commitMessage) {
         return createCatalogObjectRevision(catalogObjectRevision.getCatalogObject().getBucket().getBucketName(),
                                            catalogObjectRevision.getCatalogObject().getId().getName(),
+                                           catalogObjectRevision.getProjectName(),
                                            commitMessage,
                                            catalogObjectRevision.getUsername(),
                                            keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
