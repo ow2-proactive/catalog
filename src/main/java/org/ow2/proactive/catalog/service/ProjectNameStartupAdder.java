@@ -31,6 +31,7 @@ import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -45,21 +46,17 @@ public class ProjectNameStartupAdder {
     @Autowired
     CatalogObjectService catalogObjectService;
 
+    @Transactional
     public void synchronizeProjectName() {
         log.info("Checking catalog object revision entities ... ");
         List<CatalogObjectRevisionEntity> catalogObjectRevisionEntityList = catalogObjectRevisionRepository.findByProjectNameIsNullOrIsEmpty();
         if (!catalogObjectRevisionEntityList.isEmpty()) {
             log.info("Resynchronization of project name ...");
-            for (CatalogObjectRevisionEntity entity : catalogObjectRevisionEntityList) {
-                String projectName = catalogObjectService.getProjectNameIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(entity.getKeyValueMetadataList()));
-                CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectService.findCatalogObjectByNameAndBucketAndCheck(entity.getCatalogObject()
-                                                                                                                                              .getBucket()
-                                                                                                                                              .getBucketName(),
-                                                                                                                                        entity.getCatalogObject()
-                                                                                                                                              .getId()
-                                                                                                                                              .getName());
-                catalogObjectRevisionEntity.setProjectName(projectName);
-                catalogObjectRevisionRepository.save(catalogObjectRevisionEntity);
+            for (CatalogObjectRevisionEntity objectRevisionEntity : catalogObjectRevisionEntityList) {
+                String projectName = catalogObjectService.getProjectNameIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(objectRevisionEntity.getKeyValueMetadataList()));
+
+                objectRevisionEntity.setProjectName(projectName);
+                catalogObjectRevisionRepository.save(objectRevisionEntity);
 
             }
             log.info("Resynchronization of project name ended successfully.");
