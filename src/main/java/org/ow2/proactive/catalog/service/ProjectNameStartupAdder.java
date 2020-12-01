@@ -49,7 +49,7 @@ public class ProjectNameStartupAdder {
     @Transactional
     public void synchronizeProjectName() {
         log.info("Checking catalog object revision entities ... ");
-        List<CatalogObjectRevisionEntity> catalogObjectRevisionEntityList = catalogObjectRevisionRepository.findByProjectNameIsNullOrIsEmpty();
+        List<CatalogObjectRevisionEntity> catalogObjectRevisionEntityList = catalogObjectRevisionRepository.findWithEmptyOrNullProjectName();
         if (!catalogObjectRevisionEntityList.isEmpty()) {
             log.info("Resynchronization of project name ...");
             for (CatalogObjectRevisionEntity objectRevisionEntity : catalogObjectRevisionEntityList) {

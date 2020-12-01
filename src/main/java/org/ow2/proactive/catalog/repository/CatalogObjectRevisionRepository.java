@@ -46,7 +46,7 @@ public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogOb
         JpaSpecificationExecutor<CatalogObjectRevisionEntity> {
 
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.projectName = null OR cor.projectName = ''")
-    List<CatalogObjectRevisionEntity> findByProjectNameIsNullOrIsEmpty();
+    List<CatalogObjectRevisionEntity> findWithEmptyOrNullProjectName();
 
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND cor.catalogObject.lastCommitTime = cor.commitTime ORDER BY cor.projectName")
     Page<CatalogObjectRevisionEntity> findDefaultCatalogObjectsInBucket(List<String> bucketNames, Pageable pageable);

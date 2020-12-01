@@ -103,8 +103,7 @@ public class CatalogObjectRevisionController {
                                                                                                                   bucketName);
         CatalogObjectMetadata catalogObjectRevision = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                                        name,
-                                                                                                       projectName.isPresent() ? projectName.get()
-                                                                                                                               : "",
+                                                                                                       projectName.orElse(""),
                                                                                                        commitMessage,
                                                                                                        restApiAccessResponse.getAuthenticatedUser()
                                                                                                                             .getName(),

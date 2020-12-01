@@ -97,6 +97,8 @@ public class CatalogObjectController {
 
     private static final String ZIP_CONTENT_TYPE = "application/zip";
 
+    private static final long MAXVALUE = Integer.MAX_VALUE;
+
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
@@ -121,8 +123,7 @@ public class CatalogObjectController {
         if (name.isPresent()) {
             CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketName,
                                                                                            name.get(),
-                                                                                           projectName.isPresent() ? projectName.get()
-                                                                                                                   : "",
+                                                                                           projectName.orElse(""),
                                                                                            kind,
                                                                                            commitMessage,
                                                                                            restApiAccessResponse.getAuthenticatedUser()
@@ -137,8 +138,7 @@ public class CatalogObjectController {
             return new CatalogObjectMetadataList(catalogObject);
         } else {
             List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketName,
-                                                                                                   projectName.isPresent() ? projectName.get()
-                                                                                                                           : "",
+                                                                                                   projectName.orElse(""),
                                                                                                    kind,
                                                                                                    commitMessage,
                                                                                                    restApiAccessResponse.getAuthenticatedUser()
@@ -275,7 +275,8 @@ public class CatalogObjectController {
             @ApiParam(value = "Filter according to Object Name.") @RequestParam(value = "objectName", required = false) Optional<String> objectNameFilter,
             @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
             @ApiParam(value = "Page number", required = false) @RequestParam(defaultValue = "0", value = "pageNo") int pageNo,
-            @ApiParam(value = "Page size", required = false) @RequestParam(defaultValue = "50", value = "pageSize") int pageSize,
+            @ApiParam(value = "Page size", required = false) @RequestParam(defaultValue = MAXVALUE +
+                                                                                          "", value = "pageSize") int pageSize,
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
