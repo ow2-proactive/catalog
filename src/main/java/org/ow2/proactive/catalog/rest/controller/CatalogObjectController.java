@@ -175,8 +175,8 @@ public class CatalogObjectController {
     @ResponseStatus(HttpStatus.OK)
     public List<CatalogObjectNameReference> listCatalogObjectNameReference(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "Filter according to kind") @RequestHeader(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "Filter according to Content-Type") @RequestHeader(value = "contentType", required = false) Optional<String> contentType) {
+            @ApiParam(value = "Filter according to kind", required = false) @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @ApiParam(value = "Filter according to Content-Type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType) {
         return catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(sessionIdRequired,
                                                                                                  sessionId,
                                                                                                  kind,

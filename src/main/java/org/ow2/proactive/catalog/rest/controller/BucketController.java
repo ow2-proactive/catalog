@@ -106,7 +106,7 @@ public class BucketController {
     @ResponseStatus(HttpStatus.OK)
     public BucketMetadata updateBucketOwner(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the existing Bucket ") @PathVariable String bucketName,
+            @ApiParam(value = "The name of the existing Bucket ", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The new name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String newOwnerName)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
