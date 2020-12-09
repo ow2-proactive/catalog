@@ -80,7 +80,9 @@ public class KeyValueLabelMetadataEntity implements Serializable {
 
     @Lob
     @Column(name = "PA_VALUE", nullable = true, length = Integer.MAX_VALUE)
-    @Type(type = "org.hibernate.type.MaterializedClobType")
+    @Type(type = "org.hibernate.type.TextType")
+    // after changing the type to org.hibernate.type.MaterializedClobType we encountered some backward incompatibility issues on PostgresQL database
+    // Thus we had to revert to the original value
     protected String value;
 
     @SuppressWarnings("DefaultAnnotationParam")
