@@ -52,10 +52,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = { IntegrationTestConfig.class })
 public class BucketServiceIntegrationTest {
 
-    private static final String DEFAULT_OBJECTS_FOLDER = "/default-objects";
-
-    private static final String RAW_OBJECTS_FOLDER = "/raw-objects";
-
     @Autowired
     private BucketService bucketService;
 
@@ -65,6 +61,8 @@ public class BucketServiceIntegrationTest {
     private BucketMetadata bucket;
 
     private List<Metadata> keyValues;
+
+    private static final String PROJECT_NAME = "projectName";
 
     @Before
     public void createBucket() {
@@ -94,6 +92,7 @@ public class BucketServiceIntegrationTest {
         bucket = bucketService.createBucket("bucketnotempty", "emptyBucketTest");
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
+                                                 PROJECT_NAME,
                                                  "object",
                                                  "commit message",
                                                  "username",
@@ -102,7 +101,7 @@ public class BucketServiceIntegrationTest {
                                                  null,
                                                  null);
 
-        BucketMetadata emptyBucket = bucketService.createBucket("bucketempty", "emptyBucketTest");
+        bucketService.createBucket("bucketempty", "emptyBucketTest");
 
         List<BucketMetadata> emptyBucketTest = bucketService.listBuckets("emptyBucketTest",
                                                                          Optional.empty(),
@@ -151,6 +150,7 @@ public class BucketServiceIntegrationTest {
         bucket = bucketService.createBucket("bucket-workflow", "owner");
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
+                                                 PROJECT_NAME,
                                                  "WORKFLOW",
                                                  "commit message",
                                                  "username",
@@ -181,6 +181,7 @@ public class BucketServiceIntegrationTest {
         bucket = bucketService.createBucket("bucket-workflow", "owner");
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
+                                                 PROJECT_NAME,
                                                  "Workflow",
                                                  "commit message",
                                                  "username",
@@ -193,6 +194,7 @@ public class BucketServiceIntegrationTest {
         BucketMetadata bucketWfStandard = bucketService.createBucket("bucket-wf-standard", "owner");
         catalogObjectService.createCatalogObject(bucketWfStandard.getName(),
                                                  "catalog",
+                                                 PROJECT_NAME,
                                                  "WorkFlow/Standard",
                                                  "commit message",
                                                  "username",
@@ -205,6 +207,7 @@ public class BucketServiceIntegrationTest {
         BucketMetadata bucketWfPCA = bucketService.createBucket("bucket-wf-pca", "owner");
         catalogObjectService.createCatalogObject(bucketWfPCA.getName(),
                                                  "catalog",
+                                                 PROJECT_NAME,
                                                  "workflow/PCA",
                                                  "commit message",
                                                  "username",
@@ -217,6 +220,7 @@ public class BucketServiceIntegrationTest {
         BucketMetadata bucketNotWf = bucketService.createBucket("bucket-not-workflow", "different-owner");
         catalogObjectService.createCatalogObject(bucketNotWf.getName(),
                                                  "catalog",
+                                                 PROJECT_NAME,
                                                  "not-workflow",
                                                  "commit message",
                                                  "username",

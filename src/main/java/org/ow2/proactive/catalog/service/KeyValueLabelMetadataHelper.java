@@ -101,7 +101,7 @@ public class KeyValueLabelMetadataHelper {
 
     }
 
-    public List<Metadata> convertFromEntity(List<KeyValueLabelMetadataEntity> source) {
+    public static List<Metadata> convertFromEntity(List<KeyValueLabelMetadataEntity> source) {
         return source.stream().map(Metadata::new).collect(Collectors.toList());
     }
 

@@ -78,7 +78,9 @@ public class CatalogObjectReportServiceTest {
         Optional<String> contentType = Optional.empty();
 
         List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList();
-        when(catalogObjectService.listCatalogObjects(anyList())).thenReturn(objectsMetadata);
+        when(catalogObjectService.listCatalogObjects(anyList(),
+                                                     any(Integer.class),
+                                                     any(Integer.class))).thenReturn(objectsMetadata);
 
         TreeSet<CatalogObjectMetadata> orderedObjectsPerBucket = sortObjectsPerBucket(objectsMetadata);
 
@@ -251,6 +253,7 @@ public class CatalogObjectReportServiceTest {
         List<Metadata> metadataList = Lists.newArrayList(new Metadata("project_name", "project " + name, "label"));
         CatalogObjectMetadata catalogObjectMetadata = new CatalogObjectMetadata(bucketName,
                                                                                 name,
+                                                                                "projectName",
                                                                                 "kind",
                                                                                 "contentType",
                                                                                 System.currentTimeMillis(),

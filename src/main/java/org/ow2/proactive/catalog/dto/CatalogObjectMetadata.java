@@ -63,6 +63,9 @@ public class CatalogObjectMetadata extends ResourceSupport {
     @JsonProperty
     protected final String name;
 
+    @JsonProperty("project_name")
+    protected final String projectName;
+
     @JsonProperty
     protected final String extension;
 
@@ -82,11 +85,10 @@ public class CatalogObjectMetadata extends ResourceSupport {
     @JsonProperty("object_key_values")
     protected final List<Metadata> metadataList;
 
-    protected final String projectName;
-
     public CatalogObjectMetadata(CatalogObjectEntity catalogObject) {
         this(catalogObject.getBucket().getBucketName(),
              catalogObject.getId().getName(),
+             catalogObject.getRevisions().first().getProjectName(),
              catalogObject.getKind(),
              catalogObject.getContentType(),
              catalogObject.getRevisions().first().getCommitTime(),
@@ -99,6 +101,7 @@ public class CatalogObjectMetadata extends ResourceSupport {
     public CatalogObjectMetadata(CatalogObjectRevisionEntity catalogObject) {
         this(catalogObject.getCatalogObject().getBucket().getBucketName(),
              catalogObject.getCatalogObject().getId().getName(),
+             catalogObject.getProjectName(),
              catalogObject.getCatalogObject().getKind(),
              catalogObject.getCatalogObject().getContentType(),
              catalogObject.getCommitTime(),
@@ -108,8 +111,8 @@ public class CatalogObjectMetadata extends ResourceSupport {
              catalogObject.getCatalogObject().getExtension());
     }
 
-    public CatalogObjectMetadata(String bucketName, String name, String kind, String contentType, long commitTime,
-            String commitMessage, String username, List<Metadata> metadataList, String extension) {
+    public CatalogObjectMetadata(String bucketName, String name, String projectName, String kind, String contentType,
+            long commitTime, String commitMessage, String username, List<Metadata> metadataList, String extension) {
         this.bucketName = bucketName;
         this.name = name;
         this.kind = kind;
@@ -123,7 +126,11 @@ public class CatalogObjectMetadata extends ResourceSupport {
         } else {
             this.metadataList = metadataList;
         }
-        this.projectName = getProjectNameIfExistsOrEmptyString();
+        if (projectName != null && !projectName.isEmpty()) {
+            this.projectName = projectName;
+        } else {
+            this.projectName = getProjectNameIfExistsOrEmptyString();
+        }
         this.extension = extension;
 
     }

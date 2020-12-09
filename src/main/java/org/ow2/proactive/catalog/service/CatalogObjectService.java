@@ -73,6 +73,9 @@ import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -130,10 +133,11 @@ public class CatalogObjectService {
 
     private AutoDetectParser mediaTypeFileParser = new AutoDetectParser();
 
-    public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
-            String username, String contentType, byte[] rawObject, String extension) {
+    public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String projectName, String kind,
+            String commitMessage, String username, String contentType, byte[] rawObject, String extension) {
         return this.createCatalogObject(bucketName,
                                         name,
+                                        projectName,
                                         kind,
                                         commitMessage,
                                         username,
@@ -143,8 +147,8 @@ public class CatalogObjectService {
                                         extension);
     }
 
-    public List<CatalogObjectMetadata> createCatalogObjects(String bucketName, String kind, String commitMessage,
-            String username, byte[] zipArchive) {
+    public List<CatalogObjectMetadata> createCatalogObjects(String bucketName, String projectName, String kind,
+            String commitMessage, String username, byte[] zipArchive) {
 
         List<FileNameAndContent> filesContainedInArchive = archiveManager.extractZIP(zipArchive);
 
@@ -161,6 +165,7 @@ public class CatalogObjectService {
                 String contentTypeOfFile = getFileMimeType(file);
                 return this.createCatalogObject(bucketName,
                                                 objectName,
+                                                projectName,
                                                 kind,
                                                 commitMessage,
                                                 username,
@@ -171,6 +176,7 @@ public class CatalogObjectService {
             } else {
                 return this.createCatalogObjectRevision(bucketName,
                                                         objectName,
+                                                        projectName,
                                                         commitMessage,
                                                         username,
                                                         file.getContent());
@@ -178,8 +184,9 @@ public class CatalogObjectService {
         }).collect(Collectors.toList());
     }
 
-    public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String kind, String commitMessage,
-            String username, String contentType, List<Metadata> metadataList, byte[] rawObject, String extension) {
+    public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String projectName, String kind,
+            String commitMessage, String username, String contentType, List<Metadata> metadataList, byte[] rawObject,
+            String extension) {
         if (!objectNameValidator.isValid(name)) {
             throw new ObjectNameIsNotValidException(name);
         }
@@ -207,13 +214,12 @@ public class CatalogObjectService {
                                                                                                                         name))
                                                                      .build();
         bucketEntity.getCatalogObjects().add(catalogObjectEntity);
-
         CatalogObjectRevisionEntity result = buildCatalogObjectRevisionEntity(commitMessage,
                                                                               username,
-                                                                              metadataList,
+                                                                              projectName,
                                                                               rawObject,
-                                                                              catalogObjectEntity);
-
+                                                                              catalogObjectEntity,
+                                                                              metadataList);
         return new CatalogObjectMetadata(result);
     }
 
@@ -221,7 +227,7 @@ public class CatalogObjectService {
         InputStream is = new BufferedInputStream(new ByteArrayInputStream(file.getContent()));
         Detector detector = mediaTypeFileParser.getDetector();
         org.apache.tika.metadata.Metadata md = new org.apache.tika.metadata.Metadata();
-        md.set(org.apache.tika.metadata.Metadata.RESOURCE_NAME_KEY, file.getFileNameWithExtension());
+        md.set(org.apache.tika.metadata.TikaMetadataKeys.RESOURCE_NAME_KEY, file.getFileNameWithExtension());
         MediaType mediaType = MediaType.OCTET_STREAM;
         try {
             mediaType = detector.detect(is, md);
@@ -232,11 +238,12 @@ public class CatalogObjectService {
     }
 
     public CatalogObjectMetadata updateObjectMetadata(String bucketName, String name, Optional<String> kind,
-            Optional<String> contentType) {
+            Optional<String> contentType, Optional<String> projectName) {
         findBucketByNameAndCheck(bucketName);
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName,
                                                                                                            name);
-        if (!kind.isPresent() && !contentType.isPresent()) {
+
+        if (!kind.isPresent() && !contentType.isPresent() && !projectName.isPresent()) {
             throw new WrongParametersException("at least one parameter should be present");
         }
         if (kind.isPresent() && !kindAndContentTypeValidator.isValid(kind.get())) {
@@ -245,6 +252,9 @@ public class CatalogObjectService {
         if (contentType.isPresent() && !kindAndContentTypeValidator.isValid(contentType.get())) {
             throw new KindOrContentTypeIsNotValidException(contentType.get(), "Content-Type");
         }
+
+        projectName.ifPresent(catalogObjectRevisionEntity::setProjectName);
+        catalogObjectRevisionRepository.save(catalogObjectRevisionEntity);
         CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
         kind.ifPresent(catalogObjectEntity::setKind);
         contentType.ifPresent(catalogObjectEntity::setContentType);
@@ -347,7 +357,7 @@ public class CatalogObjectService {
         return bucketEntity;
     }
 
-    private CatalogObjectRevisionEntity findCatalogObjectByNameAndBucketAndCheck(String bucketName, String name) {
+    protected CatalogObjectRevisionEntity findCatalogObjectByNameAndBucketAndCheck(String bucketName, String name) {
         CatalogObjectRevisionEntity catalogObject = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
                                                                                                                            name);
         if (catalogObject == null) {
@@ -357,8 +367,8 @@ public class CatalogObjectService {
     }
 
     private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(final String commitMessage,
-            final String username, final List<org.ow2.proactive.catalog.dto.Metadata> metadataList,
-            final byte[] rawObject, final CatalogObjectEntity catalogObjectEntity) {
+            final String username, final String projectName, final byte[] rawObject,
+            final CatalogObjectEntity catalogObjectEntity, final List<Metadata> metadataList) {
 
         List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = KeyValueLabelMetadataHelper.convertToEntity(metadataList);
 
@@ -366,10 +376,10 @@ public class CatalogObjectService {
             throw new NullPointerException("Cannot build catalog object!");
         }
 
+        //here the priority is given to the metadataList
         List<KeyValueLabelMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? keyValueLabelMetadataHelper.extractKeyValuesFromRaw(catalogObjectEntity.getKind(),
                                                                                                                                                   rawObject)
                                                                                             : keyValueMetadataEntities;
-
         GenericInfoBucketData genericInfoBucketData = createGenericInfoBucketData(catalogObjectEntity.getBucket());
 
         if (genericInfoBucketData == null) {
@@ -387,6 +397,8 @@ public class CatalogObjectService {
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)
                                                                                              .username(username)
+                                                                                             .projectName(!projectName.isEmpty() ? projectName
+                                                                                                                                 : getProjectNameIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(keyValues)))
                                                                                              .commitTime(LocalDateTime.now()
                                                                                                                       .atZone(ZoneId.systemDefault())
                                                                                                                       .toInstant()
@@ -397,9 +409,7 @@ public class CatalogObjectService {
                                                                                              .build();
 
         genericInformationWithBucketDataList.forEach(keyValue -> keyValue.setCatalogObjectRevision(catalogObjectRevisionEntity));
-
         catalogObjectEntity.addRevision(catalogObjectRevisionEntity);
-
         return catalogObjectRevisionRepository.save(catalogObjectRevisionEntity);
     }
 
@@ -410,36 +420,38 @@ public class CatalogObjectService {
         return GenericInfoBucketData.builder().bucketName(bucket.getBucketName()).group(bucket.getOwner()).build();
     }
 
-    public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketNames) {
+    public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketNames, int pageNo, int pageSize) {
         bucketNames.forEach(this::findBucketByNameAndCheck);
-        List<CatalogObjectRevisionEntity> result = listCatalogObjectsEntities(bucketNames);
+        List<CatalogObjectRevisionEntity> result = listCatalogObjectsEntities(bucketNames, pageNo, pageSize);
 
         return buildMetadataWithLink(result);
     }
 
-    public List<CatalogObjectRevisionEntity> listCatalogObjectsEntities(List<String> bucketNames) {
-        return catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames);
+    public List<CatalogObjectRevisionEntity> listCatalogObjectsEntities(List<String> bucketNames, int pageNo,
+            int pageSize) {
+        Pageable paging = new PageRequest(pageNo, pageSize);
+        Page<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsInBucket(bucketNames,
+                                                                                                                     paging);
+        return result.getContent();
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
             Optional<String> contentType) {
-        return listCatalogObjects(bucketsNames, kind, contentType, Optional.empty());
+        return listCatalogObjects(bucketsNames, kind, contentType, Optional.empty(), 0, Integer.MAX_VALUE);
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
-            Optional<String> contentType, Optional<String> objectNameFilter) {
-        if (bucketsNames.isEmpty()) {
-            return new ArrayList<>();
-        }
+            Optional<String> contentType, Optional<String> objectNameFilter, int pageNo, int pageSize) {
         List<CatalogObjectMetadata> metadataList;
-
         if (kind.isPresent() || contentType.isPresent() || objectNameFilter.isPresent()) {
             metadataList = listCatalogObjectsByKindAndContentTypeAndObjectName(bucketsNames,
                                                                                kind.orElse(""),
                                                                                contentType.orElse(""),
-                                                                               objectNameFilter.orElse(""));
+                                                                               objectNameFilter.orElse(""),
+                                                                               pageNo,
+                                                                               pageSize);
         } else {
-            metadataList = listCatalogObjects(bucketsNames);
+            metadataList = listCatalogObjects(bucketsNames, pageNo, pageSize);
         }
         return metadataList;
     }
@@ -448,15 +460,18 @@ public class CatalogObjectService {
         return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
-    // find catalog objects by kind and Content-Type and objectName
+    // find pageable catalog objects by kind and Content-Type and objectName
     public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentTypeAndObjectName(List<String> bucketNames,
-            String kind, String contentType, String objectName) {
+            String kind, String contentType, String objectName, int pageNo, int pageSize) {
+        Pageable paging = new PageRequest(pageNo, pageSize);
         bucketNames.forEach(this::findBucketByNameAndCheck);
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeAndObjectNameInBucket(bucketNames,
+        Page<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeAndObjectNameInBucket(bucketNames,
                                                                                                                                                       kind,
                                                                                                                                                       contentType,
-                                                                                                                                                      objectName);
-        return buildMetadataWithLink(result);
+                                                                                                                                                      objectName,
+                                                                                                                                                      paging);
+
+        return buildMetadataWithLink(result.getContent());
     }
 
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {
@@ -472,11 +487,10 @@ public class CatalogObjectService {
 
     private List<CatalogObjectRevisionEntity> getCatalogObjects(String bucketName, List<String> catalogObjectsNames) {
         findBucketByNameAndCheck(bucketName);
-        List<CatalogObjectRevisionEntity> revisions = catalogObjectsNames.stream()
-                                                                         .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
-                                                                                                                                                             name))
-                                                                         .collect(Collectors.toList());
-        return revisions;
+        return catalogObjectsNames.stream()
+                                  .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
+                                                                                                                      name))
+                                  .collect(Collectors.toList());
     }
 
     public CatalogObjectMetadata delete(String bucketName, String name) throws CatalogObjectNotFoundException {
@@ -503,18 +517,19 @@ public class CatalogObjectService {
      * ####################  Revision Operations ###################
      **/
 
-    public CatalogObjectMetadata createCatalogObjectRevision(String bucketName, String name, String commitMessage,
-            String username, byte[] rawObject) {
+    public CatalogObjectMetadata createCatalogObjectRevision(String bucketName, String name, String projectName,
+            String commitMessage, String username, byte[] rawObject) {
         return this.createCatalogObjectRevision(bucketName,
                                                 name,
+                                                projectName,
                                                 commitMessage,
                                                 username,
                                                 Collections.emptyList(),
                                                 rawObject);
     }
 
-    public CatalogObjectMetadata createCatalogObjectRevision(String bucketName, String name, String commitMessage,
-            String username, List<Metadata> metadataListParsed, byte[] rawObject) {
+    public CatalogObjectMetadata createCatalogObjectRevision(String bucketName, String name, String projectName,
+            String commitMessage, String username, List<Metadata> metadataListParsed, byte[] rawObject) {
 
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
         CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
@@ -526,17 +541,27 @@ public class CatalogObjectService {
 
         CatalogObjectRevisionEntity revisionEntity = buildCatalogObjectRevisionEntity(commitMessage,
                                                                                       username,
-                                                                                      metadataListParsed,
+                                                                                      projectName,
                                                                                       rawObject,
-                                                                                      catalogObject);
+                                                                                      catalogObject,
+                                                                                      metadataListParsed);
 
         return new CatalogObjectMetadata(revisionEntity);
+    }
+
+    protected String getProjectNameIfExistsOrEmptyString(List<Metadata> metadataListParsed) {
+        Optional<Metadata> projectNameIfExists = metadataListParsed.stream()
+                                                                   .filter(property -> property.getKey()
+                                                                                               .equals("project_name"))
+                                                                   .findAny();
+        return projectNameIfExists.map(Metadata::getValue).orElse("");
     }
 
     public CatalogObjectMetadata createCatalogObjectRevision(CatalogObjectRevisionEntity catalogObjectRevision,
             String commitMessage) {
         return createCatalogObjectRevision(catalogObjectRevision.getCatalogObject().getBucket().getBucketName(),
                                            catalogObjectRevision.getCatalogObject().getId().getName(),
+                                           catalogObjectRevision.getProjectName(),
                                            commitMessage,
                                            catalogObjectRevision.getUsername(),
                                            keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
@@ -583,11 +608,14 @@ public class CatalogObjectService {
         String restoreCommitMessage = revisionCommitMessageBuilder.build(catalogObjectRevision.getCommitMessage(),
                                                                          commitTime);
 
+        List<Metadata> metadataList = keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList());
+
         CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(restoreCommitMessage,
                                                                                         catalogObjectRevision.getUsername(),
-                                                                                        keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
+                                                                                        getProjectNameIfExistsOrEmptyString(metadataList),
                                                                                         catalogObjectRevision.getRawObject(),
-                                                                                        catalogObjectRevision.getCatalogObject());
+                                                                                        catalogObjectRevision.getCatalogObject(),
+                                                                                        metadataList);
 
         return new CatalogObjectMetadata(restoredRevision);
     }

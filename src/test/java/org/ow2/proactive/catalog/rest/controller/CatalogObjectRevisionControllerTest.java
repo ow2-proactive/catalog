@@ -78,6 +78,7 @@ public class CatalogObjectRevisionControllerTest {
     public void testGetRevisionRaw() throws Exception {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           "name",
+                                                          "projectName",
                                                           "object",
                                                           "application/xml",
                                                           1400343L,

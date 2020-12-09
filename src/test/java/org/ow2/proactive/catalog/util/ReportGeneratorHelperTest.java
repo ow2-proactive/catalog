@@ -135,6 +135,7 @@ public class ReportGeneratorHelperTest {
 
         CatalogObjectMetadata catalogObjectMetadata1 = new CatalogObjectMetadata(bucketName,
                                                                                  objectName1,
+                                                                                 "projectName",
                                                                                  "object",
                                                                                  "application/xml",
                                                                                  1400343L,
@@ -145,6 +146,7 @@ public class ReportGeneratorHelperTest {
 
         CatalogObjectMetadata catalogObjectMetadata2 = new CatalogObjectMetadata("bucket-name",
                                                                                  objectName2,
+                                                                                 "projectName",
                                                                                  "object",
                                                                                  "application/xml",
                                                                                  1400343L,

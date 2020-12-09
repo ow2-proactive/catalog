@@ -716,8 +716,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         String groovyContentType = "text/x-groovy";
 
         given().header("sessionID", "12345")
-               .header("kind", workflowKind)
-               .header("contentType", xmlContentType)
+               .queryParam("kind", workflowKind)
+               .queryParam("contentType", xmlContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -752,8 +752,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_CREATED);
 
         given().header("sessionID", "12345")
-               .header("kind", workflowKind)
-               .header("contentType", xmlContentType)
+               .queryParam("kind", workflowKind)
+               .queryParam("contentType", xmlContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -762,8 +762,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("results.size()", equalTo(1));
 
         given().header("sessionID", "12345")
-               .header("kind", workflowKind)
-               .header("contentType", groovyContentType)
+               .queryParam("kind", workflowKind)
+               .queryParam("contentType", groovyContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -772,7 +772,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("results.size()", equalTo(1));
 
         given().header("sessionID", "12345")
-               .header("kind", workflowKind)
+               .queryParam("kind", workflowKind)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -781,7 +781,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("results.size()", equalTo(2));
 
         given().header("sessionID", "12345")
-               .header("contentType", xmlContentType)
+               .queryParam("contentType", xmlContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -790,8 +790,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("results.size()", equalTo(2));
 
         given().header("sessionID", "12345")
-               .header("kind", pcaKind)
-               .header("contentType", xmlContentType)
+               .queryParam("kind", pcaKind)
+               .queryParam("contentType", xmlContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -840,8 +840,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_CREATED);
 
         given().header("sessionID", "12345")
-               .header("kind", workflowKind)
-               .header("contentType", xmlContentType)
+               .queryParam("kind", workflowKind)
+               .queryParam("contentType", xmlContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -850,8 +850,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("results.size()", equalTo(2));
 
         given().header("sessionID", "12345")
-               .header("kind", scriptTaskKind)
-               .header("contentType", xmlContentType)
+               .queryParam("kind", scriptTaskKind)
+               .queryParam("contentType", xmlContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
@@ -872,7 +872,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_CREATED);
 
         given().header("sessionID", "12345")
-               .header("contentType", groovyContentType)
+               .queryParam("contentType", groovyContentType)
                .when()
                .get(CATALOG_OBJECTS_REFERENCE)
                .then()
