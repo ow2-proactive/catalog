@@ -564,7 +564,7 @@ public class CatalogObjectService {
                                            catalogObjectRevision.getProjectName(),
                                            commitMessage,
                                            catalogObjectRevision.getUsername(),
-                                           keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
+                                           KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList()),
                                            catalogObjectRevision.getRawObject());
     }
 
@@ -596,7 +596,7 @@ public class CatalogObjectService {
 
     }
 
-    public CatalogObjectMetadata restore(String bucketName, String name, Long commitTime) {
+    public CatalogObjectMetadata restoreCatalogObject(String bucketName, String name, Long commitTime) {
         CatalogObjectRevisionEntity catalogObjectRevision = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(Collections.singletonList(bucketName),
                                                                                                                                   name,
                                                                                                                                   commitTime);
@@ -608,11 +608,11 @@ public class CatalogObjectService {
         String restoreCommitMessage = revisionCommitMessageBuilder.build(catalogObjectRevision.getCommitMessage(),
                                                                          commitTime);
 
-        List<Metadata> metadataList = keyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList());
+        List<Metadata> metadataList = KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevision.getKeyValueMetadataList());
 
         CatalogObjectRevisionEntity restoredRevision = buildCatalogObjectRevisionEntity(restoreCommitMessage,
                                                                                         catalogObjectRevision.getUsername(),
-                                                                                        getProjectNameIfExistsOrEmptyString(metadataList),
+                                                                                        catalogObjectRevision.getProjectName(),
                                                                                         catalogObjectRevision.getRawObject(),
                                                                                         catalogObjectRevision.getCatalogObject(),
                                                                                         metadataList);

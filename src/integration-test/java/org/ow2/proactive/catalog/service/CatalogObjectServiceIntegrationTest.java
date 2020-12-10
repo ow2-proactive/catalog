@@ -418,6 +418,45 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
+    public void testRestoreCatalogObject() throws IOException, InterruptedException {
+        String workflowName = "workflow";
+        String bucketName = bucket.getName();
+        String updatedProjectName = "updatedProjectName";
+
+        //projectName initialization
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.createCatalogObject(bucketName,
+                                                                                               workflowName,
+                                                                                               PROJECT_NAME,
+                                                                                               "workflow",
+                                                                                               "first commit message",
+                                                                                               "username",
+                                                                                               "application/xml",
+                                                                                               Collections.emptyList(),
+                                                                                               IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"),
+                                                                                               null);
+
+        Thread.sleep(1); // to be sure that a new revision time will be different from previous revision time
+
+        Long commitTimeRaw = Long.parseLong(catalogObjectMetadata.getCommitTimeRaw());
+
+        // Update projectName
+        catalogObjectMetadata = catalogObjectService.createCatalogObjectRevision(bucketName,
+                                                                                 workflowName,
+                                                                                 updatedProjectName,
+                                                                                 "second commit message",
+                                                                                 "username",
+                                                                                 Collections.emptyList(),
+                                                                                 workflowAsByteArrayUpdated);
+
+        assertThat(catalogObjectMetadata.getProjectName()).isEqualTo("updatedProjectName");
+
+        catalogObjectMetadata = catalogObjectService.restoreCatalogObject(bucketName, workflowName, commitTimeRaw);
+
+        assertThat(catalogObjectMetadata.getProjectName()).isEqualTo(PROJECT_NAME);
+
+    }
+
+    @Test
     public void testUpdateProjectName() throws IOException, InterruptedException {
         String workflowName = "workflow";
         String bucketName = bucket.getName();
