@@ -427,7 +427,7 @@ public class CatalogObjectServiceIntegrationTest {
         CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.createCatalogObject(bucketName,
                                                                                                workflowName,
                                                                                                PROJECT_NAME,
-                                                                                               "workflow",
+                                                                                               "workflowKind",
                                                                                                "first commit message",
                                                                                                "username",
                                                                                                "application/xml",
