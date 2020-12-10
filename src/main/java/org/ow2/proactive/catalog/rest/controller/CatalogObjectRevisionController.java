@@ -201,7 +201,7 @@ public class CatalogObjectRevisionController {
         restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
                                                                                sessionId,
                                                                                bucketName);
-        return catalogObjectService.restore(bucketName, name, commitTimeRaw);
+        return catalogObjectService.restoreCatalogObject(bucketName, name, commitTimeRaw);
     }
 
 }
