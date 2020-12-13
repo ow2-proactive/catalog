@@ -253,7 +253,7 @@ public class CatalogObjectService {
             throw new KindOrContentTypeIsNotValidException(contentType.get(), "Content-Type");
         }
 
-        projectName.ifPresent(catalogObjectRevisionEntity::setProjectName);
+        catalogObjectRevisionEntity.setProjectName(projectName.orElse(""));
         catalogObjectRevisionRepository.save(catalogObjectRevisionEntity);
         CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
         kind.ifPresent(catalogObjectEntity::setKind);

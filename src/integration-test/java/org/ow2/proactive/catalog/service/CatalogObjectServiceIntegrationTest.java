@@ -457,6 +457,38 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
+    public void testUpdateProjectNameToEmptyString() throws IOException {
+        String scriptName = "propagate_error";
+        String extension = ".groovy";
+        String bucketName = bucket.getName();
+        String emptyString = "";
+
+        //projectName initialization
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.createCatalogObject(bucketName,
+                                                                                               scriptName,
+                                                                                               PROJECT_NAME,
+                                                                                               "Script/pre",
+                                                                                               "first commit message",
+                                                                                               "username",
+                                                                                               "text/x-groovy",
+                                                                                               Collections.emptyList(),
+                                                                                               IntegrationTestUtil.getScriptAsByteArray(scriptName +
+                                                                                                                                        extension),
+                                                                                               extension);
+
+        assertThat(catalogObjectMetadata.getProjectName()).isEqualTo(PROJECT_NAME);
+
+        catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
+                                                                          scriptName,
+                                                                          Optional.empty(),
+                                                                          Optional.empty(),
+                                                                          Optional.of(emptyString));
+
+        assertThat(catalogObjectMetadata.getProjectName()).isEqualTo(emptyString);
+
+    }
+
+    @Test
     public void testUpdateProjectName() throws IOException, InterruptedException {
         String workflowName = "workflow";
         String bucketName = bucket.getName();
