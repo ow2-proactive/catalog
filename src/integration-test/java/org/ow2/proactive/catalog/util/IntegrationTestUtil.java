@@ -86,8 +86,17 @@ public class IntegrationTestUtil {
         return ByteStreams.toByteArray(new FileInputStream(getWorkflowFile(filename)));
     }
 
+    public static byte[] getScriptAsByteArray(String filename) throws IOException {
+        log.debug("The file path of loading file: " + getScriptFile(filename).getPath());
+        return ByteStreams.toByteArray(new FileInputStream(getScriptFile(filename)));
+    }
+
     public static File getWorkflowFile(String filename) {
         return new File(IntegrationTestUtil.class.getResource("/workflows/" + filename).getFile());
+    }
+
+    public static File getScriptFile(String filename) {
+        return new File(IntegrationTestUtil.class.getResource("/scripts/" + filename).getFile());
     }
 
     public static File getPCWRule(String filename) {
