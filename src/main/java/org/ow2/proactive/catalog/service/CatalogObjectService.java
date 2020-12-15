@@ -253,6 +253,12 @@ public class CatalogObjectService {
             throw new KindOrContentTypeIsNotValidException(contentType.get(), "Content-Type");
         }
 
+        //synchronize project name values
+        for (KeyValueLabelMetadataEntity metadata : catalogObjectRevisionEntity.getKeyValueMetadataList()) {
+            if (metadata.getKey().equals("project_name")) {
+                metadata.setValue(projectName.orElse(""));
+            }
+        }
         catalogObjectRevisionEntity.setProjectName(projectName.orElse(""));
         catalogObjectRevisionRepository.save(catalogObjectRevisionEntity);
         CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
@@ -376,7 +382,7 @@ public class CatalogObjectService {
             throw new NullPointerException("Cannot build catalog object!");
         }
 
-        //here the priority is given to the metadataList
+        //here the priority is given to the metadataList provided as a query param
         List<KeyValueLabelMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? keyValueLabelMetadataHelper.extractKeyValuesFromRaw(catalogObjectEntity.getKind(),
                                                                                                                                                   rawObject)
                                                                                             : keyValueMetadataEntities;
@@ -388,6 +394,17 @@ public class CatalogObjectService {
 
         List<KeyValueLabelMetadataEntity> genericInformationWithBucketDataList = keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(keyValues,
                                                                                                                                                             genericInfoBucketData);
+
+        String synchronizedProjectName = !projectName.isEmpty() ? projectName
+                                                                : getProjectNameIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(keyValues));
+
+        //synchronize project name values
+        for (KeyValueLabelMetadataEntity metadata : genericInformationWithBucketDataList) {
+            if (metadata.getKey().equals("project_name")) {
+                metadata.setValue(synchronizedProjectName);
+            }
+        }
+
         byte[] workflowWithReplacedGenericInfo = genericInformationAdder.addGenericInformationJobNameToRawObjectIfWorkflow(rawObject,
                                                                                                                            catalogObjectEntity.getKind(),
                                                                                                                            keyValueLabelMetadataHelper.toMap(keyValueLabelMetadataHelper.getOnlyGenericInformation(genericInformationWithBucketDataList)),
@@ -397,8 +414,7 @@ public class CatalogObjectService {
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)
                                                                                              .username(username)
-                                                                                             .projectName(!projectName.isEmpty() ? projectName
-                                                                                                                                 : getProjectNameIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(keyValues)))
+                                                                                             .projectName(synchronizedProjectName)
                                                                                              .commitTime(LocalDateTime.now()
                                                                                                                       .atZone(ZoneId.systemDefault())
                                                                                                                       .toInstant()

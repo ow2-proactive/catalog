@@ -89,8 +89,6 @@ public class CatalogObjectServiceIntegrationTest {
 
     private long firstCommitTime;
 
-    private long secondCommitTime;
-
     private static final String PROJECT_NAME = "projectName";
 
     @Before
@@ -121,7 +119,6 @@ public class CatalogObjectServiceIntegrationTest {
                                                                          "username",
                                                                          keyValues,
                                                                          workflowAsByteArrayUpdated);
-        secondCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "object-name-2",
@@ -457,7 +454,7 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
-    public void testUpdateProjectNameToEmptyString() throws IOException {
+    public void testEditProjectNameToEmptyString() throws IOException {
         String scriptName = "propagate_error";
         String extension = ".groovy";
         String bucketName = bucket.getName();
@@ -485,6 +482,52 @@ public class CatalogObjectServiceIntegrationTest {
                                                                           Optional.of(emptyString));
 
         assertThat(catalogObjectMetadata.getProjectName()).isEqualTo(emptyString);
+
+    }
+
+    @Test
+    public void testProjectNameSynchronization() throws IOException {
+        String workflowName = "workflow";
+        String bucketName = bucket.getName();
+        String emptyString = "";
+
+        //projectName initialization
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.createCatalogObject(bucketName,
+                                                                                               workflowName,
+                                                                                               PROJECT_NAME,
+                                                                                               "workflow",
+                                                                                               "first commit message",
+                                                                                               "username",
+                                                                                               "application/xml",
+                                                                                               Collections.emptyList(),
+                                                                                               IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"),
+                                                                                               null);
+
+        assertThat(catalogObjectMetadata.getProjectName()).isEqualTo(PROJECT_NAME);
+
+        List<Metadata> metadataList = catalogObjectMetadata.getMetadataList();
+
+        assertThat(metadataList.stream()
+                               .filter(metadata -> metadata.getKey().equals("project_name"))
+                               .findAny()
+                               .get()
+                               .getValue()).isEqualTo(PROJECT_NAME);
+
+        catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
+                                                                          workflowName,
+                                                                          Optional.empty(),
+                                                                          Optional.empty(),
+                                                                          Optional.of(emptyString));
+
+        metadataList = catalogObjectMetadata.getMetadataList();
+
+        assertThat(catalogObjectMetadata.getProjectName()).isEqualTo(emptyString);
+
+        assertThat(metadataList.stream()
+                               .filter(metadata -> metadata.getKey().equals("project_name"))
+                               .findAny()
+                               .get()
+                               .getValue()).isEqualTo(emptyString);
 
     }
 
