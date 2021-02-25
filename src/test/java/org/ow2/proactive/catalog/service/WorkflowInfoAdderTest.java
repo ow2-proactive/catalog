@@ -66,6 +66,16 @@ public class WorkflowInfoAdderTest {
     }
 
     @Test
+    public void testThatWorkflowParserKindTriggersXmlManipulation2() {
+        genericInformationAdder.addProjectNameToRawObjectIfWorkflow(new byte[] {},
+                                                                    SupportedParserKinds.WORKFLOW.toString() +
+                                                                                   "specific-workflow-kind",
+                                                                    "");
+
+        verify(workflowXmlManipulator).replaceOrAddProjectNameOnJobLevel(Mockito.any(), Mockito.any());
+    }
+
+    @Test
     public void testThatOtherKindNotTriggersXmlManipulation() {
         genericInformationAdder.addGenericInformationJobNameToRawObjectIfWorkflow(new byte[] {},
                                                                                   SupportedParserKinds.PCW_RULE.toString(),
@@ -75,6 +85,15 @@ public class WorkflowInfoAdderTest {
         verify(workflowXmlManipulator, times(0)).replaceGenericInformationAndNameOnJobLevel(Mockito.any(),
                                                                                             Mockito.any(),
                                                                                             Mockito.any());
+    }
+
+    @Test
+    public void testThatOtherKindNotTriggersXmlManipulation2() {
+        genericInformationAdder.addProjectNameToRawObjectIfWorkflow(new byte[] {},
+                                                                    SupportedParserKinds.PCW_RULE.toString(),
+                                                                    "");
+
+        verify(workflowXmlManipulator, times(0)).replaceOrAddProjectNameOnJobLevel(Mockito.any(), Mockito.any());
     }
 
 }

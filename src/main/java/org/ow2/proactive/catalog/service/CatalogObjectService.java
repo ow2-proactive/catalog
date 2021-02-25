@@ -108,7 +108,7 @@ public class CatalogObjectService {
     private KeyValueLabelMetadataHelper keyValueLabelMetadataHelper;
 
     @Autowired
-    private WorkflowInfoAdder genericInformationAdder;
+    private WorkflowInfoAdder workflowInfoAdder;
 
     @Autowired
     private RevisionCommitMessageBuilder revisionCommitMessageBuilder;
@@ -130,6 +130,8 @@ public class CatalogObjectService {
 
     @VisibleForTesting
     static final String KIND_NOT_FOUND = "N/A";
+
+    static final String PROJECT_NAME = "project_name";
 
     private AutoDetectParser mediaTypeFileParser = new AutoDetectParser();
 
@@ -255,11 +257,16 @@ public class CatalogObjectService {
 
         //synchronize project name values
         for (KeyValueLabelMetadataEntity metadata : catalogObjectRevisionEntity.getKeyValueMetadataList()) {
-            if (metadata.getKey().equals("project_name")) {
+            if (metadata.getKey().equals(PROJECT_NAME)) {
                 metadata.setValue(projectName.orElse(""));
             }
         }
+
+        byte[] workflowWithSynchronizedProjectName = workflowInfoAdder.addProjectNameToRawObjectIfWorkflow(catalogObjectRevisionEntity.getRawObject(),
+                                                                                                           kind.orElse(""),
+                                                                                                           projectName.orElse(""));
         catalogObjectRevisionEntity.setProjectName(projectName.orElse(""));
+        catalogObjectRevisionEntity.setRawObject(workflowWithSynchronizedProjectName);
         catalogObjectRevisionRepository.save(catalogObjectRevisionEntity);
         CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
         kind.ifPresent(catalogObjectEntity::setKind);
@@ -400,16 +407,16 @@ public class CatalogObjectService {
 
         //synchronize project name values
         for (KeyValueLabelMetadataEntity metadata : genericInformationWithBucketDataList) {
-            if (metadata.getKey().equals("project_name")) {
+            if (metadata.getKey().equals(PROJECT_NAME)) {
                 metadata.setValue(synchronizedProjectName);
             }
         }
 
-        byte[] workflowWithReplacedGenericInfo = genericInformationAdder.addGenericInformationJobNameToRawObjectIfWorkflow(rawObject,
-                                                                                                                           catalogObjectEntity.getKind(),
-                                                                                                                           keyValueLabelMetadataHelper.toMap(keyValueLabelMetadataHelper.getOnlyGenericInformation(genericInformationWithBucketDataList)),
-                                                                                                                           catalogObjectEntity.getId()
-                                                                                                                                              .getName());
+        byte[] workflowWithReplacedGenericInfoAndProjectName = workflowInfoAdder.addGenericInformationJobNameToRawObjectIfWorkflow(rawObject,
+                                                                                                                                   catalogObjectEntity.getKind(),
+                                                                                                                                   keyValueLabelMetadataHelper.toMap(keyValueLabelMetadataHelper.getOnlyGenericInformation(genericInformationWithBucketDataList)),
+                                                                                                                                   catalogObjectEntity.getId()
+                                                                                                                                                      .getName());
 
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)
@@ -420,7 +427,7 @@ public class CatalogObjectService {
                                                                                                                       .toInstant()
                                                                                                                       .toEpochMilli())
                                                                                              .keyValueMetadataList(genericInformationWithBucketDataList)
-                                                                                             .rawObject(workflowWithReplacedGenericInfo)
+                                                                                             .rawObject(workflowWithReplacedGenericInfoAndProjectName)
                                                                                              .catalogObject(catalogObjectEntity)
                                                                                              .build();
 
@@ -568,7 +575,7 @@ public class CatalogObjectService {
     protected String getProjectNameIfExistsOrEmptyString(List<Metadata> metadataListParsed) {
         Optional<Metadata> projectNameIfExists = metadataListParsed.stream()
                                                                    .filter(property -> property.getKey()
-                                                                                               .equals("project_name"))
+                                                                                               .equals(PROJECT_NAME))
                                                                    .findAny();
         return projectNameIfExists.map(Metadata::getValue).orElse("");
     }

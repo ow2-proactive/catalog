@@ -45,15 +45,27 @@ public class WorkflowInfoAdder {
 
     public byte[] addGenericInformationJobNameToRawObjectIfWorkflow(final byte[] rawObject,
             final String catalogObjectEntityKind, Map<String, String> genericInformationMap, final String jobName) {
-        byte[] workflowWithReplacedGenericInfo = rawObject;
+        byte[] workflowWithReplacedGenericInfoJobName = rawObject;
 
         if (catalogObjectEntityKind != null &&
             catalogObjectEntityKind.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase())) {
-            workflowWithReplacedGenericInfo = workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(rawObject,
-                                                                                                                genericInformationMap,
-                                                                                                                jobName);
+            workflowWithReplacedGenericInfoJobName = workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(rawObject,
+                                                                                                                       genericInformationMap,
+                                                                                                                       jobName);
         }
-        return workflowWithReplacedGenericInfo;
+        return workflowWithReplacedGenericInfoJobName;
+    }
+
+    public byte[] addProjectNameToRawObjectIfWorkflow(final byte[] rawObject, final String catalogObjectEntityKind,
+            final String projectName) {
+        byte[] workflowWithReplacedProjectName = rawObject;
+
+        if (catalogObjectEntityKind != null &&
+            catalogObjectEntityKind.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase())) {
+            workflowWithReplacedProjectName = workflowXmlManipulator.replaceOrAddProjectNameOnJobLevel(rawObject,
+                                                                                                       projectName);
+        }
+        return workflowWithReplacedProjectName;
     }
 
 }
