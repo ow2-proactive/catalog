@@ -101,7 +101,7 @@ public class CatalogObjectServiceTest {
     private KeyValueLabelMetadataHelper keyValueLabelMetadataHelper;
 
     @Mock
-    private WorkflowInfoAdder genericInformationAdder;
+    private WorkflowInfoAdder workflowInfoAdder;
 
     @Mock
     private KindAndContentTypeValidator kindAndContentTypeValidator;
@@ -169,10 +169,11 @@ public class CatalogObjectServiceTest {
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity,
                                                                                          System.currentTimeMillis());
         when(catalogObjectRevisionRepository.save(any(CatalogObjectRevisionEntity.class))).thenReturn(catalogObjectEntity);
-        when(genericInformationAdder.addGenericInformationJobNameToRawObjectIfWorkflow(any(),
-                                                                                       any(),
-                                                                                       any(),
-                                                                                       any())).thenReturn(new byte[] {});
+        when(workflowInfoAdder.addGenericInformationJobNameToRawObjectIfWorkflow(any(),
+                                                                                 any(),
+                                                                                 any(),
+                                                                                 any())).thenReturn(new byte[] {});
+        when(workflowInfoAdder.addProjectNameToRawObjectIfWorkflow(any(), any(), any())).thenReturn(new byte[] {});
         List<Metadata> keyValues = ImmutableList.of(new Metadata("key", "value", null));
 
         CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject("bucket",

@@ -219,6 +219,26 @@ public class WorkflowXmlManipulatorTest {
     }
 
     @Test
+    public void testThatWorkflowHasProjectNameReplaced() {
+        String modifiedWorkflow1 = new String(workflowXmlManipulator.replaceOrAddOrRemoveProjectNameOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                               "newProjectName"));
+        assertThat(modifiedWorkflow1).contains("projectName=\"newProjectName\"");
+
+        String modifiedWorkflow2 = new String(workflowXmlManipulator.replaceOrAddOrRemoveProjectNameOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                               ""));
+        assertThat(modifiedWorkflow2).doesNotContain("projectName");
+
+        String modifiedWorkflow3 = new String(workflowXmlManipulator.replaceOrAddOrRemoveProjectNameOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                               "newProjectName2"));
+        assertThat(modifiedWorkflow3).contains("projectName=\"newProjectName2\"");
+
+        String modifiedWorkflow4 = new String(workflowXmlManipulator.replaceOrAddOrRemoveProjectNameOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                               "   "));
+        assertThat(modifiedWorkflow4).doesNotContain("projectName");
+
+    }
+
+    @Test
     public void testThatWorkflowHasGenericInfoReplacedIfAlreadyThere() {
         String modifiedWorkflow = new String(workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(simpleWorkflowWithGenericInfo,
                                                                                                                this.getTwoSimpleEntries(),
