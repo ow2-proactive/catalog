@@ -62,8 +62,8 @@ public class WorkflowInfoAdder {
 
         if (catalogObjectEntityKind != null &&
             catalogObjectEntityKind.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase())) {
-            workflowWithReplacedProjectName = workflowXmlManipulator.replaceOrAddProjectNameOnJobLevel(rawObject,
-                                                                                                       projectName);
+            workflowWithReplacedProjectName = workflowXmlManipulator.replaceOrAddOrRemoveProjectNameOnJobLevel(rawObject,
+                                                                                                               projectName);
         }
         return workflowWithReplacedProjectName;
     }

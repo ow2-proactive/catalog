@@ -413,10 +413,10 @@ public class CatalogObjectService {
         }
 
         byte[] workflowWithReplacedGenericInfo = workflowInfoAdder.addGenericInformationJobNameToRawObjectIfWorkflow(rawObject,
-                                                                                                                                   catalogObjectEntity.getKind(),
-                                                                                                                                   keyValueLabelMetadataHelper.toMap(keyValueLabelMetadataHelper.getOnlyGenericInformation(genericInformationWithBucketDataList)),
-                                                                                                                                   catalogObjectEntity.getId()
-                                                                                                                                                      .getName());
+                                                                                                                     catalogObjectEntity.getKind(),
+                                                                                                                     keyValueLabelMetadataHelper.toMap(keyValueLabelMetadataHelper.getOnlyGenericInformation(genericInformationWithBucketDataList)),
+                                                                                                                     catalogObjectEntity.getId()
+                                                                                                                                        .getName());
 
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)

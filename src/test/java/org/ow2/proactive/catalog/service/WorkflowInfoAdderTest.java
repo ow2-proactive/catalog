@@ -72,7 +72,7 @@ public class WorkflowInfoAdderTest {
                                                                                    "specific-workflow-kind",
                                                                     "");
 
-        verify(workflowXmlManipulator).replaceOrAddProjectNameOnJobLevel(Mockito.any(), Mockito.any());
+        verify(workflowXmlManipulator).replaceOrAddOrRemoveProjectNameOnJobLevel(Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -93,7 +93,8 @@ public class WorkflowInfoAdderTest {
                                                                     SupportedParserKinds.PCW_RULE.toString(),
                                                                     "");
 
-        verify(workflowXmlManipulator, times(0)).replaceOrAddProjectNameOnJobLevel(Mockito.any(), Mockito.any());
+        verify(workflowXmlManipulator, times(0)).replaceOrAddOrRemoveProjectNameOnJobLevel(Mockito.any(),
+                                                                                           Mockito.any());
     }
 
 }

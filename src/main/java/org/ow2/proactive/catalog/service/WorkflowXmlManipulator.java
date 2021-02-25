@@ -82,7 +82,7 @@ public class WorkflowXmlManipulator {
         }
     }
 
-    public byte[] replaceOrAddProjectNameOnJobLevel(final byte[] xmlWorkflow, String projectName) {
+    public byte[] replaceOrAddOrRemoveProjectNameOnJobLevel(final byte[] xmlWorkflow, String projectName) {
         if (xmlWorkflow == null) {
             return new byte[] {};
         }
@@ -93,7 +93,11 @@ public class WorkflowXmlManipulator {
                                         .parse(new InputSource(new StringReader(new String(xmlWorkflow))));
 
             Element rootElement = doc.getDocumentElement();
-            replaceOrAddProjectName(rootElement, projectName);
+            if (projectName.isEmpty()) {
+                removeProjectName(rootElement);
+            } else {
+                replaceOrAddProjectName(rootElement, projectName);
+            }
             Transformer xformer = TransformerFactory.newInstance().newTransformer();
             xformer.setOutputProperty(OutputKeys.INDENT, "yes");
             ByteArrayOutputStream answer = new ByteArrayOutputStream();
@@ -137,8 +141,17 @@ public class WorkflowXmlManipulator {
         return replaceAttributeValue(rootElement, "projectName", projectName);
     }
 
+    private Element removeProjectName(Element rootElement) {
+        return removeAttributeValue(rootElement, "projectName");
+    }
+
     private Element replaceAttributeValue(Element element, String attrName, String attrValue) {
         element.setAttribute(attrName, attrValue);
+        return element;
+    }
+
+    private Element removeAttributeValue(Element element, String attrName) {
+        element.removeAttribute(attrName);
         return element;
     }
 
