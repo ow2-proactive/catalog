@@ -93,7 +93,7 @@ public class WorkflowXmlManipulator {
                                         .parse(new InputSource(new StringReader(new String(xmlWorkflow))));
 
             Element rootElement = doc.getDocumentElement();
-            if (projectName.isEmpty()) {
+            if (projectName.trim().isEmpty()) {
                 removeProjectName(rootElement);
             } else {
                 replaceOrAddProjectName(rootElement, projectName);
