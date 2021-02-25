@@ -412,7 +412,7 @@ public class CatalogObjectService {
             }
         }
 
-        byte[] workflowWithReplacedGenericInfoAndProjectName = workflowInfoAdder.addGenericInformationJobNameToRawObjectIfWorkflow(rawObject,
+        byte[] workflowWithReplacedGenericInfo = workflowInfoAdder.addGenericInformationJobNameToRawObjectIfWorkflow(rawObject,
                                                                                                                                    catalogObjectEntity.getKind(),
                                                                                                                                    keyValueLabelMetadataHelper.toMap(keyValueLabelMetadataHelper.getOnlyGenericInformation(genericInformationWithBucketDataList)),
                                                                                                                                    catalogObjectEntity.getId()
@@ -427,7 +427,7 @@ public class CatalogObjectService {
                                                                                                                       .toInstant()
                                                                                                                       .toEpochMilli())
                                                                                              .keyValueMetadataList(genericInformationWithBucketDataList)
-                                                                                             .rawObject(workflowWithReplacedGenericInfoAndProjectName)
+                                                                                             .rawObject(workflowWithReplacedGenericInfo)
                                                                                              .catalogObject(catalogObjectEntity)
                                                                                              .build();
 
