@@ -55,7 +55,7 @@ public class WorkflowXmlManipulator {
 
     public byte[] replaceGenericInformationAndNameOnJobLevel(final byte[] xmlWorkflow,
             Map<String, String> genericInfoMap, String jobName) {
-        if (xmlWorkflow == null) {
+        if (xmlWorkflow == null || xmlWorkflow.length == 0) {
             return new byte[] {};
         }
         if (genericInfoMap == null) {
@@ -83,7 +83,7 @@ public class WorkflowXmlManipulator {
     }
 
     public byte[] replaceOrAddOrRemoveProjectNameOnJobLevel(final byte[] xmlWorkflow, String projectName) {
-        if (xmlWorkflow == null) {
+        if (xmlWorkflow == null || xmlWorkflow.length == 0) {
             return new byte[] {};
         }
         Document doc = null;
