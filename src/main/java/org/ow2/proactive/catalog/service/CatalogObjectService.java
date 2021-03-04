@@ -389,9 +389,14 @@ public class CatalogObjectService {
             throw new NullPointerException("Cannot build catalog object!");
         }
 
+        List<KeyValueLabelMetadataEntity> catalogObjectMetadataEntities = new ArrayList<>();
+        if (rawObject != null) {
+            catalogObjectMetadataEntities = keyValueLabelMetadataHelper.extractKeyValuesFromRaw(catalogObjectEntity.getKind(),
+                                                                                                rawObject);
+        }
+
         //here the priority is given to the metadataList provided as a query param
-        List<KeyValueLabelMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? keyValueLabelMetadataHelper.extractKeyValuesFromRaw(catalogObjectEntity.getKind(),
-                                                                                                                                                  rawObject)
+        List<KeyValueLabelMetadataEntity> keyValues = CollectionUtils.isEmpty(metadataList) ? catalogObjectMetadataEntities
                                                                                             : keyValueMetadataEntities;
         GenericInfoBucketData genericInfoBucketData = createGenericInfoBucketData(catalogObjectEntity.getBucket());
 
@@ -402,9 +407,18 @@ public class CatalogObjectService {
         List<KeyValueLabelMetadataEntity> genericInformationWithBucketDataList = keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(keyValues,
                                                                                                                                                             genericInfoBucketData);
 
-        String synchronizedProjectName = !projectName.isEmpty() ? projectName
-                                                                : getProjectNameIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(keyValues));
+        String metadataProjectName = getProjectNameIfExistsOrEmptyString(metadataList);
+        String workflowXmlProjectName = getProjectNameIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectMetadataEntities));
 
+        //the project name is synchronized in the following order projectName > metadataProjectName > workflowXmlProjectName
+        String synchronizedProjectName = "";
+        if (!projectName.isEmpty()) {
+            synchronizedProjectName = projectName;
+        } else if (!metadataProjectName.isEmpty()) {
+            synchronizedProjectName = metadataProjectName;
+        } else {
+            synchronizedProjectName = workflowXmlProjectName;
+        }
         //synchronize project name values
         for (KeyValueLabelMetadataEntity metadata : genericInformationWithBucketDataList) {
             if (metadata.getKey().equals(PROJECT_NAME)) {
@@ -417,6 +431,9 @@ public class CatalogObjectService {
                                                                                                                      keyValueLabelMetadataHelper.toMap(keyValueLabelMetadataHelper.getOnlyGenericInformation(genericInformationWithBucketDataList)),
                                                                                                                      catalogObjectEntity.getId()
                                                                                                                                         .getName());
+        byte[] workflowWithSynchronizedProjectName = workflowInfoAdder.addProjectNameToRawObjectIfWorkflow(workflowWithReplacedGenericInfo,
+                                                                                                           catalogObjectEntity.getKind(),
+                                                                                                           synchronizedProjectName);
 
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .commitMessage(commitMessage)
@@ -427,7 +444,7 @@ public class CatalogObjectService {
                                                                                                                       .toInstant()
                                                                                                                       .toEpochMilli())
                                                                                              .keyValueMetadataList(genericInformationWithBucketDataList)
-                                                                                             .rawObject(workflowWithReplacedGenericInfo)
+                                                                                             .rawObject(workflowWithSynchronizedProjectName)
                                                                                              .catalogObject(catalogObjectEntity)
                                                                                              .build();
 
