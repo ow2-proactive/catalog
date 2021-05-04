@@ -45,6 +45,8 @@ public class RawObjectResponseCreatorTest {
 
     private RawObjectResponseCreator rawObjectResponseCreator = new RawObjectResponseCreator();
 
+    private static final String PROJECT_NAME = "projectName";
+
     @Test
     public void testCreateRawObjectResponseGeneralKindRightContentType() {
         String objectName = "object name";
@@ -52,6 +54,7 @@ public class RawObjectResponseCreatorTest {
         String contentDispositionFileName = "attachment; filename=\"" + objectName + "." + fileExtension + "\"";
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
+                                                          PROJECT_NAME,
                                                           "object",
                                                           "application/xml",
                                                           1400343L,
@@ -78,6 +81,7 @@ public class RawObjectResponseCreatorTest {
         String contentDispositionFileName = "attachment; filename=\"" + objectName + "." + fileExtension + "\"";
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
+                                                          PROJECT_NAME,
                                                           "workflow",
                                                           "application/xml",
                                                           1400343L,
@@ -104,6 +108,7 @@ public class RawObjectResponseCreatorTest {
                                             RawObjectResponseCreator.WORKFLOW_EXTENSION + "\"";
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
+                                                          PROJECT_NAME,
                                                           "workflow/specific-workflow-kind",
                                                           "application/xml",
                                                           1400343L,
@@ -128,6 +133,7 @@ public class RawObjectResponseCreatorTest {
                                             RawObjectResponseCreator.WORKFLOW_EXTENSION + "\"";
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
+                                                          PROJECT_NAME,
                                                           "workflow/specific-workflow-kind",
                                                           "application/xml",
                                                           1400343L,
@@ -152,6 +158,7 @@ public class RawObjectResponseCreatorTest {
                                             RawObjectResponseCreator.WORKFLOW_EXTENSION + "\"";
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
+                                                          PROJECT_NAME,
                                                           "workflow/specific-workflow-kind",
                                                           "application/xml",
                                                           1400343L,
@@ -173,6 +180,7 @@ public class RawObjectResponseCreatorTest {
     public void testCreateRawObjectResponseWrongContentType() {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           "name",
+                                                          PROJECT_NAME,
                                                           "object",
                                                           "testContentType",
                                                           1400343L,

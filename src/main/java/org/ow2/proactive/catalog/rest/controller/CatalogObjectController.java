@@ -97,6 +97,8 @@ public class CatalogObjectController {
 
     private static final String ZIP_CONTENT_TYPE = "application/zip";
 
+    private static final long MAXVALUE = Integer.MAX_VALUE;
+
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
@@ -109,6 +111,7 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName,
             @ApiParam(value = "Name of the object or empty when a ZIP archive is uploaded (All objects inside the archive are stored inside the catalog).") @RequestParam(required = false) Optional<String> name,
+            @ApiParam(value = "Project of the object") @RequestParam(value = "projectName", required = false, defaultValue = "") Optional<String> projectName,
             @ApiParam(value = "Kind of the new object", required = true) @RequestParam String kind,
             @ApiParam(value = "Commit message", required = true) @RequestParam String commitMessage,
             @ApiParam(value = "The Content-Type of CatalogRawObject - MIME type", required = true) @RequestParam String objectContentType,
@@ -120,6 +123,7 @@ public class CatalogObjectController {
         if (name.isPresent()) {
             CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketName,
                                                                                            name.get(),
+                                                                                           projectName.orElse(""),
                                                                                            kind,
                                                                                            commitMessage,
                                                                                            restApiAccessResponse.getAuthenticatedUser()
@@ -134,6 +138,7 @@ public class CatalogObjectController {
             return new CatalogObjectMetadataList(catalogObject);
         } else {
             List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketName,
+                                                                                                   projectName.orElse(""),
                                                                                                    kind,
                                                                                                    commitMessage,
                                                                                                    restApiAccessResponse.getAuthenticatedUser()
@@ -170,15 +175,15 @@ public class CatalogObjectController {
     @ResponseStatus(HttpStatus.OK)
     public List<CatalogObjectNameReference> listCatalogObjectNameReference(
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "Filter according to kind") @RequestHeader(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "Filter according to Content-Type") @RequestHeader(value = "contentType", required = false) Optional<String> contentType) {
+            @ApiParam(value = "Filter according to kind", required = false) @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @ApiParam(value = "Filter according to Content-Type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType) {
         return catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(sessionIdRequired,
                                                                                                  sessionId,
                                                                                                  kind,
                                                                                                  contentType);
     }
 
-    @ApiOperation(value = "Update a catalog object metadata, like kind and Content-Type")
+    @ApiOperation(value = "Update a catalog object metadata, like kind, Content-Type and project name")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"),
@@ -189,12 +194,13 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String name,
             @ApiParam(value = "The new kind of an object", required = false) @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "The new Content-Type of an object - MIME type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType)
+            @ApiParam(value = "The new Content-Type of an object - MIME type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType,
+            @ApiParam(value = "The new project name of an object", required = false) @RequestParam(value = "projectName", required = false) Optional<String> projectName)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
         restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
                                                                                sessionId,
                                                                                bucketName);
-        return catalogObjectService.updateObjectMetadata(bucketName, name, kind, contentType);
+        return catalogObjectService.updateObjectMetadata(bucketName, name, kind, contentType, projectName);
     }
 
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
@@ -268,6 +274,9 @@ public class CatalogObjectController {
             @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
             @ApiParam(value = "Filter according to Object Name.") @RequestParam(value = "objectName", required = false) Optional<String> objectNameFilter,
             @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
+            @ApiParam(value = "Page number", required = false) @RequestParam(defaultValue = "0", value = "pageNo") int pageNo,
+            @ApiParam(value = "Page size", required = false) @RequestParam(defaultValue = MAXVALUE +
+                                                                                          "", value = "pageSize") int pageSize,
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
@@ -306,8 +315,9 @@ public class CatalogObjectController {
             List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Arrays.asList(bucketName),
                                                                                                kind,
                                                                                                contentType,
-                                                                                               objectNameFilter);
-
+                                                                                               objectNameFilter,
+                                                                                               pageNo,
+                                                                                               pageSize);
             for (CatalogObjectMetadata catalogObject : metadataList) {
                 catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
                 catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));

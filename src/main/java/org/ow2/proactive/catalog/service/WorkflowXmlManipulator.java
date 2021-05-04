@@ -55,7 +55,7 @@ public class WorkflowXmlManipulator {
 
     public byte[] replaceGenericInformationAndNameOnJobLevel(final byte[] xmlWorkflow,
             Map<String, String> genericInfoMap, String jobName) {
-        if (xmlWorkflow == null) {
+        if (xmlWorkflow == null || xmlWorkflow.length == 0) {
             return new byte[] {};
         }
         if (genericInfoMap == null) {
@@ -72,6 +72,32 @@ public class WorkflowXmlManipulator {
             replaceJobName(rootElement, jobName);
             replaceOrAddGenericInfoElement(genericInfoMap, doc, rootElement);
 
+            Transformer xformer = TransformerFactory.newInstance().newTransformer();
+            xformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            ByteArrayOutputStream answer = new ByteArrayOutputStream();
+            xformer.transform(new DOMSource(doc), new StreamResult(answer));
+            return answer.toByteArray();
+        } catch (Exception e) {
+            throw new ParsingObjectException(e);
+        }
+    }
+
+    public byte[] replaceOrAddOrRemoveProjectNameOnJobLevel(final byte[] xmlWorkflow, String projectName) {
+        if (xmlWorkflow == null || xmlWorkflow.length == 0) {
+            return new byte[] {};
+        }
+        Document doc = null;
+        try {
+            doc = DocumentBuilderFactory.newInstance()
+                                        .newDocumentBuilder()
+                                        .parse(new InputSource(new StringReader(new String(xmlWorkflow))));
+
+            Element rootElement = doc.getDocumentElement();
+            if (projectName.trim().isEmpty()) {
+                removeProjectName(rootElement);
+            } else {
+                replaceOrAddProjectName(rootElement, projectName);
+            }
             Transformer xformer = TransformerFactory.newInstance().newTransformer();
             xformer.setOutputProperty(OutputKeys.INDENT, "yes");
             ByteArrayOutputStream answer = new ByteArrayOutputStream();
@@ -111,8 +137,21 @@ public class WorkflowXmlManipulator {
         return replaceAttributeValue(element, "name", jobName);
     }
 
+    private Element replaceOrAddProjectName(Element rootElement, String projectName) {
+        return replaceAttributeValue(rootElement, "projectName", projectName);
+    }
+
+    private Element removeProjectName(Element rootElement) {
+        return removeAttributeValue(rootElement, "projectName");
+    }
+
     private Element replaceAttributeValue(Element element, String attrName, String attrValue) {
         element.setAttribute(attrName, attrValue);
+        return element;
+    }
+
+    private Element removeAttributeValue(Element element, String attrName) {
+        element.removeAttribute(attrName);
         return element;
     }
 

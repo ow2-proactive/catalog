@@ -131,6 +131,7 @@ public class CatalogObjectReportPDFGeneratorTest {
 
         catalogObjectMetadataSet = Sets.newSet(new CatalogObjectMetadata("bucketName",
                                                                          "objectName",
+                                                                         "projectName",
                                                                          kind.get(),
                                                                          "projectName",
                                                                          1L,

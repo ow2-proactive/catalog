@@ -30,21 +30,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
@@ -55,6 +41,7 @@ import org.hibernate.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Setter;
 
 
 /**
@@ -76,6 +63,9 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
                                                                                                                                           @Parameter(name = "increment_size", value = "1") })
     @Column(name = "ID")
     protected Long id;
+
+    @Column(name = "PROJECT_NAME")
+    private String projectName;
 
     @Column(name = "COMMIT_MESSAGE")
     private String commitMessage;
@@ -143,6 +133,7 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
     @Override
     public String toString() {
         return "CatalogObjectRevisionRepository{" + "commitMessage='" + commitMessage + '\'' + ", username='" +
-               username + '\'' + ", commitTime=" + commitTime + ", metadataList=" + keyValueMetadataList + '}';
+               username + '\'' + ", commitTime='" + commitTime + '\'' + ", projectName='" + projectName + '\'' +
+               ", metadataList=" + keyValueMetadataList + '}';
     }
 }

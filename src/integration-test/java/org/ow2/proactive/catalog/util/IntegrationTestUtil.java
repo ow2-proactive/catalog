@@ -86,8 +86,17 @@ public class IntegrationTestUtil {
         return ByteStreams.toByteArray(new FileInputStream(getWorkflowFile(filename)));
     }
 
+    public static byte[] getScriptAsByteArray(String filename) throws IOException {
+        log.debug("The file path of loading file: " + getScriptFile(filename).getPath());
+        return ByteStreams.toByteArray(new FileInputStream(getScriptFile(filename)));
+    }
+
     public static File getWorkflowFile(String filename) {
         return new File(IntegrationTestUtil.class.getResource("/workflows/" + filename).getFile());
+    }
+
+    public static File getScriptFile(String filename) {
+        return new File(IntegrationTestUtil.class.getResource("/scripts/" + filename).getFile());
     }
 
     public static File getPCWRule(String filename) {
@@ -115,20 +124,21 @@ public class IntegrationTestUtil {
     }
 
     /**
-     *
-     * @param bucketId
-     * @param kind
+     *  @param bucketId
      * @param name
-     * @param commitMessage
+     * @param projectName
+     * @param kind
      * @param objectContentType
+     * @param commitMessage
      * @param file
      */
-    public static void postObjectToBucket(String bucketId, String kind, String name, String commitMessage,
-            String objectContentType, File file) {
+    public static void postObjectToBucket(String bucketId, String name, String projectName, String kind,
+            String objectContentType, String commitMessage, File file) {
         given().header("sessionID", "12345")
                .pathParam("bucketName", bucketId)
                .queryParam("kind", kind)
                .queryParam("name", name)
+               .queryParam("projectName", projectName)
                .queryParam("commitMessage", commitMessage)
                .queryParam("objectContentType", objectContentType)
                .multiPart(file)
@@ -161,10 +171,11 @@ public class IntegrationTestUtil {
      */
     public static void postDefaultWorkflowToBucket(String bucketId) {
         postObjectToBucket(bucketId,
-                           "workflow",
                            "my workflow",
-                           "first commit",
+                           "myobjectprojectname",
+                           "workflow",
                            "application/xml",
+                           "first commit",
                            IntegrationTestUtil.getWorkflowFile("workflow.xml"));
     }
 }

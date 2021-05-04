@@ -107,7 +107,9 @@ public class BucketService {
 
     //create a new revision for objects when the bucket owner is updated
     protected void createRevisionForObjects(String bucketName, String commitMessage) {
-        List<CatalogObjectRevisionEntity> objectsList = catalogObjectService.listCatalogObjectsEntities(Arrays.asList(bucketName));
+        List<CatalogObjectRevisionEntity> objectsList = catalogObjectService.listCatalogObjectsEntities(Arrays.asList(bucketName),
+                                                                                                        0,
+                                                                                                        Integer.MAX_VALUE);
 
         objectsList.forEach(obj -> catalogObjectService.createCatalogObjectRevision(obj, commitMessage));
     }

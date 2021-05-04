@@ -88,6 +88,8 @@ public class CatalogObjectControllerTest {
     @Mock
     private RestApiAccessService restApiAccessService;
 
+    private static final String PROJECT_NAME = "projectName";
+
     @Test
     public void testGetCatalogObjectsAsArchive() throws IOException, NotAuthenticatedException, AccessDeniedException {
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -104,6 +106,8 @@ public class CatalogObjectControllerTest {
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.of(nameList),
+                                     0,
+                                     Integer.MAX_VALUE,
                                      response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
@@ -132,6 +136,8 @@ public class CatalogObjectControllerTest {
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.of(nameList),
+                                     0,
+                                     Integer.MAX_VALUE,
                                      response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
         verify(response, never()).setStatus(HttpServletResponse.SC_OK);
@@ -150,17 +156,22 @@ public class CatalogObjectControllerTest {
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
+                                     0,
+                                     Integer.MAX_VALUE,
                                      response);
         verify(catalogObjectService, times(1)).listCatalogObjects(anyList(),
                                                                   any(Optional.class),
                                                                   any(Optional.class),
-                                                                  any(Optional.class));
+                                                                  any(Optional.class),
+                                                                  any(Integer.class),
+                                                                  any(Integer.class));
     }
 
     @Test
     public void testGetRaw() throws Exception {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           "name",
+                                                          PROJECT_NAME,
                                                           "object",
                                                           "application/xml",
                                                           1400343L,
@@ -186,6 +197,7 @@ public class CatalogObjectControllerTest {
     public void testDelete() throws Exception {
         CatalogObjectMetadata mock = new CatalogObjectMetadata("bucket-name",
                                                                "name",
+                                                               PROJECT_NAME,
                                                                "object",
                                                                "application/xml",
                                                                1400343L,

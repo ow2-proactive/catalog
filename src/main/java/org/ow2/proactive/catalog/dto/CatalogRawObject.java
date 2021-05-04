@@ -52,9 +52,19 @@ public class CatalogRawObject extends CatalogObjectMetadata {
         this.rawObject = catalogObject.getRawObject();
     }
 
-    public CatalogRawObject(String bucketName, String name, String kind, String contentType, long createdAt,
-            String commitMessage, String username, List<Metadata> metadataList, byte[] rawObject, String extension) {
-        super(bucketName, name, kind, contentType, createdAt, commitMessage, username, metadataList, extension);
+    public CatalogRawObject(String bucketName, String name, String projectName, String kind, String contentType,
+            long createdAt, String commitMessage, String username, List<Metadata> metadataList, byte[] rawObject,
+            String extension) {
+        super(bucketName,
+              name,
+              projectName,
+              kind,
+              contentType,
+              createdAt,
+              commitMessage,
+              username,
+              metadataList,
+              extension);
         this.rawObject = rawObject;
     }
 

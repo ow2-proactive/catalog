@@ -135,13 +135,17 @@ public class BucketServiceTest {
 
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(mockedBucket);
         when(bucketRepository.save(mockedBucket)).thenReturn(mockedBucketWithOwner);
-        when(catalogObjectService.listCatalogObjectsEntities((Arrays.asList(bucketName)))).thenReturn(objectsList);
+        when(catalogObjectService.listCatalogObjectsEntities((Arrays.asList(bucketName)),
+                                                             0,
+                                                             Integer.MAX_VALUE)).thenReturn(objectsList);
 
         BucketMetadata bucketMetadata = bucketService.updateOwnerByBucketName(bucketName, DEFAULT_BUCKET_NAME);
         verify(mockedBucket, times(1)).setOwner(DEFAULT_BUCKET_NAME);
         verify(bucketRepository, times(1)).findOneByBucketName(bucketName);
         verify(bucketRepository, times(1)).save(mockedBucket);
-        verify(catalogObjectService, times(1)).listCatalogObjectsEntities(Arrays.asList(bucketName));
+        verify(catalogObjectService, times(1)).listCatalogObjectsEntities(Arrays.asList(bucketName),
+                                                                          0,
+                                                                          Integer.MAX_VALUE);
         verify(catalogObjectService, times(1)).createCatalogObjectRevision(catalogObjectRevisionEntity,
                                                                            BucketService.COMMIT_MESSAGE_UPDATE_BUCKET);
         assertEquals(mockedBucketWithOwner.getBucketName(), bucketMetadata.getName());
