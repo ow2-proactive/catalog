@@ -254,15 +254,26 @@ dependencies {
     testCompile group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '7.1.2.jre8-preview'
 
     //  Using the Scheduler Rest client as authentication service
-    providedCompile "org.ow2.proactive_grid_cloud_portal:rest-client:$version"
+    compile ("org.ow2.proactive_grid_cloud_portal:rest-client:$version") {
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'log4j', module: 'log4j'
+    }
 
     // scheduler-api for parsing workflows
-    providedCompile "org.ow2.proactive:scheduler-api:$version"
+    compile ("org.ow2.proactive:scheduler-api:$version") {
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'log4j', module: 'log4j'
+    }
+
+    runtime('org.hibernate:hibernate-hikaricp:5.1.0.Final') {
+        exclude group: 'org.javassist', module: 'javassist'
+    }
 
     testCompile 'com.google.truth:truth'
     testCompile 'junit:junit'
     testCompile 'nl.jqno.equalsverifier:equalsverifier'
     testCompile 'org.mockito:mockito-core'
+    testRuntime 'log4j:log4j:1.2.17'
 
     integrationTestCompile 'com.google.code.gson:gson'
     integrationTestCompile 'com.jayway.restassured:rest-assured'
@@ -271,6 +282,7 @@ dependencies {
     integrationTestRuntime('org.hibernate:hibernate-hikaricp:5.1.0.Final') {
         exclude group: 'org.javassist', module: 'javassist'
     }
+    integrationTestRuntime 'log4j:log4j:1.2.17'
 }
 
 test {
