@@ -265,9 +265,12 @@ dependencies {
         exclude group: 'log4j', module: 'log4j'
     }
 
+    // override hikari version used by hibernate-hikaricp
     runtime('org.hibernate:hibernate-hikaricp:5.1.0.Final') {
         exclude group: 'org.javassist', module: 'javassist'
+        exclude group: 'com.zaxxer', module: 'HikariCP-java6'
     }
+    runtime 'com.zaxxer:HikariCP:4.0.3'
 
     testCompile 'com.google.truth:truth'
     testCompile 'junit:junit'
@@ -279,9 +282,13 @@ dependencies {
     integrationTestCompile 'com.jayway.restassured:rest-assured'
     integrationTestCompile 'org.springframework.boot:spring-boot-starter-test'
 
+    // override hikari version used by hibernate-hikaricp
     integrationTestRuntime('org.hibernate:hibernate-hikaricp:5.1.0.Final') {
         exclude group: 'org.javassist', module: 'javassist'
+        exclude group: 'com.zaxxer', module: 'HikariCP-java6'
     }
+    integrationTestRuntime 'com.zaxxer:HikariCP:4.0.3'
+
     integrationTestRuntime 'log4j:log4j:1.2.17'
 }
 
