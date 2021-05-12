@@ -265,7 +265,8 @@ dependencies {
         exclude group: 'log4j', module: 'log4j'
     }
 
-    runtime('org.hibernate:hibernate-hikaricp:5.1.0.Final') {
+    // custom hibernate-hikaricp version to use HikariCP 4.0
+    runtime('org.hibernate:hibernate-hikaricp:5.1.0.PA') {
         exclude group: 'org.javassist', module: 'javassist'
     }
 
@@ -279,9 +280,11 @@ dependencies {
     integrationTestCompile 'com.jayway.restassured:rest-assured'
     integrationTestCompile 'org.springframework.boot:spring-boot-starter-test'
 
-    integrationTestRuntime('org.hibernate:hibernate-hikaricp:5.1.0.Final') {
+    // custom hibernate-hikaricp version to use HikariCP 4.0
+    integrationTestRuntime('org.hibernate:hibernate-hikaricp:5.1.0.PA') {
         exclude group: 'org.javassist', module: 'javassist'
     }
+
     integrationTestRuntime 'log4j:log4j:1.2.17'
 }
 
