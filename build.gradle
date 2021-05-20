@@ -266,7 +266,7 @@ dependencies {
     }
 
     // custom hibernate-hikaricp version to use HikariCP 4.0
-    runtime('org.hibernate:hibernate-hikaricp:5.1.0.PA') {
+    runtime('org.hibernate:hibernate-hikaricp') {
         exclude group: 'org.javassist', module: 'javassist'
     }
 
@@ -281,7 +281,7 @@ dependencies {
     integrationTestCompile 'org.springframework.boot:spring-boot-starter-test'
 
     // custom hibernate-hikaricp version to use HikariCP 4.0
-    integrationTestRuntime('org.hibernate:hibernate-hikaricp:5.1.0.PA') {
+    integrationTestRuntime('org.hibernate:hibernate-hikaricp') {
         exclude group: 'org.javassist', module: 'javassist'
     }
 
