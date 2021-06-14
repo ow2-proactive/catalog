@@ -33,6 +33,7 @@ public enum SupportedParserKinds {
     WORKFLOW("workflow", "/automation-dashboard/styles/patterns/img/wf-icons/wf-default-icon.png"),
     CALENDAR("calendar", "/automation-dashboard/styles/patterns/img/objects-icons/calendar_icon.png"),
     SCRIPT("script", "/automation-dashboard/styles/patterns/img/objects-icons/script_icon.png"),
+    TEXT("text", "/automation-dashboard/styles/patterns/img/objects-icons/text_icon.png"),
     NODE_SOURCE("nodesource", "/automation-dashboard/styles/patterns/img/objects-icons/node_source_icon.png"),
     POLICY("policynodesource", "/automation-dashboard/styles/patterns/img/objects-icons/node_source_policy_icon.png"),
     INFRASTRUCTURE(
