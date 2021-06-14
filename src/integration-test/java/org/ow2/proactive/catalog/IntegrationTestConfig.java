@@ -53,14 +53,7 @@ import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
 import org.ow2.proactive.catalog.util.name.validator.ObjectNameValidator;
-import org.ow2.proactive.catalog.util.parser.AbstractCatalogObjectParser;
-import org.ow2.proactive.catalog.util.parser.CalendarDefinitionParser;
-import org.ow2.proactive.catalog.util.parser.InfrastructureParser;
-import org.ow2.proactive.catalog.util.parser.NodeSourceParser;
-import org.ow2.proactive.catalog.util.parser.PCWRuleParser;
-import org.ow2.proactive.catalog.util.parser.PolicyParser;
-import org.ow2.proactive.catalog.util.parser.ScriptParser;
-import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.ow2.proactive.catalog.util.parser.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
@@ -223,6 +216,11 @@ public class IntegrationTestConfig {
     }
 
     @Bean
+    public TextParser textParser() {
+        return new TextParser();
+    }
+
+    @Bean
     public CalendarDefinitionParser calendarDefinitionParser() {
         return new CalendarDefinitionParser();
     }
@@ -235,7 +233,8 @@ public class IntegrationTestConfig {
                                                                        calendarDefinitionParser(),
                                                                        infrastructureParser(),
                                                                        nodeSourceParser(),
-                                                                       scriptParser());
+                                                                       scriptParser(),
+                                                                       textParser());
         return new KeyValueLabelMetadataHelper(new OwnerGroupStringHelper(), parsers);
     }
 
