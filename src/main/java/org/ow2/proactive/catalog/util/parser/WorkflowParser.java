@@ -105,7 +105,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
         TaskFlowJob job;
         try {
-            job = (TaskFlowJob) JobFactory.getFactory().createJob(inputStream);
+            job = (TaskFlowJob) JobFactory.getFactory(false).createJob(inputStream);
         } catch (JobCreationException e) {
             throw new ParsingObjectException(e.getMessage(), e);
         }
