@@ -38,14 +38,13 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
-import org.springframework.data.repository.query.Param;
 
 
 /**
  * @author ActiveEon Team
  */
 public interface BucketRepository extends JpaRepository<BucketEntity, Long>, JpaSpecificationExecutor<BucketEntity>,
-        QueryDslPredicateExecutor<BucketEntity> {
+        QueryDslPredicateExecutor<BucketEntity>, BucketRepositoryCustom {
 
     BucketEntity findOneByBucketName(String bucketName);
 
@@ -60,28 +59,5 @@ public interface BucketRepository extends JpaRepository<BucketEntity, Long>, Jpa
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
     @Query(value = "SELECT bk FROM BucketEntity bk WHERE bk.bucketName = ?1")
     BucketEntity findBucketForUpdate(String bucketName);
-
-    @Query(value = "SELECT bk.bucketName, bk.owner, COUNT(cos.id.name) as objectCount, bk.id FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos" +
-                   " WHERE lower(cos.kind) LIKE lower(concat(?1, '%')) AND lower(cos.contentType) LIKE lower(concat(?2, '%'))" +
-                   " AND lower(cos.id.name) LIKE lower(concat('%', ?3, '%')) OR bk.catalogObjects IS EMPTY GROUP BY bk.bucketName, bk.owner, bk.id")
-    List<Object[]> findContainingKindAndContentTypeAndObjectName(String kind, String contentType, String objectName,
-            Sort sort);
-
-    @Query(value = "SELECT bk.bucketName, bk.owner, COUNT(cos.id.name) as objectCount, bk.id FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos" +
-                   " WHERE lower(cos.kind) LIKE lower(concat(?1, '%')) " +
-                   " OR bk.catalogObjects IS EMPTY GROUP BY bk.bucketName, bk.owner, bk.id")
-    List<Object[]> findContainingKind(String kind, Sort sort);
-
-    @Query(value = "SELECT bk.bucketName, bk.owner, COUNT(cos.id.name) as objectCount, bk.id FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos" +
-                   " WHERE bk.owner in ?1 AND (lower(cos.kind) LIKE lower(concat(?2, '%'))" +
-                   " AND (lower(cos.contentType) LIKE lower(concat(?3, '%')) AND lower(cos.id.name) LIKE lower(concat('%', ?4, '%')))" +
-                   " OR bk.catalogObjects IS EMPTY) GROUP BY bk.bucketName, bk.owner, bk.id")
-    List<Object[]> findByOwnerIsInContainingKindAndContentTypeAndObjectName(List<String> owners, String kind,
-            String contentType, String objectName, Sort sort);
-
-    @Query(value = "SELECT bk.bucketName, bk.owner, COUNT(cos.id.name) as objectCount, bk.id FROM BucketEntity bk LEFT JOIN bk.catalogObjects cos" +
-                   " WHERE bk.owner in ?1 AND (lower(cos.kind) LIKE lower(concat(?2, '%'))" +
-                   " OR bk.catalogObjects IS EMPTY) GROUP BY bk.bucketName, bk.owner, bk.id")
-    List<Object[]> findByOwnerIsInContainingKind(List<String> owners, String kind, Sort sort);
 
 }

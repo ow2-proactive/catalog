@@ -241,7 +241,7 @@ public class BucketServiceIntegrationTest {
                                                                                                                                 org.hamcrest.CoreMatchers.is(bucket.getName()))));
 
         //we expect to get only workflow/pca bucket and empty bucket
-        List<BucketMetadata> bucketMetadatasWfPCA = bucketService.listBuckets((String) null,
+        List<BucketMetadata> bucketMetadatasWfPCA = bucketService.listBuckets(null,
                                                                               Optional.of("Workflow/pca"),
                                                                               Optional.empty());
         assertThat(bucketMetadatasWfPCA).hasSize(2);
@@ -251,7 +251,7 @@ public class BucketServiceIntegrationTest {
                                                                                                                                 org.hamcrest.CoreMatchers.is(bucketWfPCA.getName()))));
 
         //we expect to get only workflow/standard bucket and empty bucket
-        List<BucketMetadata> bucketMetadatasWfStandard = bucketService.listBuckets((String) null,
+        List<BucketMetadata> bucketMetadatasWfStandard = bucketService.listBuckets(null,
                                                                                    Optional.of("workflow/STANDARD"),
                                                                                    Optional.empty());
         assertThat(bucketMetadatasWfStandard).hasSize(2);
@@ -261,7 +261,7 @@ public class BucketServiceIntegrationTest {
                                                                                                                                 org.hamcrest.CoreMatchers.is(bucketWfStandard.getName()))));
 
         //we expect to get all workflow kind bucket and empty bucket
-        List<BucketMetadata> bucketMetadatasWorkflows = bucketService.listBuckets((String) null,
+        List<BucketMetadata> bucketMetadatasWorkflows = bucketService.listBuckets(null,
                                                                                   Optional.of("WORKFLOW"),
                                                                                   Optional.empty());
         assertThat(bucketMetadatasWorkflows).hasSize(4);
@@ -274,6 +274,74 @@ public class BucketServiceIntegrationTest {
         org.hamcrest.MatcherAssert.assertThat(bucketMetadatasWorkflows,
                                               org.hamcrest.Matchers.hasItem(org.hamcrest.beans.HasPropertyWithValue.hasProperty("name",
                                                                                                                                 org.hamcrest.CoreMatchers.is(bucket.getName()))));
+    }
+
+    @Test
+    public void testListBucketsFilterByKindList() {
+        //create bucket with kind object workflow inside
+        bucket = bucketService.createBucket("bucket-workflow", "owner");
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog",
+                                                 PROJECT_NAME,
+                                                 "Workflow",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 null,
+                                                 null);
+
+        //create bucket with kind object workflow/standard inside
+        BucketMetadata bucketWfStandard = bucketService.createBucket("bucket-rule", "owner");
+        catalogObjectService.createCatalogObject(bucketWfStandard.getName(),
+                                                 "catalog",
+                                                 PROJECT_NAME,
+                                                 "rule",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 null,
+                                                 null);
+
+        //create bucket with kind object workflow/pca inside
+        BucketMetadata bucketWfPCA = bucketService.createBucket("bucket-wf-pca", "owner");
+        catalogObjectService.createCatalogObject(bucketWfPCA.getName(),
+                                                 "catalog",
+                                                 PROJECT_NAME,
+                                                 "workflow/PCA",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 null,
+                                                 null);
+
+        //create bucket with kind object not-workflow inside
+        BucketMetadata bucketNotWf = bucketService.createBucket("bucket-script", "different-owner");
+        catalogObjectService.createCatalogObject(bucketNotWf.getName(),
+                                                 "catalog",
+                                                 PROJECT_NAME,
+                                                 "script",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 null,
+                                                 null);
+
+        //we expect to get workflow buckets and empty bucket
+        List<BucketMetadata> bucketMetadatasWorkflow = bucketService.listBuckets(null,
+                                                                                 Optional.of("Workflow,Workflow/PCA"),
+                                                                                 Optional.empty());
+        assertThat(bucketMetadatasWorkflow).hasSize(3);
+
+        //we expect to get all buckets and empty bucket
+        List<BucketMetadata> bucketMetadatasWorkflowRuleScript = bucketService.listBuckets(null,
+                                                                                           Optional.of("Workflow,RULE,ScriPT"),
+                                                                                           Optional.empty());
+        assertThat(bucketMetadatasWorkflowRuleScript).hasSize(5);
+
     }
 
 }
