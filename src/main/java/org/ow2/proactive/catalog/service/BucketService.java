@@ -25,10 +25,7 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -134,19 +131,24 @@ public class BucketService {
     private List<BucketMetadata> getBucketEntities(List<String> owners, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName) {
         List<BucketMetadata> entities;
+        List<String> kindList = new ArrayList<>();
+        if (kind.isPresent()) {
+            kindList = Arrays.asList(kind.get().toLowerCase().split(","));
+        } else {
+            kindList.add("");
+        }
         long startTime = System.currentTimeMillis();
         if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
             List<Object[]> bucketsFromDB;
             if (contentType.isPresent() || objectName.isPresent()) {
-                bucketsFromDB = bucketRepository.findByOwnerIsInContainingKindAndContentTypeAndObjectName(owners,
-                                                                                                          kind.orElse(""),
-                                                                                                          contentType.orElse(""),
-                                                                                                          objectName.orElse(""),
-                                                                                                          sortById);
+                bucketsFromDB = bucketRepository.findBucketByOwnerContainingKindListAndContentTypeAndObjectName(owners,
+                                                                                                                kindList,
+                                                                                                                contentType.orElse(""),
+                                                                                                                objectName.orElse(""));
                 log.debug("bucket list timer : get buckets : DB request with filtering all parameters" +
                           (System.currentTimeMillis() - startTime) + " ms");
             } else { // only kind.isPresent()
-                bucketsFromDB = bucketRepository.findByOwnerIsInContainingKind(owners, kind.orElse(""), sortById);
+                bucketsFromDB = bucketRepository.findBucketByOwnerContainingKindList(owners, kindList);
                 log.debug("bucket list timer : get buckets : DB request with filtering only KIND parameter" +
                           (System.currentTimeMillis() - startTime) + " ms");
             }
@@ -187,6 +189,12 @@ public class BucketService {
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
             Optional<String> objectName) {
         List<BucketMetadata> entities;
+        List<String> kindList = new ArrayList<>();
+        if (kind.isPresent()) {
+            kindList = Arrays.asList(kind.get().toLowerCase().split(","));
+        } else {
+            kindList.add("");
+        }
         List<String> owners = Collections.singletonList(ownerName);
 
         if (!StringUtils.isEmpty(ownerName)) {
@@ -194,12 +202,11 @@ public class BucketService {
         } else if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
             List<Object[]> bucketsFromDB;
             if (contentType.isPresent() || objectName.isPresent()) {
-                bucketsFromDB = bucketRepository.findContainingKindAndContentTypeAndObjectName(kind.orElse(""),
-                                                                                               contentType.orElse(""),
-                                                                                               objectName.orElse(""),
-                                                                                               sortById);
+                bucketsFromDB = bucketRepository.findBucketContainingKindListAndContentTypeAndObjectName(kindList,
+                                                                                                         contentType.orElse(""),
+                                                                                                         objectName.orElse(""));
             } else { // only kind.isPresent()
-                bucketsFromDB = bucketRepository.findContainingKind(kind.orElse(""), sortById);
+                bucketsFromDB = bucketRepository.findBucketContainingKindList(kindList);
             }
             entities = generateBucketMetadataListFromObject(bucketsFromDB);
 

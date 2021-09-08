@@ -86,11 +86,10 @@ public class BucketServiceTest {
     @Test
     public void testThatEmptyListIsReturnedIfListAndKindAreNull() {
         assertThat(bucketService.listBuckets((List<String>) null, null, null, null)).isEmpty();
-        verify(bucketRepository, times(0)).findByOwnerIsInContainingKindAndContentTypeAndObjectName(any(),
-                                                                                                    any(),
-                                                                                                    any(),
-                                                                                                    any(),
-                                                                                                    any(Sort.class));
+        verify(bucketRepository, times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(any(),
+                                                                                                          any(),
+                                                                                                          any(),
+                                                                                                          any());
         verify(bucketRepository, times(0)).findByOwnerIn(any(), any(Sort.class));
     }
 
@@ -99,12 +98,11 @@ public class BucketServiceTest {
         Optional kind = Optional.of("kind");
         List<String> owners = new ArrayList<>();
         assertThat(bucketService.listBuckets(owners, kind, Optional.empty(), Optional.empty())).isEmpty();
-        verify(bucketRepository, times(0)).findByOwnerIsInContainingKindAndContentTypeAndObjectName(any(),
-                                                                                                    any(),
-                                                                                                    any(),
-                                                                                                    any(),
-                                                                                                    any(Sort.class));
-        verify(bucketRepository, times(1)).findByOwnerIsInContainingKind(any(List.class), anyString(), any(Sort.class));
+        verify(bucketRepository, times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(any(),
+                                                                                                          any(),
+                                                                                                          any(),
+                                                                                                          any());
+        verify(bucketRepository, times(1)).findBucketByOwnerContainingKindList(any(List.class), any(List.class));
     }
 
     @Test
@@ -232,12 +230,11 @@ public class BucketServiceTest {
             verify(bucketRepository, times(1)).findByOwnerIn(anyList(), any(Sort.class));
         } else if (kind.isPresent()) {
             if (contentType.isPresent()) {
-                verify(bucketRepository, times(1)).findContainingKindAndContentTypeAndObjectName(anyString(),
-                                                                                                 anyString(),
-                                                                                                 anyString(),
-                                                                                                 any(Sort.class));
+                verify(bucketRepository, times(1)).findBucketContainingKindListAndContentTypeAndObjectName(anyList(),
+                                                                                                           anyString(),
+                                                                                                           anyString());
             } else {
-                verify(bucketRepository, times(1)).findContainingKind(anyString(), any(Sort.class));
+                verify(bucketRepository, times(1)).findBucketContainingKindList(anyList());
             }
         } else {
             verify(bucketRepository, times(1)).findAll(any(Sort.class));

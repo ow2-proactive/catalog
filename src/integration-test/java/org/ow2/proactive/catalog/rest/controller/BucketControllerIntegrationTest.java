@@ -321,6 +321,68 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
     }
 
     @Test
+    public void testListBucketsGivenKindList() throws UnsupportedEncodingException {
+        final String bucketNameForWorkflows = "bucket-with-workflow";
+        final String bucketNameWithSomeRules = "bucket-with-rules";
+        final String bucketNameForMyObjectsWithScripts = "bucket-with-scripts";
+        // Get bucket ID from response to create an object in it
+        String bucketIdWithMyWorkflows = IntegrationTestUtil.createBucket(bucketNameForWorkflows, "owner");
+        String bucketWithMyRules = IntegrationTestUtil.createBucket(bucketNameWithSomeRules, "owner");
+        String bucketIdWithMyScripts = IntegrationTestUtil.createBucket(bucketNameForMyObjectsWithScripts, "owner");
+
+        // Add an object of kind "my-object-kind" into specific bucket
+        IntegrationTestUtil.postObjectToBucket(bucketIdWithMyWorkflows,
+                                               "myobjectname",
+                                               "myobjectprojectname",
+                                               "workflow",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        // Add an object of kind "my-object-general" into specific bucket
+        IntegrationTestUtil.postObjectToBucket(bucketIdWithMyScripts,
+                                               "myobjectname",
+                                               "myobjectprojectname",
+                                               "ScripT",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postObjectToBucket(bucketWithMyRules,
+                                               "myobjectname",
+                                               "myobjectprojectname",
+                                               "RULE",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        // list buckets by kind list -> should return all buckets, matching kindlist pattern
+        given().param("kind", "workflow,SCRIPT,rule")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(3));
+
+        // list buckets by kind list -> should return all buckets, matching kindlist pattern
+        given().param("kind", "work,SCRI,rul")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(3));
+
+        // list buckets by kind list -> should return  buckets, matching kindlist pattern
+        given().param("kind", "workflow/pca,SCRIPT+s,rules")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(0));
+
+    }
+
+    @Test
     public void testContentCountGivenObjectName() throws UnsupportedEncodingException {
         final String firstBucket = "first-bucket";
         final String emptyBucket = "empty-bucket";
