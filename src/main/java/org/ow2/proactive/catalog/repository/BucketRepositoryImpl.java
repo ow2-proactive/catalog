@@ -96,9 +96,10 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
             ownerPredicate = cb.in(bucketEntityRoot.get("owner")).value(owners);
 
         }
-        Predicate filtersPredicate = cb.and(kindPredicate, contentTypePredicate, objectNamePredicate, ownerPredicate);
+        Predicate filtersPredicate = cb.and(kindPredicate, contentTypePredicate, objectNamePredicate);
         Predicate emptyBucketPredicate = cb.isEmpty(bucketEntityRoot.get("catalogObjects"));
-        Predicate finalPredicate = cb.or(filtersPredicate, emptyBucketPredicate);
+        Predicate filtersOrEmptyBucketPredicate = cb.or(filtersPredicate, emptyBucketPredicate);
+        Predicate finalPredicate = cb.and(filtersOrEmptyBucketPredicate, ownerPredicate);
         cq.where(finalPredicate);
         cq.multiselect(bucketEntityRoot.get("bucketName"),
                        bucketEntityRoot.get("owner"),
