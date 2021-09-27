@@ -32,15 +32,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
@@ -484,12 +476,12 @@ public class CatalogObjectService {
             Optional<String> contentType, Optional<String> objectNameFilter, int pageNo, int pageSize) {
         List<CatalogObjectMetadata> metadataList;
         if (kind.isPresent() || contentType.isPresent() || objectNameFilter.isPresent()) {
-            metadataList = listCatalogObjectsByKindAndContentTypeAndObjectName(bucketsNames,
-                                                                               kind.orElse(""),
-                                                                               contentType.orElse(""),
-                                                                               objectNameFilter.orElse(""),
-                                                                               pageNo,
-                                                                               pageSize);
+            metadataList = listCatalogObjectsByKindListAndContentTypeAndObjectName(bucketsNames,
+                                                                                   kind.orElse(""),
+                                                                                   contentType.orElse(""),
+                                                                                   objectNameFilter.orElse(""),
+                                                                                   pageNo,
+                                                                                   pageSize);
         } else {
             metadataList = listCatalogObjects(bucketsNames, pageNo, pageSize);
         }
@@ -500,18 +492,24 @@ public class CatalogObjectService {
         return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
-    // find pageable catalog objects by kind and Content-Type and objectName
-    public List<CatalogObjectMetadata> listCatalogObjectsByKindAndContentTypeAndObjectName(List<String> bucketNames,
+    // find pageable catalog objects by kind(s) and Content-Type and objectName
+    public List<CatalogObjectMetadata> listCatalogObjectsByKindListAndContentTypeAndObjectName(List<String> bucketNames,
             String kind, String contentType, String objectName, int pageNo, int pageSize) {
-        Pageable paging = new PageRequest(pageNo, pageSize);
         bucketNames.forEach(this::findBucketByNameAndCheck);
-        Page<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindAndContentTypeAndObjectNameInBucket(bucketNames,
-                                                                                                                                                      kind,
-                                                                                                                                                      contentType,
-                                                                                                                                                      objectName,
-                                                                                                                                                      paging);
+        List<String> kindList = new ArrayList<>();
+        if (!kind.isEmpty()) {
+            kindList = Arrays.asList(kind.toLowerCase().split(","));
+        } else {
+            kindList.add("");
+        }
+        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(bucketNames,
+                                                                                                                                                          kindList,
+                                                                                                                                                          contentType,
+                                                                                                                                                          objectName,
+                                                                                                                                                          pageNo,
+                                                                                                                                                          pageSize);
 
-        return buildMetadataWithLink(result.getContent());
+        return buildMetadataWithLink(result);
     }
 
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {

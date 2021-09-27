@@ -270,7 +270,7 @@ public class CatalogObjectController {
     public ResponseEntity<List<CatalogObjectMetadata>> list(
             @ApiParam(value = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
-            @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
+            @ApiParam(value = "Filter according to kind(s). Multiple kinds can be specified using comma separators") @RequestParam(required = false) Optional<String> kind,
             @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
             @ApiParam(value = "Filter according to Object Name.") @RequestParam(value = "objectName", required = false) Optional<String> objectNameFilter,
             @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
