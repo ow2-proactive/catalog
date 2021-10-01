@@ -45,7 +45,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     public List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(
             List<String> bucketNames, List<String> kindList, String contentType, String objectName, int pageNo,
             int pageSize) {
-        return em.createQuery(buildCriteriaQuery(null, kindList, contentType, objectName))
+        return em.createQuery(buildCriteriaQuery(bucketNames, kindList, contentType, objectName))
                  .setMaxResults(pageSize)
                  .setFirstResult(pageNo * pageSize)
                  .getResultList();
@@ -80,7 +80,9 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
 
         Predicate bucketNamesPredicate = cb.and();
         if (bucketNames != null) {
-            bucketNamesPredicate = cb.in(catalogObjectRevisionEntityRoot.get("bucket").get("bucketName"))
+            bucketNamesPredicate = cb.in(catalogObjectRevisionEntityRoot.get("catalogObject")
+                                                                        .get("bucket")
+                                                                        .get("bucketName"))
                                      .value(bucketNames);
 
         }
