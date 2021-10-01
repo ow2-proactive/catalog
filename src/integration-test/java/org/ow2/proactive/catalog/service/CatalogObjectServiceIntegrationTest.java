@@ -54,6 +54,7 @@ import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.ow2.proactive.scheduler.core.properties.PASchedulerProperties;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -1081,13 +1082,13 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
-    public void testListCatalogObjectsByKindInBucket() {
-        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
-                                                                                                                              "object",
-                                                                                                                              "",
-                                                                                                                              "",
-                                                                                                                              0,
-                                                                                                                              Integer.MAX_VALUE);
+    public void testListCatalogObjectsByKindListInBucket() {
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                                                  "object",
+                                                                                                                                  "",
+                                                                                                                                  "",
+                                                                                                                                  0,
+                                                                                                                                  Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(2);
 
         catalogObjectService.createCatalogObject(bucket.getName(),
@@ -1101,21 +1102,40 @@ public class CatalogObjectServiceIntegrationTest {
                                                  workflowAsByteArray,
                                                  null);
 
-        catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
-                                                                                                  "workflow-general",
-                                                                                                  "",
-                                                                                                  "",
-                                                                                                  0,
-                                                                                                  Integer.MAX_VALUE);
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                      "workflow-general",
+                                                                                                      "",
+                                                                                                      "",
+                                                                                                      0,
+                                                                                                      Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(1);
 
-        catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
-                                                                                                  "WORKFLOW",
-                                                                                                  "",
-                                                                                                  "",
-                                                                                                  0,
-                                                                                                  Integer.MAX_VALUE);
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                      "WORKFLOW",
+                                                                                                      "",
+                                                                                                      "",
+                                                                                                      0,
+                                                                                                      Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(2);
+
+        catalogObjectService.createCatalogObject(bucket.getName(),
+                                                 "catalog5",
+                                                 PROJECT_NAME,
+                                                 "rule",
+                                                 "commit message",
+                                                 "username",
+                                                 "application/xml",
+                                                 keyValues,
+                                                 workflowAsByteArray,
+                                                 null);
+
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                      "WORKFLOW,ruLe",
+                                                                                                      "",
+                                                                                                      "",
+                                                                                                      0,
+                                                                                                      Integer.MAX_VALUE);
+        assertThat(catalogObjects).hasSize(3);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -1128,14 +1148,14 @@ public class CatalogObjectServiceIntegrationTest {
         catalogObjectService.listCatalogObjects(Arrays.asList(bucket.getName()), 0, 0);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = InvalidDataAccessApiUsageException.class)
     public void testPageableCatalogObjectsByFiltersInBucketWrongParameters() {
-        catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
-                                                                                 "",
-                                                                                 "",
-                                                                                 "",
-                                                                                 -1,
-                                                                                 0);
+        catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                     "",
+                                                                                     "",
+                                                                                     "",
+                                                                                     0,
+                                                                                     -1);
     }
 
     @Test
@@ -1174,12 +1194,13 @@ public class CatalogObjectServiceIntegrationTest {
 
     @Test
     public void testPageableCatalogObjectsInBucketByEmptyFilters() {
-        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
-                                                                                                                              "",
-                                                                                                                              "",
-                                                                                                                              "",
-                                                                                                                              1,
-                                                                                                                              2);
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                                                  "",
+                                                                                                                                  "",
+                                                                                                                                  "",
+                                                                                                                                  1,
+                                                                                                                                  2);
+
         assertThat(catalogObjects).hasSize(1);
 
         catalogObjectService.createCatalogObject(bucket.getName(),
@@ -1215,31 +1236,31 @@ public class CatalogObjectServiceIntegrationTest {
                                                  workflowAsByteArray,
                                                  null);
 
-        catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
-                                                                                                  "",
-                                                                                                  "",
-                                                                                                  "",
-                                                                                                  2,
-                                                                                                  3);
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                      "",
+                                                                                                      "",
+                                                                                                      "",
+                                                                                                      2,
+                                                                                                      3);
         assertThat(catalogObjects).hasSize(0);
-        catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
-                                                                                                  "",
-                                                                                                  "",
-                                                                                                  "",
-                                                                                                  2,
-                                                                                                  2);
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                      "",
+                                                                                                      "",
+                                                                                                      "",
+                                                                                                      2,
+                                                                                                      2);
         assertThat(catalogObjects).hasSize(2);
 
     }
 
     @Test
-    public void testPageableCatalogObjectsInBucketByKindAndContentType() {
-        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
-                                                                                                                              "object",
-                                                                                                                              "",
-                                                                                                                              "",
-                                                                                                                              0,
-                                                                                                                              3);
+    public void testPageableCatalogObjectsInBucketByKindListAndContentType() {
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                                                  "object",
+                                                                                                                                  "",
+                                                                                                                                  "",
+                                                                                                                                  0,
+                                                                                                                                  3);
         assertThat(catalogObjects).hasSize(2);
 
         catalogObjectService.createCatalogObject(bucket.getName(),
@@ -1275,12 +1296,12 @@ public class CatalogObjectServiceIntegrationTest {
                                                  workflowAsByteArray,
                                                  null);
 
-        catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
-                                                                                                  "workflow",
-                                                                                                  "",
-                                                                                                  "",
-                                                                                                  1,
-                                                                                                  3);
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                      "workflow",
+                                                                                                      "",
+                                                                                                      "",
+                                                                                                      1,
+                                                                                                      3);
         assertThat(catalogObjects).hasSize(1);
 
         catalogObjectService.createCatalogObject(bucket.getName(),
@@ -1316,13 +1337,29 @@ public class CatalogObjectServiceIntegrationTest {
                                                  workflowAsByteArray,
                                                  null);
 
-        catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
-                                                                                                  "Script",
-                                                                                                  "text",
-                                                                                                  "",
-                                                                                                  1,
-                                                                                                  2);
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                      "Script",
+                                                                                                      "text",
+                                                                                                      "",
+                                                                                                      1,
+                                                                                                      2);
         assertThat(catalogObjects).hasSize(1);
+
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                      "Script,object",
+                                                                                                      "text",
+                                                                                                      "",
+                                                                                                      0,
+                                                                                                      Integer.MAX_VALUE);
+        assertThat(catalogObjects).hasSize(3);
+
+        catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                      "Script,object",
+                                                                                                      "",
+                                                                                                      "",
+                                                                                                      0,
+                                                                                                      Integer.MAX_VALUE);
+        assertThat(catalogObjects).hasSize(5);
 
     }
 
@@ -1384,12 +1421,12 @@ public class CatalogObjectServiceIntegrationTest {
                                                  workflowAsByteArray,
                                                  null);
 
-        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
-                                                                                                                              "",
-                                                                                                                              "",
-                                                                                                                              "",
-                                                                                                                              0,
-                                                                                                                              Integer.MAX_VALUE);
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectName(Arrays.asList(bucket.getName()),
+                                                                                                                                  "",
+                                                                                                                                  "",
+                                                                                                                                  "",
+                                                                                                                                  0,
+                                                                                                                                  Integer.MAX_VALUE);
 
         assertThat(catalogObjects.get(0).getProjectName()).isEqualTo("1. Project");
         assertThat(catalogObjects.get(4).getProjectName()).isEqualTo("3. Project");
