@@ -76,6 +76,14 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     public static final String ATTRIBUTE_VARIABLE_LABEL = "variable";
 
+    public static final String ATTRIBUTE_VARIABLE_DESCRIPTION_LABEL = "variable_description";
+
+    public static final String ATTRIBUTE_VARIABLE_GROUP_LABEL = "variable_group";
+
+    public static final String ATTRIBUTE_VARIABLE_ADVANCED_LABEL = "variable_advanced";
+
+    public static final String ATTRIBUTE_VARIABLE_HIDDEN_LABEL = "variable_hidden";
+
     private static final String ATTRIBUTE_VARIABLE_MODEL_LABEL = "variable_model";
 
     public static final String ATTRIBUTE_DEPENDS_ON_LABEL = "depends_on";
@@ -113,18 +121,18 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
         addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobNameIfNotNull(keyValueMapBuilder, job);
-        job.getUnresolvedGenericInformation()
-           .forEach((name, value) -> addGenericInformationIfNotNull(keyValueMapBuilder, name, value));
+        addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         job.getUnresolvedVariables()
            .values()
            .forEach(jobVariable -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
+        job.getUnresolvedGenericInformation()
+           .forEach((name, value) -> addGenericInformationIfNotNull(keyValueMapBuilder, name, value));
         job.getTasks()
            .forEach(task -> task.getVariables()
                                 .values()
                                 .forEach(taskVariable -> addDependsOnIfCatalogObjectModelExistOnTaskVariable(keyValueMapBuilder,
                                                                                                              taskVariable)));
         job.getTasks().forEach(task -> addDependsOnIfScriptUrlExistInEachTaskScripts(keyValueMapBuilder, task));
-        addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobVizualisationIfNotNullAndNotEmpty(keyValueMapBuilder, job);
 
         return new ArrayList<>(keyValueMapBuilder);
@@ -158,6 +166,10 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         String name = jobVariable.getName();
         String value = jobVariable.getValue();
         String model = jobVariable.getModel();
+        String description = jobVariable.getDescription();
+        String group = jobVariable.getGroup();
+        boolean advanced = jobVariable.isAdvanced();
+        boolean hidden = jobVariable.isHidden();
         if (checkIfNotNull(name, value)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, value, ATTRIBUTE_VARIABLE_LABEL));
         }
@@ -165,6 +177,21 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, model, ATTRIBUTE_VARIABLE_MODEL_LABEL));
             addDependsOn(keyValueMapBuilder, value, model);
         }
+        if (checkIfNotNull(name, description)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name,
+                                                                   description,
+                                                                   ATTRIBUTE_VARIABLE_DESCRIPTION_LABEL));
+        }
+        if (checkIfNotNull(name, group)) {
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, group, ATTRIBUTE_VARIABLE_GROUP_LABEL));
+        }
+        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name,
+                                                               String.valueOf(advanced),
+                                                               ATTRIBUTE_VARIABLE_ADVANCED_LABEL));
+        keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name,
+                                                               String.valueOf(hidden),
+                                                               ATTRIBUTE_VARIABLE_HIDDEN_LABEL));
+
     }
 
     private void addDependsOnIfCatalogObjectModelExistOnTaskVariable(

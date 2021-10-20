@@ -254,7 +254,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                            .body("bucket_name", is(secondCatalogObjectRevision.get("bucket_name")))
                            .body("name", is(secondCatalogObjectRevision.get("name")))
                            .body("commit_time", is(secondCatalogObjectRevision.get("commit_time")))
-                           .body("object_key_values", hasSize(10))
+                           .body("object_key_values", hasSize(14))
                            //check generic_information label
                            .body("object_key_values.find { it.key=='bucketName' }.label", is("generic_information"))
                            .body("object_key_values.find { it.key=='bucketName' }.value", is("bucket"))

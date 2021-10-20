@@ -637,7 +637,7 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("first commit message of A_Object");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("workflow");
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("application/xml");
-        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(11);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(17);
 
         List<String> dependsOnKeys = catalogObjectMetadata.getMetadataList()
                                                           .stream()
@@ -976,7 +976,7 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("first commit message");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("workflow");
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("application/xml");
-        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(15);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(19);
 
         List<String> dependsOnKeys = catalogObjectMetadata.getMetadataList()
                                                           .stream()

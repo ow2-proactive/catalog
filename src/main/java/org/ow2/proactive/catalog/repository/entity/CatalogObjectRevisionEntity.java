@@ -83,6 +83,7 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
 
     @OneToMany(mappedBy = "catalogObjectRevision", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Fetch(FetchMode.SELECT)
+    @OrderBy("id ASC")
     @BatchSize(size = 10)
     @Builder.Default
     private List<KeyValueLabelMetadataEntity> keyValueMetadataList = new ArrayList<>();
