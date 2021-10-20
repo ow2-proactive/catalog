@@ -52,7 +52,7 @@ public class ProActiveCatalogObjectParserTest {
     public void testParseWorkflow() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow.xml");
 
-        assertThat(result).hasSize(8);
+        assertThat(result).hasSize(12);
 
         assertThat(findValueForKeyAndLabel(result, "project_name", "job_information")).isEqualTo("Project Name");
         assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("Valid Workflow");
@@ -73,7 +73,7 @@ public class ProActiveCatalogObjectParserTest {
     public void testParseWorkflowWithModelVariables() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_variables_with_model.xml");
 
-        assertThat(result).hasSize(7);
+        assertThat(result).hasSize(15);
 
         assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("test_variables");
         assertThat(findValueForKeyAndLabel(result, "keyWithoutModel", "variable")).isEqualTo("valueWithoutModel");
@@ -87,13 +87,19 @@ public class ProActiveCatalogObjectParserTest {
     public void testParseWorkflowWithVariablesOrder() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow_variables_with_model.xml");
 
-        assertThat(result).hasSize(7);
+        assertThat(result).hasSize(15);
         assertKeyValueDataAre(result.get(0), "name", "test_variables", "job_information");
         assertKeyValueDataAre(result.get(1), "keyWithoutModel", "valueWithoutModel", "variable");
-        assertKeyValueDataAre(result.get(2), "keyInteger", "1", "variable");
-        assertKeyValueDataAre(result.get(3), "keyInteger", "PA:Integer", "variable_model");
-        assertKeyValueDataAre(result.get(4), "keyGeneral", "valueGeneral", "variable");
-        assertKeyValueDataAre(result.get(5), "emptyValue", "", "variable");
+        assertKeyValueDataAre(result.get(2), "keyWithoutModel", "false", "variable_advanced");
+        assertKeyValueDataAre(result.get(3), "keyWithoutModel", "false", "variable_hidden");
+        assertKeyValueDataAre(result.get(4), "keyInteger", "1", "variable");
+        assertKeyValueDataAre(result.get(5), "keyInteger", "PA:Integer", "variable_model");
+        assertKeyValueDataAre(result.get(6), "keyInteger", "false", "variable_advanced");
+        assertKeyValueDataAre(result.get(7), "keyInteger", "false", "variable_hidden");
+        assertKeyValueDataAre(result.get(8), "keyGeneral", "valueGeneral", "variable");
+        assertKeyValueDataAre(result.get(9), "keyGeneral", "false", "variable_advanced");
+        assertKeyValueDataAre(result.get(10), "keyGeneral", "false", "variable_hidden");
+        assertKeyValueDataAre(result.get(11), "emptyValue", "", "variable");
     }
 
     private static void assertKeyValueDataAre(KeyValueLabelMetadataEntity data, String key, String value,
@@ -159,7 +165,7 @@ public class ProActiveCatalogObjectParserTest {
     public void testParseWorkflowContainingNoProjectName() throws Exception {
         List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-project-name.xml");
 
-        assertThat(result).hasSize(7);
+        assertThat(result).hasSize(11);
 
         assertThat(findValueForKeyAndLabel(result, "name", "job_information")).isEqualTo("Valid Workflow");
         assertThat(findValueForKeyAndLabel(result, "var1", "variable")).isEqualTo("var1Value");

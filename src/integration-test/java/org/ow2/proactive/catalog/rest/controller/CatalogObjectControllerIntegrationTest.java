@@ -141,7 +141,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].name", is("workflow_test"))
                .body("object[0].extension", is("xml"))
 
-               .body("object[0].object_key_values", hasSize(11))
+               .body("object[0].object_key_values", hasSize(15))
                //check job info
                .body("object[0].object_key_values.find { it.label == 'job_information' && it.key == 'project_name' }.value",
                      is("Project Name"))
@@ -357,7 +357,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .body("object[0].name", is(objectNameWithSpecificSymbols))
                .body("object[0].extension", is("xml"))
 
-               .body("object[0].object_key_values", hasSize(11))
+               .body("object[0].object_key_values", hasSize(15))
                //check job info
                .body("object[0].object_key_values.find { it.label == 'job_information' && it.key == 'project_name' }.value",
                      is("Project Name"))
@@ -541,7 +541,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         response.body("bucket_name", is(thirdWFRevision.get("bucket_name")))
                 .body("name", is(thirdWFRevision.get("name")))
                 .body("commit_time", is(thirdWFRevision.get("commit_time")))
-                .body("object_key_values", hasSize(11))
+                .body("object_key_values", hasSize(15))
                 //check generic_information label
                 .body("object_key_values.find { it.key=='bucketName' }.label", is("generic_information"))
                 .body("object_key_values.find { it.key=='bucketName' }.value", is("my-bucket"))

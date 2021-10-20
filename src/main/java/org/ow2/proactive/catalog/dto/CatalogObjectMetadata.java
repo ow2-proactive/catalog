@@ -28,18 +28,22 @@ package org.ow2.proactive.catalog.dto;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import javax.persistence.Column;
 
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.util.KeyValueEntityToDtoTransformer;
+import org.ow2.proactive.scheduler.common.job.JobVariable;
 import org.springframework.hateoas.ResourceSupport;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -85,6 +89,9 @@ public class CatalogObjectMetadata extends ResourceSupport {
     @JsonProperty("object_key_values")
     protected final List<Metadata> metadataList;
 
+    @JsonProperty("variables_order")
+    protected final LinkedHashMap<String, LinkedHashMap<String, JobVariable>> variablesOrder;
+
     public CatalogObjectMetadata(CatalogObjectEntity catalogObject) {
         this(catalogObject.getBucket().getBucketName(),
              catalogObject.getId().getName(),
@@ -123,8 +130,10 @@ public class CatalogObjectMetadata extends ResourceSupport {
         this.username = username;
         if (metadataList == null) {
             this.metadataList = new ArrayList<>();
+            this.variablesOrder = new LinkedHashMap<>();
         } else {
             this.metadataList = metadataList;
+            this.variablesOrder = setVariablesOrder(metadataList);
         }
         if (projectName != null && !projectName.isEmpty()) {
             this.projectName = projectName;
@@ -132,7 +141,6 @@ public class CatalogObjectMetadata extends ResourceSupport {
             this.projectName = getProjectNameIfExistsOrEmptyString();
         }
         this.extension = extension;
-
     }
 
     private String getProjectNameIfExistsOrEmptyString() {
@@ -143,4 +151,109 @@ public class CatalogObjectMetadata extends ResourceSupport {
         return projectNameIfExists.map(Metadata::getValue).orElse("");
     }
 
+    private LinkedHashMap<String, LinkedHashMap<String, JobVariable>> setVariablesOrder(List<Metadata> metadataList) {
+        LinkedHashMap<String, LinkedHashMap<String, JobVariable>> variablesOrder = new LinkedHashMap<>();
+
+        LinkedHashSet<String> groups = new LinkedHashSet<>();
+
+        // This item corresponds to the variables that have no groups - They must be added first
+        groups.add("");
+
+        // Get all variables with groups
+        groups.addAll(metadataList.stream()
+                                  .filter(metadata -> metadata.getLabel().equals("variable_group") &&
+                                                      !metadata.getValue().equals("") && metadata.getValue() != null)
+                                  .map(Metadata::getValue)
+                                  .collect(Collectors.toCollection(LinkedHashSet::new)));
+
+        // Map that associates each variable to its group
+        Map<String, String> variablesToGroups = metadataList.stream()
+                                                            .filter(metadata -> metadata.getLabel()
+                                                                                        .equals("variable_group") &&
+                                                                                !metadata.getValue().equals("") &&
+                                                                                metadata.getValue() != null)
+                                                            .collect(Collectors.toMap(Metadata::getKey,
+                                                                                      Metadata::getValue,
+                                                                                      (e1, e2) -> e1,
+                                                                                      LinkedHashMap::new));
+
+        for (String groupName : groups) {
+
+            LinkedHashMap<String, JobVariable> data = new LinkedHashMap<>();
+
+            // Case: No groups assigned for the variable(s)
+            if (groupName.equals("")) {
+                for (Metadata metadata : metadataList) {
+                    if (metadata.getLabel().equals("variable")) {
+                        String variableName = metadata.getKey();
+                        if (!variablesToGroups.containsKey(variableName)) {
+                            JobVariable variable = createJobVariableFromMetadataAndAssignItToTheCorrespondingGroup(metadataList,
+                                                                                                                   groupName,
+                                                                                                                   variableName);
+                            data.put(variableName, variable);
+                        }
+                    }
+                }
+            } else {
+                // For each group -> get all variables that belong to the current group
+                LinkedHashSet<String> variablesNames = variablesToGroups.entrySet()
+                                                                        .stream()
+                                                                        .filter(entry -> entry.getValue()
+                                                                                              .equals(groupName))
+                                                                        .map(Map.Entry::getKey)
+                                                                        .collect(Collectors.toCollection(LinkedHashSet::new));
+
+                for (String varName : variablesNames) {
+                    // For each variable -> get the data that is used to create the Job Variable object
+                    JobVariable variable = createJobVariableFromMetadataAndAssignItToTheCorrespondingGroup(metadataList,
+                                                                                                           groupName,
+                                                                                                           varName);
+
+                    // Add the Variable name and object to the List
+                    data.put(varName, variable);
+                }
+            }
+
+            // Add the previous list to the corresponding group
+            if (!data.isEmpty()) {
+                variablesOrder.put(groupName, data);
+            }
+        }
+        return variablesOrder;
+    }
+
+    private JobVariable createJobVariableFromMetadataAndAssignItToTheCorrespondingGroup(List<Metadata> metadataList,
+            String groupName, String varName) {
+
+        List<Metadata> variableMetadata = metadataList.stream()
+                                                      .filter(metadata -> metadata.getKey().equals(varName))
+                                                      .collect(Collectors.toList());
+
+        Optional<Metadata> value = variableMetadata.stream()
+                                                   .filter(metadata -> metadata.getLabel().equals("variable"))
+                                                   .findFirst();
+        Optional<Metadata> model = variableMetadata.stream()
+                                                   .filter(metadata -> metadata.getLabel().equals("variable_model"))
+                                                   .findFirst();
+        Optional<Metadata> description = variableMetadata.stream()
+                                                         .filter(metadata -> metadata.getLabel()
+                                                                                     .equals("variable_description"))
+                                                         .findFirst();
+        Optional<Metadata> advanced = variableMetadata.stream()
+                                                      .filter(metadata -> metadata.getLabel()
+                                                                                  .equals("variable_advanced"))
+                                                      .findFirst();
+        Optional<Metadata> hidden = variableMetadata.stream()
+                                                    .filter(metadata -> metadata.getLabel().equals("variable_hidden"))
+                                                    .findFirst();
+
+        // Create a Job Variable object with the previous attributes
+        return new JobVariable(varName,
+                               value.map(Metadata::getValue).orElse(null),
+                               model.map(Metadata::getValue).orElse(null),
+                               description.map(Metadata::getValue).orElse(null),
+                               groupName,
+                               advanced.map(metadata -> Boolean.parseBoolean(advanced.get().getValue())).orElse(false),
+                               hidden.map(metadata -> Boolean.parseBoolean(hidden.get().getValue())).orElse(false));
+    }
 }
