@@ -166,6 +166,17 @@ public class CatalogObjectMetadata extends ResourceSupport {
                                   .map(Metadata::getValue)
                                   .collect(Collectors.toCollection(LinkedHashSet::new)));
 
+        // Map that associates each variable to its group
+        Map<String, String> variablesToGroups = metadataList.stream()
+                                                            .filter(metadata -> metadata.getLabel()
+                                                                                        .equals("variable_group") &&
+                                                                                !metadata.getValue().equals("") &&
+                                                                                metadata.getValue() != null)
+                                                            .collect(Collectors.toMap(Metadata::getKey,
+                                                                                      Metadata::getValue,
+                                                                                      (e1, e2) -> e1,
+                                                                                      LinkedHashMap::new));
+
         for (String groupName : groups) {
 
             LinkedHashMap<String, JobVariable> data = new LinkedHashMap<>();
@@ -175,7 +186,7 @@ public class CatalogObjectMetadata extends ResourceSupport {
                 for (Metadata metadata : metadataList) {
                     if (metadata.getLabel().equals("variable")) {
                         String variableName = metadata.getKey();
-                        if (checkIfTheVariableHasNoGroup(variableName, metadataList)) {
+                        if (!variablesToGroups.containsKey(variableName)) {
                             JobVariable variable = createJobVariableFromMetadataAndAssignItToTheCorrespondingGroup(metadataList,
                                                                                                                    groupName,
                                                                                                                    variableName);
@@ -185,11 +196,12 @@ public class CatalogObjectMetadata extends ResourceSupport {
                 }
             } else {
                 // For each group -> get all variables that belong to the current group
-                LinkedHashSet<String> variablesNames = metadataList.stream()
-                                                                   .filter(metadata -> metadata.getValue()
-                                                                                               .equals(groupName))
-                                                                   .map(Metadata::getKey)
-                                                                   .collect(Collectors.toCollection(LinkedHashSet::new));
+                LinkedHashSet<String> variablesNames = variablesToGroups.entrySet()
+                                                                        .stream()
+                                                                        .filter(entry -> entry.getValue()
+                                                                                              .equals(groupName))
+                                                                        .map(Map.Entry::getKey)
+                                                                        .collect(Collectors.toCollection(LinkedHashSet::new));
 
                 for (String varName : variablesNames) {
                     // For each variable -> get the data that is used to create the Job Variable object
@@ -208,23 +220,6 @@ public class CatalogObjectMetadata extends ResourceSupport {
             }
         }
         return variablesOrder;
-    }
-
-    private boolean checkIfTheVariableHasNoGroup(String variableName, List<Metadata> metadataList) {
-        List<Metadata> variableMetadata = metadataList.stream()
-                                                      .filter(metadata -> metadata.getKey().equals(variableName))
-                                                      .collect(Collectors.toList());
-
-        // Check for each variable if it has a variable_group label
-        // If the value is null or empty -> return true if the variable has no group and false otherwise
-        for (Metadata metadata : variableMetadata) {
-            if (metadata.getLabel().equals("variable_group")) {
-                return metadata.getValue() == null || metadata.getValue().equals("");
-            }
-        }
-
-        // This case indicates that no variable_group label was found -> return true
-        return true;
     }
 
     private JobVariable createJobVariableFromMetadataAndAssignItToTheCorrespondingGroup(List<Metadata> metadataList,
