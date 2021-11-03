@@ -25,8 +25,8 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 import java.util.Optional;
 
@@ -35,7 +35,9 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.BucketService;
+import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 
 
@@ -53,9 +55,23 @@ public class BucketControllerTest {
     @Mock
     private RestApiAccessService restApiAccessService;
 
+    @Mock
+    private BucketGrantService bucketGrantService;
+
+    @Mock
+    private CatalogObjectGrantService catalogObjectGrantService;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        when(bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(any(),
+                                                                                                       any(),
+                                                                                                       any())).thenReturn(true);
+        when(catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(any(),
+                                                                                                                        any(),
+                                                                                                                        any())).thenReturn(true);
+        when(catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(any(),
+                                                                                                 any())).thenReturn(true);
     }
 
     @Test

@@ -36,16 +36,12 @@ import org.ow2.proactive.catalog.graphql.bean.argument.CatalogObjectWhereArgs;
 import org.ow2.proactive.catalog.graphql.fetcher.CatalogObjectFetcher;
 import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.*;
+import org.ow2.proactive.catalog.mocks.BucketGrantServiceMock;
+import org.ow2.proactive.catalog.mocks.CatalogObjectGrantServiceMock;
+import org.ow2.proactive.catalog.mocks.GrantAccessTypeHelperServiceMock;
 import org.ow2.proactive.catalog.mocks.RestApiAccessServiceMock;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.service.BucketService;
-import org.ow2.proactive.catalog.service.CatalogObjectService;
-import org.ow2.proactive.catalog.service.GraphqlService;
-import org.ow2.proactive.catalog.service.KeyValueLabelMetadataHelper;
-import org.ow2.proactive.catalog.service.OwnerGroupStringHelper;
-import org.ow2.proactive.catalog.service.RestApiAccessService;
-import org.ow2.proactive.catalog.service.WorkflowInfoAdder;
-import org.ow2.proactive.catalog.service.WorkflowXmlManipulator;
+import org.ow2.proactive.catalog.service.*;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
@@ -277,5 +273,23 @@ public class IntegrationTestConfig {
     @Primary
     public RestApiAccessService restApiAccessService() {
         return new RestApiAccessServiceMock();
+    }
+
+    @Bean
+    @Primary
+    public BucketGrantService bucketGrantService() {
+        return new BucketGrantServiceMock();
+    }
+
+    @Bean
+    @Primary
+    public CatalogObjectGrantService catalogObjectGrantService() {
+        return new CatalogObjectGrantServiceMock();
+    }
+
+    @Bean
+    @Primary
+    public GrantAccessTypeHelperService grantAccessTypeHelperService() {
+        return new GrantAccessTypeHelperServiceMock();
     }
 }

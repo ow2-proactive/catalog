@@ -30,10 +30,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -108,6 +105,6 @@ public class CatalogObjectEntityTest {
                                                time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
                                                catalogObject,
                                                Collections.emptyList(),
-                                               new byte[0]);
+                                               new byte[0], new LinkedHashSet<>());
     }
 }

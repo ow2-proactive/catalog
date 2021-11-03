@@ -69,4 +69,16 @@ public class RestApiAccessServiceMock extends RestApiAccessService {
         return true;
     }
 
+    public boolean isSessionActive(String sessionId) {
+        return true;
+    }
+
+    public boolean isBucketAccessibleByUser(boolean sessionIdRequired, String sessionId, String bucketName) {
+        return true;
+    }
+
+    public AuthenticatedUser getUserFromSessionId(String sessionId) {
+        return AuthenticatedUser.builder().name("username").groups(Lists.newArrayList()).build();
+    }
+
 }

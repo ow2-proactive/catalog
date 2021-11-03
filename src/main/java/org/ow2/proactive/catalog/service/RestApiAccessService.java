@@ -94,6 +94,28 @@ public class RestApiAccessService {
         return restApiAccessResponse;
     }
 
+    public AuthenticatedUser getUserFromSessionId(String sessionId) {
+        return schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
+    }
+
+    public boolean isUserSessionActive(String sessionId, String username) {
+        AuthenticatedUser authenticatedUser = schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
+        if (authenticatedUser.getName().equals(username)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean isSessionActive(String sessionId) {
+        AuthenticatedUser authenticatedUser = schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
+        if (authenticatedUser != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public boolean isBucketAccessibleByUser(boolean sessionIdRequired, String sessionId, String bucketName) {
         if (!isAPublicBucket(bucketName) && sessionIdRequired) {
             return this.checkAccessBySessionForBucketToOwnerOrGroup(sessionId, bucketName).isAuthorized();

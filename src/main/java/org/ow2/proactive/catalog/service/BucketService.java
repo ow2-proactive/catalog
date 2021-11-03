@@ -73,6 +73,9 @@ public class BucketService {
     private OwnerGroupStringHelper ownerGroupStringHelper;
 
     @Autowired
+    private BucketGrantService bucketGrantService;
+
+    @Autowired
     CatalogObjectService catalogObjectService;
 
     public BucketMetadata createBucket(String name) {
@@ -237,7 +240,15 @@ public class BucketService {
         if (!bucketEntity.getCatalogObjects().isEmpty()) {
             throw new DeleteNonEmptyBucketException(bucketName);
         }
-        bucketRepository.delete(bucketEntity.getId());
+        // Get the bucketId
+        long bucketId = bucketEntity.getId();
+
+        // Delete the bucket
+        bucketRepository.delete(bucketId);
+
+        // Delete all bucket grants
+        bucketGrantService.deleteAllBucketGrants(bucketId);
+
         return new BucketMetadata(bucketEntity);
     }
 

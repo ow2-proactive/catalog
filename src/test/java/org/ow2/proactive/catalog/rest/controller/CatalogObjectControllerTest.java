@@ -44,15 +44,19 @@ import java.util.Optional;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.ow2.proactive.catalog.service.BucketGrantService;
+import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
@@ -89,6 +93,25 @@ public class CatalogObjectControllerTest {
     private RestApiAccessService restApiAccessService;
 
     private static final String PROJECT_NAME = "projectName";
+
+    @Mock
+    private BucketGrantService bucketGrantService;
+
+    @Mock
+    private CatalogObjectGrantService catalogObjectGrantService;
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        when(bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(any(),
+                                                                                                       any(),
+                                                                                                       any())).thenReturn(true);
+        when(catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(any(),
+                                                                                                                        any(),
+                                                                                                                        any())).thenReturn(true);
+        when(catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(any(),
+                                                                                                 any())).thenReturn(true);
+    }
 
     @Test
     public void testGetCatalogObjectsAsArchive() throws IOException, NotAuthenticatedException, AccessDeniedException {

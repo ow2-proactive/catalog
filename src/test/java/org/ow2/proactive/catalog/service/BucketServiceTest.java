@@ -83,6 +83,9 @@ public class BucketServiceTest {
     @Mock
     private BucketNameValidator bucketNameValidator;
 
+    @Mock
+    private BucketGrantService bucketGrantService;
+
     @Test
     public void testThatEmptyListIsReturnedIfListAndKindAreNull() {
         assertThat(bucketService.listBuckets((List<String>) null, null, null, null)).isEmpty();
