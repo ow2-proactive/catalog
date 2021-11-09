@@ -38,10 +38,11 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjectGrantEntity, Long>,
         JpaSpecificationExecutor<CatalogObjectGrantEntity>, QueryDslPredicateExecutor<CatalogObjectGrantEntity> {
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
-    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObjectRevisionEntity.id = ?1 AND coge.bucketEntity.id = ?2")
-    List<CatalogObjectGrantEntity> findAllGrantsByCatalogObjectIdInBucket(long catalogObjectId, long bucketId);
+    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByCatalogObjectRevisionEntityIdAndBucketEntityId(long catalogObjectId, long bucketId);
+
+    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByCreatorAndBucketEntityId(String admin, long bucketId);
+
+    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketEntityId(long bucketId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
@@ -52,12 +53,6 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObjectRevisionEntity.id = ?1 AND coge.profiteer = ?2 AND coge.bucketEntity.id=?3 AND coge.grantee='group'")
     CatalogObjectGrantEntity findCatalogObjectGrantByUserGroup(long catalogObjectId, String userGroup, long bucketId);
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
-    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.creator = ?1 AND coge.bucketEntity.id = ?2")
-    List<CatalogObjectGrantEntity> findAllCatalogObjectsGrantsCreatedByUsernameInASpecificBucket(String admin,
-            long bucketId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
@@ -80,10 +75,5 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
     @Query(value = "SELECT coge.bucketEntity.id FROM CatalogObjectGrantEntity coge WHERE coge.profiteer = ?1 AND coge.grantee='group'")
     List<Long> findAllBucketsIdFromCatalogObjectGrantsAssignedToAUserGroup(String userGroup);
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
-    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.bucketEntity.id=?1")
-    List<CatalogObjectGrantEntity> findAllCatalogObjectGrantsAssignedToABucket(long bucketId);
 
 }

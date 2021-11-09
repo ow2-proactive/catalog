@@ -133,7 +133,7 @@ public class CatalogObjectController {
         if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                            bucketName,
-                                                                                                           ADMIN_ACCESS_TYPE)) {
+                                                                                                           admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -226,11 +226,11 @@ public class CatalogObjectController {
         if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                            bucketName,
-                                                                                                           WRITE_ACCESS_TYPE) &&
+                                                                                                           write.toString()) &&
                 !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                                       bucketName,
                                                                                                                       name,
-                                                                                                                      WRITE_ACCESS_TYPE)) {
+                                                                                                                      write.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -261,11 +261,11 @@ public class CatalogObjectController {
         if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                            bucketName,
-                                                                                                           READ_ACCESS_TYPE) &&
+                                                                                                           read.toString()) &&
                 !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                                       bucketName,
                                                                                                                       name,
-                                                                                                                      READ_ACCESS_TYPE)) {
+                                                                                                                      read.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -300,11 +300,11 @@ public class CatalogObjectController {
         if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                            bucketName,
-                                                                                                           READ_ACCESS_TYPE) &&
+                                                                                                           read.toString()) &&
                 !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                                       bucketName,
                                                                                                                       name,
-                                                                                                                      READ_ACCESS_TYPE)) {
+                                                                                                                      read.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -338,11 +338,11 @@ public class CatalogObjectController {
         if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                            bucketName,
-                                                                                                           READ_ACCESS_TYPE) &&
+                                                                                                           read.toString()) &&
                 !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                                       bucketName,
                                                                                                                       name,
-                                                                                                                      READ_ACCESS_TYPE)) {
+                                                                                                                      read.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -378,12 +378,11 @@ public class CatalogObjectController {
 
         // Check Grants
         AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-        List<CatalogObjectGrantMetaData> grants = new LinkedList<>();
-        if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName) &&
-            !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user, bucketName)) {
+        List<CatalogObjectGrantMetadata> grants = new LinkedList<>();
+        if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                            bucketName,
-                                                                                                           READ_ACCESS_TYPE)) {
+                                                                                                           read.toString()) && !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user, bucketName)) {
                 throw new BucketGrantAccessException(bucketName);
             } else {
                 grants = catalogObjectGrantService.findAllCatalogObjectGrantsAssignedToABucket(bucketName);
@@ -426,12 +425,24 @@ public class CatalogObjectController {
                                                                                                pageNo,
                                                                                                pageSize);
 
+
+
+            // TODO optimize this algorithm
             if (!grants.isEmpty()) {
-                for (CatalogObjectGrantMetaData grant : grants) {
-                    metadataList.removeIf(obj -> !obj.getName()
-                                                     .equals(catalogObjectGrantService.getCatalogObjectNameFromGrant(grant)) &&
-                                                 grant.getProfiteer().equals(user.getName()));
+                List<CatalogObjectMetadata> objectsToRemove = new LinkedList<>();
+                List<CatalogObjectMetadata> objectsNotToRemove = new LinkedList<>();
+                for (CatalogObjectGrantMetadata grant : grants) {
+                    String objName = catalogObjectGrantService.getCatalogObjectNameFromGrant(grant);
+                    for(CatalogObjectMetadata obj: metadataList){
+                        if(!obj.getName().equals(objName) && !objectsToRemove.contains(obj)){
+                            objectsToRemove.add(obj);
+                        } else if (obj.getName().equals(objName) && !objectsNotToRemove.contains(obj)){
+                            objectsNotToRemove.add(obj);
+                        }
+                    }
                 }
+                objectsToRemove.removeAll(objectsNotToRemove);
+                metadataList.removeAll(objectsToRemove);
             }
 
             for (CatalogObjectMetadata catalogObject : metadataList) {
@@ -465,11 +476,11 @@ public class CatalogObjectController {
         if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                            bucketName,
-                                                                                                           ADMIN_ACCESS_TYPE) &&
+                                                                                                           admin.toString()) &&
                 !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                                       bucketName,
                                                                                                                       name,
-                                                                                                                      ADMIN_ACCESS_TYPE)) {
+                                                                                                                      admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }

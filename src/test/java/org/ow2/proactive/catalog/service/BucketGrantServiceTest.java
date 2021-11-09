@@ -110,7 +110,7 @@ public class BucketGrantServiceTest{
     @Test
     public void testGetAllGrantsCreatedByUsername() {
         assertThat(bucketGrantService.getAllGrantsCreatedByUsername(DUMMY_USERNAME)).isEmpty();
-        verify(bucketGrantRepository, times(1)).findAllGrantsCreatedByUsername(DUMMY_USERNAME);
+        verify(bucketGrantRepository, times(1)).findBucketGrantEntitiesByCreator(DUMMY_USERNAME);
     }
 
     @Test
@@ -240,13 +240,13 @@ public class BucketGrantServiceTest{
         List<BucketGrantEntity> mockedBucketGrants = new LinkedList<>();
         mockedBucketGrants.add(userBucketGrantEntity);
 
-        when(bucketGrantRepository.findAllGrantsByBucket(1L)).thenReturn(mockedBucketGrants);
+        when(bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(1L)).thenReturn(mockedBucketGrants);
         doNothing().when(bucketGrantRepository).delete(any(BucketGrantEntity.class));
         doNothing().when(catalogObjectGrantService).deleteAllCatalogObjectsGrantsAssignedToABucket(1L);
 
         bucketGrantService.deleteAllBucketGrants(mockedBucket.getId());
 
-        verify(bucketGrantRepository, times(1)).findAllGrantsByBucket(mockedBucket.getId());
+        verify(bucketGrantRepository, times(1)).findBucketGrantEntitiesByBucketEntityId(mockedBucket.getId());
         verify(bucketGrantRepository, times(1)).delete(mockedBucketGrants);
         verify(catalogObjectGrantService, times(1)).deleteAllCatalogObjectsGrantsAssignedToABucket(mockedBucket.getId());
     }

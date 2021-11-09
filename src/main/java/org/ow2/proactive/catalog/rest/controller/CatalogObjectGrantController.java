@@ -29,7 +29,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 import java.util.List;
 
-import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetaData;
+import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
 import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
@@ -70,7 +70,7 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public CatalogObjectGrantMetaData createCatalogObjectGrant(
+    public CatalogObjectGrantMetadata createCatalogObjectGrant(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String catalogObjectName,
             @ApiParam(value = "The user who is creating this grant") @RequestParam(value = "currentUser", required = true) String currentUser,
@@ -111,7 +111,7 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY, method = DELETE)
     @ResponseStatus(HttpStatus.OK)
-    public CatalogObjectGrantMetaData deleteCatalogObjectGrant(
+    public CatalogObjectGrantMetadata deleteCatalogObjectGrant(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String catalogObjectName,
             @ApiParam(value = "The current user") @RequestParam(value = "currentUser", required = true) String currentUser,
@@ -145,7 +145,7 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY, method = PUT)
     @ResponseStatus(HttpStatus.OK)
-    private CatalogObjectGrantMetaData updateCatalogObjectGrant(
+    private CatalogObjectGrantMetadata updateCatalogObjectGrant(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String catalogObjectName,
             @ApiParam(value = "The current user") @RequestParam(value = "currentUser", required = true) String currentUser,
@@ -185,7 +185,7 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY, method = GET)
     @ResponseStatus(HttpStatus.OK)
-    public List<CatalogObjectGrantMetaData> getAllAssignedCatalogObjectGrantsForTheCurrentUserAndHisGroup(
+    public List<CatalogObjectGrantMetadata> getAllAssignedCatalogObjectGrantsForTheCurrentUserAndHisGroup(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String catalogObjectName,
             @ApiParam(value = "The current user") @RequestParam(value = "currentUser", required = true) String currentUser,
@@ -212,7 +212,7 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(method = GET)
     @ResponseStatus(HttpStatus.OK)
-    public List<CatalogObjectGrantMetaData> getAllCreatedCatalogObjectGrantsByTheCurrentUSerForTheCurrentUserBucket(
+    public List<CatalogObjectGrantMetadata> getAllCreatedCatalogObjectGrantsByTheCurrentUSerForTheCurrentUserBucket(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName,
             @ApiParam(value = "The current user") @RequestParam(value = "currentUser", required = true) String currentUser)

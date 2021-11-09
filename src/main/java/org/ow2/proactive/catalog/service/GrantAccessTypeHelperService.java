@@ -42,16 +42,31 @@ public class GrantAccessTypeHelperService {
         // If user grant exists over this bucket, check the access type
         // else check the access type of the user group grant over this bucket
         // if both case are false ==> no grants assigned to this user over this bucket
-        switch (requiredAccessType) {
-            case READ_ACCESS_TYPE:
-                return currentAccessType.equals(READ_ACCESS_TYPE) || currentAccessType.equals(WRITE_ACCESS_TYPE) ||
-                       currentAccessType.equals(ADMIN_ACCESS_TYPE);
-            case WRITE_ACCESS_TYPE:
-                return currentAccessType.equals(WRITE_ACCESS_TYPE) || currentAccessType.equals(ADMIN_ACCESS_TYPE);
-            case ADMIN_ACCESS_TYPE:
-                return currentAccessType.equals(ADMIN_ACCESS_TYPE);
-            default:
-                return false;
+        if(requiredAccessType.equals(admin.toString())){
+            return currentAccessType.equals(admin.toString());
+        } else if(requiredAccessType.equals(write.toString())){
+            return currentAccessType.equals(write.toString()) || currentAccessType.equals(admin.toString());
+        } else if(requiredAccessType.equals(read.toString())){
+            return currentAccessType.equals(read.toString()) || currentAccessType.equals(write.toString()) ||
+                    currentAccessType.equals(admin.toString());
+        } else {
+            return false;
         }
+    }
+
+    /**
+     *
+     * @param accessType1 first access type
+     * @param accessType2 second access type
+     * @return 1 if the first access type is higher than the second and 2 in opposite case
+     */
+    public int getPriorityLevel(String accessType1, String accessType2) {
+        int priority = 1;
+        if(accessType1.equals(read.toString()) && (accessType2.equals(admin.toString()) || accessType2.equals(write.toString()))){
+            priority = 2;
+        } else if (accessType1.equals(write.toString()) && accessType2.equals(admin.toString())){
+            priority = 2;
+        }
+        return priority;
     }
 }

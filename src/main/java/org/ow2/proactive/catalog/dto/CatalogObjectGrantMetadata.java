@@ -25,15 +25,18 @@
  */
 package org.ow2.proactive.catalog.dto;
 
-import java.util.Objects;
-
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectGrantEntity;
 import org.springframework.hateoas.ResourceSupport;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-
-public class CatalogObjectGrantMetaData extends ResourceSupport {
+@Data
+@Getter
+@EqualsAndHashCode(callSuper = false)
+public class CatalogObjectGrantMetadata extends ResourceSupport {
 
     @JsonProperty
     private final String grantee;
@@ -53,8 +56,8 @@ public class CatalogObjectGrantMetaData extends ResourceSupport {
     @JsonProperty
     private final long catalogObjectBucketId;
 
-    public CatalogObjectGrantMetaData(String grantee, String creator, String profiteer, String accessType,
-            long catalogObjectId, long catalogObjectBucketId) {
+    public CatalogObjectGrantMetadata(String grantee, String creator, String profiteer, String accessType,
+                                      long catalogObjectId, long catalogObjectBucketId) {
         this.grantee = grantee;
         this.creator = creator;
         this.profiteer = profiteer;
@@ -63,7 +66,7 @@ public class CatalogObjectGrantMetaData extends ResourceSupport {
         this.catalogObjectBucketId = catalogObjectBucketId;
     }
 
-    public CatalogObjectGrantMetaData(CatalogObjectGrantEntity catalogObjectGrantEntity) {
+    public CatalogObjectGrantMetadata(CatalogObjectGrantEntity catalogObjectGrantEntity) {
         this.grantee = catalogObjectGrantEntity.getGrantee();
         this.creator = catalogObjectGrantEntity.getCreator();
         this.profiteer = catalogObjectGrantEntity.getProfiteer();
@@ -72,49 +75,4 @@ public class CatalogObjectGrantMetaData extends ResourceSupport {
         this.catalogObjectBucketId = catalogObjectGrantEntity.getBucketEntity().getId();
     }
 
-    public String getGrantee() {
-        return grantee;
-    }
-
-    public String getCreator() {
-        return creator;
-    }
-
-    public String getProfiteer() {
-        return profiteer;
-    }
-
-    public String getAccessType() {
-        return accessType;
-    }
-
-    public long getCatalogObjectId() {
-        return catalogObjectId;
-    }
-
-    public long getCatalogObjectBucketId() {
-        return catalogObjectBucketId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        CatalogObjectGrantMetaData that = (CatalogObjectGrantMetaData) o;
-        return Objects.equals(this.getCatalogObjectId(), that.getCatalogObjectId()) &&
-               Objects.equals(this.getProfiteer(), that.getProfiteer()) &&
-               Objects.equals(this.getAccessType(), that.getAccessType()) &&
-               Objects.equals(this.getGrantee(), that.getGrantee()) &&
-               Objects.equals(this.getCatalogObjectBucketId(), that.getCatalogObjectBucketId());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), grantee, profiteer, accessType, catalogObjectId, catalogObjectBucketId);
-    }
 }

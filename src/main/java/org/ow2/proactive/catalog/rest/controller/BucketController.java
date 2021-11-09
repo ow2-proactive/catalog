@@ -25,8 +25,8 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
-import static org.ow2.proactive.catalog.util.AccessType.ADMIN_ACCESS_TYPE;
-import static org.ow2.proactive.catalog.util.AccessType.READ_ACCESS_TYPE;
+import static org.ow2.proactive.catalog.util.AccessType.admin;
+import static org.ow2.proactive.catalog.util.AccessType.read;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -45,6 +45,7 @@ import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingExceptio
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
+import org.ow2.proactive.catalog.util.AccessType;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -132,7 +133,7 @@ public class BucketController {
                 AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
                 if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                                bucketName,
-                                                                                                               ADMIN_ACCESS_TYPE)) {
+                        admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -166,7 +167,7 @@ public class BucketController {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                            bucketName,
-                                                                                                           READ_ACCESS_TYPE) &&
+                                                                                                           read.toString()) &&
                 !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user,
                                                                                                      bucketName)) {
                 throw new BucketGrantAccessException(bucketName);
@@ -244,7 +245,7 @@ public class BucketController {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                            bucketName,
-                                                                                                           ADMIN_ACCESS_TYPE)) {
+                                                                                                           admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }

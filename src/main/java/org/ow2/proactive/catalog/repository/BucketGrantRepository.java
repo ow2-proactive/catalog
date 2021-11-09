@@ -38,10 +38,9 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 public interface BucketGrantRepository extends JpaRepository<BucketGrantEntity, Long>,
         JpaSpecificationExecutor<BucketGrantEntity>, QueryDslPredicateExecutor<BucketGrantEntity> {
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
-    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1")
-    List<BucketGrantEntity> findAllGrantsByBucket(long bucketId);
+    List<BucketGrantEntity> findBucketGrantEntitiesByBucketEntityId(long bucketId);
+
+    List<BucketGrantEntity> findBucketGrantEntitiesByCreator(String creatorName);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
@@ -52,11 +51,6 @@ public interface BucketGrantRepository extends JpaRepository<BucketGrantEntity, 
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.profiteer = ?2 AND bge.grantee='group'")
     BucketGrantEntity findBucketGrantByUserGroup(long bucketId, String userGroup);
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
-    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.creator = ?1")
-    List<BucketGrantEntity> findAllGrantsCreatedByUsername(String admin);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })

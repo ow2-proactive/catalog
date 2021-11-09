@@ -27,18 +27,17 @@ package org.ow2.proactive.catalog.service;
 
 import static org.ow2.proactive.catalog.util.AccessType.*;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketGrantRepository;
 import org.ow2.proactive.catalog.repository.BucketRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectGrantRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectGrantEntity;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAlreadyExistsException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +61,9 @@ public class BucketGrantService {
 
     @Autowired
     private BucketGrantRepository bucketGrantRepository;
+
+    @Autowired
+    private CatalogObjectGrantRepository catalogObjectGrantRepository;
 
     @Autowired
     private CatalogObjectGrantService catalogObjectGrantService;
@@ -89,7 +91,7 @@ public class BucketGrantService {
         // Check for duplicates grants in the group grant
         // If the user group has a grant over a different bucket we add it to the result
         // If not, we check the access type and compare them to add only the higher access grant
-        if (dbGroupBucketGrants != null) {
+        if (dbGroupBucketGrants != null && !dbGroupBucketGrants.isEmpty()) {
             for (BucketGrantEntity groupBucketGrant : dbGroupBucketGrants) {
                 for (BucketGrantEntity userBucketGrant : dbUserBucketGrants) {
                     // Grant over different buckets
@@ -101,7 +103,7 @@ public class BucketGrantService {
                         String userGrantAccessType = userBucketGrant.getAccessType();
                         String userGroupGrantAccessType = groupBucketGrant.getAccessType();
                         // Compare the access type and add the higher one
-                        if (getPriorityLevel(userGrantAccessType, userGroupGrantAccessType) == 2) {
+                        if (grantAccessTypeHelperService.getPriorityLevel(userGrantAccessType, userGroupGrantAccessType) == 2) {
                             result.add(groupBucketGrant);
                         } else {
                             result.add(userBucketGrant);
@@ -109,7 +111,7 @@ public class BucketGrantService {
                     }
                 }
             }
-        } else if(dbUserBucketGrants != null) {
+        } else if(dbUserBucketGrants != null && !dbUserBucketGrants.isEmpty()) {
             result.addAll(dbUserBucketGrants);
         }
         if(!result.isEmpty()) {
@@ -117,27 +119,6 @@ public class BucketGrantService {
         } else {
             return new LinkedList<>();
         }
-    }
-
-    /**
-     *
-     * @param firstAccessType first access type
-     * @param secondAccessType second access type
-     * @return 1 if the first access type is higher than the second and 2 in opposite case
-     */
-    private int getPriorityLevel(String firstAccessType, String secondAccessType) {
-        int priority = 1;
-        switch (firstAccessType) {
-            case READ_ACCESS_TYPE:
-                if (secondAccessType.equals(ADMIN_ACCESS_TYPE) || secondAccessType.equals(WRITE_ACCESS_TYPE)) {
-                    priority = 2;
-                }
-            case WRITE_ACCESS_TYPE:
-                if (secondAccessType.equals(ADMIN_ACCESS_TYPE)) {
-                    priority = 2;
-                }
-        }
-        return priority;
     }
 
     /**
@@ -219,7 +200,7 @@ public class BucketGrantService {
      */
     public List<BucketGrantMetadata> getAllGrantsCreatedByUsername(String username) {
         // Get from the db all grants that are created by the current user
-        List<BucketGrantEntity> dbUserCreatedGrants = bucketGrantRepository.findAllGrantsCreatedByUsername(username);
+        List<BucketGrantEntity> dbUserCreatedGrants = bucketGrantRepository.findBucketGrantEntitiesByCreator(username);
 
         // Transform the result to BucketGrantMetadata and return it
         if(dbUserCreatedGrants != null) {
@@ -316,18 +297,18 @@ public class BucketGrantService {
 
     /**
      *
-     * This function checks for admin grant over a bucket for the current user
+     * This function checks for grant rights over a bucket for the current user
      *
      * @param user username
      * @param bucketName bucket name
-     * @return true if the user has grant admin rights over the bucket and false otherwise
+     * @return true if the user has a sufficient grant right over the bucket and false otherwise
      */
     public boolean isTheUserGrantSufficientForTheCurrentTask(AuthenticatedUser user,
                                                              String bucketName, String requiredAccessType) {
         // Find the bucket and get its id
         long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
 
-        List<BucketGrantEntity> grants = bucketGrantRepository.findAllGrantsByBucket(bucketId);
+        List<BucketGrantEntity> grants = bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(bucketId);
 
         grants.removeIf(bucketGrantEntity -> ((!bucketGrantEntity.getProfiteer().equals(user.getName()) &&
                                                bucketGrantEntity.getGrantee().equals("user")) ||
@@ -339,9 +320,9 @@ public class BucketGrantService {
         // We need to pick only the grant with the higher access type
         if (grants.size() > 0) {
             bucketGrantEntity = grants.get(0);
-            if (!bucketGrantEntity.getAccessType().equals(ADMIN_ACCESS_TYPE)) {
+            if (!bucketGrantEntity.getAccessType().equals(admin.toString())) {
                 for (int index = 1; index < grants.size(); index++) {
-                    if (getPriorityLevel(bucketGrantEntity.getAccessType(), grants.get(index).getAccessType()) == 2) {
+                    if (grantAccessTypeHelperService.getPriorityLevel(bucketGrantEntity.getAccessType(), grants.get(index).getAccessType()) == 2) {
                         bucketGrantEntity = grants.get(index);
                     }
                 }
@@ -365,36 +346,35 @@ public class BucketGrantService {
      */
     public List<BucketMetadata> getBucketsForUserByGrants(AuthenticatedUser user) {
         // Buckets list to return
-        Set<BucketEntity> buckets = new HashSet<>();
+        List<BucketMetadata> bucketMetadataList = new LinkedList<>();
 
         // Bucket grants metadata list
         List<BucketGrantMetadata> bucketGrants = new LinkedList<>();
 
-        // Get the list of bucket ids from all objet grant
-        Set<Long> bucketsIds = new HashSet<>(catalogObjectGrantService.getAllBucketIdsFromGrantsAssignedToUsername(user.getName()));
-
+        // Get the list of bucket ids from all object grants assigned to a user
+        Set<Long> bucketsIdsFromCatalogObjectGrants = new HashSet<>(catalogObjectGrantService.getAllBucketIdsFromGrantsAssignedToUsername(user.getName()));
         // Get bucket grants from DB and add them to the bucket grant list
         // Get distinct buckets' ids from catalog object grants and add them to the corresponding list
         for (String group : user.getGroups()) {
             bucketGrants.addAll(this.getAllAssignedGrantsForUserAndHisGroup(user.getName(), group));
-            bucketsIds.addAll(catalogObjectGrantService.getAllBucketIdsFromGrantsAssignedToUserGroup(group));
+            bucketsIdsFromCatalogObjectGrants.addAll(catalogObjectGrantService.getAllBucketIdsFromGrantsAssignedToUserGroup(group));
         }
 
         // Get from bucket grants the targeted buckets
         for (BucketGrantMetadata bucketGrantMetadata : bucketGrants) {
-            buckets.add(bucketRepository.findOne(bucketGrantMetadata.getBucketId()));
+            BucketEntity bucket = bucketRepository.findOne(bucketGrantMetadata.getBucketId());
+            BucketMetadata bucketMetadata = new BucketMetadata(bucket, bucket.getCatalogObjects().size());
+            bucketMetadataList.add(bucketMetadata);
         }
 
         // Get the buckets from the list of buckets' ids
-        for (Long id : bucketsIds) {
-            buckets.add(bucketRepository.findOne(id));
+        for (Long id : bucketsIdsFromCatalogObjectGrants) {
+            BucketEntity bucket =  bucketRepository.findOne(id);
+            BucketMetadata bucketMetadata = new BucketMetadata(bucket, bucket.getCatalogObjects().size());
+            bucketMetadataList.add(bucketMetadata);
         }
 
-        // Return the result
-        // TODO check why the sizes of all buckets that have grants are sometime mixing up
-        return buckets.stream()
-                      .map(bucketEntity -> new BucketMetadata(bucketEntity, bucketEntity.getCatalogObjects().size()))
-                      .collect(Collectors.toList());
+        return bucketMetadataList;
     }
 
     /**
@@ -407,7 +387,7 @@ public class BucketGrantService {
      */
     public void deleteAllBucketGrants(long bucketId) {
         // Get existing grants
-        List<BucketGrantEntity> existingBucketGrantsToDelete = bucketGrantRepository.findAllGrantsByBucket(bucketId);
+        List<BucketGrantEntity> existingBucketGrantsToDelete = bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(bucketId);
 
         if (existingBucketGrantsToDelete != null) {
             // Delete all bucket Grants

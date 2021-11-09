@@ -54,19 +54,19 @@ public class BucketGrantEntity implements Serializable {
     @Column(name = "ID")
     protected Long id;
 
-    // Type of this grant: User or Group
+    // Type of this grant: user or group
     @Column(name = "GRANTEE", nullable = false)
     protected String grantee;
 
-    // Type of this grant: User or Group
+    // The User who created this grant
     @Column(name = "CREATOR", nullable = false)
     protected String creator;
 
-    // Username or Group Name
+    // Username or group Name
     @Column(name = "PROFITEER", nullable = false)
     protected String profiteer;
 
-    // Access type: Admin, write or read
+    // Access type: admin, write or read
     @Column(name = "ACCESS_TYPE", nullable = false)
     protected String accessType;
 

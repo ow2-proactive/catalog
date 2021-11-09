@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static org.ow2.proactive.catalog.util.AccessType.admin;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 import java.util.List;
@@ -55,8 +56,6 @@ import lombok.extern.log4j.Log4j2;
 @RestController
 @RequestMapping(value = "/buckets/grant")
 public class BucketGrantController {
-
-    private final String ADMIN_ACCESS_TYPE = "admin";
 
     @Autowired
     private BucketGrantService bucketGrantService;
@@ -112,7 +111,7 @@ public class BucketGrantController {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                           bucketName,
-                                                                                                          ADMIN_ACCESS_TYPE)) {
+                                                                                                          admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -176,7 +175,7 @@ public class BucketGrantController {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                           bucketName,
-                                                                                                          ADMIN_ACCESS_TYPE)) {
+                                                                                                          admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -210,7 +209,7 @@ public class BucketGrantController {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                                           bucketName,
-                                                                                                          ADMIN_ACCESS_TYPE)) {
+                                                                                                          admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }

@@ -28,7 +28,7 @@ package org.ow2.proactive.catalog.mocks;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetaData;
+import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
 import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 
@@ -49,7 +49,7 @@ public class CatalogObjectGrantServiceMock extends CatalogObjectGrantService {
         return true;
     }
 
-    public List<CatalogObjectGrantMetaData> findAllCatalogObjectGrantsAssignedToABucket(String bucketName) {
+    public List<CatalogObjectGrantMetadata> findAllCatalogObjectGrantsAssignedToABucket(String bucketName) {
         return new LinkedList<>();
     }
 

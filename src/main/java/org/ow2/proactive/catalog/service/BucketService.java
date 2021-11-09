@@ -243,11 +243,11 @@ public class BucketService {
         // Get the bucketId
         long bucketId = bucketEntity.getId();
 
-        // Delete the bucket
-        bucketRepository.delete(bucketId);
-
         // Delete all bucket grants
         bucketGrantService.deleteAllBucketGrants(bucketId);
+
+        // Delete the bucket
+        bucketRepository.delete(bucketId);
 
         return new BucketMetadata(bucketEntity);
     }

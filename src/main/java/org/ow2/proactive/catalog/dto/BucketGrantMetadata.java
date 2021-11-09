@@ -25,14 +25,17 @@
  */
 package org.ow2.proactive.catalog.dto;
 
-import java.util.Objects;
-
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
 import org.springframework.hateoas.ResourceSupport;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-
+@Data
+@Getter
+@EqualsAndHashCode(callSuper = false)
 public class BucketGrantMetadata extends ResourceSupport {
 
     @JsonProperty
@@ -64,46 +67,5 @@ public class BucketGrantMetadata extends ResourceSupport {
         this.profiteer = profiteer;
         this.accessType = accessType;
         this.bucketId = bucketId;
-    }
-
-    public String getGrantee() {
-        return this.grantee;
-    }
-
-    public String getProfiteer() {
-        return profiteer;
-    }
-
-    public String getCreator() {
-        return creator;
-    }
-
-    public String getAccessType() {
-        return accessType;
-    }
-
-    public long getBucketId() {
-        return bucketId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        BucketGrantMetadata that = (BucketGrantMetadata) o;
-        return Objects.equals(this.getBucketId(), that.getBucketId()) &&
-               Objects.equals(this.getProfiteer(), that.getProfiteer()) &&
-               Objects.equals(this.getAccessType(), that.getAccessType());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), grantee, profiteer, accessType, bucketId);
     }
 }

@@ -25,9 +25,6 @@
  */
 package org.ow2.proactive.catalog.util;
 
-// TODO Transform into Enum
-public class AccessType {
-    public static final String ADMIN_ACCESS_TYPE = "admin";
-    public static final String WRITE_ACCESS_TYPE = "write";
-    public static final String READ_ACCESS_TYPE = "read";
+public enum AccessType {
+    admin, write, read
 }

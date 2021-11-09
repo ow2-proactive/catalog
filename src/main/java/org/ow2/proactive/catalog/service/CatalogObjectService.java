@@ -548,11 +548,11 @@ public class CatalogObjectService {
                                                                                                                                              name);
             long catalogObjectId = catalogObjectRevisionEntity.getId();
 
-            // Delete the catalog Object
-            catalogObjectRepository.delete(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(), name));
-
             //Delete all object grants
             catalogObjectGrantService.deleteAllCatalogObjectGrants(bucketId, catalogObjectId);
+
+            // Delete the catalog Object
+            catalogObjectRepository.delete(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(), name));
         } catch (EmptyResultDataAccessException emptyResultDataAccessException) {
             log.warn("CatalogObject {} does not exist in bucket {}", name, bucketName);
             throw new CatalogObjectNotFoundException(bucketName, name);
