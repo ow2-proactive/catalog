@@ -103,9 +103,7 @@ public class CatalogObjectControllerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(any(),
-                                                                                                       any(),
-                                                                                                       any())).thenReturn(true);
+        when(bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(any(), any(), any())).thenReturn(true);
         when(catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(any(),
                                                                                                                         any(),
                                                                                                                         any())).thenReturn(true);

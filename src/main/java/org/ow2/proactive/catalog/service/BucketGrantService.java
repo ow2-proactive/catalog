@@ -93,28 +93,36 @@ public class BucketGrantService {
         // If not, we check the access type and compare them to add only the higher access grant
         if (dbGroupBucketGrants != null && !dbGroupBucketGrants.isEmpty()) {
             for (BucketGrantEntity groupBucketGrant : dbGroupBucketGrants) {
-                for (BucketGrantEntity userBucketGrant : dbUserBucketGrants) {
-                    // Grant over different buckets
-                    if (!groupBucketGrant.getBucketEntity().getId().equals(userBucketGrant.getBucketEntity().getId())) {
-                        result.add(userBucketGrant);
-                        result.add(groupBucketGrant);
-                    } else if (!groupBucketGrant.getAccessType().equals(userBucketGrant.getAccessType())) {
-                        // Grant over the same bucket but with different access type
-                        String userGrantAccessType = userBucketGrant.getAccessType();
-                        String userGroupGrantAccessType = groupBucketGrant.getAccessType();
-                        // Compare the access type and add the higher one
-                        if (grantAccessTypeHelperService.getPriorityLevel(userGrantAccessType, userGroupGrantAccessType) == 2) {
-                            result.add(groupBucketGrant);
-                        } else {
+                if (dbUserBucketGrants != null && !dbUserBucketGrants.isEmpty()) {
+                    for (BucketGrantEntity userBucketGrant : dbUserBucketGrants) {
+                        // Grant over different buckets
+                        if (!groupBucketGrant.getBucketEntity()
+                                             .getId()
+                                             .equals(userBucketGrant.getBucketEntity().getId())) {
                             result.add(userBucketGrant);
+                            result.add(groupBucketGrant);
+                        } else if (!groupBucketGrant.getAccessType().equals(userBucketGrant.getAccessType())) {
+                            // Grant over the same bucket but with different access type
+                            String userGrantAccessType = userBucketGrant.getAccessType();
+                            String userGroupGrantAccessType = groupBucketGrant.getAccessType();
+                            // Compare the access type and add the higher one
+                            if (grantAccessTypeHelperService.getPriorityLevel(userGrantAccessType,
+                                                                              userGroupGrantAccessType) == 2) {
+                                result.add(groupBucketGrant);
+                            } else {
+                                result.add(userBucketGrant);
+                            }
                         }
                     }
+                } else {
+                    result.addAll(dbGroupBucketGrants);
+                    break;
                 }
             }
-        } else if(dbUserBucketGrants != null && !dbUserBucketGrants.isEmpty()) {
+        } else if (dbUserBucketGrants != null && !dbUserBucketGrants.isEmpty()) {
             result.addAll(dbUserBucketGrants);
         }
-        if(!result.isEmpty()) {
+        if (!result.isEmpty()) {
             return result.stream().map(BucketGrantMetadata::new).collect(Collectors.toList());
         } else {
             return new LinkedList<>();
@@ -137,13 +145,13 @@ public class BucketGrantService {
         long bucketId;
         BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
 
-        if(bucketEntity !=null) {
+        if (bucketEntity != null) {
             bucketId = bucketEntity.getId();
 
             // Find the bucket grant assigned to the current user
             BucketGrantEntity bucketGrantEntity = bucketGrantRepository.findBucketGrantByUsername(bucketId, username);
 
-            if(bucketGrantEntity !=null) {
+            if (bucketGrantEntity != null) {
                 // Update the access type
                 bucketGrantEntity.setAccessType(accessType);
 
@@ -172,7 +180,7 @@ public class BucketGrantService {
         // Find the bucket and get its id
         long bucketId;
         BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
-        if(bucketEntity !=null) {
+        if (bucketEntity != null) {
             bucketId = bucketEntity.getId();
 
             // Find the bucket grant assigned to the current user group
@@ -203,7 +211,7 @@ public class BucketGrantService {
         List<BucketGrantEntity> dbUserCreatedGrants = bucketGrantRepository.findBucketGrantEntitiesByCreator(username);
 
         // Transform the result to BucketGrantMetadata and return it
-        if(dbUserCreatedGrants != null) {
+        if (dbUserCreatedGrants != null) {
             return dbUserCreatedGrants.stream().map(BucketGrantMetadata::new).collect(Collectors.toList());
         } else {
             return new LinkedList<>();
@@ -231,7 +239,7 @@ public class BucketGrantService {
         }
 
         BucketGrantEntity bucketGrantEntity = null;
-        if (!username.equals("") && groupName.equals("")) {
+        if (!username.isEmpty() && groupName.isEmpty()) {
             // Case if the grant targets a specific user
             // Check if a similar grant is available in the DB
             BucketGrantEntity dbUsernameBucketGrant = bucketGrantRepository.findBucketGrantByUsername(bucket.getId(),
@@ -244,7 +252,7 @@ public class BucketGrantService {
             }
             // BucketGrant attributes: Type, Profiteer, Access Type and the Bucket
             bucketGrantEntity = new BucketGrantEntity("user", currentUser, username, accessType, bucket);
-        } else if (username.equals("") && !groupName.equals("")) {
+        } else if (username.isEmpty() && !groupName.isEmpty()) {
             // Case if the grant targets a specific group
             // Check if a similar grant is available in the DB
             BucketGrantEntity dbUserGroupBucketGrant = bucketGrantRepository.findBucketGrantByUserGroup(bucket.getId(),
@@ -276,11 +284,11 @@ public class BucketGrantService {
         // Find the bucket
         BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
         BucketGrantEntity bucketGrantEntity = null;
-        if (!username.equals("") && userGroup.equals("")) {
+        if (!username.isEmpty() && userGroup.isEmpty()) {
             // Case if the grant targets a specific user
             // Find the Grant for the current user
             bucketGrantEntity = bucketGrantRepository.findBucketGrantByUsername(bucketEntity.getId(), username);
-        } else if (username.equals("") && !userGroup.equals("")) {
+        } else if (username.isEmpty() && !userGroup.isEmpty()) {
             // Case if the grant targets a specific group
             // Find the Grant fot the current userGroup
             bucketGrantEntity = bucketGrantRepository.findBucketGrantByUserGroup(bucketEntity.getId(), userGroup);
@@ -303,8 +311,8 @@ public class BucketGrantService {
      * @param bucketName bucket name
      * @return true if the user has a sufficient grant right over the bucket and false otherwise
      */
-    public boolean isTheUserGrantSufficientForTheCurrentTask(AuthenticatedUser user,
-                                                             String bucketName, String requiredAccessType) {
+    public boolean isTheUserGrantSufficientForTheCurrentTask(AuthenticatedUser user, String bucketName,
+            String requiredAccessType) {
         // Find the bucket and get its id
         long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
 
@@ -322,7 +330,8 @@ public class BucketGrantService {
             bucketGrantEntity = grants.get(0);
             if (!bucketGrantEntity.getAccessType().equals(admin.toString())) {
                 for (int index = 1; index < grants.size(); index++) {
-                    if (grantAccessTypeHelperService.getPriorityLevel(bucketGrantEntity.getAccessType(), grants.get(index).getAccessType()) == 2) {
+                    if (grantAccessTypeHelperService.getPriorityLevel(bucketGrantEntity.getAccessType(),
+                                                                      grants.get(index).getAccessType()) == 2) {
                         bucketGrantEntity = grants.get(index);
                     }
                 }
@@ -369,7 +378,7 @@ public class BucketGrantService {
 
         // Get the buckets from the list of buckets' ids
         for (Long id : bucketsIdsFromCatalogObjectGrants) {
-            BucketEntity bucket =  bucketRepository.findOne(id);
+            BucketEntity bucket = bucketRepository.findOne(id);
             BucketMetadata bucketMetadata = new BucketMetadata(bucket, bucket.getCatalogObjects().size());
             bucketMetadataList.add(bucketMetadata);
         }

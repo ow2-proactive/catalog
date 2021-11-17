@@ -25,13 +25,15 @@
  */
 package org.ow2.proactive.catalog.dto;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
 import org.springframework.hateoas.ResourceSupport;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+
 
 @Data
 @Getter

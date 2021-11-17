@@ -30,10 +30,6 @@ import org.ow2.proactive.catalog.service.GrantAccessTypeHelperService;
 
 public class GrantAccessTypeHelperServiceMock extends GrantAccessTypeHelperService {
 
-    public GrantAccessTypeHelperServiceMock(){
-        super();
-    }
-
     public boolean compareGrantAccessType(String currentAccessType, String requiredAccessType) {
         return true;
     }

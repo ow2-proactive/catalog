@@ -77,7 +77,7 @@ public class CatalogObjectGrantService {
      * @throws DataIntegrityViolationException in case of an internal db query error
      */
     public CatalogObjectGrantMetadata createCatalogObjectGrant(String bucketName, String catalogObjectName,
-                                                               String currentUser, String accessType, String username, String groupName)
+            String currentUser, String accessType, String username, String groupName)
             throws DataIntegrityViolationException {
 
         CatalogObjectGrantEntity catalogObjectGrantEntity = null;
@@ -91,7 +91,7 @@ public class CatalogObjectGrantService {
 
         checkForAvailability(catalogObjectRevisionEntity, bucketName, catalogObjectName);
 
-        if (!username.equals("") && groupName.equals("")) {
+        if (!username.isEmpty() && groupName.isEmpty()) {
             // Case if the grant targets a specific user
             CatalogObjectGrantEntity dbCatalogObjectGrantEntityForUser = catalogObjectGrantRepository.findCatalogObjectGrantByUsername(catalogObjectRevisionEntity.getId(),
                                                                                                                                        username,
@@ -105,13 +105,13 @@ public class CatalogObjectGrantService {
                 throw new CatalogObjectGrantAlreadyExistsException(catalogObjectName, bucketName, username);
             }
             catalogObjectGrantEntity = new CatalogObjectGrantEntity("user",
-                    currentUser,
+                                                                    currentUser,
                                                                     username,
                                                                     accessType,
                                                                     catalogObjectRevisionEntity,
                                                                     bucket);
 
-        } else if (username.equals("") && !groupName.equals("")) {
+        } else if (username.isEmpty() && !groupName.isEmpty()) {
             // Case if the grant targets a specific user group
             CatalogObjectGrantEntity dbCatalogObjectGrantEntityForUserGroup = catalogObjectGrantRepository.findCatalogObjectGrantByUserGroup(catalogObjectRevisionEntity.getId(),
                                                                                                                                              groupName,
@@ -126,7 +126,7 @@ public class CatalogObjectGrantService {
             }
             // BucketGrant attributes: Type, Profiteer, Access Type and the Bucket
             catalogObjectGrantEntity = new CatalogObjectGrantEntity("group",
-                    currentUser,
+                                                                    currentUser,
                                                                     groupName,
                                                                     accessType,
                                                                     catalogObjectRevisionEntity,
@@ -146,7 +146,7 @@ public class CatalogObjectGrantService {
      * @return an empty catalog grant metadata if the deletion process was successful
      */
     public CatalogObjectGrantMetadata deleteCatalogObjectGrant(String bucketName, String catalogObjectName,
-                                                               String username, String groupName) {
+            String username, String groupName) {
 
         List<String> bucketsName = new LinkedList<>();
         bucketsName.add(bucketName);
@@ -160,12 +160,12 @@ public class CatalogObjectGrantService {
         CatalogObjectGrantEntity catalogObjectGrantEntity = null;
 
         assert bucket != null;
-        if (!username.equals("") && groupName.equals("")) {
+        if (!username.isEmpty() && groupName.isEmpty()) {
             // Case if the grant targets a specific user
             catalogObjectGrantEntity = catalogObjectGrantRepository.findCatalogObjectGrantByUsername(catalogObjectRevisionEntity.getId(),
                                                                                                      username,
                                                                                                      bucket.getId());
-        } else if (username.equals("") && !groupName.equals("")) {
+        } else if (username.isEmpty() && !groupName.isEmpty()) {
             catalogObjectGrantEntity = catalogObjectGrantRepository.findCatalogObjectGrantByUserGroup(catalogObjectRevisionEntity.getId(),
                                                                                                       groupName,
                                                                                                       bucket.getId());
@@ -193,7 +193,7 @@ public class CatalogObjectGrantService {
      * @return the updated grant
      */
     public CatalogObjectGrantMetadata updateCatalogObjectGrant(String username, String groupName,
-                                                               String catalogObjectName, String bucketName, String accessType) {
+            String catalogObjectName, String bucketName, String accessType) {
 
         List<String> bucketsName = new LinkedList<>();
         bucketsName.add(bucketName);
@@ -206,12 +206,12 @@ public class CatalogObjectGrantService {
 
         CatalogObjectGrantEntity catalogObjectGrantEntity = null;
 
-        if (!username.equals("") && groupName.equals("")) {
+        if (!username.isEmpty() && groupName.isEmpty()) {
             // Case if the grant targets a specific user
             catalogObjectGrantEntity = catalogObjectGrantRepository.findCatalogObjectGrantByUsername(catalogObjectRevisionEntity.getId(),
                                                                                                      username,
                                                                                                      bucket.getId());
-        } else if (username.equals("") && !groupName.equals("")) {
+        } else if (username.isEmpty() && !groupName.isEmpty()) {
             // Case if the grant targets a specific user group
             catalogObjectGrantEntity = catalogObjectGrantRepository.findCatalogObjectGrantByUserGroup(catalogObjectRevisionEntity.getId(),
                                                                                                       groupName,
@@ -266,7 +266,7 @@ public class CatalogObjectGrantService {
 
         // Check for duplicates grants in the group grant
         // We check the access type and compare them to add only the higher access grant
-        if (dbGroupCatalogObjectGrants!=null && !dbGroupCatalogObjectGrants.isEmpty()) {
+        if (dbGroupCatalogObjectGrants != null && !dbGroupCatalogObjectGrants.isEmpty()) {
             for (CatalogObjectGrantEntity groupObjectGrant : dbGroupCatalogObjectGrants) {
                 for (CatalogObjectGrantEntity userObjectGrant : dbUserCatalogObjectGrants) {
                     if (!groupObjectGrant.getAccessType().equals(userObjectGrant.getAccessType())) {
@@ -275,7 +275,8 @@ public class CatalogObjectGrantService {
                         String userGroupGrantAccessType = groupObjectGrant.getAccessType();
                         // Compare the access type and add the higher one
                         // If priority level equals 2 ==> Group grant is higher than the user
-                        if (grantAccessTypeHelperService.getPriorityLevel(userGrantAccessType, userGroupGrantAccessType) == 2) {
+                        if (grantAccessTypeHelperService.getPriorityLevel(userGrantAccessType,
+                                                                          userGroupGrantAccessType) == 2) {
                             // Add the group grant
                             result.add(groupObjectGrant);
                         } else {
@@ -287,10 +288,10 @@ public class CatalogObjectGrantService {
                     }
                 }
             }
-        } else if(dbUserCatalogObjectGrants!=null && !dbUserCatalogObjectGrants.isEmpty()){
+        } else if (dbUserCatalogObjectGrants != null && !dbUserCatalogObjectGrants.isEmpty()) {
             result.addAll(dbUserCatalogObjectGrants);
         }
-        if(!result.isEmpty()) {
+        if (!result.isEmpty()) {
             return result.stream().map(CatalogObjectGrantMetadata::new).collect(Collectors.toList());
         } else {
             return new LinkedList<>();
@@ -298,10 +299,10 @@ public class CatalogObjectGrantService {
     }
 
     public List<CatalogObjectGrantMetadata> getAllCreatedCatalogObjectGrantsForThisBucket(String username,
-                                                                                          String bucketName) {
+            String bucketName) {
         BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
         List<CatalogObjectGrantEntity> dbUserCreatedCatalogObjectGrants = catalogObjectGrantRepository.findCatalogObjectGrantEntitiesByCreatorAndBucketEntityId(username,
-                                                                                                                                                                     bucket.getId());
+                                                                                                                                                                bucket.getId());
         return dbUserCreatedCatalogObjectGrants.stream()
                                                .map(CatalogObjectGrantMetadata::new)
                                                .collect(Collectors.toList());
@@ -424,7 +425,7 @@ public class CatalogObjectGrantService {
      */
     public List<CatalogObjectGrantMetadata> findAllCatalogObjectGrantsAssignedToABucket(String bucketName) {
         return catalogObjectGrantRepository.findCatalogObjectGrantEntitiesByBucketEntityId(bucketRepository.findOneByBucketName(bucketName)
-                                                                                                        .getId())
+                                                                                                           .getId())
                                            .stream()
                                            .map(CatalogObjectGrantMetadata::new)
                                            .collect(Collectors.toList());
@@ -469,8 +470,8 @@ public class CatalogObjectGrantService {
      * @return true if the user has the minimum grant access type over the current object
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean isTheUserGrantSufficientForTheCurrentTask(AuthenticatedUser user,
-                                                             String bucketName, String catalogObjectName, String requiredAccessType) {
+    public boolean isTheUserGrantSufficientForTheCurrentTask(AuthenticatedUser user, String bucketName,
+            String catalogObjectName, String requiredAccessType) {
         long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
 
         List<CatalogObjectGrantEntity> grantEntities = catalogObjectGrantRepository.findCatalogObjectGrantEntitiesByBucketEntityId(bucketId);
@@ -499,7 +500,7 @@ public class CatalogObjectGrantService {
             if (!userCatalogObjectGrant.getAccessType().equals(admin.toString())) {
                 for (int index = 1; index < grantEntities.size(); index++) {
                     if (grantAccessTypeHelperService.getPriorityLevel(userCatalogObjectGrant.getAccessType(),
-                                         grantEntities.get(index).getAccessType()) == 2) {
+                                                                      grantEntities.get(index).getAccessType()) == 2) {
                         userCatalogObjectGrant = grantEntities.get(index);
                     }
                 }
@@ -542,7 +543,7 @@ public class CatalogObjectGrantService {
     public void deleteAllCatalogObjectGrants(long bucketId, long catalogObjectId) {
         // Get the catalog objects grants
         List<CatalogObjectGrantEntity> catalogObjectGrants = catalogObjectGrantRepository.findCatalogObjectGrantEntitiesByCatalogObjectRevisionEntityIdAndBucketEntityId(catalogObjectId,
-                                                                                                                                 bucketId);
+                                                                                                                                                                         bucketId);
 
         if (!catalogObjectGrants.isEmpty()) {
             catalogObjectGrantRepository.delete(catalogObjectGrants);

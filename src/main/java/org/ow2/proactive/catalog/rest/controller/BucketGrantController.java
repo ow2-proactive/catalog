@@ -109,19 +109,17 @@ public class BucketGrantController {
         // Check Grants
         if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                          bucketName,
-                                                                                                          admin.toString())) {
+            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
 
         BucketGrantMetadata result = null;
 
-        if (!username.equals("") && userGroup.equals("")) {
+        if (!username.isEmpty() && userGroup.isEmpty()) {
             // Case if the grant targets a specific user
             result = bucketGrantService.updateBucketGrantForASpecificUser(bucketName, username, accessType);
-        } else if (username.equals("") && !userGroup.equals("")) {
+        } else if (username.isEmpty() && !userGroup.isEmpty()) {
             // Case if the grant targets a specific group
             result = bucketGrantService.updateBucketGrantForASpecificUserGroup(bucketName, userGroup, accessType);
         }
@@ -173,9 +171,7 @@ public class BucketGrantController {
         // Check if user is admin or has admin Grants over the bucket
         if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                          bucketName,
-                                                                                                          admin.toString())) {
+            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -207,9 +203,7 @@ public class BucketGrantController {
         // Check if user is admin or has admin Grants over the bucket
         if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                          bucketName,
-                                                                                                          admin.toString())) {
+            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }

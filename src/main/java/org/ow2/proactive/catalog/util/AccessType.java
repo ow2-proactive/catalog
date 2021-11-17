@@ -26,5 +26,7 @@
 package org.ow2.proactive.catalog.util;
 
 public enum AccessType {
-    admin, write, read
+    admin,
+    write,
+    read
 }

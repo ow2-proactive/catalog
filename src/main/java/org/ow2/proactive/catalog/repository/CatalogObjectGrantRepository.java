@@ -38,9 +38,11 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjectGrantEntity, Long>,
         JpaSpecificationExecutor<CatalogObjectGrantEntity>, QueryDslPredicateExecutor<CatalogObjectGrantEntity> {
 
-    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByCatalogObjectRevisionEntityIdAndBucketEntityId(long catalogObjectId, long bucketId);
+    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByCatalogObjectRevisionEntityIdAndBucketEntityId(
+            long catalogObjectId, long bucketId);
 
-    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByCreatorAndBucketEntityId(String admin, long bucketId);
+    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByCreatorAndBucketEntityId(String admin,
+            long bucketId);
 
     List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketEntityId(long bucketId);
 

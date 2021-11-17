@@ -25,13 +25,15 @@
  */
 package org.ow2.proactive.catalog.dto;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectGrantEntity;
 import org.springframework.hateoas.ResourceSupport;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+
 
 @Data
 @Getter
@@ -57,7 +59,7 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
     private final long catalogObjectBucketId;
 
     public CatalogObjectGrantMetadata(String grantee, String creator, String profiteer, String accessType,
-                                      long catalogObjectId, long catalogObjectBucketId) {
+            long catalogObjectId, long catalogObjectBucketId) {
         this.grantee = grantee;
         this.creator = creator;
         this.profiteer = profiteer;

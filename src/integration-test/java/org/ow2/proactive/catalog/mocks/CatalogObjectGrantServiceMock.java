@@ -35,10 +35,6 @@ import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 
 public class CatalogObjectGrantServiceMock extends CatalogObjectGrantService {
 
-    public CatalogObjectGrantServiceMock(){
-        super();
-    }
-
     public boolean checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(
             AuthenticatedUser user, String bucketName, String catalogObjectName) {
         return true;

@@ -900,7 +900,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body(ERROR_MESSAGE, equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
+               .body(ERROR_MESSAGE,
+                     equalTo(new CatalogObjectNotFoundException("non-existing-bucket",
+                                                                "object-name").getLocalizedMessage()));
     }
 
     @Test
@@ -912,7 +914,9 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_NOT_FOUND)
-               .body(ERROR_MESSAGE, equalTo(new BucketNotFoundException("non-existing-bucket").getLocalizedMessage()));
+               .body(ERROR_MESSAGE,
+                     equalTo(new CatalogObjectNotFoundException("non-existing-bucket",
+                                                                "object-name").getLocalizedMessage()));
     }
 
     @Test

@@ -47,6 +47,7 @@ import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
@@ -121,30 +122,33 @@ public class CatalogObjectController {
             @ApiParam(value = "The content of CatalogRawObject", required = true) @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
 
+        // Check Grants
+        AuthenticatedUser user = null;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
-        }
-
-        // Check Grants
-        AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-        if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                           bucketName,
-                                                                                                           admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
             }
+
         }
 
+        String userName = "";
+        if (user != null) {
+            userName = user.getName();
+        }
         if (name.isPresent()) {
             CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketName,
                                                                                            name.get(),
                                                                                            projectName.orElse(""),
                                                                                            kind,
                                                                                            commitMessage,
-                                                                                           user.getName(),
+                                                                                           userName,
                                                                                            objectContentType,
                                                                                            file.getBytes(),
                                                                                            FilenameUtils.getExtension(file.getOriginalFilename()));
@@ -158,7 +162,7 @@ public class CatalogObjectController {
                                                                                                    projectName.orElse(""),
                                                                                                    kind,
                                                                                                    commitMessage,
-                                                                                                   user.getName(),
+                                                                                                   userName,
                                                                                                    file.getBytes());
 
             for (CatalogObjectMetadata catalogObject : catalogObjects) {
@@ -219,20 +223,19 @@ public class CatalogObjectController {
             if (!restApiAccessService.isSessionActive(sessionId)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
-        }
 
-        // Check Grants
-        AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-        if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                           bucketName,
-                                                                                                           write.toString()) &&
-                !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                                      bucketName,
-                                                                                                                      name,
-                                                                                                                      write.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+            // Check Grants
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, write.toString()) &&
+                    !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
+                                                                                         bucketName,
+                                                                                         name,
+                                                                                         write.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
             }
+
         }
 
         return catalogObjectService.updateObjectMetadata(bucketName, name, kind, contentType, projectName);
@@ -254,20 +257,19 @@ public class CatalogObjectController {
             if (!restApiAccessService.isSessionActive(sessionId)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
-        }
 
-        AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-        // Check Grants
-        if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                           bucketName,
-                                                                                                           read.toString()) &&
-                !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                                      bucketName,
-                                                                                                                      name,
-                                                                                                                      read.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            // Check Grants
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, read.toString()) &&
+                    !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
+                                                                                         bucketName,
+                                                                                         name,
+                                                                                         read.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
             }
+
         }
 
         CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketName, name);
@@ -293,20 +295,19 @@ public class CatalogObjectController {
             if (!restApiAccessService.isSessionActive(sessionId)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
-        }
 
-        // Check Grants
-        AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-        if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                           bucketName,
-                                                                                                           read.toString()) &&
-                !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                                      bucketName,
-                                                                                                                      name,
-                                                                                                                      read.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+            // Check Grants
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, read.toString()) &&
+                    !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
+                                                                                         bucketName,
+                                                                                         name,
+                                                                                         read.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
             }
+
         }
 
         CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucketName, name);
@@ -331,19 +332,17 @@ public class CatalogObjectController {
             if (!restApiAccessService.isSessionActive(sessionId)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
-        }
 
-        // Check Grants
-        AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-        if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                           bucketName,
-                                                                                                           read.toString()) &&
-                !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                                      bucketName,
-                                                                                                                      name,
-                                                                                                                      read.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+            // Check Grants
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, read.toString()) &&
+                    !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
+                                                                                         bucketName,
+                                                                                         name,
+                                                                                         read.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
             }
         }
 
@@ -369,24 +368,25 @@ public class CatalogObjectController {
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
+        // Check Grants
+        AuthenticatedUser user = null;
+        List<CatalogObjectGrantMetadata> grants = new LinkedList<>();
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
-        }
-
-        // Check Grants
-        AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-        List<CatalogObjectGrantMetadata> grants = new LinkedList<>();
-        if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                           bucketName,
-                                                                                                           read.toString()) && !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user, bucketName)) {
-                throw new BucketGrantAccessException(bucketName);
-            } else {
-                grants = catalogObjectGrantService.findAllCatalogObjectGrantsAssignedToABucket(bucketName);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, read.toString()) &&
+                    !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user,
+                                                                                                         bucketName)) {
+                    throw new BucketGrantAccessException(bucketName);
+                } else {
+                    grants = catalogObjectGrantService.findAllCatalogObjectGrantsAssignedToABucket(bucketName);
+                }
             }
+
         }
 
         //transform empty String into an empty Optional
@@ -425,19 +425,25 @@ public class CatalogObjectController {
                                                                                                pageNo,
                                                                                                pageSize);
 
-
-
-            // TODO optimize this algorithm
             if (!grants.isEmpty()) {
                 List<CatalogObjectMetadata> objectsToRemove = new LinkedList<>();
                 List<CatalogObjectMetadata> objectsNotToRemove = new LinkedList<>();
                 for (CatalogObjectGrantMetadata grant : grants) {
                     String objName = catalogObjectGrantService.getCatalogObjectNameFromGrant(grant);
-                    for(CatalogObjectMetadata obj: metadataList){
-                        if(!obj.getName().equals(objName) && !objectsToRemove.contains(obj)){
-                            objectsToRemove.add(obj);
-                        } else if (obj.getName().equals(objName) && !objectsNotToRemove.contains(obj)){
-                            objectsNotToRemove.add(obj);
+                    if ((grant.getProfiteer().equals(user.getName()) && grant.getGrantee().equals("user")) ||
+                        (user.getGroups().contains(grant.getProfiteer()) && grant.getGrantee().equals("group"))) {
+                        for (CatalogObjectMetadata obj : metadataList) {
+                            if (!obj.getName().equals(objName) && !objectsToRemove.contains(obj)) {
+                                objectsToRemove.add(obj);
+                            } else if (obj.getName().equals(objName) && !objectsNotToRemove.contains(obj)) {
+                                objectsNotToRemove.add(obj);
+                            }
+                        }
+                    } else {
+                        for (CatalogObjectMetadata obj : metadataList) {
+                            if (obj.getName().equals(objName) && !objectsToRemove.contains(obj)) {
+                                objectsToRemove.add(obj);
+                            }
                         }
                     }
                 }
@@ -469,22 +475,20 @@ public class CatalogObjectController {
             if (!restApiAccessService.isSessionActive(sessionId)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
-        }
 
-        // Check Grants
-        AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-        if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-            if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                           bucketName,
-                                                                                                           admin.toString()) &&
-                !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                                                      bucketName,
-                                                                                                                      name,
-                                                                                                                      admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+            // Check Grants
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString()) &&
+                    !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
+                                                                                         bucketName,
+                                                                                         name,
+                                                                                         admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
             }
-        }
 
+        }
         return catalogObjectService.delete(bucketName, name);
     }
 

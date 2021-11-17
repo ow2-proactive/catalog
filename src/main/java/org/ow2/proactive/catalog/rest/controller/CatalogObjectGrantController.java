@@ -90,8 +90,8 @@ public class CatalogObjectGrantController {
         if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                           bucketName,
-                                                                                                                           catalogObjectName)) {
+                                                                                                                            bucketName,
+                                                                                                                            catalogObjectName)) {
                 throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
         }
@@ -130,8 +130,8 @@ public class CatalogObjectGrantController {
         if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                           bucketName,
-                                                                                                                           catalogObjectName)) {
+                                                                                                                            bucketName,
+                                                                                                                            catalogObjectName)) {
                 throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
         }
@@ -165,8 +165,8 @@ public class CatalogObjectGrantController {
         if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                           bucketName,
-                                                                                                                           catalogObjectName)) {
+                                                                                                                            bucketName,
+                                                                                                                            catalogObjectName)) {
                 throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
         }

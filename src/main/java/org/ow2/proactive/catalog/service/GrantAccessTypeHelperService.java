@@ -42,13 +42,13 @@ public class GrantAccessTypeHelperService {
         // If user grant exists over this bucket, check the access type
         // else check the access type of the user group grant over this bucket
         // if both case are false ==> no grants assigned to this user over this bucket
-        if(requiredAccessType.equals(admin.toString())){
+        if (requiredAccessType.equals(admin.toString())) {
             return currentAccessType.equals(admin.toString());
-        } else if(requiredAccessType.equals(write.toString())){
+        } else if (requiredAccessType.equals(write.toString())) {
             return currentAccessType.equals(write.toString()) || currentAccessType.equals(admin.toString());
-        } else if(requiredAccessType.equals(read.toString())){
+        } else if (requiredAccessType.equals(read.toString())) {
             return currentAccessType.equals(read.toString()) || currentAccessType.equals(write.toString()) ||
-                    currentAccessType.equals(admin.toString());
+                   currentAccessType.equals(admin.toString());
         } else {
             return false;
         }
@@ -62,9 +62,10 @@ public class GrantAccessTypeHelperService {
      */
     public int getPriorityLevel(String accessType1, String accessType2) {
         int priority = 1;
-        if(accessType1.equals(read.toString()) && (accessType2.equals(admin.toString()) || accessType2.equals(write.toString()))){
+        if (accessType1.equals(read.toString()) &&
+            (accessType2.equals(admin.toString()) || accessType2.equals(write.toString()))) {
             priority = 2;
-        } else if (accessType1.equals(write.toString()) && accessType2.equals(admin.toString())){
+        } else if (accessType1.equals(write.toString()) && accessType2.equals(admin.toString())) {
             priority = 2;
         }
         return priority;

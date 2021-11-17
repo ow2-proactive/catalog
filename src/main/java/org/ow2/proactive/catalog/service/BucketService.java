@@ -206,8 +206,8 @@ public class BucketService {
             List<Object[]> bucketsFromDB;
             if (contentType.isPresent() || objectName.isPresent()) {
                 bucketsFromDB = bucketRepository.findBucketContainingKindListAndContentTypeAndObjectName(kindList,
-                                                                                                         contentType.orElse(""),
-                                                                                                         objectName.orElse(""));
+                                                                                                         contentType.orElse(null),
+                                                                                                         objectName.orElse(null));
             } else { // only kind.isPresent()
                 bucketsFromDB = bucketRepository.findBucketContainingKindList(kindList);
             }

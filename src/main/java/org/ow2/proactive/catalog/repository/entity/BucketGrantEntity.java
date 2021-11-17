@@ -54,6 +54,7 @@ public class BucketGrantEntity implements Serializable {
     @Column(name = "ID")
     protected Long id;
 
+    // TODO change to Enum
     // Type of this grant: user or group
     @Column(name = "GRANTEE", nullable = false)
     protected String grantee;
