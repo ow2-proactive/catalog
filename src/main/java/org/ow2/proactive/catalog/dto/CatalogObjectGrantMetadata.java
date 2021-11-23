@@ -41,13 +41,13 @@ import lombok.Getter;
 public class CatalogObjectGrantMetadata extends ResourceSupport {
 
     @JsonProperty
-    private final String grantee;
+    private final String granteeType;
 
     @JsonProperty
     private final String creator;
 
     @JsonProperty
-    private final String profiteer;
+    private final String grantee;
 
     @JsonProperty
     private final String accessType;
@@ -58,20 +58,20 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
     @JsonProperty
     private final long catalogObjectBucketId;
 
-    public CatalogObjectGrantMetadata(String grantee, String creator, String profiteer, String accessType,
+    public CatalogObjectGrantMetadata(String granteeType, String creator, String grantee, String accessType,
             long catalogObjectId, long catalogObjectBucketId) {
-        this.grantee = grantee;
+        this.granteeType = granteeType;
         this.creator = creator;
-        this.profiteer = profiteer;
+        this.grantee = grantee;
         this.accessType = accessType;
         this.catalogObjectId = catalogObjectId;
         this.catalogObjectBucketId = catalogObjectBucketId;
     }
 
     public CatalogObjectGrantMetadata(CatalogObjectGrantEntity catalogObjectGrantEntity) {
-        this.grantee = catalogObjectGrantEntity.getGrantee();
+        this.granteeType = catalogObjectGrantEntity.getGranteeType();
         this.creator = catalogObjectGrantEntity.getCreator();
-        this.profiteer = catalogObjectGrantEntity.getProfiteer();
+        this.grantee = catalogObjectGrantEntity.getGrantee();
         this.accessType = catalogObjectGrantEntity.getAccessType();
         this.catalogObjectId = catalogObjectGrantEntity.getCatalogObjectRevisionEntity().getId();
         this.catalogObjectBucketId = catalogObjectGrantEntity.getBucketEntity().getId();

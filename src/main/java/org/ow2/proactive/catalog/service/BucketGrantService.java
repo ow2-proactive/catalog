@@ -37,7 +37,6 @@ import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectGrantRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
-import org.ow2.proactive.catalog.repository.entity.CatalogObjectGrantEntity;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAlreadyExistsException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,14 +75,14 @@ public class BucketGrantService {
      * Get the grants assigned to a user and his group
      *
      * @param username username
-     * @param userGroup user group
+     * @param userGroups list of user groups
      * @return all grants that are assigned to a specific username and his group
      */
-    public List<BucketGrantMetadata> getAllAssignedGrantsForUserAndHisGroup(String username, String userGroup) {
+    public List<BucketGrantMetadata> getAllAssignedGrantsForUserAndHisGroups(String username, List<String> userGroups) {
         // Get all user assigned grants from the db
         List<BucketGrantEntity> dbUserBucketGrants = bucketGrantRepository.findAllGrantsAssignedToAUsername(username);
         // Add the grants that are assigned to his group
-        List<BucketGrantEntity> dbGroupBucketGrants = bucketGrantRepository.findAllGrantsAssignedToAUserGroup(userGroup);
+        List<BucketGrantEntity> dbGroupBucketGrants = bucketGrantRepository.findAllGrantsAssignedToTheUserGroups(userGroups);
 
         // Result list
         List<BucketGrantEntity> result = new LinkedList<>();
@@ -245,7 +244,7 @@ public class BucketGrantService {
             BucketGrantEntity dbUsernameBucketGrant = bucketGrantRepository.findBucketGrantByUsername(bucket.getId(),
                                                                                                       username);
             // Throw an exception if similar grant exists
-            if (dbUsernameBucketGrant != null && dbUsernameBucketGrant.getProfiteer().equals(username) &&
+            if (dbUsernameBucketGrant != null && dbUsernameBucketGrant.getGrantee().equals(username) &&
                 dbUsernameBucketGrant.getBucketEntity().getId().equals(bucket.getId()) &&
                 dbUsernameBucketGrant.getAccessType().equals(accessType)) {
                 throw new BucketGrantAlreadyExistsException(bucketName, username);
@@ -258,7 +257,7 @@ public class BucketGrantService {
             BucketGrantEntity dbUserGroupBucketGrant = bucketGrantRepository.findBucketGrantByUserGroup(bucket.getId(),
                                                                                                         groupName);
             // Throw an exception if similar grant exists
-            if (dbUserGroupBucketGrant != null && dbUserGroupBucketGrant.getProfiteer().equals(groupName) &&
+            if (dbUserGroupBucketGrant != null && dbUserGroupBucketGrant.getGrantee().equals(groupName) &&
                 dbUserGroupBucketGrant.getBucketEntity().getId().equals(bucket.getId()) &&
                 dbUserGroupBucketGrant.getAccessType().equals(accessType)) {
                 throw new BucketGrantAlreadyExistsException(bucketName, groupName);
@@ -318,10 +317,10 @@ public class BucketGrantService {
 
         List<BucketGrantEntity> grants = bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(bucketId);
 
-        grants.removeIf(bucketGrantEntity -> ((!bucketGrantEntity.getProfiteer().equals(user.getName()) &&
-                                               bucketGrantEntity.getGrantee().equals("user")) ||
-                                              (!user.getGroups().contains(bucketGrantEntity.getProfiteer()) &&
-                                               bucketGrantEntity.getGrantee().equals("group"))));
+        grants.removeIf(bucketGrantEntity -> ((!bucketGrantEntity.getGrantee().equals(user.getName()) &&
+                                               bucketGrantEntity.getGranteeType().equals("user")) ||
+                                              (!user.getGroups().contains(bucketGrantEntity.getGrantee()) &&
+                                               bucketGrantEntity.getGranteeType().equals("group"))));
 
         BucketGrantEntity bucketGrantEntity;
 
@@ -364,10 +363,8 @@ public class BucketGrantService {
         Set<Long> bucketsIdsFromCatalogObjectGrants = new HashSet<>(catalogObjectGrantService.getAllBucketIdsFromGrantsAssignedToUsername(user.getName()));
         // Get bucket grants from DB and add them to the bucket grant list
         // Get distinct buckets' ids from catalog object grants and add them to the corresponding list
-        for (String group : user.getGroups()) {
-            bucketGrants.addAll(this.getAllAssignedGrantsForUserAndHisGroup(user.getName(), group));
-            bucketsIdsFromCatalogObjectGrants.addAll(catalogObjectGrantService.getAllBucketIdsFromGrantsAssignedToUserGroup(group));
-        }
+        bucketGrants.addAll(this.getAllAssignedGrantsForUserAndHisGroups(user.getName(), user.getGroups()));
+        bucketsIdsFromCatalogObjectGrants.addAll(catalogObjectGrantService.getAllBucketIdsFromGrantsAssignedToUserGroup(user.getGroups()));
 
         // Get from bucket grants the targeted buckets
         for (BucketGrantMetadata bucketGrantMetadata : bucketGrants) {
@@ -405,5 +402,9 @@ public class BucketGrantService {
             //Delete all catalog objects grants found in this bucket
             catalogObjectGrantService.deleteAllCatalogObjectsGrantsAssignedToABucket(bucketId);
         }
+    }
+
+    public long getBucketIdByName(String bucketName) {
+        return bucketRepository.findOneByBucketName(bucketName).getId();
     }
 }

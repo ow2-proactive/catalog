@@ -27,6 +27,9 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static org.mockito.Mockito.*;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -76,10 +79,12 @@ public class BucketGrantControllerTest {
 
     @Test
     public void testGetAssignedBucketGrantsForUserAndHisGroup() {
+        List<String> userGroups = new LinkedList<>();
+        userGroups.add(DUMMY_GROUP);
         bucketGrantController.getAssignedBucketGrantsForUserAndHisGroup(DUMMY_SESSION_ID,
                                                                         DUMMY_CURRENT_USER,
-                                                                        DUMMY_GROUP);
-        verify(bucketGrantService, times(1)).getAllAssignedGrantsForUserAndHisGroup(DUMMY_CURRENT_USER, DUMMY_GROUP);
+                                                                        userGroups);
+        verify(bucketGrantService, times(1)).getAllAssignedGrantsForUserAndHisGroups(DUMMY_CURRENT_USER, userGroups);
     }
 
     @Test

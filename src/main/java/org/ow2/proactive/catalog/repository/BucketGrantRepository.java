@@ -44,22 +44,22 @@ public interface BucketGrantRepository extends JpaRepository<BucketGrantEntity, 
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
-    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.profiteer = ?2 AND bge.grantee='user'")
+    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.grantee = ?2 AND bge.granteeType='user'")
     BucketGrantEntity findBucketGrantByUsername(long bucketId, String username);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
-    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.profiteer = ?2 AND bge.grantee='group'")
+    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.grantee = ?2 AND bge.granteeType='group'")
     BucketGrantEntity findBucketGrantByUserGroup(long bucketId, String userGroup);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
-    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.profiteer = ?1 And bge.grantee='user'")
+    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee = ?1 And bge.granteeType='user'")
     List<BucketGrantEntity> findAllGrantsAssignedToAUsername(String username);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
-    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.profiteer = ?1 And bge.grantee='group'")
-    List<BucketGrantEntity> findAllGrantsAssignedToAUserGroup(String userGroup);
+    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee in ?1 And bge.granteeType='group'")
+    List<BucketGrantEntity> findAllGrantsAssignedToTheUserGroups(List<String> userGroup);
 
 }

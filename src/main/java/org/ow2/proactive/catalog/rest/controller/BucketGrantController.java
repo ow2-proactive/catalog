@@ -75,7 +75,7 @@ public class BucketGrantController {
     public List<BucketGrantMetadata> getAssignedBucketGrantsForUserAndHisGroup(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The current user") @RequestParam(value = "currentUser", required = true) String currentUser,
-            @ApiParam(value = "The current userGroup") @RequestParam(value = "userGroup", required = true) String userGroup)
+            @ApiParam(value = "The list of the current user groups") @RequestParam(value = "userGroups", required = true) List<String> userGroups)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
             if (!restApiAccessService.isUserSessionActive(sessionId, currentUser)) {
@@ -83,7 +83,7 @@ public class BucketGrantController {
             }
         }
 
-        return bucketGrantService.getAllAssignedGrantsForUserAndHisGroup(currentUser, userGroup);
+        return bucketGrantService.getAllAssignedGrantsForUserAndHisGroups(currentUser, userGroups);
     }
 
     @SuppressWarnings("DefaultAnnotationParam")

@@ -42,7 +42,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Data
 @Entity
-@Table(name = "CATALOG_OBJECT_GRANT", uniqueConstraints = @UniqueConstraint(columnNames = { "ID" }), indexes = { @Index(name = "ID", columnList = "ID") })
+@Table(name = "CATALOG_OBJECT_GRANT", uniqueConstraints = @UniqueConstraint(columnNames = { "ID" }), indexes = { @Index(name = "OBJECT_GRANT_IBDEX", columnList = "ID, GRANTEE, CREATOR, GRANTEE_TYPE") })
 @ToString()
 public class CatalogObjectGrantEntity implements Serializable {
 
@@ -54,18 +54,17 @@ public class CatalogObjectGrantEntity implements Serializable {
     @Column(name = "ID")
     protected Long id;
 
-    // TODO Change to Enum
     // Type of this grant: user or group
-    @Column(name = "GRANTEE", nullable = false)
-    protected String grantee;
+    @Column(name = "GRANTEE_TYPE", nullable = false)
+    protected String granteeType;
 
     // The User who created this grant
     @Column(name = "CREATOR", nullable = false)
     protected String creator;
 
     // Username or group Name
-    @Column(name = "PROFITEER", nullable = false)
-    protected String profiteer;
+    @Column(name = "GRANTEE", nullable = false)
+    protected String grantee;
 
     // Access type: admin, write or read
     @Column(name = "ACCESS_TYPE", nullable = false)
@@ -83,11 +82,11 @@ public class CatalogObjectGrantEntity implements Serializable {
     public CatalogObjectGrantEntity() {
     }
 
-    public CatalogObjectGrantEntity(String grantee, String creator, String profiteer, String accessType,
+    public CatalogObjectGrantEntity(String granteeType, String creator, String grantee, String accessType,
             CatalogObjectRevisionEntity catalogObjectRevisionEntity, BucketEntity bucketEntity) {
-        this.grantee = grantee;
+        this.granteeType = granteeType;
         this.creator = creator;
-        this.profiteer = profiteer;
+        this.grantee = grantee;
         this.accessType = accessType;
         this.catalogObjectRevisionEntity = catalogObjectRevisionEntity;
         this.bucketEntity = bucketEntity;

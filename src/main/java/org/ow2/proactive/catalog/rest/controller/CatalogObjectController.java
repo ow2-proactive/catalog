@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -430,8 +431,8 @@ public class CatalogObjectController {
                 List<CatalogObjectMetadata> objectsNotToRemove = new LinkedList<>();
                 for (CatalogObjectGrantMetadata grant : grants) {
                     String objName = catalogObjectGrantService.getCatalogObjectNameFromGrant(grant);
-                    if ((grant.getProfiteer().equals(user.getName()) && grant.getGrantee().equals("user")) ||
-                        (user.getGroups().contains(grant.getProfiteer()) && grant.getGrantee().equals("group"))) {
+                    if ((grant.getGrantee().equals(user.getName()) && grant.getGranteeType().equals("user")) ||
+                        (user.getGroups().contains(grant.getGrantee()) && grant.getGranteeType().equals("group"))) {
                         for (CatalogObjectMetadata obj : metadataList) {
                             if (!obj.getName().equals(objName) && !objectsToRemove.contains(obj)) {
                                 objectsToRemove.add(obj);
@@ -440,8 +441,16 @@ public class CatalogObjectController {
                             }
                         }
                     } else {
+                        List<Long> bucketIds = new LinkedList<>();
+                        bucketIds.addAll(bucketGrantService.getAllAssignedGrantsForUserAndHisGroups(user.getName(),
+                                                                                                    user.getGroups())
+                                                           .stream()
+                                                           .map(BucketGrantMetadata::getBucketId)
+                                                           .collect(Collectors.toList()));
                         for (CatalogObjectMetadata obj : metadataList) {
-                            if (obj.getName().equals(objName) && !objectsToRemove.contains(obj)) {
+                            long bucketId = bucketGrantService.getBucketIdByName(obj.getBucketName());
+                            if (obj.getName().equals(objName) && !objectsToRemove.contains(obj) &&
+                                !bucketIds.contains(bucketId)) {
                                 objectsToRemove.add(obj);
                             }
                         }

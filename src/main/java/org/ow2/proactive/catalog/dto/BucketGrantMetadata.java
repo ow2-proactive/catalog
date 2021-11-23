@@ -41,13 +41,13 @@ import lombok.Getter;
 public class BucketGrantMetadata extends ResourceSupport {
 
     @JsonProperty
-    private final String grantee;
+    private final String granteeType;
 
     @JsonProperty
     private final String creator;
 
     @JsonProperty
-    private final String profiteer;
+    private final String grantee;
 
     @JsonProperty
     private final String accessType;
@@ -56,17 +56,17 @@ public class BucketGrantMetadata extends ResourceSupport {
     private final long bucketId;
 
     public BucketGrantMetadata(BucketGrantEntity bucketGrantEntity) {
-        this.grantee = bucketGrantEntity.getGrantee();
+        this.granteeType = bucketGrantEntity.getGranteeType();
         this.creator = bucketGrantEntity.getCreator();
-        this.profiteer = bucketGrantEntity.getProfiteer();
+        this.grantee = bucketGrantEntity.getGrantee();
         this.accessType = bucketGrantEntity.getAccessType();
         this.bucketId = bucketGrantEntity.getBucketEntity().getId();
     }
 
-    public BucketGrantMetadata(String grantee, String creator, String profiteer, String accessType, long bucketId) {
-        this.grantee = grantee;
+    public BucketGrantMetadata(String granteeType, String creator, String grantee, String accessType, long bucketId) {
+        this.granteeType = granteeType;
         this.creator = creator;
-        this.profiteer = profiteer;
+        this.grantee = grantee;
         this.accessType = accessType;
         this.bucketId = bucketId;
     }

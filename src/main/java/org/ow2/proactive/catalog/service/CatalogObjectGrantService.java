@@ -97,7 +97,7 @@ public class CatalogObjectGrantService {
                                                                                                                                        username,
                                                                                                                                        bucket.getId());
             if (dbCatalogObjectGrantEntityForUser != null &&
-                (dbCatalogObjectGrantEntityForUser.getProfiteer().equals(username) &&
+                (dbCatalogObjectGrantEntityForUser.getGrantee().equals(username) &&
                  dbCatalogObjectGrantEntityForUser.getCatalogObjectRevisionEntity()
                                                   .getId()
                                                   .equals(catalogObjectRevisionEntity.getId()) &&
@@ -117,7 +117,7 @@ public class CatalogObjectGrantService {
                                                                                                                                              groupName,
                                                                                                                                              bucket.getId());
             if (dbCatalogObjectGrantEntityForUserGroup != null &&
-                dbCatalogObjectGrantEntityForUserGroup.getProfiteer().equals(username) &&
+                dbCatalogObjectGrantEntityForUserGroup.getGrantee().equals(username) &&
                 dbCatalogObjectGrantEntityForUserGroup.getCatalogObjectRevisionEntity()
                                                       .getId()
                                                       .equals(catalogObjectRevisionEntity.getId()) &&
@@ -387,11 +387,11 @@ public class CatalogObjectGrantService {
      *
      * Get buckets' id from grants assigned to user group
      *
-     * @param userGroup user group
+     * @param userGroups list of user groups
      * @return the list of bucketIds found in all grants assigned to a user group
      */
-    public List<Long> getAllBucketIdsFromGrantsAssignedToUserGroup(String userGroup) {
-        return catalogObjectGrantRepository.findAllBucketsIdFromCatalogObjectGrantsAssignedToAUserGroup(userGroup);
+    public List<Long> getAllBucketIdsFromGrantsAssignedToUserGroup(List<String> userGroups) {
+        return catalogObjectGrantRepository.findAllBucketsIdFromCatalogObjectGrantsAssignedToAUserGroup(userGroups);
     }
 
     /**
@@ -408,9 +408,7 @@ public class CatalogObjectGrantService {
         long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
 
         Set<Long> buckets = new HashSet<>(catalogObjectGrantRepository.findAllBucketsIdFromCatalogObjectGrantsAssignedToAUsername(user.getName()));
-        for (String group : user.getGroups()) {
-            buckets.addAll(catalogObjectGrantRepository.findAllBucketsIdFromCatalogObjectGrantsAssignedToAUserGroup(group));
-        }
+        buckets.addAll(catalogObjectGrantRepository.findAllBucketsIdFromCatalogObjectGrantsAssignedToAUserGroup(user.getGroups()));
 
         return buckets.contains(bucketId);
 
@@ -484,11 +482,11 @@ public class CatalogObjectGrantService {
         long catalogObjectId = catalogObjectRevisionEntity.getId();
 
         // Remove all grants that are not assigned to the current user and his group
-        grantEntities.removeIf(catalogObjectGrantEntity -> (((!catalogObjectGrantEntity.getProfiteer()
+        grantEntities.removeIf(catalogObjectGrantEntity -> (((!catalogObjectGrantEntity.getGrantee()
                                                                                        .equals(user.getName()) &&
                                                               catalogObjectGrantEntity.getGrantee().equals("user")) ||
                                                              (!user.getGroups()
-                                                                   .contains(catalogObjectGrantEntity.getProfiteer()) &&
+                                                                   .contains(catalogObjectGrantEntity.getGrantee()) &&
                                                               catalogObjectGrantEntity.getGrantee().equals("group"))) &&
                                                             catalogObjectGrantEntity.getCatalogObjectRevisionEntity()
                                                                                     .getId() != catalogObjectId));

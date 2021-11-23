@@ -42,7 +42,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Data
 @Entity
-@Table(name = "BUCKET_GRANT", uniqueConstraints = @UniqueConstraint(columnNames = { "ID" }), indexes = { @Index(name = "ID", columnList = "ID") })
+@Table(name = "BUCKET_GRANT", uniqueConstraints = @UniqueConstraint(columnNames = { "ID" }), indexes = { @Index(name = "BUCKET_GRANT_INDEX", columnList = "ID, GRANTEE_TYPE, CREATOR, GRANTEE") })
 @ToString()
 public class BucketGrantEntity implements Serializable {
 
@@ -54,18 +54,17 @@ public class BucketGrantEntity implements Serializable {
     @Column(name = "ID")
     protected Long id;
 
-    // TODO change to Enum
     // Type of this grant: user or group
-    @Column(name = "GRANTEE", nullable = false)
-    protected String grantee;
+    @Column(name = "GRANTEE_TYPE", nullable = false)
+    protected String granteeType;
 
     // The User who created this grant
     @Column(name = "CREATOR", nullable = false)
     protected String creator;
 
     // Username or group Name
-    @Column(name = "PROFITEER", nullable = false)
-    protected String profiteer;
+    @Column(name = "GRANTEE", nullable = false)
+    protected String grantee;
 
     // Access type: admin, write or read
     @Column(name = "ACCESS_TYPE", nullable = false)
@@ -76,11 +75,11 @@ public class BucketGrantEntity implements Serializable {
     @JoinColumn(name = "BUCKET", nullable = false)
     protected BucketEntity bucketEntity;
 
-    public BucketGrantEntity(String grantee, String creator, String profiteer, String accessType,
+    public BucketGrantEntity(String granteeType, String creator, String grantee, String accessType,
             BucketEntity bucketEntity) {
-        this.grantee = grantee;
+        this.granteeType = granteeType;
         this.creator = creator;
-        this.profiteer = profiteer;
+        this.grantee = grantee;
         this.accessType = accessType;
         this.bucketEntity = bucketEntity;
     }

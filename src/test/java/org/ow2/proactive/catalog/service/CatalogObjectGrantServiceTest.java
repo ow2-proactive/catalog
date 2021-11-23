@@ -117,8 +117,8 @@ public class CatalogObjectGrantServiceTest {
                                                                                                DUMMY_USERNAME,
                                                                                                "");
 
-        assertEquals("user", result.getGrantee());
-        assertEquals(DUMMY_USERNAME, result.getProfiteer());
+        assertEquals("user", result.getGranteeType());
+        assertEquals(DUMMY_USERNAME, result.getGrantee());
         assertEquals(DUMMY_ACCESS_TYPE, result.getAccessType());
         assertEquals(DUMMY_CURRENT_USERNAME, result.getCreator());
         assertEquals(BUCKET_ID, result.getCatalogObjectBucketId());
@@ -158,8 +158,8 @@ public class CatalogObjectGrantServiceTest {
                                                                                                DUMMY_USERNAME,
                                                                                                "");
 
-        assertEquals("user", result.getGrantee());
-        assertEquals(DUMMY_USERNAME, result.getProfiteer());
+        assertEquals("user", result.getGranteeType());
+        assertEquals(DUMMY_USERNAME, result.getGrantee());
         assertEquals(DUMMY_ACCESS_TYPE, result.getAccessType());
         assertEquals(DUMMY_CURRENT_USERNAME, result.getCreator());
         assertEquals(BUCKET_ID, result.getCatalogObjectBucketId());
@@ -200,8 +200,8 @@ public class CatalogObjectGrantServiceTest {
                                                                                                DUMMY_BUCKET,
                                                                                                DUMMY_ACCESS_TYPE);
 
-        assertEquals("user", result.getGrantee());
-        assertEquals(DUMMY_USERNAME, result.getProfiteer());
+        assertEquals("user", result.getGranteeType());
+        assertEquals(DUMMY_USERNAME, result.getGrantee());
         assertEquals(DUMMY_ACCESS_TYPE, result.getAccessType());
         assertEquals(DUMMY_CURRENT_USERNAME, result.getCreator());
         assertEquals(BUCKET_ID, result.getCatalogObjectBucketId());
@@ -248,8 +248,8 @@ public class CatalogObjectGrantServiceTest {
                                                                                                                                            DUMMY_BUCKET);
 
         assertEquals(1, results.size());
-        assertEquals("user", results.get(0).getGrantee());
-        assertEquals(DUMMY_USERNAME, results.get(0).getProfiteer());
+        assertEquals("user", results.get(0).getGranteeType());
+        assertEquals(DUMMY_USERNAME, results.get(0).getGrantee());
         assertEquals(DUMMY_ACCESS_TYPE, results.get(0).getAccessType());
         assertEquals(DUMMY_CURRENT_USERNAME, results.get(0).getCreator());
         assertEquals(BUCKET_ID, results.get(0).getCatalogObjectBucketId());
@@ -288,8 +288,8 @@ public class CatalogObjectGrantServiceTest {
                                                                                                                            DUMMY_BUCKET);
 
         assertEquals(1, results.size());
-        assertEquals("user", results.get(0).getGrantee());
-        assertEquals(DUMMY_USERNAME, results.get(0).getProfiteer());
+        assertEquals("user", results.get(0).getGranteeType());
+        assertEquals(DUMMY_USERNAME, results.get(0).getGrantee());
         assertEquals(DUMMY_ACCESS_TYPE, results.get(0).getAccessType());
         assertEquals(DUMMY_CURRENT_USERNAME, results.get(0).getCreator());
         assertEquals(BUCKET_ID, results.get(0).getCatalogObjectBucketId());
@@ -320,8 +320,8 @@ public class CatalogObjectGrantServiceTest {
         List<CatalogObjectGrantMetadata> results = catalogObjectGrantService.findAllCatalogObjectGrantsAssignedToABucket(DUMMY_BUCKET);
 
         assertEquals(1, results.size());
-        assertEquals("user", results.get(0).getGrantee());
-        assertEquals(DUMMY_USERNAME, results.get(0).getProfiteer());
+        assertEquals("user", results.get(0).getGranteeType());
+        assertEquals(DUMMY_USERNAME, results.get(0).getGrantee());
         assertEquals(DUMMY_ACCESS_TYPE, results.get(0).getAccessType());
         assertEquals(DUMMY_CURRENT_USERNAME, results.get(0).getCreator());
         assertEquals(BUCKET_ID, results.get(0).getCatalogObjectBucketId());
