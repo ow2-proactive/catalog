@@ -26,9 +26,7 @@
 package org.ow2.proactive.catalog.repository.entity;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import javax.persistence.*;
 
@@ -91,6 +89,9 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
     @Lob
     @Column(name = "RAW_OBJECT", length = Integer.MAX_VALUE)
     private byte[] rawObject;
+
+    @OneToMany(mappedBy = "catalogObjectRevisionEntity")
+    private Set<CatalogObjectGrantEntity> objectGrants = new LinkedHashSet<>();
 
     @Override
     public int compareTo(Object o) {

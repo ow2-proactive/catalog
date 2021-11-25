@@ -117,6 +117,9 @@ public class CatalogObjectService {
     @Autowired
     private SeparatorUtility separatorUtility;
 
+    @Autowired
+    CatalogObjectGrantService catalogObjectGrantService;
+
     @Value("${kind.separator}")
     protected String kindSeparator;
 
@@ -535,6 +538,20 @@ public class CatalogObjectService {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
         CatalogObjectMetadata catalogObjectMetadata = getCatalogObjectMetadata(bucketName, name);
         try {
+            // Get the bucketId
+            long bucketId = bucketEntity.getId();
+
+            // Find the catalog object id
+            List<String> bucketsName = new LinkedList<>();
+            bucketsName.add(bucketName);
+            CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketsName,
+                                                                                                                                             name);
+            long catalogObjectId = catalogObjectRevisionEntity.getId();
+
+            //Delete all object grants
+            catalogObjectGrantService.deleteAllCatalogObjectGrants(bucketId, catalogObjectId);
+
+            // Delete the catalog Object
             catalogObjectRepository.delete(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(), name));
         } catch (EmptyResultDataAccessException emptyResultDataAccessException) {
             log.warn("CatalogObject {} does not exist in bucket {}", name, bucketName);

@@ -25,6 +25,8 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static org.ow2.proactive.catalog.util.AccessType.admin;
+import static org.ow2.proactive.catalog.util.AccessType.read;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -34,11 +36,16 @@ import java.util.List;
 import java.util.Optional;
 
 import org.ow2.proactive.catalog.dto.BucketMetadata;
+import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.BucketService;
+import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
+import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
+import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
+import org.ow2.proactive.catalog.util.AccessType;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,6 +78,12 @@ public class BucketController {
 
     @Autowired
     private RestApiAccessService restApiAccessService;
+
+    @Autowired
+    private BucketGrantService bucketGrantService;
+
+    @Autowired
+    private CatalogObjectGrantService catalogObjectGrantService;
 
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
@@ -110,7 +123,18 @@ public class BucketController {
             @ApiParam(value = "The new name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String newOwnerName)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId, newOwnerName);
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+
+            // Check Grants
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
+            }
         }
         try {
             return bucketService.updateOwnerByBucketName(bucketName, newOwnerName);
@@ -128,9 +152,24 @@ public class BucketController {
     public BucketMetadata getMetadata(
             @SuppressWarnings("DefaultAnnotationParam") @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
-                                                                               sessionId,
-                                                                               bucketName);
+
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+
+            // Check Grants
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, read.toString()) &&
+                    !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user,
+                                                                                                         bucketName)) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
+            }
+
+        }
         return bucketService.getBucketMetadata(bucketName);
     }
 
@@ -166,6 +205,8 @@ public class BucketController {
                                                           () -> restApiAccessResponse.getAuthenticatedUser()
                                                                                      .getGroups());
 
+            listBucket.addAll(bucketGrantService.getBucketsForUserByGrants(restApiAccessService.getUserFromSessionId(sessionId)));
+
         } else {
             listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName);
         }
@@ -191,9 +232,20 @@ public class BucketController {
     public BucketMetadata delete(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
-                                                                               sessionId,
-                                                                               bucketName);
+        // Check session validation
+        if (sessionIdRequired) {
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+
+            // Check Grants
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
+            }
+        }
         return bucketService.deleteEmptyBucket(bucketName);
     }
 }

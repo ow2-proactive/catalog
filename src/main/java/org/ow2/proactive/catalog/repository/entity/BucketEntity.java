@@ -26,9 +26,7 @@
 package org.ow2.proactive.catalog.repository.entity;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -82,6 +80,12 @@ public class BucketEntity implements Serializable {
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 10)
     private Set<CatalogObjectEntity> catalogObjects = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "bucketEntity")
+    private Set<BucketGrantEntity> grants = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "bucketEntity")
+    private Set<CatalogObjectGrantEntity> objectGrants = new LinkedHashSet<>();
 
     public BucketEntity() {
         catalogObjects = new HashSet<>();

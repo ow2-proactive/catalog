@@ -73,6 +73,9 @@ public class BucketService {
     private OwnerGroupStringHelper ownerGroupStringHelper;
 
     @Autowired
+    private BucketGrantService bucketGrantService;
+
+    @Autowired
     CatalogObjectService catalogObjectService;
 
     public BucketMetadata createBucket(String name) {
@@ -203,8 +206,8 @@ public class BucketService {
             List<Object[]> bucketsFromDB;
             if (contentType.isPresent() || objectName.isPresent()) {
                 bucketsFromDB = bucketRepository.findBucketContainingKindListAndContentTypeAndObjectName(kindList,
-                                                                                                         contentType.orElse(""),
-                                                                                                         objectName.orElse(""));
+                                                                                                         contentType.orElse(null),
+                                                                                                         objectName.orElse(null));
             } else { // only kind.isPresent()
                 bucketsFromDB = bucketRepository.findBucketContainingKindList(kindList);
             }
@@ -237,7 +240,15 @@ public class BucketService {
         if (!bucketEntity.getCatalogObjects().isEmpty()) {
             throw new DeleteNonEmptyBucketException(bucketName);
         }
-        bucketRepository.delete(bucketEntity.getId());
+        // Get the bucketId
+        long bucketId = bucketEntity.getId();
+
+        // Delete all bucket grants
+        bucketGrantService.deleteAllBucketGrants(bucketId);
+
+        // Delete the bucket
+        bucketRepository.delete(bucketId);
+
         return new BucketMetadata(bucketEntity);
     }
 
