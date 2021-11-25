@@ -146,7 +146,7 @@ public class CatalogObjectGrantControllerTest {
 
     @Test
     public void testGetAllCreatedCatalogObjectGrantsByTheCurrentUSerForTheCurrentUserBucket() {
-        catalogObjectGrantController.getAllCreatedCatalogObjectGrantsByTheCurrentUSerForTheCurrentUserBucket(DUMMY_SESSION_ID,
+        catalogObjectGrantController.getAllCreatedCatalogObjectGrantsByTheCurrentUserForTheCurrentUserBucket(DUMMY_SESSION_ID,
                                                                                                              DUMMY_BUCKET_NAME,
                                                                                                              DUMMY_CURRENT_USER);
         verify(catalogObjectGrantService, times(1)).getAllCreatedCatalogObjectGrantsForThisBucket(DUMMY_CURRENT_USER,

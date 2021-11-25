@@ -57,6 +57,16 @@ public abstract class AbstractRestAssuredTest {
 
     protected static final String ERROR_MESSAGE = "errorMessage";
 
+    protected static final String BUCKETS_GRANTS_RESOURCE = "/buckets/grant";
+
+    protected static final String BUCKET_GRANT_RESOURCE = "/buckets/grant/{bucketName}";
+
+    protected static final String BUCKETS_GRANTS_RESOURCE_USER = "/buckets/grant/{username}";
+
+    protected static final String CATALOG_OBJECT_GRANTS_RESOURCE = "/buckets/{bucketName}/grant/resources/{catalogObjectName}/grant";
+
+    protected static final String CATALOG_OBJECTS_GRANTS_RESOURCE = "/buckets/{bucketName}/grant";
+
     @Value("${local.server.port}")
     private int serverPort;
 

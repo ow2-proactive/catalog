@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.HttpStatus;
+import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 
 import com.google.common.io.ByteStreams;
 
@@ -52,7 +53,47 @@ public class IntegrationTestUtil {
 
     private static final String CATALOG_OBJECT_RESOURCE = "/buckets/{bucketName}/resources/{name}";
 
+    private static final String BUCKETS_GRANTS_RESOURCE = "/buckets/grant";
+
+    private static final String BUCKETS_GRANTS_RESOURCE_USER = "/buckets/grant/{username}";
+
+    private static final String OBJECT_GRANT_RESOURCE = "/buckets/{bucketName}/grant/resources/{catalogObjectName}/grant";
+
+    private static final String OBJECT_GRANTS_RESOURCE = "/buckets/{bucketName}/grant";
+
+    private static final String CATALOG_OBJECT_NAME = "object";
+
     public static void cleanup() {
+        // Delete bucket grants
+        final String currentUser = "admin";
+        final String bucketName = "test";
+        final String grantee = "user";
+
+        List<HashMap<String, String>> data = given().header("sessionID", "12345")
+                                                    .pathParam("username", currentUser)
+                                                    .get(BUCKETS_GRANTS_RESOURCE_USER)
+                                                    .then()
+                                                    .statusCode(HttpStatus.SC_OK)
+                                                    .extract()
+                                                    .path("");
+
+        data.stream().forEach(grant -> {
+            if (grant.get("granteeType").equals("user")) {
+                given().header("sessionID", "12345")
+                       .parameters("bucketName", bucketName, "currentUser", currentUser, "username", grantee)
+                       .delete(BUCKETS_GRANTS_RESOURCE)
+                       .then()
+                       .statusCode(HttpStatus.SC_OK);
+            } else {
+                given().header("sessionID", "12345")
+                       .parameters("bucketName", bucketName, "currentUser", currentUser, "userGroup", grantee)
+                       .delete(BUCKETS_GRANTS_RESOURCE)
+                       .then()
+                       .statusCode(HttpStatus.SC_OK);
+            }
+        });
+        // End delete bucket grants
+
         List<HashMap<String, String>> bucketMetadataList = given().get(BUCKETS_RESOURCE)
                                                                   .then()
                                                                   .statusCode(HttpStatus.SC_OK)
@@ -79,6 +120,45 @@ public class IntegrationTestUtil {
         });
 
         given().header("sessionID", "12345").delete(BUCKETS_RESOURCE).then().statusCode(HttpStatus.SC_OK);
+    }
+
+    public static void clearObjectGrants() {
+        final String currentUser = "admin";
+        final String bucketName = "test";
+        final String grantee = "user";
+
+        // Delete objects grants
+        List<HashMap<String, String>> objectGrantsData = given().header("sessionID", "12345")
+                                                                .pathParam("bucketName", bucketName)
+                                                                .parameters("currentUser", currentUser)
+                                                                .get(OBJECT_GRANTS_RESOURCE)
+                                                                .then()
+                                                                .statusCode(HttpStatus.SC_OK)
+                                                                .extract()
+                                                                .path("");
+
+        if (!objectGrantsData.isEmpty()) {
+            objectGrantsData.stream().forEach(grant -> {
+                if (grant.get("granteeType").equals("user")) {
+                    given().header("sessionID", "12345")
+                           .pathParam("bucketName", bucketName)
+                           .pathParam("catalogObjectName", CATALOG_OBJECT_NAME)
+                           .parameters("currentUser", currentUser, "username", grantee)
+                           .delete(OBJECT_GRANT_RESOURCE)
+                           .then()
+                           .statusCode(HttpStatus.SC_OK);
+                } else {
+                    given().header("sessionID", "12345")
+                           .pathParam("bucketName", bucketName)
+                           .pathParam("catalogObjectName", CATALOG_OBJECT_NAME)
+                           .parameters("currentUser", currentUser, "userGroup", grantee)
+                           .delete(OBJECT_GRANT_RESOURCE)
+                           .then()
+                           .statusCode(HttpStatus.SC_OK);
+                }
+            });
+        }
+        // End delete object grants
     }
 
     public static byte[] getWorkflowAsByteArray(String filename) throws IOException {

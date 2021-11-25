@@ -89,7 +89,7 @@ public class CatalogObjectGrantService {
 
         BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
 
-        checkForAvailability(catalogObjectRevisionEntity, bucketName, catalogObjectName);
+        throwExceptionIfCatalogObjectIsNull(catalogObjectRevisionEntity, bucketName, catalogObjectName);
 
         if (!username.isEmpty() && groupName.isEmpty()) {
             // Case if the grant targets a specific user
@@ -153,7 +153,7 @@ public class CatalogObjectGrantService {
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketsName,
                                                                                                                                          catalogObjectName);
 
-        checkForAvailability(catalogObjectRevisionEntity, bucketName, catalogObjectName);
+        throwExceptionIfCatalogObjectIsNull(catalogObjectRevisionEntity, bucketName, catalogObjectName);
 
         BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
 
@@ -200,7 +200,7 @@ public class CatalogObjectGrantService {
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketsName,
                                                                                                                                          catalogObjectName);
 
-        checkForAvailability(catalogObjectRevisionEntity, bucketName, catalogObjectName);
+        throwExceptionIfCatalogObjectIsNull(catalogObjectRevisionEntity, bucketName, catalogObjectName);
 
         BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
 
@@ -246,7 +246,7 @@ public class CatalogObjectGrantService {
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketsName,
                                                                                                                                          catalogObjectName);
 
-        checkForAvailability(catalogObjectRevisionEntity, bucketName, catalogObjectName);
+        throwExceptionIfCatalogObjectIsNull(catalogObjectRevisionEntity, bucketName, catalogObjectName);
 
         // Find the bucket
         BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
@@ -314,8 +314,8 @@ public class CatalogObjectGrantService {
      * @param bucketName bucket name
      * @param catalogObjectName WF name
      */
-    private void checkForAvailability(CatalogObjectRevisionEntity catalogObjectRevisionEntity, String bucketName,
-            String catalogObjectName) {
+    private void throwExceptionIfCatalogObjectIsNull(CatalogObjectRevisionEntity catalogObjectRevisionEntity,
+            String bucketName, String catalogObjectName) {
         if (catalogObjectRevisionEntity == null) {
             throw new DataIntegrityViolationException("Catalog object:" + catalogObjectName +
                                                       " does not exist in bucket: " + bucketName);

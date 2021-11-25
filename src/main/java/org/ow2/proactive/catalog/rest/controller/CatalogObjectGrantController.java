@@ -84,15 +84,15 @@ public class CatalogObjectGrantController {
             if (!restApiAccessService.isUserSessionActive(sessionId, currentUser)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
-        }
 
-        // Check Grants
-        if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                            bucketName,
-                                                                                                                            catalogObjectName)) {
-                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+            // Check Grants
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
+                                                                                                                                bucketName,
+                                                                                                                                catalogObjectName)) {
+                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+                }
             }
         }
 
@@ -124,19 +124,18 @@ public class CatalogObjectGrantController {
             if (!restApiAccessService.isUserSessionActive(sessionId, currentUser)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
-        }
 
-        // Check Grants
-        if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                            bucketName,
-                                                                                                                            catalogObjectName)) {
-                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+            // Check Grants
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
+                                                                                                                                bucketName,
+                                                                                                                                catalogObjectName)) {
+                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+                }
             }
         }
         return catalogObjectGrantService.deleteCatalogObjectGrant(bucketName, catalogObjectName, username, userGroup);
-
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -159,15 +158,15 @@ public class CatalogObjectGrantController {
             if (!restApiAccessService.isUserSessionActive(sessionId, currentUser)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
-        }
 
-        // Check Grants
-        if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                            bucketName,
-                                                                                                                            catalogObjectName)) {
-                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+            // Check Grants
+            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
+                AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
+                                                                                                                                bucketName,
+                                                                                                                                catalogObjectName)) {
+                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+                }
             }
         }
 
@@ -212,7 +211,7 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(method = GET)
     @ResponseStatus(HttpStatus.OK)
-    public List<CatalogObjectGrantMetadata> getAllCreatedCatalogObjectGrantsByTheCurrentUSerForTheCurrentUserBucket(
+    public List<CatalogObjectGrantMetadata> getAllCreatedCatalogObjectGrantsByTheCurrentUserForTheCurrentUserBucket(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName,
             @ApiParam(value = "The current user") @RequestParam(value = "currentUser", required = true) String currentUser)
