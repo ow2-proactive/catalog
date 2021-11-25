@@ -67,7 +67,7 @@ public class BucketGrantController {
     private boolean sessionIdRequired;
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Get all assigned grants for the user and his group")
+    @ApiOperation(value = "Get all assigned grants for the user and his groups")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(method = GET)
