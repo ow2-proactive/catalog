@@ -32,9 +32,11 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.BucketService;
@@ -205,8 +207,19 @@ public class BucketController {
                                                           () -> restApiAccessResponse.getAuthenticatedUser()
                                                                                      .getGroups());
 
-            listBucket.addAll(bucketGrantService.getBucketsForUserByGrants(restApiAccessService.getUserFromSessionId(sessionId)));
-
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            listBucket.addAll(bucketGrantService.getBucketsForUserByGrants(user));
+            List<BucketMetadata> res = new LinkedList<>();
+            for (BucketMetadata data : listBucket) {
+                String bucketGrantAccessType = bucketGrantService.getHighestGrantAccessTypeFromBucketGrants(user,
+                                                                                                            data.getName(),
+                                                                                                            data.getOwner());
+                BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), data.getObjectCount());
+                metadata.setRights(bucketGrantAccessType);
+                res.add(metadata);
+            }
+            listBucket.clear();
+            listBucket.addAll(res);
         } else {
             listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName);
         }

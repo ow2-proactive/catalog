@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.dto;
 
+import java.util.Map;
 import java.util.Objects;
 
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
@@ -49,6 +50,9 @@ public class BucketMetadata extends ResourceSupport {
 
     @JsonProperty
     private final int objectCount;
+
+    @JsonProperty
+    private String rights;
 
     public BucketMetadata(BucketEntity bucket) {
         this.name = bucket.getBucketName();
@@ -80,6 +84,10 @@ public class BucketMetadata extends ResourceSupport {
 
     public String getName() {
         return name;
+    }
+
+    public void setRights(String bucketGrantAccessType) {
+        this.rights = bucketGrantAccessType;
     }
 
     @Override
