@@ -87,9 +87,9 @@ public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogOb
     List<CatalogObjectRevisionEntity>
             findCalledByCatalogObjectsFromKeyValueMetadata(@Param("bucketObjectName") String bucketObjectName);
 
-    @Query(value = "SELECT  cor FROM CatalogObjectRevisionEntity cor " +
-                   "WHERE lower(cor.catalogObject.kind) LIKE lower(concat('%', ?1, '%')) " +
-                   "AND lower(cor.catalogObject.contentType) LIKE lower(concat('%', ?2, '%'))  " +
+    @Query(value = "SELECT cor FROM CatalogObjectRevisionEntity cor " +
+                   "WHERE cor.catalogObject.kindLower LIKE lower(concat(?1, '%')) " +
+                   "AND cor.catalogObject.contentTypeLower LIKE lower(concat(?2, '%'))  " +
                    "AND cor.commitTime = cor.catalogObject.lastCommitTime ")
     List<CatalogObjectRevisionEntity> findCatalogObjectNameReferenceByKindAndContentType(String kind,
             String contentType);

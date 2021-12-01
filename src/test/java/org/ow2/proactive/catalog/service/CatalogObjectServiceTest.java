@@ -409,8 +409,10 @@ public class CatalogObjectServiceTest {
                                                                                                                      .bucket(new BucketEntity(BUCKET,
                                                                                                                                               "owner"))
                                                                                                                      .kind(kind)
+                                                                                                                     .kindLower(kind)
                                                                                                                      .id(new CatalogObjectEntity.CatalogObjectEntityKey(bucketId,
                                                                                                                                                                         dependency1Name))
+                                                                                                                     .nameLower(dependency1Name)
                                                                                                                      .build())
                                                                                    .build();
         when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(BUCKET),
@@ -474,8 +476,11 @@ public class CatalogObjectServiceTest {
         CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
                                                                      .id(new CatalogObjectEntity.CatalogObjectEntityKey(1L,
                                                                                                                         "catalog"))
+                                                                     .nameLower("catalog")
                                                                      .kind("object")
+                                                                     .kindLower("object")
                                                                      .contentType("application/xml")
+                                                                     .contentTypeLower("application/xml")
                                                                      .lastCommitTime(now)
                                                                      .build();
         List<KeyValueLabelMetadataEntity> keyvalues = ImmutableList.of(new KeyValueLabelMetadataEntity("key",
@@ -496,9 +501,12 @@ public class CatalogObjectServiceTest {
         CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
                                                                      .id(new CatalogObjectEntity.CatalogObjectEntityKey(1L,
                                                                                                                         "catalog"))
+                                                                     .nameLower("catalog")
                                                                      .kind("object")
+                                                                     .kindLower("object")
                                                                      .bucket(bucketEntity)
                                                                      .contentType("application/xml")
+                                                                     .contentTypeLower("application/xml")
                                                                      .lastCommitTime(now)
                                                                      .build();
         List<KeyValueLabelMetadataEntity> keyvalues = ImmutableList.of(new KeyValueLabelMetadataEntity("key1",

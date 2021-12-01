@@ -130,6 +130,7 @@ public class BucketServiceTest {
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .catalogObject(CatalogObjectEntity.builder()
                                                                                                                                .kind(SupportedParserKinds.WORKFLOW.toString())
+                                                                                                                               .kindLower(SupportedParserKinds.WORKFLOW.toString())
                                                                                                                                .build())
                                                                                              .build();
         objectsList.add(catalogObjectRevisionEntity);
@@ -215,8 +216,11 @@ public class BucketServiceTest {
         CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
                                                                      .id(new CatalogObjectEntity.CatalogObjectEntityKey(mockedBucket.getId(),
                                                                                                                         "catalog"))
+                                                                     .nameLower("catalog")
                                                                      .kind("object")
+                                                                     .kindLower("object")
                                                                      .contentType("application/xml")
+                                                                     .contentTypeLower("application/xml")
                                                                      .bucket(mockedBucket)
                                                                      .build();
         objects.add(catalogObjectEntity);

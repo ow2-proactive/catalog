@@ -61,20 +61,17 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
         Predicate kindPredicate = cb.or();
         for (String kind : kindList) {
             kindPredicate = cb.or(kindPredicate,
-                                  cb.like(cb.lower(catalogObjectRevisionEntityRoot.get("catalogObject").get("kind")),
+                                  cb.like(catalogObjectRevisionEntityRoot.get("catalogObject").get("kindLower"),
                                           kind.toLowerCase() + "%"));
         }
         Predicate contentTypePredicate = cb.and();
         if (contentType != null) {
-            contentTypePredicate = cb.like(cb.lower(catalogObjectRevisionEntityRoot.get("catalogObject")
-                                                                                   .get("contentType")),
+            contentTypePredicate = cb.like(catalogObjectRevisionEntityRoot.get("catalogObject").get("contentTypeLower"),
                                            contentType.toLowerCase() + "%");
         }
         Predicate objectNamePredicate = cb.and();
         if (objectName != null) {
-            objectNamePredicate = cb.like(cb.lower(catalogObjectRevisionEntityRoot.get("catalogObject")
-                                                                                  .get("id")
-                                                                                  .get("name")),
+            objectNamePredicate = cb.like(catalogObjectRevisionEntityRoot.get("catalogObject").get("nameLower"),
                                           "%" + objectName.toLowerCase() + "%");
         }
 

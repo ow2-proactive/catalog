@@ -52,4 +52,7 @@ public interface CatalogObjectRepository
     @Query(value = "SELECT DISTINCT cos.contentType FROM CatalogObjectEntity cos")
     Set<String> findAllContentTypes();
 
+    @Query("SELECT cos FROM CatalogObjectEntity cos WHERE cos.nameLower = null OR cos.kindLower = null OR cos.contentTypeLower = null")
+    List<CatalogObjectEntity> findWithNullNameKindOrContentType();
+
 }
