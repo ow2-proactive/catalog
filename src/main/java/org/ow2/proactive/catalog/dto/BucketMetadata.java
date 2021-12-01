@@ -25,7 +25,6 @@
  */
 package org.ow2.proactive.catalog.dto;
 
-import java.util.Map;
 import java.util.Objects;
 
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
