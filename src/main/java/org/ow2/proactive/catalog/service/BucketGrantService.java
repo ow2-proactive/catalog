@@ -34,7 +34,6 @@ import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketGrantRepository;
 import org.ow2.proactive.catalog.repository.BucketRepository;
-import org.ow2.proactive.catalog.repository.CatalogObjectGrantRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAlreadyExistsException;
@@ -60,9 +59,6 @@ public class BucketGrantService {
 
     @Autowired
     private BucketGrantRepository bucketGrantRepository;
-
-    @Autowired
-    private CatalogObjectGrantRepository catalogObjectGrantRepository;
 
     @Autowired
     private CatalogObjectGrantService catalogObjectGrantService;
@@ -406,5 +402,32 @@ public class BucketGrantService {
 
     public long getBucketIdByName(String bucketName) {
         return bucketRepository.findOneByBucketName(bucketName).getId();
+    }
+
+    public String getHighestGrantAccessTypeFromBucketGrants(AuthenticatedUser user, String bucketName,
+            String bucketOwner) {
+        String accessType = "";
+        if (user.getName().equals(bucketOwner) || user.getGroups().contains(bucketOwner.substring(6)) ||
+            bucketOwner.equals("GROUP:public-objects")) {
+            accessType = admin.toString();
+        } else {
+            long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
+            List<BucketGrantMetadata> grants = this.getAllAssignedGrantsForUserAndHisGroups(user.getName(),
+                                                                                            user.getGroups());
+            grants = grants.stream().filter(grant -> grant.getBucketId() == bucketId).collect(Collectors.toList());
+            if (grants.size() > 0) {
+                BucketGrantMetadata bucketGrantMetadata = grants.get(0);
+                for (int index = 1; index < grants.size(); index++) {
+                    if (grantAccessTypeHelperService.getPriorityLevel(bucketGrantMetadata.getAccessType(),
+                                                                      grants.get(index).getAccessType()) == 2) {
+                        bucketGrantMetadata = grants.get(index);
+                    }
+                }
+                accessType = bucketGrantMetadata.getAccessType();
+            } else {
+                accessType = "";
+            }
+        }
+        return accessType;
     }
 }

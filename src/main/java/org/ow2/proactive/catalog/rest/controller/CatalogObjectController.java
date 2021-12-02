@@ -48,7 +48,6 @@ import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
-import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
@@ -426,6 +425,7 @@ public class CatalogObjectController {
                                                                                                pageNo,
                                                                                                pageSize);
 
+            String accessType = "";
             if (!grants.isEmpty()) {
                 List<CatalogObjectMetadata> objectsToRemove = new LinkedList<>();
                 List<CatalogObjectMetadata> objectsNotToRemove = new LinkedList<>();
@@ -438,6 +438,7 @@ public class CatalogObjectController {
                                 objectsToRemove.add(obj);
                             } else if (obj.getName().equals(objName) && !objectsNotToRemove.contains(obj)) {
                                 objectsNotToRemove.add(obj);
+                                accessType = grant.getAccessType();
                             }
                         }
                     } else {
@@ -461,6 +462,7 @@ public class CatalogObjectController {
             }
 
             for (CatalogObjectMetadata catalogObject : metadataList) {
+                catalogObject.setRights(accessType);
                 catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
                 catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
             }
