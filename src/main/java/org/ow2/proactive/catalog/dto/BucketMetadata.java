@@ -85,8 +85,8 @@ public class BucketMetadata extends ResourceSupport {
         return name;
     }
 
-    public void setRights(String bucketGrantAccessType) {
-        this.rights = bucketGrantAccessType;
+    public void setRights(String rights) {
+        this.rights = rights;
     }
 
     @Override
