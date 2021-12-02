@@ -78,17 +78,15 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
         Predicate kindPredicate = cb.or();
         for (String kind : kindList) {
             kindPredicate = cb.or(kindPredicate,
-                                  cb.like(cb.lower(catalogObjectsJoin.get("kind")), kind.toLowerCase() + "%"));
+                                  cb.like(catalogObjectsJoin.get("kindLower"), kind.toLowerCase() + "%"));
         }
         Predicate contentTypePredicate = cb.and();
         if (contentType != null) {
-            contentTypePredicate = cb.like(cb.lower(catalogObjectsJoin.get("contentType")),
-                                           contentType.toLowerCase() + "%");
+            contentTypePredicate = cb.like(catalogObjectsJoin.get("contentTypeLower"), contentType.toLowerCase() + "%");
         }
         Predicate objectNamePredicate = cb.and();
         if (objectName != null) {
-            objectNamePredicate = cb.like(cb.lower(catalogObjectsJoin.get("id").get("name")),
-                                          "%" + objectName.toLowerCase() + "%");
+            objectNamePredicate = cb.like(catalogObjectsJoin.get("nameLower"), "%" + objectName.toLowerCase() + "%");
         }
 
         Predicate ownerPredicate = cb.and();

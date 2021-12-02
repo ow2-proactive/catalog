@@ -40,10 +40,12 @@ public class DatabaseBackwardCompatibilityManager {
     @Autowired
     ProjectNameStartupAdder projectNameStartupAdder;
 
+    @Autowired
+    NameKindContentTypeLowerCaseStartupAdder nameKindContentTypeLowerCaseStartupAdder;
+
     @PostConstruct
-    public void initSetProjectNameInCatalogObjectRevisionEntity() {
-
+    public void initMissingColumnsInDatabase() {
         projectNameStartupAdder.synchronizeProjectName();
-
+        nameKindContentTypeLowerCaseStartupAdder.synchronizeNameKindAndContentType();
     }
 }

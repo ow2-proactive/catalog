@@ -46,6 +46,7 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -64,7 +65,7 @@ import lombok.NoArgsConstructor;
 @BatchSize(size = 25)
 @Entity
 @NamedEntityGraph(name = "catalogObject.withRevisions", attributeNodes = { @NamedAttributeNode("revisions") })
-@Table(name = "CATALOG_OBJECT", indexes = { @Index(columnList = "LAST_COMMIT_TIME") })
+@Table(name = "CATALOG_OBJECT", indexes = { @Index(columnList = "LAST_COMMIT_TIME,NAME_LOWER,KIND_LOWER,CONTENT_TYPE_LOWER") })
 public class CatalogObjectEntity implements Serializable {
 
     @AllArgsConstructor
@@ -112,11 +113,23 @@ public class CatalogObjectEntity implements Serializable {
     @JoinColumn(name = "BUCKET_ID", nullable = false)
     private BucketEntity bucket;
 
+    @Column(name = "NAME_LOWER")
+    @ColumnTransformer(write = "LOWER(?)")
+    private String nameLower;
+
     @Column(name = "CONTENT_TYPE")
     private String contentType;
 
+    @Column(name = "CONTENT_TYPE_LOWER")
+    @ColumnTransformer(write = "LOWER(?)")
+    private String contentTypeLower;
+
     @Column(name = "KIND", nullable = false)
     private String kind;
+
+    @Column(name = "KIND_LOWER")
+    @ColumnTransformer(write = "LOWER(?)")
+    private String kindLower;
 
     @Column(name = "EXTENSION")
     private String extension;

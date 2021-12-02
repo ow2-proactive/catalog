@@ -205,10 +205,13 @@ public class CatalogObjectService {
         CatalogObjectEntity catalogObjectEntity = CatalogObjectEntity.builder()
                                                                      .bucket(bucketEntity)
                                                                      .contentType(contentType)
+                                                                     .contentTypeLower(contentType)
                                                                      .kind(kind)
+                                                                     .kindLower(kind)
                                                                      .extension(extension)
                                                                      .id(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
                                                                                                                         name))
+                                                                     .nameLower(name)
                                                                      .build();
         bucketEntity.getCatalogObjects().add(catalogObjectEntity);
         CatalogObjectRevisionEntity result = buildCatalogObjectRevisionEntity(commitMessage,
@@ -265,7 +268,10 @@ public class CatalogObjectService {
         catalogObjectRevisionRepository.save(catalogObjectRevisionEntity);
         CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
         kind.ifPresent(catalogObjectEntity::setKind);
+        kind.ifPresent(catalogObjectEntity::setKindLower);
+        catalogObjectEntity.setNameLower(name);
         contentType.ifPresent(catalogObjectEntity::setContentType);
+        contentType.ifPresent(catalogObjectEntity::setContentTypeLower);
         catalogObjectRepository.save(catalogObjectEntity);
         return new CatalogObjectMetadata(catalogObjectEntity);
     }
