@@ -41,8 +41,8 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
     List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByCatalogObjectRevisionEntityIdAndBucketEntityId(
             long catalogObjectId, long bucketId);
 
-    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByCreatorAndBucketEntityId(String admin,
-            long bucketId);
+    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketEntityIdAndCatalogObjectRevisionEntityId(
+            long bucketId, long catalogObjectId);
 
     List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketEntityId(long bucketId);
 
@@ -78,4 +78,16 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
     @Query(value = "SELECT coge.bucketEntity.id FROM CatalogObjectGrantEntity coge WHERE coge.grantee in ?1 AND coge.granteeType='group'")
     List<Long> findAllBucketsIdFromCatalogObjectGrantsAssignedToAUserGroup(List<String> userGroups);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user'")
+    List<CatalogObjectGrantEntity> findAllGrantsAssignedToAUsername(String username);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee in ?1 AND coge.granteeType='group'")
+    List<CatalogObjectGrantEntity> findAllGrantsAssignedToAUserGroup(List<String> userGroups);
+
+    List<CatalogObjectGrantEntity> deleteAllByBucketEntityIdAndCatalogObjectRevisionEntityId(long bucketId,
+            long catalogObjectId);
 }

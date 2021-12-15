@@ -33,10 +33,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 
 
 @Data
 @Getter
+@Setter
 @EqualsAndHashCode(callSuper = false)
 public class BucketGrantMetadata extends ResourceSupport {
 
@@ -55,19 +57,25 @@ public class BucketGrantMetadata extends ResourceSupport {
     @JsonProperty
     private final long bucketId;
 
+    @JsonProperty
+    private final String bucketName;
+
     public BucketGrantMetadata(BucketGrantEntity bucketGrantEntity) {
         this.granteeType = bucketGrantEntity.getGranteeType();
         this.creator = bucketGrantEntity.getCreator();
         this.grantee = bucketGrantEntity.getGrantee();
         this.accessType = bucketGrantEntity.getAccessType();
         this.bucketId = bucketGrantEntity.getBucketEntity().getId();
+        this.bucketName = bucketGrantEntity.getBucketEntity().getBucketName();
     }
 
-    public BucketGrantMetadata(String granteeType, String creator, String grantee, String accessType, long bucketId) {
+    public BucketGrantMetadata(String granteeType, String creator, String grantee, String accessType, long bucketId,
+            String bucketName) {
         this.granteeType = granteeType;
         this.creator = creator;
         this.grantee = grantee;
         this.accessType = accessType;
         this.bucketId = bucketId;
+        this.bucketName = bucketName;
     }
 }

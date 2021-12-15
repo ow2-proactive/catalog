@@ -42,6 +42,8 @@ public interface BucketGrantRepository extends JpaRepository<BucketGrantEntity, 
 
     List<BucketGrantEntity> findBucketGrantEntitiesByCreator(String creatorName);
 
+    List<BucketGrantEntity> deleteAllByBucketEntityId(long bucketId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.grantee = ?2 AND bge.granteeType='user'")

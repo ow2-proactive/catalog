@@ -23,18 +23,30 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.service.exception;
+package org.ow2.proactive.catalog.util;
 
-import org.ow2.proactive.microservices.common.exception.ClientException;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
+import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
+
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 
-@ResponseStatus(HttpStatus.FORBIDDEN)
-public class CatalogObjectGrantAccessException extends ClientException {
+@Data
+@Getter
+@Setter
+public class AllBucketGrants implements Serializable {
+    private List<BucketGrantMetadata> bucketGrants;
 
-    public CatalogObjectGrantAccessException(String bucketName, String catalogObjectName) {
-        super("You don't admin grant rights over the catalog object: " + catalogObjectName + " in the bucket: " +
-              bucketName);
+    private List<CatalogObjectGrantMetadata> objectGrants;
+
+    public AllBucketGrants() {
+        this.bucketGrants = new LinkedList<>();
+        this.objectGrants = new LinkedList<>();
     }
 }
