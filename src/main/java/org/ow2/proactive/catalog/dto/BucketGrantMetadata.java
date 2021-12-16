@@ -33,12 +33,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 
 
 @Data
 @Getter
-@Setter
 @EqualsAndHashCode(callSuper = false)
 public class BucketGrantMetadata extends ResourceSupport {
 

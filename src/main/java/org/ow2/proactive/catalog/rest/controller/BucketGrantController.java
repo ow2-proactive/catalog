@@ -180,7 +180,7 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Get all created grant for a bucket")
+    @ApiOperation(value = "Get all grants associated with a bucket")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant", method = GET)
@@ -209,7 +209,7 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Create a new user grant grant access for a bucket")
+    @ApiOperation(value = "Create a new user grant access for a bucket")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/user", method = POST)
@@ -311,7 +311,7 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Get all created grant for a bucket and for its object")
+    @ApiOperation(value = "Get all grants associated with a bucket and all objects contained in this bucket")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/all", method = GET)
@@ -340,7 +340,7 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Get all created grant for a bucket and for its object")
+    @ApiOperation(value = "Delete all grants associated with a bucket and all objects contained in this bucket")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/all", method = DELETE)
