@@ -92,6 +92,9 @@ public class CatalogObjectMetadata extends ResourceSupport {
     @JsonProperty("variables_order")
     protected final LinkedHashMap<String, LinkedHashMap<String, JobVariable>> variablesOrder;
 
+    @JsonProperty("rights")
+    protected String rights;
+
     public CatalogObjectMetadata(CatalogObjectEntity catalogObject) {
         this(catalogObject.getBucket().getBucketName(),
              catalogObject.getId().getName(),
