@@ -46,7 +46,6 @@ import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingExceptio
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
-import org.ow2.proactive.catalog.util.AccessType;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -215,7 +214,9 @@ public class BucketController {
                                                                                                             data.getOwner());
                 BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), data.getObjectCount());
                 metadata.setRights(bucketGrantAccessType);
-                res.add(metadata);
+                if (!res.contains(metadata)) {
+                    res.add(metadata);
+                }
             }
             listBucket.clear();
             listBucket.addAll(res);

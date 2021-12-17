@@ -110,12 +110,11 @@ public class CatalogObjectGrantServiceTest {
                                                                            anyLong())).thenReturn(dbCatalogObjectGrantEntity);
         when(catalogObjectGrantRepository.save(any(CatalogObjectGrantEntity.class))).thenReturn(catalogObjectGrantEntity);
 
-        CatalogObjectGrantMetadata result = catalogObjectGrantService.createCatalogObjectGrant(DUMMY_BUCKET,
-                                                                                               DUMMY_OBJECT,
-                                                                                               DUMMY_CURRENT_USERNAME,
-                                                                                               DUMMY_ACCESS_TYPE,
-                                                                                               DUMMY_USERNAME,
-                                                                                               "");
+        CatalogObjectGrantMetadata result = catalogObjectGrantService.createCatalogObjectGrantForAUser(DUMMY_BUCKET,
+                                                                                                       DUMMY_OBJECT,
+                                                                                                       DUMMY_CURRENT_USERNAME,
+                                                                                                       DUMMY_ACCESS_TYPE,
+                                                                                                       DUMMY_USERNAME);
 
         assertEquals("user", result.getGranteeType());
         assertEquals(DUMMY_USERNAME, result.getGrantee());
@@ -153,10 +152,9 @@ public class CatalogObjectGrantServiceTest {
                                                                            anyLong())).thenReturn(catalogObjectGrantEntity);
         doNothing().when(catalogObjectGrantRepository).delete(any(CatalogObjectGrantEntity.class));
 
-        CatalogObjectGrantMetadata result = catalogObjectGrantService.deleteCatalogObjectGrant(DUMMY_BUCKET,
-                                                                                               DUMMY_OBJECT,
-                                                                                               DUMMY_USERNAME,
-                                                                                               "");
+        CatalogObjectGrantMetadata result = catalogObjectGrantService.deleteCatalogObjectGrantForAUser(DUMMY_BUCKET,
+                                                                                                       DUMMY_OBJECT,
+                                                                                                       DUMMY_USERNAME);
 
         assertEquals("user", result.getGranteeType());
         assertEquals(DUMMY_USERNAME, result.getGrantee());
@@ -193,12 +191,10 @@ public class CatalogObjectGrantServiceTest {
                                                                            anyString(),
                                                                            anyLong())).thenReturn(catalogObjectGrantEntity);
         when(catalogObjectGrantRepository.save(any(CatalogObjectGrantEntity.class))).thenReturn(catalogObjectGrantEntity);
-
-        CatalogObjectGrantMetadata result = catalogObjectGrantService.updateCatalogObjectGrant(DUMMY_USERNAME,
-                                                                                               "",
-                                                                                               DUMMY_OBJECT,
-                                                                                               DUMMY_BUCKET,
-                                                                                               DUMMY_ACCESS_TYPE);
+        CatalogObjectGrantMetadata result = catalogObjectGrantService.updateCatalogObjectGrantForAUser(DUMMY_USERNAME,
+                                                                                                       DUMMY_OBJECT,
+                                                                                                       DUMMY_BUCKET,
+                                                                                                       DUMMY_ACCESS_TYPE);
 
         assertEquals("user", result.getGranteeType());
         assertEquals(DUMMY_USERNAME, result.getGrantee());
@@ -265,40 +261,6 @@ public class CatalogObjectGrantServiceTest {
                                                                                                       CATALOG_OBJECT_ID,
                                                                                                       BUCKET_ID);
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
-    }
-
-    @Test
-    public void testGetAllCreatedCatalogObjectGrantsForThisBucket() {
-        BucketEntity mockedBucket = newMockedBucket();
-        CatalogObjectRevisionEntity dummyCatalogObjectRevisionEntity = newCatalogObjectRevisionEntity();
-        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity("user",
-                                                                                         DUMMY_CURRENT_USERNAME,
-                                                                                         DUMMY_USERNAME,
-                                                                                         DUMMY_ACCESS_TYPE,
-                                                                                         dummyCatalogObjectRevisionEntity,
-                                                                                         mockedBucket);
-
-        List<CatalogObjectGrantEntity> dbUserObjectGrants = new LinkedList<>();
-        dbUserObjectGrants.add(catalogObjectGrantEntity);
-        when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
-        when(catalogObjectGrantRepository.findCatalogObjectGrantEntitiesByCreatorAndBucketEntityId(DUMMY_CURRENT_USERNAME,
-                                                                                                   BUCKET_ID)).thenReturn(dbUserObjectGrants);
-
-        List<CatalogObjectGrantMetadata> results = catalogObjectGrantService.getAllCreatedCatalogObjectGrantsForThisBucket(DUMMY_CURRENT_USERNAME,
-                                                                                                                           DUMMY_BUCKET);
-
-        assertEquals(1, results.size());
-        assertEquals("user", results.get(0).getGranteeType());
-        assertEquals(DUMMY_USERNAME, results.get(0).getGrantee());
-        assertEquals(DUMMY_ACCESS_TYPE, results.get(0).getAccessType());
-        assertEquals(DUMMY_CURRENT_USERNAME, results.get(0).getCreator());
-        assertEquals(BUCKET_ID, results.get(0).getCatalogObjectBucketId());
-        assertEquals(CATALOG_OBJECT_ID, results.get(0).getCatalogObjectId());
-
-        verify(catalogObjectGrantRepository,
-               times(1)).findCatalogObjectGrantEntitiesByCreatorAndBucketEntityId(DUMMY_CURRENT_USERNAME, BUCKET_ID);
-        verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
-
     }
 
     @Test
@@ -370,7 +332,7 @@ public class CatalogObjectGrantServiceTest {
                                                                                                                          BUCKET_ID)).thenReturn(dbUserObjectGrants);
         doNothing().when(catalogObjectGrantRepository).delete(any(CatalogObjectGrantEntity.class));
 
-        catalogObjectGrantService.deleteAllCatalogObjectGrants(BUCKET_ID, CATALOG_OBJECT_ID);
+        catalogObjectGrantService.deleteAllCatalogObjectGrantsByBucketIdAndObjectId(BUCKET_ID, CATALOG_OBJECT_ID);
 
         verify(catalogObjectGrantRepository,
                times(1)).findCatalogObjectGrantEntitiesByCatalogObjectRevisionEntityIdAndBucketEntityId(CATALOG_OBJECT_ID,

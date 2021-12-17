@@ -166,11 +166,10 @@ public class BucketGrantServiceTest {
         when(bucketGrantRepository.save(any(BucketGrantEntity.class))).thenReturn(bucketGrantEntity);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
 
-        BucketGrantMetadata userGrantMetadata = bucketGrantService.createBucketGrant(DUMMY_BUCKET,
-                                                                                     DUMMY_CURRENT_USERNAME,
-                                                                                     DUMMY_ACCESS_TYPE,
-                                                                                     DUMMY_USERNAME,
-                                                                                     "");
+        BucketGrantMetadata userGrantMetadata = bucketGrantService.createBucketGrantForAUSer(DUMMY_BUCKET,
+                                                                                             DUMMY_CURRENT_USERNAME,
+                                                                                             DUMMY_ACCESS_TYPE,
+                                                                                             DUMMY_USERNAME);
 
         assertEquals(DUMMY_ACCESS_TYPE, userGrantMetadata.getAccessType());
         assertEquals("user", userGrantMetadata.getGranteeType());
@@ -194,11 +193,10 @@ public class BucketGrantServiceTest {
         when(bucketGrantRepository.save(any(BucketGrantEntity.class))).thenReturn(groupBucketGrantEntity);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
 
-        BucketGrantMetadata userGroupGrantMetadata = bucketGrantService.createBucketGrant(DUMMY_BUCKET,
-                                                                                          DUMMY_CURRENT_USERNAME,
-                                                                                          DUMMY_ACCESS_TYPE,
-                                                                                          "",
-                                                                                          DUMMY_GROUP);
+        BucketGrantMetadata userGroupGrantMetadata = bucketGrantService.createBucketGrantForAGroup(DUMMY_BUCKET,
+                                                                                                   DUMMY_CURRENT_USERNAME,
+                                                                                                   DUMMY_ACCESS_TYPE,
+                                                                                                   DUMMY_GROUP);
 
         assertEquals(userGroupGrantMetadata.getAccessType(), DUMMY_ACCESS_TYPE);
         assertEquals(userGroupGrantMetadata.getGranteeType(), "group");
@@ -223,7 +221,8 @@ public class BucketGrantServiceTest {
         when(bucketGrantRepository.findBucketGrantByUsername(1L, DUMMY_USERNAME)).thenReturn(userBucketGrantEntity);
         doNothing().when(bucketGrantRepository).delete(any(BucketGrantEntity.class));
 
-        BucketGrantMetadata userGrantMetadata = bucketGrantService.deleteBucketGrant(DUMMY_BUCKET, DUMMY_USERNAME, "");
+        BucketGrantMetadata userGrantMetadata = bucketGrantService.deleteBucketGrantForAUser(DUMMY_BUCKET,
+                                                                                             DUMMY_USERNAME);
 
         assertEquals(userGrantMetadata.getAccessType(), DUMMY_ACCESS_TYPE);
         assertEquals(userGrantMetadata.getGranteeType(), "user");
@@ -248,7 +247,8 @@ public class BucketGrantServiceTest {
         when(bucketGrantRepository.findBucketGrantByUserGroup(1L, DUMMY_GROUP)).thenReturn(groupBucketGrantEntity);
         doNothing().when(bucketGrantRepository).delete(any(BucketGrantEntity.class));
 
-        BucketGrantMetadata groupGrantMetadata = bucketGrantService.deleteBucketGrant(DUMMY_BUCKET, "", DUMMY_GROUP);
+        BucketGrantMetadata groupGrantMetadata = bucketGrantService.deleteBucketGrantForAGroup(DUMMY_BUCKET,
+                                                                                               DUMMY_GROUP);
 
         assertEquals(groupGrantMetadata.getAccessType(), DUMMY_ACCESS_TYPE);
         assertEquals(groupGrantMetadata.getGranteeType(), "group");

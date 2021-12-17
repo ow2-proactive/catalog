@@ -26,15 +26,12 @@
 package org.ow2.proactive.catalog.service.exception;
 
 import org.ow2.proactive.microservices.common.exception.ClientException;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 
-@ResponseStatus(HttpStatus.FORBIDDEN)
-public class CatalogObjectGrantAccessException extends ClientException {
+public class PublicBucketGrantAccessException extends ClientException {
 
-    public CatalogObjectGrantAccessException(String bucketName, String catalogObjectName) {
-        super("You don't admin grant rights over the catalog object: " + catalogObjectName + " in the bucket: " +
-              bucketName);
+    public PublicBucketGrantAccessException(String bucketName) {
+        super(bucketName + "is public. You can create grants for non public buckets only.");
     }
+
 }

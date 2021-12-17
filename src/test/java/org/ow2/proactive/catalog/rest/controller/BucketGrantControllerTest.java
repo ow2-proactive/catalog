@@ -37,16 +37,12 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
-import org.ow2.proactive.catalog.service.RestApiAccessService;
 
 
 public class BucketGrantControllerTest {
 
     @InjectMocks
     BucketGrantController bucketGrantController;
-
-    @Mock
-    private RestApiAccessService restApiAccessService;
 
     @Mock
     private BucketGrantService bucketGrantService;
@@ -58,7 +54,7 @@ public class BucketGrantControllerTest {
 
     private final String DUMMY_BUCKET_NAME = "dummy-bucket";
 
-    private final String DUMMY_CURRENT_USER = "dummyAdmin";
+    private final String DUMMY_CURRENT_USER = "";
 
     private final String DUMMY_ACCESS_TYPE = "admin";
 
@@ -78,82 +74,48 @@ public class BucketGrantControllerTest {
     }
 
     @Test
-    public void testGetAssignedBucketGrantsForUserAndHisGroup() {
-        List<String> userGroups = new LinkedList<>();
-        userGroups.add(DUMMY_GROUP);
-        bucketGrantController.getAssignedBucketGrantsForUserAndHisGroup(DUMMY_SESSION_ID,
-                                                                        DUMMY_CURRENT_USER,
-                                                                        userGroups);
-        verify(bucketGrantService, times(1)).getAllAssignedGrantsForUserAndHisGroups(DUMMY_CURRENT_USER, userGroups);
-    }
-
-    @Test
     public void testUpdateBucketGrant() {
-        bucketGrantController.updateBucketGrant(DUMMY_SESSION_ID,
-                                                DUMMY_CURRENT_USER,
-                                                DUMMY_USER,
-                                                "",
-                                                DUMMY_ACCESS_TYPE,
-                                                DUMMY_BUCKET_NAME);
+        bucketGrantController.updateBucketGrantForAUser(DUMMY_SESSION_ID,
+                                                        DUMMY_BUCKET_NAME,
+                                                        DUMMY_USER,
+                                                        DUMMY_ACCESS_TYPE);
         verify(bucketGrantService, times(1)).updateBucketGrantForASpecificUser(DUMMY_BUCKET_NAME,
                                                                                DUMMY_USER,
                                                                                DUMMY_ACCESS_TYPE);
-        bucketGrantController.updateBucketGrant(DUMMY_SESSION_ID,
-                                                DUMMY_CURRENT_USER,
-                                                "",
-                                                DUMMY_GROUP,
-                                                DUMMY_ACCESS_TYPE,
-                                                DUMMY_BUCKET_NAME);
+        bucketGrantController.updateBucketGrantForAGroup(DUMMY_SESSION_ID,
+                                                         DUMMY_BUCKET_NAME,
+                                                         DUMMY_GROUP,
+                                                         DUMMY_ACCESS_TYPE);
         verify(bucketGrantService, times(1)).updateBucketGrantForASpecificUserGroup(DUMMY_BUCKET_NAME,
                                                                                     DUMMY_GROUP,
                                                                                     DUMMY_ACCESS_TYPE);
     }
 
     @Test
-    public void testGetCreatedBucketGrants() {
-        bucketGrantController.getCreatedBucketGrants(DUMMY_SESSION_ID, DUMMY_CURRENT_USER);
-        verify(bucketGrantService, times(1)).getAllGrantsCreatedByUsername(DUMMY_CURRENT_USER);
-    }
-
-    @Test
     public void testCreateBucketGrant() {
-        bucketGrantController.createBucketGrant(DUMMY_SESSION_ID,
-                                                DUMMY_BUCKET_NAME,
-                                                DUMMY_CURRENT_USER,
-                                                DUMMY_ACCESS_TYPE,
-                                                DUMMY_USER,
-                                                "");
-        verify(bucketGrantService, times(1)).createBucketGrant(DUMMY_BUCKET_NAME,
-                                                               DUMMY_CURRENT_USER,
-                                                               DUMMY_ACCESS_TYPE,
-                                                               DUMMY_USER,
-                                                               "");
-        bucketGrantController.createBucketGrant(DUMMY_SESSION_ID,
-                                                DUMMY_BUCKET_NAME,
-                                                DUMMY_CURRENT_USER,
-                                                DUMMY_ACCESS_TYPE,
-                                                "",
-                                                DUMMY_GROUP);
-        verify(bucketGrantService, times(1)).createBucketGrant(DUMMY_BUCKET_NAME,
-                                                               DUMMY_CURRENT_USER,
-                                                               DUMMY_ACCESS_TYPE,
-                                                               "",
-                                                               DUMMY_GROUP);
+        bucketGrantController.createBucketGrantForAUser(DUMMY_SESSION_ID,
+                                                        DUMMY_BUCKET_NAME,
+                                                        DUMMY_ACCESS_TYPE,
+                                                        DUMMY_USER);
+        verify(bucketGrantService, times(1)).createBucketGrantForAUSer(DUMMY_BUCKET_NAME,
+                                                                       DUMMY_CURRENT_USER,
+                                                                       DUMMY_ACCESS_TYPE,
+                                                                       DUMMY_USER);
+        bucketGrantController.createBucketGrantForAGroup(DUMMY_SESSION_ID,
+                                                         DUMMY_BUCKET_NAME,
+                                                         DUMMY_ACCESS_TYPE,
+                                                         DUMMY_GROUP);
+        verify(bucketGrantService, times(1)).createBucketGrantForAGroup(DUMMY_BUCKET_NAME,
+                                                                        DUMMY_CURRENT_USER,
+                                                                        DUMMY_ACCESS_TYPE,
+                                                                        DUMMY_GROUP);
     }
 
     @Test
     public void testDeleteBucketGrant() {
-        bucketGrantController.deleteBucketGrant(DUMMY_SESSION_ID,
-                                                DUMMY_BUCKET_NAME,
-                                                DUMMY_CURRENT_USER,
-                                                DUMMY_USER,
-                                                "");
-        verify(bucketGrantService, times(1)).deleteBucketGrant(DUMMY_BUCKET_NAME, DUMMY_USER, "");
-        bucketGrantController.deleteBucketGrant(DUMMY_SESSION_ID,
-                                                DUMMY_BUCKET_NAME,
-                                                DUMMY_CURRENT_USER,
-                                                "",
-                                                DUMMY_GROUP);
-        verify(bucketGrantService, times(1)).deleteBucketGrant(DUMMY_BUCKET_NAME, "", DUMMY_GROUP);
+        bucketGrantController.deleteBucketGrantForAUser(DUMMY_SESSION_ID, DUMMY_BUCKET_NAME, DUMMY_USER);
+        verify(bucketGrantService, times(1)).deleteBucketGrantForAUser(DUMMY_BUCKET_NAME, DUMMY_USER);
+        bucketGrantController.deleteBucketGrantForAGroup(DUMMY_SESSION_ID, DUMMY_BUCKET_NAME, DUMMY_GROUP);
+        verify(bucketGrantService, times(1)).deleteBucketGrantForAGroup(DUMMY_BUCKET_NAME, DUMMY_GROUP);
     }
 }
