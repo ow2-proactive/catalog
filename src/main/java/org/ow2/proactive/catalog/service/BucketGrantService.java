@@ -236,7 +236,7 @@ public class BucketGrantService {
 
     /**
      *
-     *@param bucketName name of the bucket where the catalog object is stored.
+     * @param bucketName name of the bucket where the catalog object is stored.
      * @param currentUser name of the user creating the grant.
      * @param accessType type of the access grant. It can be either read, write or admin.
      * @param userGroup name of the group of users that will benefit of the access grant.

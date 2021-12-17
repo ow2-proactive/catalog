@@ -27,9 +27,6 @@ package org.ow2.proactive.catalog.repository;
 
 import java.util.List;
 
-import javax.persistence.LockModeType;
-import javax.persistence.QueryHint;
-
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;

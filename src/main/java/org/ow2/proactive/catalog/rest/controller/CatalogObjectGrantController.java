@@ -297,7 +297,7 @@ public class CatalogObjectGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Get all created grants for one object")
+    @ApiOperation(value = "Get all grants associated with a catalog object")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY, method = GET)
@@ -330,12 +330,12 @@ public class CatalogObjectGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Delete all object grants inside a bucket")
+    @ApiOperation(value = "Delete all grant associated with a catalog object")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY, method = DELETE)
     @ResponseStatus(HttpStatus.OK)
-    public List<CatalogObjectGrantMetadata> deleteAllCatalogObjectGrantsInABucket(
+    public List<CatalogObjectGrantMetadata> deleteAllCatalogObjectGrants(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the object in the bucket.", required = true) @PathVariable String catalogObjectName)
