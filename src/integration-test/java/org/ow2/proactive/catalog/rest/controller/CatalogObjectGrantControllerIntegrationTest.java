@@ -63,14 +63,13 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
 
     private final String catalogObjectName = "object";
 
-    private final String currentUser = "admin";
-
     private final String grantee = "user";
 
     private final String accessType = "read";
 
     @Before
     public void setup() {
+        String currentUser = "admin";
         HashMap<String, Object> result = given().header("sessionID", "12345")
                                                 .parameters("name", bucketName, "owner", currentUser)
                                                 .when()
@@ -107,20 +106,15 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
         Response createCatalogObjectGrantResponse = given().header("sessionID", "12345")
                                                            .pathParam("bucketName", bucketName)
                                                            .pathParam("catalogObjectName", catalogObjectName)
-                                                           .parameters("currentUser",
-                                                                       currentUser,
-                                                                       "accessType",
-                                                                       accessType,
-                                                                       "username",
-                                                                       grantee)
+                                                           .parameters("accessType", accessType, "username", grantee)
                                                            .when()
-                                                           .post(CATALOG_OBJECT_GRANTS_RESOURCE);
+                                                           .post(CATALOG_OBJECT_GRANTS_RESOURCE_USER);
 
         createCatalogObjectGrantResponse.then()
                                         .assertThat()
                                         .body("granteeType", is("user"))
                                         .body("grantee", is(grantee))
-                                        .body("creator", is(currentUser));
+                                        .body("accessType", is(accessType));
     }
 
     @Test
@@ -128,20 +122,15 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
         Response createCatalogObjectGrantResponse = given().header("sessionID", "12345")
                                                            .pathParam("bucketName", bucketName)
                                                            .pathParam("catalogObjectName", catalogObjectName)
-                                                           .parameters("currentUser",
-                                                                       currentUser,
-                                                                       "accessType",
-                                                                       accessType,
-                                                                       "userGroup",
-                                                                       grantee)
+                                                           .parameters("accessType", accessType, "userGroup", grantee)
                                                            .when()
-                                                           .post(CATALOG_OBJECT_GRANTS_RESOURCE);
+                                                           .post(CATALOG_OBJECTS_GRANTS_RESOURCE_GROUP);
 
         createCatalogObjectGrantResponse.then()
                                         .assertThat()
                                         .body("granteeType", is("group"))
                                         .body("grantee", is(grantee))
-                                        .body("creator", is(currentUser));
+                                        .body("accessType", is(accessType));
     }
 
     @Test
@@ -149,39 +138,29 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
         Response createCatalogObjectGrantResponse = given().header("sessionID", "12345")
                                                            .pathParam("bucketName", bucketName)
                                                            .pathParam("catalogObjectName", catalogObjectName)
-                                                           .parameters("currentUser",
-                                                                       currentUser,
-                                                                       "accessType",
-                                                                       accessType,
-                                                                       "username",
-                                                                       grantee)
+                                                           .parameters("accessType", accessType, "username", grantee)
                                                            .when()
-                                                           .post(CATALOG_OBJECT_GRANTS_RESOURCE);
+                                                           .post(CATALOG_OBJECT_GRANTS_RESOURCE_USER);
 
         createCatalogObjectGrantResponse.then()
                                         .assertThat()
                                         .body("granteeType", is("user"))
                                         .body("grantee", is(grantee))
-                                        .body("creator", is(currentUser));
+                                        .body("accessType", is(accessType));
 
         Response updateCatalogObjectGrantResponse = given().header("sessionID", "12345")
                                                            .pathParam("bucketName", bucketName)
                                                            .pathParam("catalogObjectName", catalogObjectName)
-                                                           .parameters("currentUser",
-                                                                       currentUser,
-                                                                       "accessType",
-                                                                       "admin",
-                                                                       "username",
-                                                                       grantee)
+                                                           .parameters("accessType", "admin", "username", grantee)
                                                            .when()
-                                                           .put(CATALOG_OBJECT_GRANTS_RESOURCE);
+                                                           .put(CATALOG_OBJECT_GRANTS_RESOURCE_USER);
+        ;
 
         updateCatalogObjectGrantResponse.then()
                                         .assertThat()
                                         .statusCode(HttpStatus.SC_OK)
                                         .body("granteeType", is("user"))
                                         .body("grantee", is(grantee))
-                                        .body("creator", is(currentUser))
                                         .body("accessType", not(accessType));
     }
 
@@ -190,114 +169,28 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
         Response createCatalogObjectGrantResponse = given().header("sessionID", "12345")
                                                            .pathParam("bucketName", bucketName)
                                                            .pathParam("catalogObjectName", catalogObjectName)
-                                                           .parameters("currentUser",
-                                                                       currentUser,
-                                                                       "accessType",
-                                                                       accessType,
-                                                                       "userGroup",
-                                                                       grantee)
+                                                           .parameters("accessType", accessType, "userGroup", grantee)
                                                            .when()
-                                                           .post(CATALOG_OBJECT_GRANTS_RESOURCE);
+                                                           .post(CATALOG_OBJECTS_GRANTS_RESOURCE_GROUP);
 
         createCatalogObjectGrantResponse.then()
                                         .assertThat()
                                         .body("granteeType", is("group"))
                                         .body("grantee", is(grantee))
-                                        .body("creator", is(currentUser));
+                                        .body("accessType", is(accessType));
 
         Response updateCatalogObjectGrantResponse = given().header("sessionID", "12345")
                                                            .pathParam("bucketName", bucketName)
                                                            .pathParam("catalogObjectName", catalogObjectName)
-                                                           .parameters("currentUser",
-                                                                       currentUser,
-                                                                       "accessType",
-                                                                       "admin",
-                                                                       "userGroup",
-                                                                       grantee)
+                                                           .parameters("accessType", "admin", "userGroup", grantee)
                                                            .when()
-                                                           .put(CATALOG_OBJECT_GRANTS_RESOURCE);
+                                                           .put(CATALOG_OBJECTS_GRANTS_RESOURCE_GROUP);
 
         updateCatalogObjectGrantResponse.then()
                                         .assertThat()
                                         .statusCode(HttpStatus.SC_OK)
                                         .body("granteeType", is("group"))
                                         .body("grantee", is(grantee))
-                                        .body("creator", is(currentUser))
                                         .body("accessType", not(accessType));
-    }
-
-    @Test
-    public void testGetAllAssignedCatalogObjectGrantsForTheCurrentUserAndHisGroup() {
-        Response createCatalogObjectGrantResponse = given().header("sessionID", "12345")
-                                                           .pathParam("bucketName", bucketName)
-                                                           .pathParam("catalogObjectName", catalogObjectName)
-                                                           .parameters("currentUser",
-                                                                       currentUser,
-                                                                       "accessType",
-                                                                       accessType,
-                                                                       "username",
-                                                                       grantee)
-                                                           .when()
-                                                           .post(CATALOG_OBJECT_GRANTS_RESOURCE);
-
-        createCatalogObjectGrantResponse.then()
-                                        .assertThat()
-                                        .body("granteeType", is("user"))
-                                        .body("grantee", is(grantee))
-                                        .body("creator", is(currentUser));
-
-        List<HashMap<String, String>> data = given().header("sessionID", "12345")
-                                                    .pathParam("bucketName", bucketName)
-                                                    .pathParam("catalogObjectName", catalogObjectName)
-                                                    .parameters("currentUser", grantee, "userGroup", "group")
-                                                    .get(CATALOG_OBJECT_GRANTS_RESOURCE)
-                                                    .then()
-                                                    .statusCode(HttpStatus.SC_OK)
-                                                    .extract()
-                                                    .path("");
-
-        assertEquals(1, data.size());
-        assertEquals(grantee, data.get(0).get("grantee"));
-        assertEquals("user", data.get(0).get("granteeType"));
-        assertEquals(accessType, data.get(0).get("accessType"));
-        assertEquals(currentUser, data.get(0).get("creator"));
-    }
-
-    @Test
-    public void testGetAllCreatedCatalogObjectGrantsByTheCurrentUserForTheCurrentUserBucket() {
-        Response createCatalogObjectGrantResponse = given().header("sessionID", "12345")
-                                                           .pathParam("bucketName", bucketName)
-                                                           .pathParam("catalogObjectName", catalogObjectName)
-                                                           .parameters("currentUser",
-                                                                       currentUser,
-                                                                       "accessType",
-                                                                       accessType,
-                                                                       "username",
-                                                                       grantee)
-                                                           .when()
-                                                           .post(CATALOG_OBJECT_GRANTS_RESOURCE);
-
-        createCatalogObjectGrantResponse.then()
-                                        .assertThat()
-                                        .body("granteeType", is("user"))
-                                        .body("grantee", is(grantee))
-                                        .body("creator", is(currentUser));
-
-        // CATALOG_OBJECTS_GRANTS_RESOURCE
-
-        List<HashMap<String, String>> data = given().header("sessionID", "12345")
-                                                    .pathParam("bucketName", bucketName)
-                                                    .parameters("currentUser", currentUser)
-                                                    .get(CATALOG_OBJECTS_GRANTS_RESOURCE)
-                                                    .then()
-                                                    .statusCode(HttpStatus.SC_OK)
-                                                    .extract()
-                                                    .path("");
-
-        assertEquals(1, data.size());
-        assertEquals(grantee, data.get(0).get("grantee"));
-        assertEquals("user", data.get(0).get("granteeType"));
-        assertEquals(accessType, data.get(0).get("accessType"));
-        assertEquals(currentUser, data.get(0).get("creator"));
     }
 }

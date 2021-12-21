@@ -30,7 +30,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.http.HttpStatus;
@@ -60,14 +59,13 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
 
     private final String bucketOwner = "BucketControllerIntegrationTest";
 
-    private final String currentUser = "admin";
-
     private final String grantee = "user";
 
     private final String accessType = "read";
 
     @After
     public void cleanup() {
+        IntegrationTestUtil.deleteBucketGrants();
         IntegrationTestUtil.cleanup();
     }
 
@@ -85,16 +83,10 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
                             .body("owner", is(bucketOwner));
 
         Response createBucketGrantResponse = given().header("sessionID", "12345")
-                                                    .parameters("bucketName",
-                                                                bucketName,
-                                                                "currentUser",
-                                                                currentUser,
-                                                                "accessType",
-                                                                accessType,
-                                                                "username",
-                                                                grantee)
+                                                    .pathParam("bucketName", bucketName)
+                                                    .parameters("accessType", accessType, "username", grantee)
                                                     .when()
-                                                    .post(BUCKETS_GRANTS_RESOURCE);
+                                                    .post(BUCKET_GRANTS_RESOURCE_USER);
 
         createBucketGrantResponse.then()
                                  .assertThat()
@@ -118,16 +110,10 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
                             .body("owner", is(bucketOwner));
 
         Response createBucketGrantResponse = given().header("sessionID", "12345")
-                                                    .parameters("bucketName",
-                                                                bucketName,
-                                                                "currentUser",
-                                                                currentUser,
-                                                                "accessType",
-                                                                accessType,
-                                                                "userGroup",
-                                                                grantee)
+                                                    .pathParam("bucketName", bucketName)
+                                                    .parameters("accessType", accessType, "userGroup", grantee)
                                                     .when()
-                                                    .post(BUCKETS_GRANTS_RESOURCE);
+                                                    .post(BUCKET_GRANTS_RESOURCE_GROUP);
 
         createBucketGrantResponse.then()
                                  .assertThat()
@@ -151,16 +137,10 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
                             .body("owner", is(bucketOwner));
 
         Response createBucketGrantResponse = given().header("sessionID", "12345")
-                                                    .parameters("bucketName",
-                                                                bucketName,
-                                                                "currentUser",
-                                                                currentUser,
-                                                                "accessType",
-                                                                accessType,
-                                                                "username",
-                                                                grantee)
+                                                    .pathParam("bucketName", bucketName)
+                                                    .parameters("accessType", accessType, "username", grantee)
                                                     .when()
-                                                    .post(BUCKETS_GRANTS_RESOURCE);
+                                                    .post(BUCKET_GRANTS_RESOURCE_USER);
 
         createBucketGrantResponse.then()
                                  .assertThat()
@@ -169,12 +149,10 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
                                  .body("grantee", is(grantee));
 
         Response updateBucketGrantResponse = given().header("sessionID", "12345")
-                                                    .header("accessType", "admin")
-                                                    .header("username", grantee)
                                                     .pathParam("bucketName", bucketName)
-                                                    .parameters("currentUser", currentUser)
+                                                    .parameters("accessType", "admin", "username", grantee)
                                                     .when()
-                                                    .put(BUCKET_GRANT_RESOURCE);
+                                                    .put(BUCKET_GRANTS_RESOURCE_USER);
 
         updateBucketGrantResponse.then()
                                  .assertThat()
@@ -198,16 +176,10 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
                             .body("owner", is(bucketOwner));
 
         Response createBucketGrantResponse = given().header("sessionID", "12345")
-                                                    .parameters("bucketName",
-                                                                bucketName,
-                                                                "currentUser",
-                                                                currentUser,
-                                                                "accessType",
-                                                                accessType,
-                                                                "userGroup",
-                                                                grantee)
+                                                    .pathParam("bucketName", bucketName)
+                                                    .parameters("accessType", accessType, "userGroup", grantee)
                                                     .when()
-                                                    .post(BUCKETS_GRANTS_RESOURCE);
+                                                    .post(BUCKET_GRANTS_RESOURCE_GROUP);
 
         createBucketGrantResponse.then()
                                  .assertThat()
@@ -216,111 +188,15 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
                                  .body("grantee", is(grantee));
 
         Response updateBucketGrantResponse = given().header("sessionID", "12345")
-                                                    .header("accessType", "admin")
-                                                    .header("userGroup", grantee)
                                                     .pathParam("bucketName", bucketName)
-                                                    .parameters("currentUser", currentUser)
+                                                    .parameters("accessType", "admin", "userGroup", grantee)
                                                     .when()
-                                                    .put(BUCKET_GRANT_RESOURCE);
+                                                    .put(BUCKET_GRANTS_RESOURCE_GROUP);
 
         updateBucketGrantResponse.then()
                                  .assertThat()
                                  .statusCode(HttpStatus.SC_OK)
                                  .body("accessType", not(accessType))
                                  .body("grantee", is(grantee));
-    }
-
-    @Test
-    public void testGetAllBucketGrantsCreatedBySpecificUser() {
-        Response createBucketResponse = given().header("sessionID", "12345")
-                                               .parameters("name", bucketName, "owner", bucketOwner)
-                                               .when()
-                                               .post(BUCKETS_RESOURCE);
-
-        createBucketResponse.then()
-                            .assertThat()
-                            .statusCode(HttpStatus.SC_CREATED)
-                            .body("name", is(bucketName))
-                            .body("owner", is(bucketOwner));
-
-        Response createBucketGrantResponse = given().header("sessionID", "12345")
-                                                    .parameters("bucketName",
-                                                                bucketName,
-                                                                "currentUser",
-                                                                currentUser,
-                                                                "accessType",
-                                                                accessType,
-                                                                "username",
-                                                                grantee)
-                                                    .when()
-                                                    .post(BUCKETS_GRANTS_RESOURCE);
-
-        createBucketGrantResponse.then()
-                                 .assertThat()
-                                 .statusCode(HttpStatus.SC_CREATED)
-                                 .body("accessType", is(accessType))
-                                 .body("grantee", is(grantee));
-
-        List<HashMap<String, String>> data = given().header("sessionID", "12345")
-                                                    .pathParam("username", currentUser)
-                                                    .get(BUCKETS_GRANTS_RESOURCE_USER)
-                                                    .then()
-                                                    .statusCode(HttpStatus.SC_OK)
-                                                    .extract()
-                                                    .path("");
-
-        assertEquals(1, data.size());
-        assertEquals(grantee, data.get(0).get("grantee"));
-        assertEquals(accessType, data.get(0).get("accessType"));
-        assertEquals(currentUser, data.get(0).get("creator"));
-    }
-
-    @Test
-    public void testGetAllBucketGrantsAssignedToSpecificUserAndHisGroup() {
-        Response createBucketResponse = given().header("sessionID", "12345")
-                                               .parameters("name", bucketName, "owner", bucketOwner)
-                                               .when()
-                                               .post(BUCKETS_RESOURCE);
-
-        createBucketResponse.then()
-                            .assertThat()
-                            .statusCode(HttpStatus.SC_CREATED)
-                            .body("name", is(bucketName))
-                            .body("owner", is(bucketOwner));
-
-        Response createBucketGrantResponse = given().header("sessionID", "12345")
-                                                    .parameters("bucketName",
-                                                                bucketName,
-                                                                "currentUser",
-                                                                currentUser,
-                                                                "accessType",
-                                                                accessType,
-                                                                "username",
-                                                                grantee)
-                                                    .when()
-                                                    .post(BUCKETS_GRANTS_RESOURCE);
-
-        createBucketGrantResponse.then()
-                                 .assertThat()
-                                 .statusCode(HttpStatus.SC_CREATED)
-                                 .body("accessType", is(accessType))
-                                 .body("grantee", is(grantee))
-                                 .body("granteeType", is("user"));
-
-        List<String> userGroups = new LinkedList<>();
-        userGroups.add("group");
-        List<HashMap<String, String>> data = given().header("sessionID", "12345")
-                                                    .parameters("currentUser", grantee, "userGroups", userGroups)
-                                                    .get(BUCKETS_GRANTS_RESOURCE)
-                                                    .then()
-                                                    .statusCode(HttpStatus.SC_OK)
-                                                    .extract()
-                                                    .path("");
-
-        assertEquals(1, data.size());
-        assertEquals(grantee, data.get(0).get("grantee"));
-        assertEquals("user", data.get(0).get("granteeType"));
-        assertEquals(accessType, data.get(0).get("accessType"));
-        assertEquals(currentUser, data.get(0).get("creator"));
     }
 }

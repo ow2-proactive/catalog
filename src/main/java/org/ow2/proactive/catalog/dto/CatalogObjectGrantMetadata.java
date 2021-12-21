@@ -56,16 +56,24 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
     private final long catalogObjectId;
 
     @JsonProperty
+    private final String catalogObjectName;
+
+    @JsonProperty
     private final long catalogObjectBucketId;
 
+    @JsonProperty
+    private final String bucketName;
+
     public CatalogObjectGrantMetadata(String granteeType, String creator, String grantee, String accessType,
-            long catalogObjectId, long catalogObjectBucketId) {
+            long catalogObjectId, long catalogObjectBucketId, String bucketName, String catalogObjectName) {
         this.granteeType = granteeType;
         this.creator = creator;
         this.grantee = grantee;
         this.accessType = accessType;
         this.catalogObjectId = catalogObjectId;
         this.catalogObjectBucketId = catalogObjectBucketId;
+        this.bucketName = bucketName;
+        this.catalogObjectName = catalogObjectName;
     }
 
     public CatalogObjectGrantMetadata(CatalogObjectGrantEntity catalogObjectGrantEntity) {
@@ -75,6 +83,15 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
         this.accessType = catalogObjectGrantEntity.getAccessType();
         this.catalogObjectId = catalogObjectGrantEntity.getCatalogObjectRevisionEntity().getId();
         this.catalogObjectBucketId = catalogObjectGrantEntity.getBucketEntity().getId();
+        this.bucketName = catalogObjectGrantEntity.getBucketEntity().getBucketName();
+        if (catalogObjectGrantEntity.getCatalogObjectRevisionEntity().getCatalogObject() != null) {
+            this.catalogObjectName = catalogObjectGrantEntity.getCatalogObjectRevisionEntity()
+                                                             .getCatalogObject()
+                                                             .getId()
+                                                             .getName();
+        } else {
+            this.catalogObjectName = "";
+        }
     }
 
 }

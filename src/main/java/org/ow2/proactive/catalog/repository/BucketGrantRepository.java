@@ -27,9 +27,6 @@ package org.ow2.proactive.catalog.repository;
 
 import java.util.List;
 
-import javax.persistence.LockModeType;
-import javax.persistence.QueryHint;
-
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
@@ -42,23 +39,17 @@ public interface BucketGrantRepository extends JpaRepository<BucketGrantEntity, 
 
     List<BucketGrantEntity> findBucketGrantEntitiesByCreator(String creatorName);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
+    List<BucketGrantEntity> deleteAllByBucketEntityId(long bucketId);
+
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.grantee = ?2 AND bge.granteeType='user'")
     BucketGrantEntity findBucketGrantByUsername(long bucketId, String username);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.grantee = ?2 AND bge.granteeType='group'")
     BucketGrantEntity findBucketGrantByUserGroup(long bucketId, String userGroup);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee = ?1 And bge.granteeType='user'")
     List<BucketGrantEntity> findAllGrantsAssignedToAUsername(String username);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee in ?1 And bge.granteeType='group'")
     List<BucketGrantEntity> findAllGrantsAssignedToTheUserGroups(List<String> userGroup);
 

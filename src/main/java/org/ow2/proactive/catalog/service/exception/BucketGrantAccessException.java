@@ -26,11 +26,14 @@
 package org.ow2.proactive.catalog.service.exception;
 
 import org.ow2.proactive.microservices.common.exception.ClientException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 
+@ResponseStatus(HttpStatus.FORBIDDEN)
 public class BucketGrantAccessException extends ClientException {
 
     public BucketGrantAccessException(String bucketName) {
-        super("You don't have grant access with admin rights over the bucket: " + bucketName);
+        super("You don't have admin grant rights over the bucket: " + bucketName);
     }
 }

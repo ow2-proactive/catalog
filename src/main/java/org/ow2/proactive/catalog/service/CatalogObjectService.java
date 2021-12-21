@@ -555,7 +555,7 @@ public class CatalogObjectService {
             long catalogObjectId = catalogObjectRevisionEntity.getId();
 
             //Delete all object grants
-            catalogObjectGrantService.deleteAllCatalogObjectGrants(bucketId, catalogObjectId);
+            catalogObjectGrantService.deleteAllCatalogObjectGrantsByBucketIdAndObjectId(bucketId, catalogObjectId);
 
             // Delete the catalog Object
             catalogObjectRepository.delete(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(), name));

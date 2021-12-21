@@ -98,6 +98,10 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
         return Long.valueOf(((CatalogObjectRevisionEntity) o).commitTime).compareTo(Long.valueOf(commitTime));
     }
 
+    public CatalogObjectEntity getCatalogObjectEntity() {
+        return this.catalogObject;
+    }
+
     public CatalogObjectRevisionEntity() {
         keyValueMetadataList = new ArrayList<>();
     }
