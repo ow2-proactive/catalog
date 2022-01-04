@@ -358,8 +358,7 @@ public class CatalogObjectGrantService {
                                                .map(CatalogObjectGrantMetadata::new)
                                                .collect(Collectors.toList());
         } else {
-            throw new CatalogObjectNotFoundException("Object: " + catalogObjectName + " was not found in bucket: " +
-                                                      bucketName);
+            throw new CatalogObjectNotFoundException(bucketName, catalogObjectName);
         }
     }
 
