@@ -36,6 +36,7 @@ import org.ow2.proactive.catalog.repository.CatalogObjectGrantRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.*;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectGrantAlreadyExistsException;
+import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AccessTypeValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -357,7 +358,7 @@ public class CatalogObjectGrantService {
                                                .map(CatalogObjectGrantMetadata::new)
                                                .collect(Collectors.toList());
         } else {
-            throw new DataIntegrityViolationException("Object: " + catalogObjectName + " was not found in bucket: " +
+            throw new CatalogObjectNotFoundException("Object: " + catalogObjectName + " was not found in bucket: " +
                                                       bucketName);
         }
     }
