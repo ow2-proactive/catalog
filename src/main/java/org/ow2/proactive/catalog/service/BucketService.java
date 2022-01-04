@@ -216,8 +216,6 @@ public class BucketService {
         } else {
             entities = generateBucketMetadataList(bucketRepository.findAll(sortById));
         }
-
-        //log.info("Buckets count {}", entities.size());
         return entities;
     }
 
