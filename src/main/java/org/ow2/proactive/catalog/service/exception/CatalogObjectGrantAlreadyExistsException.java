@@ -30,9 +30,8 @@ import org.ow2.proactive.microservices.common.exception.ClientException;
 
 public class CatalogObjectGrantAlreadyExistsException extends ClientException {
 
-    public CatalogObjectGrantAlreadyExistsException(String catalogObjectName, String bucketName, String name) {
-        super("Grant exists for WF: " + catalogObjectName + " in bucket: " + bucketName +
-              " and already assigned to user or user group: " + name);
+    public CatalogObjectGrantAlreadyExistsException(String message) {
+        super(message);
     }
 
 }

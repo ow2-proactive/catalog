@@ -212,7 +212,14 @@ public class BucketController {
                 String bucketGrantAccessType = bucketGrantService.getHighestGrantAccessTypeFromBucketGrants(user,
                                                                                                             data.getName(),
                                                                                                             data.getOwner());
-                BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), data.getObjectCount());
+                int objectCount;
+                int grantCount = bucketGrantService.getNumberOfAccessibleObjectsInTheBucket(user, data.getName());
+                if (grantCount != 0) {
+                    objectCount = grantCount;
+                } else {
+                    objectCount = data.getObjectCount();
+                }
+                BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), objectCount);
                 metadata.setRights(bucketGrantAccessType);
                 if (!res.contains(metadata)) {
                     res.add(metadata);

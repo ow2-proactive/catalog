@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class CatalogObjectGrantAccessException extends ClientException {
 
     public CatalogObjectGrantAccessException(String bucketName, String catalogObjectName) {
-        super("You don't admin grant rights over the catalog object: " + catalogObjectName + " in the bucket: " +
+        super("You do not have admin grant rights over the catalog object: " + catalogObjectName + " in the bucket: " +
               bucketName);
     }
 }

@@ -426,7 +426,19 @@ public class CatalogObjectController {
                                                                                                pageSize);
 
             String accessType = "";
-            if (!grants.isEmpty()) {
+            boolean isBucketGrantExist = true;
+            if (sessionIdRequired) {
+                if (user == null) {
+                    throw new AccessDeniedException("Session id is not active. Please login.");
+                }
+                List<BucketGrantMetadata> bucketGrantsMetadata = new LinkedList<>(bucketGrantService.getAllAssignedGrantsForUserAndHisGroups(user.getName(),
+                                                                                                                                             user.getGroups()));
+                bucketGrantsMetadata.removeIf(grant -> !grant.getBucketName().equals(bucketName));
+                if (bucketGrantsMetadata.isEmpty()) {
+                    isBucketGrantExist = false;
+                }
+            }
+            if (!grants.isEmpty() && !isBucketGrantExist) {
                 List<CatalogObjectMetadata> objectsToRemove = new LinkedList<>();
                 List<CatalogObjectMetadata> objectsNotToRemove = new LinkedList<>();
                 for (CatalogObjectGrantMetadata grant : grants) {
@@ -490,10 +502,22 @@ public class CatalogObjectController {
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString()) &&
-                    !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
+                List<CatalogObjectGrantMetadata> grants = catalogObjectGrantService.getAllAssignedCatalogObjectGrantsForUser(user)
+                                                                                   .stream()
+                                                                                   .filter(grant -> grant.getCatalogObjectName()
+                                                                                                         .equals(name) &&
+                                                                                                    grant.getBucketName()
+                                                                                                         .equals(bucketName))
+                                                                                   .collect(Collectors.toCollection(LinkedList::new));
+                if (grants.size() > 0) {
+                    if (!catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
+                                                                                             bucketName,
+                                                                                             name,
+                                                                                             admin.toString())) {
+                        throw new BucketGrantAccessException(bucketName);
+                    }
+                } else if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                          bucketName,
-                                                                                         name,
                                                                                          admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }

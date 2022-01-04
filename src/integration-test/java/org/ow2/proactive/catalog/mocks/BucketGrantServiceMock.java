@@ -36,7 +36,7 @@ public class BucketGrantServiceMock extends BucketGrantService {
         return true;
     }
 
-    public void deleteAllBucketGrants(long bucketId) {
+    public void deleteAllGrantsAssignedToABucketAndItsObjects(long bucketId) {
 
     }
 }

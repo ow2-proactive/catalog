@@ -25,14 +25,19 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static org.ow2.proactive.catalog.util.AccessType.admin;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
+import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
+import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
@@ -62,6 +67,9 @@ public class CatalogObjectGrantController {
     @Autowired
     private RestApiAccessService restApiAccessService;
 
+    @Autowired
+    private BucketGrantService bucketGrantService;
+
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
@@ -74,11 +82,11 @@ public class CatalogObjectGrantController {
     public CatalogObjectGrantMetadata createCatalogObjectGrantForAUser(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
-            @ApiParam(value = "The name of the object in the bucket.", required = true) @PathVariable String catalogObjectName,
+            @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
             @ApiParam(value = "The type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
             @ApiParam(value = "The name of the user that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
-        AuthenticatedUser user = null;
+        AuthenticatedUser user;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
@@ -91,14 +99,26 @@ public class CatalogObjectGrantController {
             }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+                List<CatalogObjectGrantMetadata> grants = catalogObjectGrantService.getAllAssignedCatalogObjectGrantsForUser(user)
+                                                                                   .stream()
+                                                                                   .filter(grant -> grant.getCatalogObjectName()
+                                                                                                         .equals(catalogObjectName) &&
+                                                                                                    grant.getBucketName()
+                                                                                                         .equals(bucketName))
+                                                                                   .collect(Collectors.toCollection(LinkedList::new));
+                if (grants.size() > 0) {
+                    if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
+                                                                                                                                    bucketName,
+                                                                                                                                    catalogObjectName)) {
+                        throw new BucketGrantAccessException(bucketName);
+                    }
+                } else if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
+                                                                                         bucketName,
+                                                                                         admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
                 }
             }
-        }
-        if (user == null) {
+        } else {
             user = AuthenticatedUser.EMPTY;
         }
         return catalogObjectGrantService.createCatalogObjectGrantForAUser(bucketName,
@@ -117,11 +137,11 @@ public class CatalogObjectGrantController {
     public CatalogObjectGrantMetadata createCatalogObjectGrantForAGroup(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
-            @ApiParam(value = "The name of the object in the bucket.", required = true) @PathVariable String catalogObjectName,
+            @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
             @ApiParam(value = "The type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
             @ApiParam(value = "The name of the group of users that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
-        AuthenticatedUser user = null;
+        AuthenticatedUser user;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
@@ -134,14 +154,26 @@ public class CatalogObjectGrantController {
             }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+                List<CatalogObjectGrantMetadata> grants = catalogObjectGrantService.getAllAssignedCatalogObjectGrantsForUser(user)
+                                                                                   .stream()
+                                                                                   .filter(grant -> grant.getCatalogObjectName()
+                                                                                                         .equals(catalogObjectName) &&
+                                                                                                    grant.getBucketName()
+                                                                                                         .equals(bucketName))
+                                                                                   .collect(Collectors.toCollection(LinkedList::new));
+                if (grants.size() > 0) {
+                    if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
+                                                                                                                                    bucketName,
+                                                                                                                                    catalogObjectName)) {
+                        throw new BucketGrantAccessException(bucketName);
+                    }
+                } else if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
+                                                                                         bucketName,
+                                                                                         admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
                 }
             }
-        }
-        if (user == null) {
+        } else {
             user = AuthenticatedUser.EMPTY;
         }
         return catalogObjectGrantService.createCatalogObjectGrantForAGroup(bucketName,
@@ -160,7 +192,7 @@ public class CatalogObjectGrantController {
     public CatalogObjectGrantMetadata deleteCatalogObjectGrantForAUser(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
-            @ApiParam(value = "The name of the object in the bucket.", required = true) @PathVariable String catalogObjectName,
+            @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
             @ApiParam(value = "The name of the user that is benefiting of the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user = null;
@@ -195,7 +227,7 @@ public class CatalogObjectGrantController {
     public CatalogObjectGrantMetadata deleteCatalogObjectGrantForAGroup(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
-            @ApiParam(value = "The name of the object in the bucket.", required = true) @PathVariable String catalogObjectName,
+            @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
             @ApiParam(value = "The name of the group of users that are benefiting of the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
@@ -229,7 +261,7 @@ public class CatalogObjectGrantController {
     private CatalogObjectGrantMetadata updateCatalogObjectGrantForAUser(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
-            @ApiParam(value = "The name of the object in the bucket.", required = true) @PathVariable String catalogObjectName,
+            @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
             @ApiParam(value = "The new type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
             @ApiParam(value = "The name of the user that is benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
@@ -267,7 +299,7 @@ public class CatalogObjectGrantController {
     private CatalogObjectGrantMetadata updateCatalogObjectGrantForAGroup(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
-            @ApiParam(value = "The name of the object in the bucket.", required = true) @PathVariable String catalogObjectName,
+            @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
             @ApiParam(value = "The new type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
             @ApiParam(value = "The name of the group of users that are benefiting of the access grant.", defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
@@ -305,7 +337,7 @@ public class CatalogObjectGrantController {
     public List<CatalogObjectGrantMetadata> getAllCreatedCatalogObjectGrantsByAdmins(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable String bucketName,
-            @ApiParam(value = "The name of the object in the bucket.", required = true) @PathVariable String catalogObjectName)
+            @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
@@ -338,7 +370,7 @@ public class CatalogObjectGrantController {
     public List<CatalogObjectGrantMetadata> deleteAllCatalogObjectGrants(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable String bucketName,
-            @ApiParam(value = "The name of the object in the bucket.", required = true) @PathVariable String catalogObjectName)
+            @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);

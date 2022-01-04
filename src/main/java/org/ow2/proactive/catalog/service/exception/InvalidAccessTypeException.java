@@ -28,9 +28,10 @@ package org.ow2.proactive.catalog.service.exception;
 import org.ow2.proactive.microservices.common.exception.ClientException;
 
 
-public class BucketGrantAlreadyExistsException extends ClientException {
+public class InvalidAccessTypeException extends ClientException {
 
-    public BucketGrantAlreadyExistsException(String message) {
+    public InvalidAccessTypeException(String message) {
         super(message);
     }
+
 }

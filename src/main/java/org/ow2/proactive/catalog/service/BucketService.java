@@ -217,7 +217,7 @@ public class BucketService {
             entities = generateBucketMetadataList(bucketRepository.findAll(sortById));
         }
 
-        log.info("Buckets count {}", entities.size());
+        //log.info("Buckets count {}", entities.size());
         return entities;
     }
 
@@ -244,7 +244,7 @@ public class BucketService {
         long bucketId = bucketEntity.getId();
 
         // Delete all bucket grants
-        bucketGrantService.deleteAllBucketGrants(bucketId);
+        bucketGrantService.deleteAllGrantsAssignedToABucketAndItsObjects(bucketId);
 
         // Delete the bucket
         bucketRepository.delete(bucketId);

@@ -72,7 +72,7 @@ public class CatalogObjectGrantServiceTest {
 
     private final String DUMMY_OBJECT = "dummyObject";
 
-    private final String DUMMY_ACCESS_TYPE = "dummyAccessType";
+    private final String DUMMY_ACCESS_TYPE = "read";
 
     private final long BUCKET_ID = 1L;
 

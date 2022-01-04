@@ -365,6 +365,6 @@ public class BucketGrantController {
                 }
             }
         }
-        return bucketGrantService.deleteAllBucketGrantAndObjects(bucketName);
+        return bucketGrantService.deleteAllBucketAndItsObjectsGrants(bucketName);
     }
 }
