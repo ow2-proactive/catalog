@@ -509,7 +509,7 @@ public class CatalogObjectController {
                                                                                                     grant.getBucketName()
                                                                                                          .equals(bucketName))
                                                                                    .collect(Collectors.toCollection(LinkedList::new));
-                if (grants.size() > 0) {
+                if (!grants.isEmpty()) {
                     if (!catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
                                                                                              bucketName,
                                                                                              name,

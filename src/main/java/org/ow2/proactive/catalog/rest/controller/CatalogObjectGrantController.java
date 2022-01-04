@@ -106,7 +106,7 @@ public class CatalogObjectGrantController {
                                                                                                     grant.getBucketName()
                                                                                                          .equals(bucketName))
                                                                                    .collect(Collectors.toCollection(LinkedList::new));
-                if (grants.size() > 0) {
+                if (!grants.isEmpty()) {
                     if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
                                                                                                                                     bucketName,
                                                                                                                                     catalogObjectName)) {
@@ -161,7 +161,7 @@ public class CatalogObjectGrantController {
                                                                                                     grant.getBucketName()
                                                                                                          .equals(bucketName))
                                                                                    .collect(Collectors.toCollection(LinkedList::new));
-                if (grants.size() > 0) {
+                if (!grants.isEmpty()) {
                     if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
                                                                                                                                     bucketName,
                                                                                                                                     catalogObjectName)) {
