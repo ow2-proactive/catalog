@@ -30,8 +30,8 @@ import org.ow2.proactive.microservices.common.exception.ClientException;
 
 public class PublicBucketGrantAccessException extends ClientException {
 
-    public PublicBucketGrantAccessException(String bucketName) {
-        super(bucketName + "is public. You can create grants for non public buckets only.");
+    public PublicBucketGrantAccessException(String message) {
+        super(message);
     }
 
 }

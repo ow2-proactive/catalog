@@ -507,27 +507,8 @@ public class CatalogObjectGrantService {
             String catalogObjectName, String requiredAccessType) {
         long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
         List<CatalogObjectGrantEntity> grantEntities = catalogObjectGrantRepository.findCatalogObjectGrantEntitiesByBucketEntityId(bucketId);
-        // Find the catalog object id
-        long catalogObjectId = getCatalogObjectId(bucketName, catalogObjectName);
         // Remove all grants that are not assigned to the current user and his group
-        List<CatalogObjectGrantEntity> grantEntitiesToRemove = new LinkedList<>();
-        for (CatalogObjectGrantEntity entity : grantEntities) {
-            if (!entity.getCatalogObjectRevisionEntity()
-                       .getCatalogObject()
-                       .getId()
-                       .getName()
-                       .equals(catalogObjectName)) {
-                grantEntitiesToRemove.add(entity);
-            } else {
-                if (entity.getGranteeType().equals("user") && !entity.getGrantee().equals(user.getName())) {
-                    grantEntitiesToRemove.add(entity);
-                } else if (entity.getGranteeType().equals("group") && !user.getGroups().contains(entity.getGrantee())) {
-                    grantEntitiesToRemove.add(entity);
-                }
-            }
-        }
-        grantEntities.removeAll(grantEntitiesToRemove);
-
+        this.filterGrantsThatDoNotNotApplyToUser(user, catalogObjectName, grantEntities);
         CatalogObjectGrantEntity userCatalogObjectGrant;
         if (grantEntities.size() > 0) {
             userCatalogObjectGrant = grantEntities.get(0);
@@ -548,6 +529,35 @@ public class CatalogObjectGrantService {
         return grantAccessTypeHelperService.compareGrantAccessType(userCatalogObjectGrant.getAccessType(),
                                                                    requiredAccessType);
 
+    }
+
+    /**
+     *
+     * Remove all grants that do not apply for the user
+     *
+     * @param user authenticated user
+     * @param catalogObjectName name of the object
+     * @param grantEntities list of object grant entities
+     */
+    private void filterGrantsThatDoNotNotApplyToUser(AuthenticatedUser user, String catalogObjectName,
+            List<CatalogObjectGrantEntity> grantEntities) {
+        List<CatalogObjectGrantEntity> grantEntitiesToRemove = new LinkedList<>();
+        for (CatalogObjectGrantEntity entity : grantEntities) {
+            if (!entity.getCatalogObjectRevisionEntity()
+                       .getCatalogObject()
+                       .getId()
+                       .getName()
+                       .equals(catalogObjectName)) {
+                grantEntitiesToRemove.add(entity);
+            } else {
+                if (entity.getGranteeType().equals("user") && !entity.getGrantee().equals(user.getName())) {
+                    grantEntitiesToRemove.add(entity);
+                } else if (entity.getGranteeType().equals("group") && !user.getGroups().contains(entity.getGrantee())) {
+                    grantEntitiesToRemove.add(entity);
+                }
+            }
+        }
+        grantEntities.removeAll(grantEntitiesToRemove);
     }
 
     /**

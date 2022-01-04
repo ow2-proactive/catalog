@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -370,7 +369,7 @@ public class CatalogObjectController {
 
         // Check Grants
         AuthenticatedUser user = null;
-        List<CatalogObjectGrantMetadata> grants = new LinkedList<>();
+        List<CatalogObjectGrantMetadata> catalogObjectGrants = new LinkedList<>();
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -383,7 +382,7 @@ public class CatalogObjectController {
                                                                                                          bucketName)) {
                     throw new BucketGrantAccessException(bucketName);
                 } else {
-                    grants = catalogObjectGrantService.findAllCatalogObjectGrantsAssignedToABucket(bucketName);
+                    catalogObjectGrants = catalogObjectGrantService.findAllCatalogObjectGrantsAssignedToABucket(bucketName);
                 }
             }
 
@@ -425,56 +424,34 @@ public class CatalogObjectController {
                                                                                                pageNo,
                                                                                                pageSize);
 
-            String accessType = "";
-            boolean isBucketGrantExist = true;
+            boolean doesTheUserHasAccessToTheBucketViaBucketGrant = true;
             if (sessionIdRequired) {
-                if (user == null) {
-                    throw new AccessDeniedException("Session id is not active. Please login.");
-                }
                 List<BucketGrantMetadata> bucketGrantsMetadata = new LinkedList<>(bucketGrantService.getAllAssignedGrantsForUserAndHisGroups(user.getName(),
                                                                                                                                              user.getGroups()));
                 bucketGrantsMetadata.removeIf(grant -> !grant.getBucketName().equals(bucketName));
-                if (bucketGrantsMetadata.isEmpty()) {
-                    isBucketGrantExist = false;
-                }
+                doesTheUserHasAccessToTheBucketViaBucketGrant = !bucketGrantsMetadata.isEmpty();
             }
-            if (!grants.isEmpty() && !isBucketGrantExist) {
-                List<CatalogObjectMetadata> objectsToRemove = new LinkedList<>();
-                List<CatalogObjectMetadata> objectsNotToRemove = new LinkedList<>();
-                for (CatalogObjectGrantMetadata grant : grants) {
-                    String objName = catalogObjectGrantService.getCatalogObjectNameFromGrant(grant);
-                    if ((grant.getGrantee().equals(user.getName()) && grant.getGranteeType().equals("user")) ||
-                        (user.getGroups().contains(grant.getGrantee()) && grant.getGranteeType().equals("group"))) {
-                        for (CatalogObjectMetadata obj : metadataList) {
-                            if (!obj.getName().equals(objName) && !objectsToRemove.contains(obj)) {
-                                objectsToRemove.add(obj);
-                            } else if (obj.getName().equals(objName) && !objectsNotToRemove.contains(obj)) {
-                                objectsNotToRemove.add(obj);
-                                accessType = grant.getAccessType();
-                            }
-                        }
-                    } else {
-                        List<Long> bucketIds = new LinkedList<>();
-                        bucketIds.addAll(bucketGrantService.getAllAssignedGrantsForUserAndHisGroups(user.getName(),
-                                                                                                    user.getGroups())
-                                                           .stream()
-                                                           .map(BucketGrantMetadata::getBucketId)
-                                                           .collect(Collectors.toList()));
-                        for (CatalogObjectMetadata obj : metadataList) {
-                            long bucketId = bucketGrantService.getBucketIdByName(obj.getBucketName());
-                            if (obj.getName().equals(objName) && !objectsToRemove.contains(obj) &&
-                                !bucketIds.contains(bucketId)) {
-                                objectsToRemove.add(obj);
-                            }
-                        }
-                    }
-                }
-                objectsToRemove.removeAll(objectsNotToRemove);
-                metadataList.removeAll(objectsToRemove);
+            Map<String, String> rightsPerObject = null;
+            /*
+             * This case indicates that the user has gained access to the bucket content
+             * via the object grant only, therefore all inaccessible objects will be removed
+             */
+            if (!catalogObjectGrants.isEmpty() && !doesTheUserHasAccessToTheBucketViaBucketGrant) {
+                // This function remove all objects that the user has not a grant over them
+                bucketGrantService.removeAllUserInaccessibleObjectsFromTheBucket(user,
+                                                                                 metadataList,
+                                                                                 catalogObjectGrants);
+                // This function returns a map containing the grant access type for each object accessible for the user
+                rightsPerObject = bucketGrantService.getRightsPerObjectFromGrants(catalogObjectGrants);
             }
 
             for (CatalogObjectMetadata catalogObject : metadataList) {
-                catalogObject.setRights(accessType);
+                if (rightsPerObject != null) {
+                    catalogObject.setRights(rightsPerObject.get(catalogObject.getName()));
+                } else {
+                    // This indicates the access right is the same as the bucket
+                    catalogObject.setRights("");
+                }
                 catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
                 catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
             }
@@ -502,25 +479,7 @@ public class CatalogObjectController {
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                List<CatalogObjectGrantMetadata> grants = catalogObjectGrantService.getAllAssignedCatalogObjectGrantsForUser(user)
-                                                                                   .stream()
-                                                                                   .filter(grant -> grant.getCatalogObjectName()
-                                                                                                         .equals(name) &&
-                                                                                                    grant.getBucketName()
-                                                                                                         .equals(bucketName))
-                                                                                   .collect(Collectors.toCollection(LinkedList::new));
-                if (!grants.isEmpty()) {
-                    if (!catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                             bucketName,
-                                                                                             name,
-                                                                                             admin.toString())) {
-                        throw new BucketGrantAccessException(bucketName);
-                    }
-                } else if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                         bucketName,
-                                                                                         admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+                bucketGrantService.checkIfTheUserHasAdminRightsOverTheObjectOrOverTheBucket(user, bucketName, name);
             }
 
         }

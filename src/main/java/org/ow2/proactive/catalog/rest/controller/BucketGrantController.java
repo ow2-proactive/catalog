@@ -35,6 +35,7 @@ import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
+import org.ow2.proactive.catalog.service.exception.PublicBucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AllBucketGrants;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
@@ -86,6 +87,10 @@ public class BucketGrantController {
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
+            if (restApiAccessService.isAPublicBucket(bucketName)) {
+                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
+                                                           " is public. No grants are assigned to it or to its objects");
+            }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
                 if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
@@ -114,7 +119,10 @@ public class BucketGrantController {
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
-
+            if (restApiAccessService.isAPublicBucket(bucketName)) {
+                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
+                                                           " is public. No grants are assigned to it or to its objects");
+            }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
                 if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
@@ -141,6 +149,10 @@ public class BucketGrantController {
             // Check session validation
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+            if (restApiAccessService.isAPublicBucket(bucketName)) {
+                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
+                                                           " is public. No grants are assigned to it or to its objects");
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
@@ -169,6 +181,10 @@ public class BucketGrantController {
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
+            if (restApiAccessService.isAPublicBucket(bucketName)) {
+                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
+                                                           " is public. No grants are assigned to it or to its objects");
+            }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
                 if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
@@ -195,8 +211,8 @@ public class BucketGrantController {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
             if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new DataIntegrityViolationException("Bucket: " + bucketName +
-                                                          " is public. You can not assign a grant to it");
+                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
+                                                           " is public. No grants are assigned to it or to its objects");
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
@@ -228,8 +244,8 @@ public class BucketGrantController {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
             if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new DataIntegrityViolationException("Bucket: " + bucketName +
-                                                          " is public. You can not assign a grant to it");
+                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
+                                                           " is public. You can not assign a grant to it or to any of its object");
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
@@ -263,15 +279,15 @@ public class BucketGrantController {
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
+            if (restApiAccessService.isAPublicBucket(bucketName)) {
+                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
+                                                           " is public. You can not assign a grant to it or to any of its object");
+            }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
                 if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new DataIntegrityViolationException("Bucket: " + bucketName +
-                                                          " is public. You can not assign a grant to it");
             }
         }
         if (user == null) {
@@ -297,8 +313,8 @@ public class BucketGrantController {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
             if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new DataIntegrityViolationException("Bucket: " + bucketName +
-                                                          " is public. You can not assign a grant to it");
+                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
+                                                           " is public. No grants are assigned to it or to its objects");
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
@@ -326,8 +342,8 @@ public class BucketGrantController {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
             if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new DataIntegrityViolationException("Bucket: " + bucketName +
-                                                          " is public. You can not assign a grant to it");
+                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
+                                                           " is public. No grants are assigned to it or to its objects");
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
@@ -355,8 +371,8 @@ public class BucketGrantController {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
             if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new DataIntegrityViolationException("Bucket: " + bucketName +
-                                                          " is public. You can not assign a grant to it");
+                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
+                                                           " is public. No grants are assigned to it or to its objects");
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
