@@ -212,7 +212,8 @@ public class BucketController {
                 String bucketGrantAccessType = bucketGrantService.getHighestGrantAccessTypeFromBucketGrants(user,
                                                                                                             data.getName(),
                                                                                                             data.getOwner());
-                BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), data.getObjectCount());
+                int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(user, data);
+                BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), objectCount);
                 metadata.setRights(bucketGrantAccessType);
                 if (!res.contains(metadata)) {
                     res.add(metadata);

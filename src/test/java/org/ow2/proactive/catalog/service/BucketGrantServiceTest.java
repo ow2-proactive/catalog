@@ -75,7 +75,7 @@ public class BucketGrantServiceTest {
 
     private final String DUMMY_BUCKET = "dummyBucket";
 
-    private final String DUMMY_ACCESS_TYPE = "dummyAccessType";
+    private final String DUMMY_ACCESS_TYPE = "read";
 
     private final long DUMMY_BUCKET_ID = 1L;
 
@@ -316,7 +316,7 @@ public class BucketGrantServiceTest {
         doNothing().when(bucketGrantRepository).delete(any(BucketGrantEntity.class));
         doNothing().when(catalogObjectGrantService).deleteAllCatalogObjectsGrantsAssignedToABucket(1L);
 
-        bucketGrantService.deleteAllBucketGrants(mockedBucket.getId());
+        bucketGrantService.deleteAllGrantsAssignedToABucketAndItsObjects(mockedBucket.getId());
 
         verify(bucketGrantRepository, times(1)).findBucketGrantEntitiesByBucketEntityId(mockedBucket.getId());
         verify(bucketGrantRepository, times(1)).delete(mockedBucketGrants);

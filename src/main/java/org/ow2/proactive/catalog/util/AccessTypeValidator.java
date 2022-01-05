@@ -23,14 +23,29 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.service.exception;
+package org.ow2.proactive.catalog.util;
 
-import org.ow2.proactive.microservices.common.exception.ClientException;
+import static org.ow2.proactive.catalog.util.AccessType.*;
+
+import java.util.Arrays;
+
+import org.ow2.proactive.catalog.service.exception.InvalidAccessTypeException;
 
 
-public class BucketGrantAlreadyExistsException extends ClientException {
+public final class AccessTypeValidator {
 
-    public BucketGrantAlreadyExistsException(String message) {
-        super(message);
+    public static String checkAndValidateTheGivenAccessType(String accessType) {
+        AccessType[] accessTypes = AccessType.values();
+        if (Arrays.stream(accessTypes).anyMatch(at -> at.toString().equalsIgnoreCase(accessType))) {
+            if (accessType.equalsIgnoreCase(admin.toString())) {
+                return admin.toString();
+            } else if (accessType.equalsIgnoreCase(write.toString())) {
+                return write.toString();
+            } else {
+                return read.toString();
+            }
+        } else {
+            throw new InvalidAccessTypeException("The type of the provided access grant is invalid. It can be either read, write or admin.");
+        }
     }
 }
