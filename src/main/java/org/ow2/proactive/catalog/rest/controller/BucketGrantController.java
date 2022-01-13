@@ -400,7 +400,6 @@ public class BucketGrantController {
                 }
             }
         }
-        // TODO TO check also before deleting if the user has an admin grant over all the objects also
         return bucketGrantService.deleteAllBucketAndItsObjectsGrants(bucketName);
     }
 }

@@ -71,7 +71,6 @@ public class BucketGrantEntity implements Serializable {
     protected String accessType;
 
     // Grant priority level used for group grants only
-    // TODO Change between 1 --> 10, default 5
     @Column(name = "PRIORITY")
     protected int priority;
 

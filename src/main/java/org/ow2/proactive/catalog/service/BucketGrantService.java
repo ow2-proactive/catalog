@@ -328,7 +328,6 @@ public class BucketGrantService {
      * @return the number of user's accessible objects inside the bucket
      */
     public int getTheNumberOfAccessibleObjectsInTheBucket(AuthenticatedUser user, BucketMetadata bucket) {
-        // TODO take the noAccess grants into consideration
         String bucketName = bucket.getName();
         List<BucketGrantMetadata> allGrantsAssignedToTheUserAndHisGroupForTheCurrentBucket = getAllBucketGrantsAssignedToTheUserForTheCurrentBucket(user,
                                                                                                                                                     bucketName);

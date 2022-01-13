@@ -307,7 +307,6 @@ public class GrantRightsService {
         return this.getListOfBucketGrantWithHighestPriority(dbUserBucketGrants);
     }
 
-    // TODO To test and check
     /**
      *
      * @param userBucketGrants list of user bucket grants
@@ -442,7 +441,6 @@ public class GrantRightsService {
      * @param metadataList list of catalog objects in a bucket
      */
     public void removeAllObjectsWithNoAccessGrant(AuthenticatedUser user, List<CatalogObjectMetadata> metadataList) {
-        // TODO Run more test
         // List of inaccessible object for the user
         List<CatalogObjectGrantMetadata> userGrantsWithNoAccessRights = catalogObjectGrantService.getUserNoAccessGrant(user);
         // List of accessible object for the user
