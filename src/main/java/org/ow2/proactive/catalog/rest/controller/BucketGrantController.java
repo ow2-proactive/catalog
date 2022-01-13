@@ -32,6 +32,7 @@ import java.util.*;
 
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.service.BucketGrantService;
+import org.ow2.proactive.catalog.service.GrantRightsService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
@@ -41,7 +42,6 @@ import org.ow2.proactive.catalog.util.AllBucketGrants;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,6 +64,9 @@ public class BucketGrantController {
     private BucketGrantService bucketGrantService;
 
     @Autowired
+    private GrantRightsService grantRightsService;
+
+    @Autowired
     private RestApiAccessService restApiAccessService;
 
     @Value("${pa.catalog.security.required.sessionid}")
@@ -79,7 +82,7 @@ public class BucketGrantController {
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the user that is benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username,
-            @ApiParam(value = "The new type of the access grant. It can be either read, write or admin.", required = true, defaultValue = "") @RequestParam(value = "accessType", required = true, defaultValue = "") String accessType)
+            @ApiParam(value = "The new type of the access grant. It can be either noAccess, read, write or admin.", required = true, defaultValue = "") @RequestParam(value = "accessType", required = true, defaultValue = "") String accessType)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
@@ -93,7 +96,8 @@ public class BucketGrantController {
             }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -111,7 +115,8 @@ public class BucketGrantController {
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the group of users that are benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup,
-            @ApiParam(value = "The new type of the access grant. It can be either read, write or admin.", required = true, defaultValue = "") @RequestParam(value = "accessType", required = true, defaultValue = "") String accessType)
+            @ApiParam(value = "The new type of the access grant. It can be either noAccess, read, write or admin.", required = true, defaultValue = "") @RequestParam(value = "accessType", required = true, defaultValue = "") String accessType,
+            @ApiParam(value = "The new priority of the access grant. It can be a value from 1 to 10.", required = true) @RequestParam(value = "priority", required = true) int priority)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
@@ -125,12 +130,13 @@ public class BucketGrantController {
             }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
         }
-        return bucketGrantService.updateBucketGrantForASpecificUserGroup(bucketName, userGroup, accessType);
+        return bucketGrantService.updateBucketGrantForASpecificUserGroup(bucketName, userGroup, accessType, priority);
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -156,7 +162,8 @@ public class BucketGrantController {
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -187,7 +194,8 @@ public class BucketGrantController {
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -216,7 +224,8 @@ public class BucketGrantController {
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -233,7 +242,7 @@ public class BucketGrantController {
     public BucketGrantMetadata createBucketGrantForAUser(
             @ApiParam(value = "The the session id used to access ProActive REST server", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName,
-            @ApiParam(value = "The type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
             @ApiParam(value = "The name of the user that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user = null;
@@ -249,7 +258,8 @@ public class BucketGrantController {
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -257,7 +267,7 @@ public class BucketGrantController {
         if (user == null) {
             user = AuthenticatedUser.EMPTY;
         }
-        return bucketGrantService.createBucketGrantForAUSer(bucketName, user.getName(), accessType, username);
+        return bucketGrantService.createBucketGrantForAUser(bucketName, user.getName(), accessType, username);
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -269,7 +279,8 @@ public class BucketGrantController {
     public BucketGrantMetadata createBucketGrantForAGroup(
             @ApiParam(value = "The session id used to access ProActive REST server", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName,
-            @ApiParam(value = "The type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The priority of the access grant. It can be a value from 1 to 10 and has a default value equals to 5.", required = true, defaultValue = "5") @RequestParam(value = "priority", required = true, defaultValue = "5") int priority,
             @ApiParam(value = "The name of the group of users that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user = null;
@@ -285,7 +296,8 @@ public class BucketGrantController {
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -293,7 +305,11 @@ public class BucketGrantController {
         if (user == null) {
             user = AuthenticatedUser.EMPTY;
         }
-        return bucketGrantService.createBucketGrantForAGroup(bucketName, user.getName(), accessType, userGroup);
+        return bucketGrantService.createBucketGrantForAGroup(bucketName,
+                                                             user.getName(),
+                                                             accessType,
+                                                             priority,
+                                                             userGroup);
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -318,7 +334,8 @@ public class BucketGrantController {
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -347,7 +364,8 @@ public class BucketGrantController {
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -376,11 +394,13 @@ public class BucketGrantController {
             }
             // Check if user is admin or has admin Grants over the bucket
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
         }
+        // TODO TO check also before deleting if the user has an admin grant over all the objects also
         return bucketGrantService.deleteAllBucketAndItsObjectsGrants(bucketName);
     }
 }

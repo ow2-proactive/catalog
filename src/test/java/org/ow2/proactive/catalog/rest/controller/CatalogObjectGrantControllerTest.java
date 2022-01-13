@@ -36,6 +36,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
+import org.ow2.proactive.catalog.service.GrantRightsService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 
 
@@ -46,6 +47,9 @@ public class CatalogObjectGrantControllerTest {
 
     @Mock
     private RestApiAccessService restApiAccessService;
+
+    @Mock
+    private GrantRightsService grantRightsService;
 
     @Mock
     private BucketGrantService bucketGrantService;
@@ -66,10 +70,13 @@ public class CatalogObjectGrantControllerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(any(), any(), any())).thenReturn(true);
-        when(catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(any(),
-                                                                                                                        any(),
-                                                                                                                        any())).thenReturn(true);
+        when(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(any(),
+                                                                                        anyString())).thenReturn("admin");
+        when(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(any(),
+                                                                                        anyString())).thenReturn("admin");
+        when(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(any(),
+                                                                                               anyString(),
+                                                                                               anyString())).thenReturn("admin");
         when(catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(any(),
                                                                                                  any())).thenReturn(true);
     }
@@ -92,11 +99,13 @@ public class CatalogObjectGrantControllerTest {
                                                                        DUMMY_BUCKET_NAME,
                                                                        DUMMY_OBJECT,
                                                                        DUMMY_ACCESS_TYPE,
+                                                                       1,
                                                                        DUMMY_GROUP);
         verify(catalogObjectGrantService, times(1)).createCatalogObjectGrantForAGroup(DUMMY_BUCKET_NAME,
                                                                                       DUMMY_OBJECT,
                                                                                       DUMMY_CURRENT_USER,
                                                                                       DUMMY_ACCESS_TYPE,
+                                                                                      1,
                                                                                       DUMMY_GROUP);
     }
 

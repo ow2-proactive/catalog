@@ -40,10 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FilenameUtils;
 import org.ow2.proactive.catalog.dto.*;
-import org.ow2.proactive.catalog.service.BucketGrantService;
-import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
-import org.ow2.proactive.catalog.service.CatalogObjectService;
-import org.ow2.proactive.catalog.service.RestApiAccessService;
+import org.ow2.proactive.catalog.service.*;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
@@ -84,10 +81,16 @@ public class CatalogObjectController {
     private static final String REQUEST_API_QUERY = "/{bucketName}/resources";
 
     @Autowired
-    private BucketGrantService bucketGrantService;
+    private GrantRightsService grantRightsService;
 
     @Autowired
-    private CatalogObjectGrantService catalogObjectGrantService;
+    BucketGrantService bucketGrantService;
+
+    @Autowired
+    CatalogObjectGrantService catalogObjectGrantService;
+
+    @Autowired
+    private GrantAccessTypeHelperService grantAccessTypeHelperService;
 
     @Autowired
     private CatalogObjectService catalogObjectService;
@@ -130,7 +133,8 @@ public class CatalogObjectController {
             }
             user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -226,11 +230,10 @@ public class CatalogObjectController {
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, write.toString()) &&
-                    !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                         bucketName,
-                                                                                         name,
-                                                                                         write.toString())) {
+                if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                                                           bucketName,
+                                                                                                                                                           name),
+                                                                         write.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -260,11 +263,10 @@ public class CatalogObjectController {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, read.toString()) &&
-                    !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                         bucketName,
-                                                                                         name,
-                                                                                         read.toString())) {
+                if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                                                           bucketName,
+                                                                                                                                                           name),
+                                                                         read.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -298,11 +300,10 @@ public class CatalogObjectController {
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, read.toString()) &&
-                    !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                         bucketName,
-                                                                                         name,
-                                                                                         read.toString())) {
+                if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                                                           bucketName,
+                                                                                                                                                           name),
+                                                                         read.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -335,11 +336,10 @@ public class CatalogObjectController {
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, read.toString()) &&
-                    !catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                         bucketName,
-                                                                                         name,
-                                                                                         read.toString())) {
+                if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                                                           bucketName,
+                                                                                                                                                           name),
+                                                                         read.toString())) {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
@@ -377,7 +377,9 @@ public class CatalogObjectController {
             }
             user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, read.toString()) &&
+                if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
+                                                                                                                                                    bucketName),
+                                                                         read.toString()) &&
                     !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user,
                                                                                                          bucketName)) {
                     throw new BucketGrantAccessException(bucketName);
@@ -426,8 +428,7 @@ public class CatalogObjectController {
 
             boolean doesTheUserHasAccessToTheBucketViaBucketGrant = true;
             if (sessionIdRequired) {
-                List<BucketGrantMetadata> bucketGrantsMetadata = new LinkedList<>(bucketGrantService.getAllAssignedGrantsForUserAndHisGroups(user.getName(),
-                                                                                                                                             user.getGroups()));
+                List<BucketGrantMetadata> bucketGrantsMetadata = new LinkedList<>(grantRightsService.getAllAssignedGrantsWithHighestPriorityForUserAndHisGroups(user));
                 bucketGrantsMetadata.removeIf(grant -> !grant.getBucketName().equals(bucketName));
                 doesTheUserHasAccessToTheBucketViaBucketGrant = !bucketGrantsMetadata.isEmpty();
             }
@@ -442,7 +443,11 @@ public class CatalogObjectController {
                                                                                  metadataList,
                                                                                  catalogObjectGrants);
                 // This function returns a map containing the grant access type for each object accessible for the user
-                rightsPerObject = bucketGrantService.getRightsPerObjectFromGrants(catalogObjectGrants);
+                rightsPerObject = grantRightsService.getHighestRightsPerObjectFromGrants(catalogObjectGrants);
+            }
+            // This function remove all objects that the user has a noAccess grant over them
+            if (sessionIdRequired) {
+                grantRightsService.removeAllObjectsWithNoAccessGrant(user, metadataList);
             }
 
             for (CatalogObjectMetadata catalogObject : metadataList) {
@@ -479,7 +484,12 @@ public class CatalogObjectController {
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                bucketGrantService.checkIfTheUserHasAdminRightsOverTheObjectOrOverTheBucket(user, bucketName, name);
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       name)
+                                       .equals(admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
             }
 
         }

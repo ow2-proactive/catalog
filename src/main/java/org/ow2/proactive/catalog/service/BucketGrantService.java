@@ -38,12 +38,11 @@ import org.ow2.proactive.catalog.repository.BucketGrantRepository;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
-import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAlreadyExistsException;
-import org.ow2.proactive.catalog.service.exception.CatalogObjectGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AccessTypeValidator;
 import org.ow2.proactive.catalog.util.AllBucketGrants;
+import org.ow2.proactive.catalog.util.PriorityLevelValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -69,63 +68,27 @@ public class BucketGrantService {
     @Autowired
     private CatalogObjectGrantService catalogObjectGrantService;
 
-    @Autowired
-    private GrantAccessTypeHelperService grantAccessTypeHelperService;
+    public List<BucketGrantMetadata> getAllBucketGrantsAssignedForTheUserOnABucket(AuthenticatedUser user,
+            String bucketName) {
+        long bucketId = this.getBucketIdByName(bucketName);
+        List<BucketGrantMetadata> result = bucketGrantRepository.findAllGrantsAssignedToAUsernameInsideABucket(user.getName(),
+                                                                                                               bucketId)
+                                                                .stream()
+                                                                .map(BucketGrantMetadata::new)
+                                                                .collect(Collectors.toList());
+        result.addAll(bucketGrantRepository.findAllGrantsAssignedToTheUserGroupsInsideABucket(user.getGroups(),
+                                                                                              bucketId)
+                                           .stream()
+                                           .filter(grant -> grant.getBucketEntity().getBucketName().equals(bucketName))
+                                           .map(BucketGrantMetadata::new)
+                                           .collect(Collectors.toList()));
+        return result;
+    }
 
-    /**
-     *
-     * Get the grants assigned to a user and his group
-     *
-     * @param username name of the user that is benefiting from the access grants.
-     * @param userGroups list of the groups of the user that is benefiting of the access grant.
-     * @return all grants that are assigned to a specific user and his groups
-     */
-    public List<BucketGrantMetadata> getAllAssignedGrantsForUserAndHisGroups(String username, List<String> userGroups) {
-        // Get all user assigned grants from the db
-        List<BucketGrantEntity> dbUserBucketGrants = bucketGrantRepository.findAllGrantsAssignedToAUsername(username);
-        // Add the grants that are assigned to his group
-        List<BucketGrantEntity> dbGroupBucketGrants = bucketGrantRepository.findAllGrantsAssignedToTheUserGroups(userGroups);
-        // Result list
-        List<BucketGrantEntity> result = new LinkedList<>();
-        // Check for duplicates grants in the group grant
-        // If the user group has a grant over a different bucket we add it to the result
-        // If not, we check the access type and compare them to add only the higher access grant
-        if (dbGroupBucketGrants != null && !dbGroupBucketGrants.isEmpty()) {
-            for (BucketGrantEntity groupBucketGrant : dbGroupBucketGrants) {
-                if (dbUserBucketGrants != null && !dbUserBucketGrants.isEmpty()) {
-                    for (BucketGrantEntity userBucketGrant : dbUserBucketGrants) {
-                        // Grant over different buckets
-                        if (!groupBucketGrant.getBucketEntity()
-                                             .getId()
-                                             .equals(userBucketGrant.getBucketEntity().getId())) {
-                            result.add(userBucketGrant);
-                            result.add(groupBucketGrant);
-                        } else if (!groupBucketGrant.getAccessType().equals(userBucketGrant.getAccessType())) {
-                            // Grant over the same bucket but with different access type
-                            String userGrantAccessType = userBucketGrant.getAccessType();
-                            String userGroupGrantAccessType = groupBucketGrant.getAccessType();
-                            // Compare the access type and add the higher one
-                            if (grantAccessTypeHelperService.getPriorityLevel(userGrantAccessType,
-                                                                              userGroupGrantAccessType) == 2) {
-                                result.add(groupBucketGrant);
-                            } else {
-                                result.add(userBucketGrant);
-                            }
-                        }
-                    }
-                } else {
-                    result.addAll(dbGroupBucketGrants);
-                    break;
-                }
-            }
-        } else if (dbUserBucketGrants != null && !dbUserBucketGrants.isEmpty()) {
-            result.addAll(dbUserBucketGrants);
-        }
-        if (!result.isEmpty()) {
-            return result.stream().map(BucketGrantMetadata::new).collect(Collectors.toList());
-        } else {
-            return new LinkedList<>();
-        }
+    public List<BucketGrantMetadata> getAllBucketGrantsAssignedToAUser(AuthenticatedUser user) {
+        List<BucketGrantEntity> userGrants = bucketGrantRepository.findAllGrantsAssignedToAUsername(user.getName());
+        userGrants.addAll(bucketGrantRepository.findAllGrantsAssignedToTheUserGroups(user.getGroups()));
+        return userGrants.stream().map(BucketGrantMetadata::new).collect(Collectors.toList());
     }
 
     /**
@@ -134,7 +97,7 @@ public class BucketGrantService {
      *
      * @param bucketName name of the bucket where the catalog object is stored.
      * @param username name of the user that is benefiting from the access grants.
-     * @param accessType new type of the access grant. It can be either read, write or admin.
+     * @param accessType new type of the access grant. It can be either noAccess, read, write or admin.
      * @return the updated grant assigned to the user for a specific bucket
      */
     public BucketGrantMetadata updateBucketGrantForASpecificUser(String bucketName, String username,
@@ -146,7 +109,8 @@ public class BucketGrantService {
         if (bucketEntity != null) {
             bucketId = bucketEntity.getId();
             // Find the bucket grant assigned to the current user
-            BucketGrantEntity bucketGrantEntity = bucketGrantRepository.findBucketGrantByUsername(bucketId, username);
+            BucketGrantEntity bucketGrantEntity = bucketGrantRepository.findBucketGrantByUsernameForUpdate(bucketId,
+                                                                                                           username);
             if (bucketGrantEntity != null) {
                 // Update the access type
                 bucketGrantEntity.setAccessType(accessType);
@@ -164,11 +128,12 @@ public class BucketGrantService {
      *
      * @param bucketName name of the bucket where the catalog object is stored.
      * @param userGroup name of the group of users that are benefiting from the access grant.
-     * @param accessType new type of the access grant. It can be either read, write or admin.
+     * @param accessType new type of the access grant. It can be either noAccess, read, write or admin.
      * @return the updated grant assigned to the group of users for a specific bucket
      */
     public BucketGrantMetadata updateBucketGrantForASpecificUserGroup(String bucketName, String userGroup,
-            String accessType) {
+            String accessType, int priority) {
+        PriorityLevelValidator.checkAndValidateTheGivenPriorityLevel(priority);
         accessType = AccessTypeValidator.checkAndValidateTheGivenAccessType(accessType);
         // Find the bucket and get its id
         long bucketId;
@@ -176,10 +141,12 @@ public class BucketGrantService {
         if (bucketEntity != null) {
             bucketId = bucketEntity.getId();
             // Find the bucket grant assigned to the current user group
-            BucketGrantEntity bucketGrantEntity = bucketGrantRepository.findBucketGrantByUserGroup(bucketId, userGroup);
+            BucketGrantEntity bucketGrantEntity = bucketGrantRepository.findBucketGrantByUserGroupForUpdate(bucketId,
+                                                                                                            userGroup);
             if (bucketGrantEntity != null) {
                 // Update the access type
                 bucketGrantEntity.setAccessType(accessType);
+                bucketGrantEntity.setPriority(priority);
             } else {
                 throw new DataIntegrityViolationException("Bucket grant was not found in the DB");
             }
@@ -212,12 +179,12 @@ public class BucketGrantService {
      *
      * @param bucketName name of the bucket where the catalog object is stored.
      * @param currentUser name of the user creating the grant.
-     * @param accessType type of the access grant. It can be either read, write or admin.
+     * @param accessType type of the access grant. It can be either noAccess, read, write or admin.
      * @param username name of the user that will benefit of the access grant.
      * @return a created bucket grant
      * @throws DataIntegrityViolationException in case of a bad bucket name and in case of an existing similar grant
      */
-    public BucketGrantMetadata createBucketGrantForAUSer(String bucketName, String currentUser, String accessType,
+    public BucketGrantMetadata createBucketGrantForAUser(String bucketName, String currentUser, String accessType,
             String username) throws DataIntegrityViolationException {
         accessType = AccessTypeValidator.checkAndValidateTheGivenAccessType(accessType);
         // Find the corresponding bucket from the DB
@@ -246,13 +213,14 @@ public class BucketGrantService {
      *
      * @param bucketName name of the bucket where the catalog object is stored.
      * @param currentUser name of the user creating the grant.
-     * @param accessType type of the access grant. It can be either read, write or admin.
+     * @param accessType type of the access grant. It can be either noAccess, read, write or admin.
      * @param userGroup name of the group of users that will benefit of the access grant.
      * @return a created bucket grant
      * @throws DataIntegrityViolationException in case of a bad bucket name and in case of an existing similar grant
      */
     public BucketGrantMetadata createBucketGrantForAGroup(String bucketName, String currentUser, String accessType,
-            String userGroup) throws DataIntegrityViolationException {
+            int priority, String userGroup) throws DataIntegrityViolationException {
+        PriorityLevelValidator.checkAndValidateTheGivenPriorityLevel(priority);
         accessType = AccessTypeValidator.checkAndValidateTheGivenAccessType(accessType);
         // Find the corresponding bucket from the DB
         BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
@@ -274,6 +242,7 @@ public class BucketGrantService {
                                                                     currentUser,
                                                                     userGroup,
                                                                     accessType,
+                                                                    priority,
                                                                     bucket);
         // Save the grant in db
         bucketGrantEntity = bucketGrantRepository.save(bucketGrantEntity);
@@ -324,81 +293,6 @@ public class BucketGrantService {
 
     /**
      *
-     * This function checks for grant rights over a bucket for the current user
-     *
-     * @param user username
-     * @param bucketName bucket name
-     * @return true if the user has a sufficient grant right over the bucket and false otherwise
-     */
-    public boolean isTheUserGrantSufficientForTheCurrentTask(AuthenticatedUser user, String bucketName,
-            String requiredAccessType) {
-        // Find the bucket and get its id
-        long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
-        List<BucketGrantEntity> grants = bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(bucketId);
-        List<BucketGrantEntity> grantsToRemove = new LinkedList<>();
-        for (BucketGrantEntity entity : grants) {
-            if (entity.getGranteeType().equals("user") && !entity.getGrantee().equals(user.getName())) {
-                grantsToRemove.add(entity);
-            } else if (entity.getGranteeType().equals("group") && !user.getGroups().contains(entity.getGrantee())) {
-                grantsToRemove.add(entity);
-            }
-        }
-        grants.removeAll(grantsToRemove);
-        BucketGrantEntity bucketGrantEntity;
-        // We need to pick only the grant with the higher access type
-        if (grants.size() > 0) {
-            bucketGrantEntity = grants.get(0);
-            if (!bucketGrantEntity.getAccessType().equals(admin.toString())) {
-                for (int index = 1; index < grants.size(); index++) {
-                    if (grantAccessTypeHelperService.getPriorityLevel(bucketGrantEntity.getAccessType(),
-                                                                      grants.get(index).getAccessType()) == 2) {
-                        bucketGrantEntity = grants.get(index);
-                    }
-                }
-            } else {
-                // The bucketGrantEntity object has an admin grant type - no need to de complementary checks
-                return true;
-            }
-        } else {
-            return false;
-        }
-        return grantAccessTypeHelperService.compareGrantAccessType(bucketGrantEntity.getAccessType(),
-                                                                   requiredAccessType);
-    }
-
-    /**
-     *
-     * @param user authenticated used
-     * @return the list of buckets that the user has grant access over them
-     */
-    public List<BucketMetadata> getBucketsForUserByGrants(AuthenticatedUser user) {
-        // Buckets list to return
-        List<BucketMetadata> bucketMetadataList = new LinkedList<>();
-        // Bucket grants metadata list
-        List<BucketGrantMetadata> bucketGrants = new LinkedList<>();
-        // Get the list of bucket ids from all object grants assigned to a user
-        Set<Long> bucketsIdsFromCatalogObjectGrants = new HashSet<>(catalogObjectGrantService.getAllBucketIdsFromGrantsAssignedToUsername(user.getName()));
-        // Get bucket grants from DB and add them to the bucket grant list
-        // Get distinct buckets' ids from catalog object grants and add them to the corresponding list
-        bucketGrants.addAll(this.getAllAssignedGrantsForUserAndHisGroups(user.getName(), user.getGroups()));
-        bucketsIdsFromCatalogObjectGrants.addAll(catalogObjectGrantService.getAllBucketIdsFromGrantsAssignedToUserGroup(user.getGroups()));
-        // Get from bucket grants the targeted buckets
-        for (BucketGrantMetadata bucketGrantMetadata : bucketGrants) {
-            BucketEntity bucket = bucketRepository.findOne(bucketGrantMetadata.getBucketId());
-            BucketMetadata bucketMetadata = new BucketMetadata(bucket, bucket.getCatalogObjects().size());
-            bucketMetadataList.add(bucketMetadata);
-        }
-        // Get the buckets from the list of buckets' ids
-        for (Long id : bucketsIdsFromCatalogObjectGrants) {
-            BucketEntity bucket = bucketRepository.findOne(id);
-            BucketMetadata bucketMetadata = new BucketMetadata(bucket, bucket.getCatalogObjects().size());
-            bucketMetadataList.add(bucketMetadata);
-        }
-        return bucketMetadataList;
-    }
-
-    /**
-     *
      * This function delete all bucket grants when the bucket is deleted. It will delete also all bucket
      * objects grants if they were found.
      *
@@ -418,45 +312,11 @@ public class BucketGrantService {
 
     /**
      *
-     * @param bucketName bucket name
+     * @param bucketName name of the bucket where the catalog object is stored.
      * @return the id of a bucket
      */
     public long getBucketIdByName(String bucketName) {
         return bucketRepository.findOneByBucketName(bucketName).getId();
-    }
-
-    /**
-     *
-     * @param user authenticated user
-     * @param bucketName bucket name
-     * @param bucketOwner bucket owner
-     * @return the highest grant rights that the user has over a bucket
-     */
-    public String getHighestGrantAccessTypeFromBucketGrants(AuthenticatedUser user, String bucketName,
-            String bucketOwner) {
-        String accessType = "";
-        if (user.getName().equals(bucketOwner) || user.getGroups().contains(bucketOwner.substring(6)) ||
-            bucketOwner.equals("GROUP:public-objects")) {
-            accessType = admin.toString();
-        } else {
-            long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
-            List<BucketGrantMetadata> grants = this.getAllAssignedGrantsForUserAndHisGroups(user.getName(),
-                                                                                            user.getGroups());
-            grants = grants.stream().filter(grant -> grant.getBucketId() == bucketId).collect(Collectors.toList());
-            if (grants.size() > 0) {
-                BucketGrantMetadata bucketGrantMetadata = grants.get(0);
-                for (int index = 1; index < grants.size(); index++) {
-                    if (grantAccessTypeHelperService.getPriorityLevel(bucketGrantMetadata.getAccessType(),
-                                                                      grants.get(index).getAccessType()) == 2) {
-                        bucketGrantMetadata = grants.get(index);
-                    }
-                }
-                accessType = bucketGrantMetadata.getAccessType();
-            } else {
-                accessType = "";
-            }
-        }
-        return accessType;
     }
 
     /**
@@ -468,19 +328,31 @@ public class BucketGrantService {
      * @return the number of user's accessible objects inside the bucket
      */
     public int getTheNumberOfAccessibleObjectsInTheBucket(AuthenticatedUser user, BucketMetadata bucket) {
-        // TODO Take into consideration the objects that have an accessType: noAccess, once the negative grants are implemented
+        // TODO take the noAccess grants into consideration
         String bucketName = bucket.getName();
         List<BucketGrantMetadata> allGrantsAssignedToTheUserAndHisGroupForTheCurrentBucket = getAllBucketGrantsAssignedToTheUserForTheCurrentBucket(user,
                                                                                                                                                     bucketName);
+        allGrantsAssignedToTheUserAndHisGroupForTheCurrentBucket.removeIf(grant -> grant.getAccessType()
+                                                                                        .equals(noAccess.toString()));
         if (allGrantsAssignedToTheUserAndHisGroupForTheCurrentBucket.size() > 0) {
-            return bucket.getObjectCount();
+            Set<String> directAccessibleBucketsForTheUser = allGrantsAssignedToTheUserAndHisGroupForTheCurrentBucket.stream()
+                                                                                                                    .map(BucketGrantMetadata::getBucketName)
+                                                                                                                    .collect(Collectors.toSet());
+            List<CatalogObjectGrantMetadata> userInaccessibleObjects = catalogObjectGrantService.getUserNoAccessGrant(user);
+            Set<String> catalogObjectsToRemove = userInaccessibleObjects.stream()
+                                                                        .filter(grant -> directAccessibleBucketsForTheUser.contains(grant.getBucketName()))
+                                                                        .map(CatalogObjectGrantMetadata::getCatalogObjectName)
+                                                                        .collect(Collectors.toSet());
+
+            return bucket.getObjectCount() - catalogObjectsToRemove.size();
         } else {
             List<CatalogObjectGrantMetadata> catalogObjectGrants = getAllObjectGrantsAssignedToTheCurrentUserForTheCurrentBucket(user,
                                                                                                                                  bucketName);
+            catalogObjectGrants.removeIf(grant -> grant.getAccessType().equals(noAccess.toString()));
             if (catalogObjectGrants.size() > 0) {
                 List<String> distinctObjectNamesByGrants = new LinkedList<>();
                 for (CatalogObjectGrantMetadata catalogObjectGrantMetadata : catalogObjectGrants) {
-                    String catalogObjectName = catalogObjectGrantService.getCatalogObjectNameFromGrant(catalogObjectGrantMetadata);
+                    String catalogObjectName = catalogObjectGrantMetadata.getCatalogObjectName();
                     // In some case a user can have multiple grants over the same object: multiple group grants
                     if (!distinctObjectNamesByGrants.contains(catalogObjectName)) {
                         distinctObjectNamesByGrants.add(catalogObjectName);
@@ -497,7 +369,7 @@ public class BucketGrantService {
     /**
      *
      * @param user authenticated user
-     * @param bucketName name of the bucket
+     * @param bucketName name of the bucket where the catalog object is stored.
      * @return all object grants assigned to the given user inside the given bucket
      */
     private List<CatalogObjectGrantMetadata>
@@ -518,7 +390,7 @@ public class BucketGrantService {
     /**
      *
      * @param user authenticated user
-     * @param bucketName name of the bucket
+     * @param bucketName name of the bucket where the catalog object is stored.
      * @return return all bucket grants assigned to the given user
      */
     private List<BucketGrantMetadata> getAllBucketGrantsAssignedToTheUserForTheCurrentBucket(AuthenticatedUser user,
@@ -539,7 +411,7 @@ public class BucketGrantService {
      *
      * This functions requires admin rights
      *
-     * @param bucketName bucket name
+     * @param bucketName name of the bucket where the catalog object is stored.
      * @return all created bucket grants
      */
     public List<BucketGrantMetadata> getAllCreatedBucketGrantsForABucket(String bucketName) {
@@ -552,7 +424,7 @@ public class BucketGrantService {
 
     /**
      * Get all grants created for a bucket and its object
-     * @param bucketName bucket name
+     * @param bucketName name of the bucket where the catalog object is stored. of the bucket where the catalog object is stored. bucket name
      * @return all bucket grants
      */
     public AllBucketGrants getAllBucketAndObjectGrants(String bucketName) {
@@ -562,6 +434,13 @@ public class BucketGrantService {
         allBucketGrants.setBucketGrants(bucketGrants);
         allBucketGrants.setObjectGrants(objectGrants);
         return allBucketGrants;
+    }
+
+    public List<BucketGrantMetadata> getAllNoAccessGrants() {
+        return bucketGrantRepository.findAllNoAccessGrants()
+                                    .stream()
+                                    .map(BucketGrantMetadata::new)
+                                    .collect(Collectors.toList());
     }
 
     public AllBucketGrants deleteAllBucketAndItsObjectsGrants(String bucketName) {
@@ -574,7 +453,7 @@ public class BucketGrantService {
      *
      * Delete all bucket grants for a specific bucket
      *
-     * @param bucketName bucket name
+     * @param bucketName of the bucket where the catalog object is stored.
      * @return the list of all deleted bucket grants
      */
     public List<BucketGrantMetadata> deleteAllGrantsAssignedToABucket(String bucketName) {
@@ -583,51 +462,6 @@ public class BucketGrantService {
                                     .stream()
                                     .map(BucketGrantMetadata::new)
                                     .collect(Collectors.toList());
-    }
-
-    /**
-     * Check if the user has an admin grant over the object.
-     * If the object grants are absent, the method checks if the user has admin rights over the bucket
-     *
-     * @param user authenticated user
-     * @param bucketName bucket name
-     * @param catalogObjectName catalog object name
-     */
-    public void checkIfTheUserHasAdminRightsOverTheObjectOrOverTheBucket(AuthenticatedUser user, String bucketName,
-            String catalogObjectName) {
-        List<CatalogObjectGrantMetadata> catalogObjectGrantsAssignedToTheCurrentUserForTheSpecificObject = getCatalogObjectGrantsAssignedToTheCurrentUserForTheSpecificObject(user,
-                                                                                                                                                                              bucketName,
-                                                                                                                                                                              catalogObjectName);
-        // If the list is not empty --> the user has a grant access for the object
-        if (!catalogObjectGrantsAssignedToTheCurrentUserForTheSpecificObject.isEmpty()) {
-            // Check if the grant has admin as access type and throw an exception if not
-            if (!catalogObjectGrantService.isTheUserGrantSufficientForTheCurrentTask(user,
-                                                                                     bucketName,
-                                                                                     catalogObjectName,
-                                                                                     admin.toString())) {
-                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
-            }
-        }
-        // If the user has not an object grant, we need to check if he has a grant for the current bucket with admin access type
-        else if (!this.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
-            throw new BucketGrantAccessException(bucketName);
-        }
-    }
-
-    /**
-     *
-     * @param user authenticated user
-     * @param bucketName name of the bucket
-     * @param catalogObjectName name of the object
-     * @return all grants for the specific object that are assigned to the given user inside the given bucket
-     */
-    private LinkedList<CatalogObjectGrantMetadata> getCatalogObjectGrantsAssignedToTheCurrentUserForTheSpecificObject(
-            AuthenticatedUser user, String bucketName, String catalogObjectName) {
-        return catalogObjectGrantService.getAllAssignedCatalogObjectGrantsForUser(user)
-                                        .stream()
-                                        .filter(grant -> grant.getCatalogObjectName().equals(catalogObjectName) &&
-                                                         grant.getBucketName().equals(bucketName))
-                                        .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -643,7 +477,7 @@ public class BucketGrantService {
         List<CatalogObjectMetadata> objectsToRemove = new LinkedList<>();
         List<CatalogObjectMetadata> objectsNotToRemove = new LinkedList<>();
         for (CatalogObjectGrantMetadata grant : grants) {
-            String objectNameFromGrant = catalogObjectGrantService.getCatalogObjectNameFromGrant(grant);
+            String objectNameFromGrant = grant.getCatalogObjectName();
             if ((grant.getGrantee().equals(user.getName()) && grant.getGranteeType().equals("user")) ||
                 (user.getGroups().contains(grant.getGrantee()) && grant.getGranteeType().equals("group"))) {
                 for (CatalogObjectMetadata catalogObject : metadataList) {
@@ -659,26 +493,5 @@ public class BucketGrantService {
         }
         objectsToRemove.removeAll(objectsNotToRemove);
         metadataList.removeAll(objectsToRemove);
-    }
-
-    /**
-     *
-     * @param grants list of object grants
-     * @return a map containing the highest user rights for each accessible object from the grants
-     */
-    public Map<String, String> getRightsPerObjectFromGrants(List<CatalogObjectGrantMetadata> grants) {
-        Map<String, String> accessGrantPerObject = new HashMap<>();
-        for (CatalogObjectGrantMetadata grant : grants) {
-            String objectNameFromGrant = catalogObjectGrantService.getCatalogObjectNameFromGrant(grant);
-            if (!accessGrantPerObject.containsKey(objectNameFromGrant)) {
-                accessGrantPerObject.put(objectNameFromGrant, grant.getAccessType());
-            } else {
-                if (grantAccessTypeHelperService.getPriorityLevel(accessGrantPerObject.get(objectNameFromGrant),
-                                                                  grant.getAccessType()) == 2) {
-                    accessGrantPerObject.put(objectNameFromGrant, grant.getAccessType());
-                }
-            }
-        }
-        return accessGrantPerObject;
     }
 }

@@ -27,10 +27,6 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertEquals;
-
-import java.util.HashMap;
-import java.util.List;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -111,7 +107,12 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
 
         Response createBucketGrantResponse = given().header("sessionID", "12345")
                                                     .pathParam("bucketName", bucketName)
-                                                    .parameters("accessType", accessType, "userGroup", grantee)
+                                                    .parameters("accessType",
+                                                                accessType,
+                                                                "priority",
+                                                                1,
+                                                                "userGroup",
+                                                                grantee)
                                                     .when()
                                                     .post(BUCKET_GRANTS_RESOURCE_GROUP);
 
@@ -177,7 +178,12 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
 
         Response createBucketGrantResponse = given().header("sessionID", "12345")
                                                     .pathParam("bucketName", bucketName)
-                                                    .parameters("accessType", accessType, "userGroup", grantee)
+                                                    .parameters("accessType",
+                                                                accessType,
+                                                                "priority",
+                                                                1,
+                                                                "userGroup",
+                                                                grantee)
                                                     .when()
                                                     .post(BUCKET_GRANTS_RESOURCE_GROUP);
 
@@ -189,7 +195,12 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
 
         Response updateBucketGrantResponse = given().header("sessionID", "12345")
                                                     .pathParam("bucketName", bucketName)
-                                                    .parameters("accessType", "admin", "userGroup", grantee)
+                                                    .parameters("accessType",
+                                                                "admin",
+                                                                "priority",
+                                                                1,
+                                                                "userGroup",
+                                                                grantee)
                                                     .when()
                                                     .put(BUCKET_GRANTS_RESOURCE_GROUP);
 

@@ -53,6 +53,9 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
     private final String accessType;
 
     @JsonProperty
+    private final int priority;
+
+    @JsonProperty
     private final long catalogObjectId;
 
     @JsonProperty
@@ -65,11 +68,13 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
     private final String bucketName;
 
     public CatalogObjectGrantMetadata(String granteeType, String creator, String grantee, String accessType,
-            long catalogObjectId, long catalogObjectBucketId, String bucketName, String catalogObjectName) {
+            int priority, long catalogObjectId, long catalogObjectBucketId, String bucketName,
+            String catalogObjectName) {
         this.granteeType = granteeType;
         this.creator = creator;
         this.grantee = grantee;
         this.accessType = accessType;
+        this.priority = priority;
         this.catalogObjectId = catalogObjectId;
         this.catalogObjectBucketId = catalogObjectBucketId;
         this.bucketName = bucketName;
@@ -81,6 +86,7 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
         this.creator = catalogObjectGrantEntity.getCreator();
         this.grantee = catalogObjectGrantEntity.getGrantee();
         this.accessType = catalogObjectGrantEntity.getAccessType();
+        this.priority = catalogObjectGrantEntity.getPriority();
         this.catalogObjectId = catalogObjectGrantEntity.getCatalogObjectRevisionEntity().getId();
         this.catalogObjectBucketId = catalogObjectGrantEntity.getBucketEntity().getId();
         this.bucketName = catalogObjectGrantEntity.getBucketEntity().getBucketName();

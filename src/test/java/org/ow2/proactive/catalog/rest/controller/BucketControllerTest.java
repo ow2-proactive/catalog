@@ -35,10 +35,7 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.ow2.proactive.catalog.service.BucketGrantService;
-import org.ow2.proactive.catalog.service.BucketService;
-import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
-import org.ow2.proactive.catalog.service.RestApiAccessService;
+import org.ow2.proactive.catalog.service.*;
 
 
 /**
@@ -59,17 +56,18 @@ public class BucketControllerTest {
     private BucketGrantService bucketGrantService;
 
     @Mock
-    private CatalogObjectGrantService catalogObjectGrantService;
+    GrantRightsService grantRightsService;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(any(), any(), any())).thenReturn(true);
-        when(catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(any(),
-                                                                                                                        any(),
-                                                                                                                        any())).thenReturn(true);
-        when(catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(any(),
-                                                                                                 any())).thenReturn(true);
+        when(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(any(),
+                                                                                        anyString())).thenReturn("admin");
+        when(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(any(),
+                                                                                        anyString())).thenReturn("admin");
+        when(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(any(),
+                                                                                               anyString(),
+                                                                                               anyString())).thenReturn("admin");
     }
 
     @Test

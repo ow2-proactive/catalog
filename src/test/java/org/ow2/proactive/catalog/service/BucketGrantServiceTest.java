@@ -42,11 +42,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
-import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketGrantRepository;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.*;
-import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 
 
 /**
@@ -85,15 +83,6 @@ public class BucketGrantServiceTest {
     }
 
     @Test
-    public void testGetAllAssignedGrantsForUserAndHisGroup() {
-        List<String> userGroups = new LinkedList<>();
-        userGroups.add(DUMMY_GROUP);
-        assertThat(bucketGrantService.getAllAssignedGrantsForUserAndHisGroups(DUMMY_USERNAME, userGroups)).isEmpty();
-        verify(bucketGrantRepository, times(1)).findAllGrantsAssignedToAUsername(DUMMY_USERNAME);
-        verify(bucketGrantRepository, times(1)).findAllGrantsAssignedToTheUserGroups(userGroups);
-    }
-
-    @Test
     public void testUpdateBucketGrantForASpecificUser() {
         BucketEntity mockedBucket = newMockedBucket(1L);
         BucketGrantEntity bucketGrantEntity = new BucketGrantEntity("user",
@@ -103,8 +92,8 @@ public class BucketGrantServiceTest {
                                                                     mockedBucket);
         when(bucketGrantRepository.save(any(BucketGrantEntity.class))).thenReturn(bucketGrantEntity);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
-        when(bucketGrantRepository.findBucketGrantByUsername(mockedBucket.getId(),
-                                                             DUMMY_USERNAME)).thenReturn(bucketGrantEntity);
+        when(bucketGrantRepository.findBucketGrantByUsernameForUpdate(mockedBucket.getId(),
+                                                                      DUMMY_USERNAME)).thenReturn(bucketGrantEntity);
 
         BucketGrantMetadata result = bucketGrantService.updateBucketGrantForASpecificUser(DUMMY_BUCKET,
                                                                                           DUMMY_USERNAME,
@@ -117,7 +106,7 @@ public class BucketGrantServiceTest {
         assertEquals(1L, result.getBucketId());
 
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
-        verify(bucketGrantRepository, times(1)).findBucketGrantByUsername(DUMMY_BUCKET_ID, DUMMY_USERNAME);
+        verify(bucketGrantRepository, times(1)).findBucketGrantByUsernameForUpdate(DUMMY_BUCKET_ID, DUMMY_USERNAME);
         verify(bucketGrantRepository, times(1)).save(bucketGrantEntity);
     }
 
@@ -131,12 +120,13 @@ public class BucketGrantServiceTest {
                                                                     mockedBucket);
         when(bucketGrantRepository.save(any(BucketGrantEntity.class))).thenReturn(bucketGrantEntity);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
-        when(bucketGrantRepository.findBucketGrantByUserGroup(mockedBucket.getId(),
-                                                              DUMMY_GROUP)).thenReturn(bucketGrantEntity);
+        when(bucketGrantRepository.findBucketGrantByUserGroupForUpdate(mockedBucket.getId(),
+                                                                       DUMMY_GROUP)).thenReturn(bucketGrantEntity);
 
         BucketGrantMetadata result = bucketGrantService.updateBucketGrantForASpecificUserGroup(DUMMY_BUCKET,
                                                                                                DUMMY_GROUP,
-                                                                                               DUMMY_ACCESS_TYPE);
+                                                                                               DUMMY_ACCESS_TYPE,
+                                                                                               1);
 
         assertEquals(DUMMY_ACCESS_TYPE, result.getAccessType());
         assertEquals("group", result.getGranteeType());
@@ -145,7 +135,7 @@ public class BucketGrantServiceTest {
         assertEquals(1L, result.getBucketId());
 
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
-        verify(bucketGrantRepository, times(1)).findBucketGrantByUserGroup(DUMMY_BUCKET_ID, DUMMY_GROUP);
+        verify(bucketGrantRepository, times(1)).findBucketGrantByUserGroupForUpdate(DUMMY_BUCKET_ID, DUMMY_GROUP);
         verify(bucketGrantRepository, times(1)).save(bucketGrantEntity);
     }
 
@@ -166,7 +156,7 @@ public class BucketGrantServiceTest {
         when(bucketGrantRepository.save(any(BucketGrantEntity.class))).thenReturn(bucketGrantEntity);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
 
-        BucketGrantMetadata userGrantMetadata = bucketGrantService.createBucketGrantForAUSer(DUMMY_BUCKET,
+        BucketGrantMetadata userGrantMetadata = bucketGrantService.createBucketGrantForAUser(DUMMY_BUCKET,
                                                                                              DUMMY_CURRENT_USERNAME,
                                                                                              DUMMY_ACCESS_TYPE,
                                                                                              DUMMY_USERNAME);
@@ -189,6 +179,7 @@ public class BucketGrantServiceTest {
                                                                          DUMMY_CURRENT_USERNAME,
                                                                          DUMMY_GROUP,
                                                                          DUMMY_ACCESS_TYPE,
+                                                                         1,
                                                                          mockedBucket);
         when(bucketGrantRepository.save(any(BucketGrantEntity.class))).thenReturn(groupBucketGrantEntity);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
@@ -196,6 +187,7 @@ public class BucketGrantServiceTest {
         BucketGrantMetadata userGroupGrantMetadata = bucketGrantService.createBucketGrantForAGroup(DUMMY_BUCKET,
                                                                                                    DUMMY_CURRENT_USERNAME,
                                                                                                    DUMMY_ACCESS_TYPE,
+                                                                                                   1,
                                                                                                    DUMMY_GROUP);
 
         assertEquals(userGroupGrantMetadata.getAccessType(), DUMMY_ACCESS_TYPE);
@@ -259,46 +251,6 @@ public class BucketGrantServiceTest {
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
         verify(bucketGrantRepository, times(1)).findBucketGrantByUserGroup(1L, DUMMY_GROUP);
         verify(bucketGrantRepository, times(1)).delete(groupBucketGrantEntity);
-    }
-
-    @Test
-    public void testGetBucketsForUserByGrants() {
-        List<String> userGroups = new LinkedList<>();
-        userGroups.add(DUMMY_GROUP);
-
-        BucketEntity firstMockedBucket = newMockedBucket(1L);
-        BucketEntity secondMockedBucket = newMockedBucket(2L);
-
-        List<Long> idsFromCatalogObjectGrants = new LinkedList<>();
-        idsFromCatalogObjectGrants.add(firstMockedBucket.getId());
-
-        List<Long> idsFromGroupObjectGrants = new LinkedList<>();
-        idsFromGroupObjectGrants.add(secondMockedBucket.getId());
-
-        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity("user",
-                                                                    DUMMY_CURRENT_USERNAME,
-                                                                    DUMMY_USERNAME,
-                                                                    DUMMY_ACCESS_TYPE,
-                                                                    firstMockedBucket);
-
-        List<BucketGrantEntity> mockedBucketGrants = new LinkedList<>();
-        mockedBucketGrants.add(bucketGrantEntity);
-
-        when(catalogObjectGrantService.getAllBucketIdsFromGrantsAssignedToUsername(DUMMY_CURRENT_USERNAME)).thenReturn(idsFromCatalogObjectGrants);
-        when(bucketGrantRepository.findAllGrantsAssignedToAUsername(DUMMY_USERNAME)).thenReturn(mockedBucketGrants);
-        when(bucketGrantRepository.findAllGrantsAssignedToTheUserGroups(userGroups)).thenReturn(null);
-        when(catalogObjectGrantService.getAllBucketIdsFromGrantsAssignedToUserGroup(userGroups)).thenReturn(idsFromGroupObjectGrants);
-        when(bucketRepository.findOne(1L)).thenReturn(firstMockedBucket);
-        when(bucketRepository.findOne(2L)).thenReturn(secondMockedBucket);
-
-        List<String> groups = new LinkedList<>();
-        groups.add(DUMMY_GROUP);
-        AuthenticatedUser user = AuthenticatedUser.builder().name(DUMMY_CURRENT_USERNAME).groups(groups).build();
-        List<BucketMetadata> results = bucketGrantService.getBucketsForUserByGrants(user);
-
-        assertEquals(2, results.size());
-        assertTrue(results.contains(new BucketMetadata(firstMockedBucket)));
-        assertTrue(results.contains(new BucketMetadata(secondMockedBucket)));
     }
 
     @Test

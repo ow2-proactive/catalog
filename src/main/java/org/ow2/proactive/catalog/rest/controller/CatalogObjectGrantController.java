@@ -28,22 +28,19 @@ package org.ow2.proactive.catalog.rest.controller;
 import static org.ow2.proactive.catalog.util.AccessType.admin;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
-import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
+import org.ow2.proactive.catalog.service.GrantRightsService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.exception.CatalogObjectGrantAccessException;
+import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.exception.PublicBucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,7 +65,7 @@ public class CatalogObjectGrantController {
     private RestApiAccessService restApiAccessService;
 
     @Autowired
-    private BucketGrantService bucketGrantService;
+    private GrantRightsService grantRightsService;
 
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
@@ -83,7 +80,7 @@ public class CatalogObjectGrantController {
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
-            @ApiParam(value = "The type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
             @ApiParam(value = "The name of the user that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
@@ -99,9 +96,12 @@ public class CatalogObjectGrantController {
             }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                bucketGrantService.checkIfTheUserHasAdminRightsOverTheObjectOrOverTheBucket(user,
-                                                                                            bucketName,
-                                                                                            catalogObjectName);
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -123,7 +123,8 @@ public class CatalogObjectGrantController {
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
-            @ApiParam(value = "The type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The priority of the access grant. It can be a value from 1 to 10 and has a default value equals to 5.", required = true, defaultValue = "5") @RequestParam(value = "priority", required = true, defaultValue = "5") int priority,
             @ApiParam(value = "The name of the group of users that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
@@ -139,9 +140,12 @@ public class CatalogObjectGrantController {
             }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                bucketGrantService.checkIfTheUserHasAdminRightsOverTheObjectOrOverTheBucket(user,
-                                                                                            bucketName,
-                                                                                            catalogObjectName);
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -150,6 +154,7 @@ public class CatalogObjectGrantController {
                                                                            catalogObjectName,
                                                                            user.getName(),
                                                                            accessType,
+                                                                           priority,
                                                                            userGroup);
     }
 
@@ -178,10 +183,11 @@ public class CatalogObjectGrantController {
             }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
                 }
             }
         }
@@ -212,10 +218,11 @@ public class CatalogObjectGrantController {
             }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
                 }
             }
         }
@@ -232,7 +239,7 @@ public class CatalogObjectGrantController {
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
-            @ApiParam(value = "The new type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The new type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
             @ApiParam(value = "The name of the user that is benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
@@ -247,10 +254,11 @@ public class CatalogObjectGrantController {
             }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
                 }
             }
         }
@@ -270,8 +278,9 @@ public class CatalogObjectGrantController {
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
-            @ApiParam(value = "The new type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
-            @ApiParam(value = "The name of the group of users that are benefiting of the access grant.", defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
+            @ApiParam(value = "The new type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The new priority of the access grant. It can be a value from 1 to 10.", required = true) @RequestParam(value = "priority", required = true) int priority,
+            @ApiParam(value = "The name of the group of users that are benefiting of the access grant.", required = true) @RequestParam(value = "userGroup", required = true) String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
@@ -285,17 +294,19 @@ public class CatalogObjectGrantController {
             }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
                 }
             }
         }
         return catalogObjectGrantService.updateCatalogObjectGrantForAGroup(userGroup,
                                                                            catalogObjectName,
                                                                            bucketName,
-                                                                           accessType);
+                                                                           accessType,
+                                                                           priority);
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -321,10 +332,11 @@ public class CatalogObjectGrantController {
             }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
                 }
             }
         }
@@ -354,10 +366,11 @@ public class CatalogObjectGrantController {
             }
             // Check Grants
             if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new BucketGrantAccessException(bucketName);
                 }
             }
         }

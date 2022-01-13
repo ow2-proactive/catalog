@@ -70,17 +70,34 @@ public class BucketGrantEntity implements Serializable {
     @Column(name = "ACCESS_TYPE", nullable = false)
     protected String accessType;
 
+    // Grant priority level used for group grants only
+    // TODO Change between 1 --> 10, default 5
+    @Column(name = "PRIORITY")
+    protected int priority;
+
     // Bucket association
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = BucketEntity.class)
     @JoinColumn(name = "BUCKET", nullable = false)
     protected BucketEntity bucketEntity;
 
+    // Constructor used to create user grants
     public BucketGrantEntity(String granteeType, String creator, String grantee, String accessType,
             BucketEntity bucketEntity) {
         this.granteeType = granteeType;
         this.creator = creator;
         this.grantee = grantee;
         this.accessType = accessType;
+        this.bucketEntity = bucketEntity;
+    }
+
+    // Constructor used to create group grants
+    public BucketGrantEntity(String granteeType, String creator, String grantee, String accessType, int priority,
+            BucketEntity bucketEntity) {
+        this.granteeType = granteeType;
+        this.creator = creator;
+        this.grantee = grantee;
+        this.accessType = accessType;
+        this.priority = priority;
         this.bucketEntity = bucketEntity;
     }
 

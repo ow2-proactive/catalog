@@ -55,10 +55,7 @@ import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
-import org.ow2.proactive.catalog.service.BucketGrantService;
-import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
-import org.ow2.proactive.catalog.service.CatalogObjectService;
-import org.ow2.proactive.catalog.service.RestApiAccessService;
+import org.ow2.proactive.catalog.service.*;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
@@ -98,15 +95,21 @@ public class CatalogObjectControllerTest {
     private BucketGrantService bucketGrantService;
 
     @Mock
+    private GrantRightsService grantRightsService;
+
+    @Mock
     private CatalogObjectGrantService catalogObjectGrantService;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(any(), any(), any())).thenReturn(true);
-        when(catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(any(),
-                                                                                                                        any(),
-                                                                                                                        any())).thenReturn(true);
+        when(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(any(),
+                                                                                        anyString())).thenReturn("admin");
+        when(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(any(),
+                                                                                        anyString())).thenReturn("admin");
+        when(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(any(),
+                                                                                               anyString(),
+                                                                                               anyString())).thenReturn("admin");
         when(catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(any(),
                                                                                                  any())).thenReturn(true);
     }

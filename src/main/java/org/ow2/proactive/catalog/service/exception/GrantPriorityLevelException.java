@@ -23,11 +23,16 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util;
+package org.ow2.proactive.catalog.service.exception;
 
-public enum AccessType {
-    admin,
-    write,
-    read,
-    noAccess
+import org.ow2.proactive.microservices.common.exception.ClientException;
+
+
+public class GrantPriorityLevelException extends ClientException {
+
+    public GrantPriorityLevelException(int priority) {
+        super("The priority level of a grant can not be equal to: " + priority +
+              ". Please choose a priority value between 1 (lowest) and 10 (highest).");
+    }
+
 }

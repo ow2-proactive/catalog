@@ -63,9 +63,13 @@ public class GrantAccessTypeHelperService {
     public int getPriorityLevel(String accessType1, String accessType2) {
         int priority = 1;
         if (accessType1.equals(read.toString()) &&
-            (accessType2.equals(admin.toString()) || accessType2.equals(write.toString()))) {
+            (accessType2.equals(admin.toString()) || accessType2.equals(write.toString()) ||
+             accessType2.equals(noAccess.toString()))) {
             priority = 2;
-        } else if (accessType1.equals(write.toString()) && accessType2.equals(admin.toString())) {
+        } else if (accessType1.equals(write.toString()) &&
+                   (accessType2.equals(admin.toString()) || accessType2.equals(noAccess.toString()))) {
+            priority = 2;
+        } else if (accessType1.equals(admin.toString()) && accessType2.equals(noAccess.toString())) {
             priority = 2;
         }
         return priority;
