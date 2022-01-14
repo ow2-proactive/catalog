@@ -131,6 +131,7 @@ public class BucketGrantService {
      * @param accessType new type of the access grant. It can be either noAccess, read, write or admin.
      * @return the updated grant assigned to the group of users for a specific bucket
      */
+    @Transactional
     public BucketGrantMetadata updateBucketGrantForASpecificUserGroup(String bucketName, String userGroup,
             String accessType, int priority) {
         PriorityLevelValidator.checkAndValidateTheGivenPriorityLevel(priority);
@@ -184,6 +185,7 @@ public class BucketGrantService {
      * @return a created bucket grant
      * @throws DataIntegrityViolationException in case of a bad bucket name and in case of an existing similar grant
      */
+    @Transactional
     public BucketGrantMetadata createBucketGrantForAUser(String bucketName, String currentUser, String accessType,
             String username) throws DataIntegrityViolationException {
         accessType = AccessTypeValidator.checkAndValidateTheGivenAccessType(accessType);
@@ -218,6 +220,7 @@ public class BucketGrantService {
      * @return a created bucket grant
      * @throws DataIntegrityViolationException in case of a bad bucket name and in case of an existing similar grant
      */
+    @Transactional
     public BucketGrantMetadata createBucketGrantForAGroup(String bucketName, String currentUser, String accessType,
             int priority, String userGroup) throws DataIntegrityViolationException {
         PriorityLevelValidator.checkAndValidateTheGivenPriorityLevel(priority);
@@ -255,6 +258,7 @@ public class BucketGrantService {
      * @param username name of the user that is benefiting from the access grant.
      * @return the deleted bucket grant
      */
+    @Transactional
     public BucketGrantMetadata deleteBucketGrantForAUser(String bucketName, String username) {
         // Find the bucket
         BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
@@ -276,6 +280,7 @@ public class BucketGrantService {
      * @param userGroup name of the group of users that are benefiting from the access grant.
      * @return the deleted bucket grant
      */
+    @Transactional
     public BucketGrantMetadata deleteBucketGrantForAGroup(String bucketName, String userGroup) {
         // Find the bucket
         BucketEntity bucketEntity = bucketRepository.findOneByBucketName(bucketName);
@@ -442,6 +447,7 @@ public class BucketGrantService {
                                     .collect(Collectors.toList());
     }
 
+    @Transactional
     public AllBucketGrants deleteAllBucketAndItsObjectsGrants(String bucketName) {
         AllBucketGrants allBucketGrants = this.getAllBucketAndObjectGrants(bucketName);
         this.deleteAllGrantsAssignedToABucketAndItsObjects(this.getBucketIdByName(bucketName));

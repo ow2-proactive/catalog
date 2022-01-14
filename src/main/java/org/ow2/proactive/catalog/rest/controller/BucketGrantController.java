@@ -36,6 +36,7 @@ import org.ow2.proactive.catalog.service.GrantRightsService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
+import org.ow2.proactive.catalog.service.exception.LostOfAdminGrantRightException;
 import org.ow2.proactive.catalog.service.exception.PublicBucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AllBucketGrants;
@@ -43,6 +44,7 @@ import org.ow2.proactive.microservices.common.exception.NotAuthenticatedExceptio
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.ApiOperation;
@@ -84,8 +86,9 @@ public class BucketGrantController {
             @ApiParam(value = "The name of the user that is benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username,
             @ApiParam(value = "The new type of the access grant. It can be either noAccess, read, write or admin.", required = true, defaultValue = "") @RequestParam(value = "accessType", required = true, defaultValue = "") String accessType)
             throws NotAuthenticatedException, AccessDeniedException {
+        AuthenticatedUser user;
         if (sessionIdRequired) {
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
@@ -101,8 +104,24 @@ public class BucketGrantController {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
+        } else {
+            user = AuthenticatedUser.EMPTY;
         }
-        return bucketGrantService.updateBucketGrantForASpecificUser(bucketName, username, accessType);
+        BucketGrantMetadata updatedUserGrant = bucketGrantService.updateBucketGrantForASpecificUser(bucketName,
+                                                                                                    username,
+                                                                                                    accessType);
+        ;
+        if (sessionIdRequired) {
+            if (user.getName().equals(username)) {
+                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
+                    !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By updating this grant assigned to yourself, you will lose your admin rights over the bucket: " +
+                                                             bucketName + ".");
+                }
+            }
+        }
+        return updatedUserGrant;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -111,6 +130,7 @@ public class BucketGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/group", method = PUT)
     @ResponseStatus(HttpStatus.OK)
+    @Transactional
     public BucketGrantMetadata updateBucketGrantForAGroup(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable String bucketName,
@@ -118,8 +138,9 @@ public class BucketGrantController {
             @ApiParam(value = "The new type of the access grant. It can be either noAccess, read, write or admin.", required = true, defaultValue = "") @RequestParam(value = "accessType", required = true, defaultValue = "") String accessType,
             @ApiParam(value = "The new priority of the access grant. It can be a value from 1 to 10.", required = true) @RequestParam(value = "priority", required = true) int priority)
             throws NotAuthenticatedException, AccessDeniedException {
+        AuthenticatedUser user;
         if (sessionIdRequired) {
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
@@ -135,8 +156,27 @@ public class BucketGrantController {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
+        } else {
+            user = AuthenticatedUser.EMPTY;
         }
-        return bucketGrantService.updateBucketGrantForASpecificUserGroup(bucketName, userGroup, accessType, priority);
+        BucketGrantMetadata updatedUserGroupGrant = bucketGrantService.updateBucketGrantForASpecificUserGroup(bucketName,
+                                                                                                              userGroup,
+                                                                                                              accessType,
+                                                                                                              priority);
+        ;
+        if (sessionIdRequired) {
+            if (user.getGroups().contains(userGroup)) {
+                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
+                    !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By updating this grant assigned to your group: " +
+                                                             userGroup +
+                                                             ", you will lose your admin rights over the bucket: " +
+                                                             bucketName + ".");
+                }
+            }
+        }
+        return updatedUserGroupGrant;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -145,13 +185,15 @@ public class BucketGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/user", method = DELETE)
     @ResponseStatus(HttpStatus.OK)
+    @Transactional
     public BucketGrantMetadata deleteBucketGrantForAUser(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName,
             @ApiParam(value = "The name of the user that is benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
+        AuthenticatedUser user;
         if (sessionIdRequired) {
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
@@ -167,8 +209,21 @@ public class BucketGrantController {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
+        } else {
+            user = AuthenticatedUser.EMPTY;
         }
-        return bucketGrantService.deleteBucketGrantForAUser(bucketName, username);
+        BucketGrantMetadata deletedUSerGrant = bucketGrantService.deleteBucketGrantForAUser(bucketName, username);
+        if (sessionIdRequired) {
+            if (user.getName().equals(username)) {
+                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
+                    !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By deleting this grant assigned to yourself, you will lose your admin rights over the bucket: " +
+                                                             bucketName + ".");
+                }
+            }
+        }
+        return deletedUSerGrant;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -177,13 +232,15 @@ public class BucketGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/group", method = DELETE)
     @ResponseStatus(HttpStatus.OK)
+    @Transactional
     public BucketGrantMetadata deleteBucketGrantForAGroup(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName,
             @ApiParam(value = "The name of the group of users that are benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
+        AuthenticatedUser user;
         if (sessionIdRequired) {
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
@@ -199,8 +256,24 @@ public class BucketGrantController {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
+        } else {
+            user = AuthenticatedUser.EMPTY;
         }
-        return bucketGrantService.deleteBucketGrantForAGroup(bucketName, userGroup);
+        BucketGrantMetadata deletedBucketGrantForUserGroup = bucketGrantService.deleteBucketGrantForAGroup(bucketName,
+                                                                                                           userGroup);
+        if (sessionIdRequired) {
+            if (user.getGroups().contains(userGroup)) {
+                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
+                    !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By deleting this grant assigned to your group: " +
+                                                             userGroup +
+                                                             ", you will lose your admin rights over the bucket: " +
+                                                             bucketName + ".");
+                }
+            }
+        }
+        return deletedBucketGrantForUserGroup;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -239,13 +312,14 @@ public class BucketGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/user", method = POST)
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
     public BucketGrantMetadata createBucketGrantForAUser(
             @ApiParam(value = "The the session id used to access ProActive REST server", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName,
             @ApiParam(value = "The type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
             @ApiParam(value = "The name of the user that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
-        AuthenticatedUser user = null;
+        AuthenticatedUser user;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
@@ -263,11 +337,24 @@ public class BucketGrantController {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
-        }
-        if (user == null) {
+        } else {
             user = AuthenticatedUser.EMPTY;
         }
-        return bucketGrantService.createBucketGrantForAUser(bucketName, user.getName(), accessType, username);
+        BucketGrantMetadata updatedUserGrant = bucketGrantService.createBucketGrantForAUser(bucketName,
+                                                                                            user.getName(),
+                                                                                            accessType,
+                                                                                            username);
+        if (sessionIdRequired) {
+            if (user.getName().equals(username)) {
+                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
+                    !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By creating this grant for yourself, you will lose your admin rights over the bucket: " +
+                                                             bucketName + ".");
+                }
+            }
+        }
+        return updatedUserGrant;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -276,6 +363,7 @@ public class BucketGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/group", method = POST)
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
     public BucketGrantMetadata createBucketGrantForAGroup(
             @ApiParam(value = "The session id used to access ProActive REST server", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName,
@@ -283,7 +371,7 @@ public class BucketGrantController {
             @ApiParam(value = "The priority of the access grant. It can be a value from 1 to 10 and has a default value equals to 5.", required = true, defaultValue = "5") @RequestParam(value = "priority", required = true, defaultValue = "5") int priority,
             @ApiParam(value = "The name of the group of users that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
-        AuthenticatedUser user = null;
+        AuthenticatedUser user;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
@@ -301,15 +389,26 @@ public class BucketGrantController {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
-        }
-        if (user == null) {
+        } else {
             user = AuthenticatedUser.EMPTY;
         }
-        return bucketGrantService.createBucketGrantForAGroup(bucketName,
-                                                             user.getName(),
-                                                             accessType,
-                                                             priority,
-                                                             userGroup);
+        BucketGrantMetadata newBucketGrantForUserGroup = bucketGrantService.createBucketGrantForAGroup(bucketName,
+                                                                                                       user.getName(),
+                                                                                                       accessType,
+                                                                                                       priority,
+                                                                                                       userGroup);
+        if (sessionIdRequired) {
+            if (user.getGroups().contains(userGroup)) {
+                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
+                    !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                       .equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By creating this grant on your group: " + userGroup +
+                                                             ", you will lose your admin rights over the bucket: " +
+                                                             bucketName + ".");
+                }
+            }
+        }
+        return newBucketGrantForUserGroup;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -379,11 +478,13 @@ public class BucketGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/all", method = DELETE)
     @ResponseStatus(HttpStatus.OK)
+    @Transactional
     public AllBucketGrants deleteAllGrantsForABucketAndItsObjects(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName) {
+        AuthenticatedUser user;
         if (sessionIdRequired) {
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
@@ -399,7 +500,18 @@ public class BucketGrantController {
                     throw new BucketGrantAccessException(bucketName);
                 }
             }
+        } else {
+            user = AuthenticatedUser.EMPTY;
         }
-        return bucketGrantService.deleteAllBucketAndItsObjectsGrants(bucketName);
+        AllBucketGrants deletedGrantsForTheBucketAndItsObjects = bucketGrantService.deleteAllBucketAndItsObjectsGrants(bucketName);
+        if (sessionIdRequired) {
+            if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
+                !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new LostOfAdminGrantRightException("By deleting all grants assigned to the bucket: " +
+                                                         bucketName + ", you will lose your admin rights over it");
+            }
+        }
+        return deletedGrantsForTheBucketAndItsObjects;
     }
 }

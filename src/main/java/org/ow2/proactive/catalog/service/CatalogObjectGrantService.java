@@ -73,6 +73,7 @@ public class CatalogObjectGrantService {
      * @return a catalog object grant for a user
      * @throws DataIntegrityViolationException if a similar grant exists
      */
+    @Transactional
     public CatalogObjectGrantMetadata createCatalogObjectGrantForAUser(String bucketName, String catalogObjectName,
             String currentUser, String accessType, String username) throws DataIntegrityViolationException {
         accessType = AccessTypeValidator.checkAndValidateTheGivenAccessType(accessType);
@@ -119,6 +120,7 @@ public class CatalogObjectGrantService {
      * @return a catalog object grant for a group of users
      * @throws DataIntegrityViolationException if a similar grant exists
      */
+    @Transactional
     public CatalogObjectGrantMetadata createCatalogObjectGrantForAGroup(String bucketName, String catalogObjectName,
             String currentUser, String accessType, int priority, String userGroup)
             throws DataIntegrityViolationException {
@@ -166,6 +168,7 @@ public class CatalogObjectGrantService {
      * @param username name of the user that is benefiting from the access grant.
      * @return the deleted object grant
      */
+    @Transactional
     public CatalogObjectGrantMetadata deleteCatalogObjectGrantForAUser(String bucketName, String catalogObjectName,
             String username) {
         List<String> bucketsName = new LinkedList<>();
@@ -194,6 +197,7 @@ public class CatalogObjectGrantService {
      * @param userGroup name of the group of users that are benefiting of the access grant
      * @return the deleted object grants for a group
      */
+    @Transactional
     public CatalogObjectGrantMetadata deleteCatalogObjectGrantForAGroup(String bucketName, String catalogObjectName,
             String userGroup) {
         List<String> bucketsName = new LinkedList<>();
@@ -222,6 +226,7 @@ public class CatalogObjectGrantService {
      * @param accessType type of the access grant. It can be either noAccess, read, write or admin.
      * @return the updated user object grant
      */
+    @Transactional
     public CatalogObjectGrantMetadata updateCatalogObjectGrantForAUser(String username, String catalogObjectName,
             String bucketName, String accessType) {
         accessType = AccessTypeValidator.checkAndValidateTheGivenAccessType(accessType);
@@ -252,6 +257,7 @@ public class CatalogObjectGrantService {
      * @param accessType type of the access grant. It can be either noAccess, read, write or admin.
      * @return the updated group object grant
      */
+    @Transactional
     public CatalogObjectGrantMetadata updateCatalogObjectGrantForAGroup(String userGroup, String catalogObjectName,
             String bucketName, String accessType, int priority) {
         PriorityLevelValidator.checkAndValidateTheGivenPriorityLevel(priority);
@@ -408,6 +414,7 @@ public class CatalogObjectGrantService {
      * @param catalogObjectName object name
      * @return the list of deleted grants created for an object inside a bucket
      */
+    @Transactional
     public List<CatalogObjectGrantMetadata> deleteAllCatalogObjectGrantsAssignedToABucket(String bucketName,
             String catalogObjectName) {
         long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
