@@ -80,6 +80,7 @@ public class BucketGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/user", method = PUT)
     @ResponseStatus(HttpStatus.OK)
+    @Transactional
     public BucketGrantMetadata updateBucketGrantForAUser(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable String bucketName,
@@ -110,7 +111,6 @@ public class BucketGrantController {
         BucketGrantMetadata updatedUserGrant = bucketGrantService.updateBucketGrantForASpecificUser(bucketName,
                                                                                                     username,
                                                                                                     accessType);
-        ;
         if (sessionIdRequired) {
             if (user.getName().equals(username)) {
                 if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
@@ -163,7 +163,6 @@ public class BucketGrantController {
                                                                                                               userGroup,
                                                                                                               accessType,
                                                                                                               priority);
-        ;
         if (sessionIdRequired) {
             if (user.getGroups().contains(userGroup)) {
                 if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
