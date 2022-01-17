@@ -98,13 +98,11 @@ public class CatalogObjectGrantController {
                                                            " is public. You can not assign a grant to it or to any of its object");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -116,8 +114,7 @@ public class CatalogObjectGrantController {
                                                                                                                        username);
         if (sessionIdRequired) {
             if (user.getName().equals(username)) {
-                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                    !grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
                                                                                                        bucketName,
                                                                                                        catalogObjectName)
                                        .equals(admin.toString())) {
@@ -156,13 +153,11 @@ public class CatalogObjectGrantController {
                                                            " is public. You can not assign a grant to it or to any of its object");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -175,8 +170,7 @@ public class CatalogObjectGrantController {
                                                                                                                              userGroup);
         if (sessionIdRequired) {
             if (user.getGroups().contains(userGroup)) {
-                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                    !grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
                                                                                                        bucketName,
                                                                                                        catalogObjectName)
                                        .equals(admin.toString())) {
@@ -214,13 +208,11 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -230,8 +222,7 @@ public class CatalogObjectGrantController {
                                                                                                                        username);
         if (sessionIdRequired) {
             if (user.getName().equals(username)) {
-                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                    !grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
                                                                                                        bucketName,
                                                                                                        catalogObjectName)
                                        .equals(admin.toString())) {
@@ -268,13 +259,11 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -284,8 +273,7 @@ public class CatalogObjectGrantController {
                                                                                                                              userGroup);
         if (sessionIdRequired) {
             if (user.getGroups().contains(userGroup)) {
-                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                    !grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
                                                                                                        bucketName,
                                                                                                        catalogObjectName)
                                        .equals(admin.toString())) {
@@ -325,13 +313,11 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -342,8 +328,7 @@ public class CatalogObjectGrantController {
                                                                                                                        accessType);
         if (sessionIdRequired) {
             if (user.getName().equals(username)) {
-                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                    !grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
                                                                                                        bucketName,
                                                                                                        catalogObjectName)
                                        .equals(admin.toString())) {
@@ -382,13 +367,11 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -400,8 +383,7 @@ public class CatalogObjectGrantController {
                                                                                                                              priority);
         if (sessionIdRequired) {
             if (user.getGroups().contains(userGroup)) {
-                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                    !grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
                                                                                                        bucketName,
                                                                                                        catalogObjectName)
                                        .equals(admin.toString())) {
@@ -437,13 +419,11 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         }
         return catalogObjectGrantService.getAllCreatedCatalogObjectGrantsForThisBucket(bucketName, catalogObjectName);
@@ -473,20 +453,17 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
         }
         if (sessionIdRequired) {
-            if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                !grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
                                                                                                    bucketName,
                                                                                                    catalogObjectName)
                                    .equals(admin.toString())) {

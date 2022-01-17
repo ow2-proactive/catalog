@@ -71,13 +71,11 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
             long catalogObjectId);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user' AND coge.accessType='noAccess'")
-    CatalogObjectGrantEntity findAllNoAccessGrantsAssignedToAUsername(String username);
+    CatalogObjectGrantEntity findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(String username);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee in ?1 AND coge.granteeType='group' AND coge.accessType='noAccess'")
-    List<CatalogObjectGrantEntity> findAllNoAccessGrantsAssignedToAUserGroup(List<String> userGroups);
-
-    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.bucketEntity.bucketName = ?1 AND coge.accessType='noAccess'")
-    List<CatalogObjectGrantEntity> findAllNoAccessObjectGrantsAssignedToABucket(String bucketName);
+    List<CatalogObjectGrantEntity>
+            findAllObjectGrantsWithNoAccessRightsAndAssignedToAUserGroup(List<String> userGroups);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user' AND coge.accessType<>'noAccess'")
     List<CatalogObjectGrantEntity> findAllObjectGrantsAssignedToAUser(String username);

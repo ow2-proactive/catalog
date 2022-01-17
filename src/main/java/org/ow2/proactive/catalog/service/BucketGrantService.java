@@ -71,13 +71,13 @@ public class BucketGrantService {
     public List<BucketGrantMetadata> getAllBucketGrantsAssignedForTheUserOnABucket(AuthenticatedUser user,
             String bucketName) {
         long bucketId = this.getBucketIdByName(bucketName);
-        List<BucketGrantMetadata> result = bucketGrantRepository.findAllGrantsAssignedToAUsernameInsideABucket(user.getName(),
-                                                                                                               bucketId)
+        List<BucketGrantMetadata> result = bucketGrantRepository.findAllBucketGrantsAssignedToAUsernameInsideABucket(user.getName(),
+                                                                                                                     bucketId)
                                                                 .stream()
                                                                 .map(BucketGrantMetadata::new)
                                                                 .collect(Collectors.toList());
-        result.addAll(bucketGrantRepository.findAllGrantsAssignedToTheUserGroupsInsideABucket(user.getGroups(),
-                                                                                              bucketId)
+        result.addAll(bucketGrantRepository.findAllBucketGrantsAssignedToTheUserGroupsInsideABucket(user.getGroups(),
+                                                                                                    bucketId)
                                            .stream()
                                            .filter(grant -> grant.getBucketEntity().getBucketName().equals(bucketName))
                                            .map(BucketGrantMetadata::new)
@@ -86,8 +86,8 @@ public class BucketGrantService {
     }
 
     public List<BucketGrantMetadata> getAllBucketGrantsAssignedToAUser(AuthenticatedUser user) {
-        List<BucketGrantEntity> userGrants = bucketGrantRepository.findAllGrantsAssignedToAUsername(user.getName());
-        userGrants.addAll(bucketGrantRepository.findAllGrantsAssignedToTheUserGroups(user.getGroups()));
+        List<BucketGrantEntity> userGrants = bucketGrantRepository.findAllBucketGrantsAssignedToAUsername(user.getName());
+        userGrants.addAll(bucketGrantRepository.findAllBucketGrantsAssignedToTheUserGroups(user.getGroups()));
         return userGrants.stream().map(BucketGrantMetadata::new).collect(Collectors.toList());
     }
 
@@ -441,7 +441,7 @@ public class BucketGrantService {
     }
 
     public List<BucketGrantMetadata> getAllNoAccessGrants() {
-        return bucketGrantRepository.findAllNoAccessGrants()
+        return bucketGrantRepository.findAllBucketGrantsWithNoAccessRight()
                                     .stream()
                                     .map(BucketGrantMetadata::new)
                                     .collect(Collectors.toList());

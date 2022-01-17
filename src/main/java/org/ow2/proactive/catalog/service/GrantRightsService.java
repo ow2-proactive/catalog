@@ -71,6 +71,18 @@ public class GrantRightsService {
     public String getResultingAccessTypeFromUserGrantsForBucketOperations(AuthenticatedUser user, String bucketName) {
         List<BucketGrantMetadata> allUserBucketGrants = bucketGrantService.getAllBucketGrantsAssignedForTheUserOnABucket(user,
                                                                                                                          bucketName);
+        BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
+        if (user.getGroups().contains(bucket.getOwner().substring(6)) ||
+            bucket.getOwner().substring(6).equals("public-objects")) {
+            BucketGrantMetadata defaultBucketGrantMetadata = new BucketGrantMetadata("group",
+                                                                                     user.getName(),
+                                                                                     bucket.getOwner().substring(6),
+                                                                                     "admin",
+                                                                                     5,
+                                                                                     bucket.getId(),
+                                                                                     bucketName);
+            allUserBucketGrants.add(defaultBucketGrantMetadata);
+        }
         if (!allUserBucketGrants.isEmpty()) {
             // Check for a user grant
             Optional<String> optUserAccessType = this.checkIfAUserBucketGrantExistsForTheCurrentBucketGrantListAndReturnThePotentialAccessType(allUserBucketGrants);
@@ -179,6 +191,7 @@ public class GrantRightsService {
         List<BucketGrantMetadata> userGroupBucketGrants = allUserBucketGrants.stream()
                                                                              .filter(grant -> grant.getGranteeType()
                                                                                                    .equals("group"))
+                                                                             .sorted(Comparator.comparingInt(BucketGrantMetadata::getPriority))
                                                                              .collect(Collectors.toList());
         if (!userGroupBucketGrants.isEmpty()) {
             for (BucketGrantMetadata grant : userGroupBucketGrants) {
@@ -273,7 +286,7 @@ public class GrantRightsService {
                 bucketGrants.removeIf(grant -> grant.getBucketName().equals(nonAccessibleBucketGrants.getBucketName()));
             } else if (nonAccessibleBucketGrants.getGranteeType().equals("group") &&
                        user.getGroups().contains(nonAccessibleBucketGrants.getGrantee())) {
-                bucketGrants.removeIf(grant -> grant.getPriority() <= nonAccessibleBucketGrants.getPriority() &&
+                bucketGrants.removeIf(grant -> grant.getPriority() < nonAccessibleBucketGrants.getPriority() &&
                                                grant.getBucketName().equals(nonAccessibleBucketGrants.getBucketName()));
             }
         }

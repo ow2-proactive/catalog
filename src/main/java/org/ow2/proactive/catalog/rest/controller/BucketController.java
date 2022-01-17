@@ -132,12 +132,10 @@ public class BucketController {
             }
 
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         }
         try {
@@ -164,15 +162,13 @@ public class BucketController {
             }
 
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-                if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
-                                                                                                                                                    bucketName),
-                                                                         read.toString()) &&
-                    !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user,
-                                                                                                         bucketName)) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
+                                                                                                                                                bucketName),
+                                                                     read.toString()) &&
+                !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user,
+                                                                                                     bucketName)) {
+                throw new BucketGrantAccessException(bucketName);
             }
 
         }
@@ -264,12 +260,10 @@ public class BucketController {
             }
 
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         }
         return bucketService.deleteEmptyBucket(bucketName);

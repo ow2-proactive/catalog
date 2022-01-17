@@ -99,11 +99,9 @@ public class BucketGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -113,8 +111,7 @@ public class BucketGrantController {
                                                                                                     accessType);
         if (sessionIdRequired) {
             if (user.getName().equals(username)) {
-                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                    !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
                                        .equals(admin.toString())) {
                     throw new LostOfAdminGrantRightException("By updating this grant assigned to yourself, you will lose your admin rights over the bucket: " +
                                                              bucketName + ".");
@@ -150,11 +147,9 @@ public class BucketGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -202,11 +197,9 @@ public class BucketGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check if user is admin or has admin Grants over the bucket
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -214,8 +207,7 @@ public class BucketGrantController {
         BucketGrantMetadata deletedUSerGrant = bucketGrantService.deleteBucketGrantForAUser(bucketName, username);
         if (sessionIdRequired) {
             if (user.getName().equals(username)) {
-                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                    !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
                                        .equals(admin.toString())) {
                     throw new LostOfAdminGrantRightException("By deleting this grant assigned to yourself, you will lose your admin rights over the bucket: " +
                                                              bucketName + ".");
@@ -249,11 +241,9 @@ public class BucketGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check if user is admin or has admin Grants over the bucket
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -262,8 +252,7 @@ public class BucketGrantController {
                                                                                                            userGroup);
         if (sessionIdRequired) {
             if (user.getGroups().contains(userGroup)) {
-                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                    !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
                                        .equals(admin.toString())) {
                     throw new LostOfAdminGrantRightException("By deleting this grant assigned to your group: " +
                                                              userGroup +
@@ -295,11 +284,9 @@ public class BucketGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check if user is admin or has admin Grants over the bucket
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         }
         return bucketGrantService.getAllCreatedBucketGrantsForABucket(bucketName);
@@ -330,11 +317,9 @@ public class BucketGrantController {
                                                            " is public. You can not assign a grant to it or to any of its object");
             }
             // Check if user is admin or has admin Grants over the bucket
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -345,8 +330,7 @@ public class BucketGrantController {
                                                                                             username);
         if (sessionIdRequired) {
             if (user.getName().equals(username)) {
-                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                    !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
                                        .equals(admin.toString())) {
                     throw new LostOfAdminGrantRightException("By creating this grant for yourself, you will lose your admin rights over the bucket: " +
                                                              bucketName + ".");
@@ -382,11 +366,9 @@ public class BucketGrantController {
                                                            " is public. You can not assign a grant to it or to any of its object");
             }
             // Check if user is admin or has admin Grants over the bucket
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -398,8 +380,7 @@ public class BucketGrantController {
                                                                                                        userGroup);
         if (sessionIdRequired) {
             if (user.getGroups().contains(userGroup)) {
-                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                    !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
                                        .equals(admin.toString())) {
                     throw new LostOfAdminGrantRightException("By creating this grant on your group: " + userGroup +
                                                              ", you will lose your admin rights over the bucket: " +
@@ -431,11 +412,9 @@ public class BucketGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check if user is admin or has admin Grants over the bucket
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         }
         return bucketGrantService.deleteAllGrantsAssignedToABucket(bucketName);
@@ -461,11 +440,9 @@ public class BucketGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check if user is admin or has admin Grants over the bucket
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         }
         return bucketGrantService.getAllBucketAndObjectGrants(bucketName);
@@ -493,19 +470,16 @@ public class BucketGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check if user is admin or has admin Grants over the bucket
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                       .equals(admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
         }
         AllBucketGrants deletedGrantsForTheBucketAndItsObjects = bucketGrantService.deleteAllBucketAndItsObjectsGrants(bucketName);
         if (sessionIdRequired) {
-            if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
-                !grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
                                    .equals(admin.toString())) {
                 throw new LostOfAdminGrantRightException("By deleting all grants assigned to the bucket: " +
                                                          bucketName + ", you will lose your admin rights over it");

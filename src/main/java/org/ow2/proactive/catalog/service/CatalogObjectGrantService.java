@@ -446,13 +446,13 @@ public class CatalogObjectGrantService {
      */
     public List<CatalogObjectGrantMetadata> getUserNoAccessGrant(AuthenticatedUser user) {
         List<CatalogObjectGrantEntity> userGrants = new LinkedList<>();
-        CatalogObjectGrantEntity userGrant = catalogObjectGrantRepository.findAllNoAccessGrantsAssignedToAUsername(user.getName());
+        CatalogObjectGrantEntity userGrant = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(user.getName());
         if (userGrant != null) {
             userGrants.add(userGrant);
         }
-        List<CatalogObjectGrantEntity> userGroupGrants = catalogObjectGrantRepository.findAllNoAccessGrantsAssignedToAUserGroup(user.getGroups());
+        List<CatalogObjectGrantEntity> userGroupGrants = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUserGroup(user.getGroups());
         if (userGroupGrants != null && !userGroupGrants.isEmpty()) {
-            userGrants.addAll(catalogObjectGrantRepository.findAllNoAccessGrantsAssignedToAUserGroup(user.getGroups()));
+            userGrants.addAll(catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUserGroup(user.getGroups()));
         }
         return userGrants.stream().map(CatalogObjectGrantMetadata::new).collect(Collectors.toList());
     }
