@@ -132,8 +132,9 @@ public class CatalogObjectController {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
             user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                   .equals(admin.toString())) {
+            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
+                                                                                                                                                bucketName),
+                                                                     write.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
 
