@@ -92,8 +92,8 @@ public class BucketGrantServiceTest {
                                                                     mockedBucket);
         when(bucketGrantRepository.save(any(BucketGrantEntity.class))).thenReturn(bucketGrantEntity);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
-        when(bucketGrantRepository.findBucketGrantByUsernameForUpdate(mockedBucket.getId(),
-                                                                      DUMMY_USERNAME)).thenReturn(bucketGrantEntity);
+        when(bucketGrantRepository.findAllBucketGrantByUsername(mockedBucket.getId(),
+                                                                DUMMY_USERNAME)).thenReturn(bucketGrantEntity);
 
         BucketGrantMetadata result = bucketGrantService.updateBucketGrantForASpecificUser(DUMMY_BUCKET,
                                                                                           DUMMY_USERNAME,
@@ -106,7 +106,7 @@ public class BucketGrantServiceTest {
         assertEquals(1L, result.getBucketId());
 
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
-        verify(bucketGrantRepository, times(1)).findBucketGrantByUsernameForUpdate(DUMMY_BUCKET_ID, DUMMY_USERNAME);
+        verify(bucketGrantRepository, times(1)).findAllBucketGrantByUsername(DUMMY_BUCKET_ID, DUMMY_USERNAME);
         verify(bucketGrantRepository, times(1)).save(bucketGrantEntity);
     }
 
@@ -120,8 +120,8 @@ public class BucketGrantServiceTest {
                                                                     mockedBucket);
         when(bucketGrantRepository.save(any(BucketGrantEntity.class))).thenReturn(bucketGrantEntity);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
-        when(bucketGrantRepository.findBucketGrantByUserGroupForUpdate(mockedBucket.getId(),
-                                                                       DUMMY_GROUP)).thenReturn(bucketGrantEntity);
+        when(bucketGrantRepository.findAllBucketGrantByUserGroup(mockedBucket.getId(),
+                                                                 DUMMY_GROUP)).thenReturn(bucketGrantEntity);
 
         BucketGrantMetadata result = bucketGrantService.updateBucketGrantForASpecificUserGroup(DUMMY_BUCKET,
                                                                                                DUMMY_GROUP,
@@ -135,7 +135,7 @@ public class BucketGrantServiceTest {
         assertEquals(1L, result.getBucketId());
 
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
-        verify(bucketGrantRepository, times(1)).findBucketGrantByUserGroupForUpdate(DUMMY_BUCKET_ID, DUMMY_GROUP);
+        verify(bucketGrantRepository, times(1)).findAllBucketGrantByUserGroup(DUMMY_BUCKET_ID, DUMMY_GROUP);
         verify(bucketGrantRepository, times(1)).save(bucketGrantEntity);
     }
 
@@ -168,7 +168,7 @@ public class BucketGrantServiceTest {
         assertEquals(1L, userGrantMetadata.getBucketId());
 
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
-        verify(bucketGrantRepository, times(1)).findBucketGrantByUsername(1L, DUMMY_USERNAME);
+        verify(bucketGrantRepository, times(1)).findAccessibleBucketGrantByUsername(1L, DUMMY_USERNAME);
         verify(bucketGrantRepository, times(1)).save(bucketGrantEntity);
     }
 
@@ -197,7 +197,7 @@ public class BucketGrantServiceTest {
         assertEquals(userGroupGrantMetadata.getBucketId(), 1L);
 
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
-        verify(bucketGrantRepository, times(1)).findBucketGrantByUserGroup(1L, DUMMY_GROUP);
+        verify(bucketGrantRepository, times(1)).findAccessibleBucketGrantByUserGroup(1L, DUMMY_GROUP);
         verify(bucketGrantRepository, times(1)).save(groupBucketGrantEntity);
     }
 
@@ -210,7 +210,8 @@ public class BucketGrantServiceTest {
                                                                         DUMMY_ACCESS_TYPE,
                                                                         mockedBucket);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
-        when(bucketGrantRepository.findBucketGrantByUsername(1L, DUMMY_USERNAME)).thenReturn(userBucketGrantEntity);
+        when(bucketGrantRepository.findAccessibleBucketGrantByUsername(1L,
+                                                                       DUMMY_USERNAME)).thenReturn(userBucketGrantEntity);
         doNothing().when(bucketGrantRepository).delete(any(BucketGrantEntity.class));
 
         BucketGrantMetadata userGrantMetadata = bucketGrantService.deleteBucketGrantForAUser(DUMMY_BUCKET,
@@ -223,7 +224,7 @@ public class BucketGrantServiceTest {
         assertEquals(userGrantMetadata.getBucketId(), 1L);
 
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
-        verify(bucketGrantRepository, times(1)).findBucketGrantByUsername(1L, DUMMY_USERNAME);
+        verify(bucketGrantRepository, times(1)).findAccessibleBucketGrantByUsername(1L, DUMMY_USERNAME);
         verify(bucketGrantRepository, times(1)).delete(userBucketGrantEntity);
     }
 
@@ -236,7 +237,8 @@ public class BucketGrantServiceTest {
                                                                          DUMMY_ACCESS_TYPE,
                                                                          mockedBucket);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
-        when(bucketGrantRepository.findBucketGrantByUserGroup(1L, DUMMY_GROUP)).thenReturn(groupBucketGrantEntity);
+        when(bucketGrantRepository.findAccessibleBucketGrantByUserGroup(1L,
+                                                                        DUMMY_GROUP)).thenReturn(groupBucketGrantEntity);
         doNothing().when(bucketGrantRepository).delete(any(BucketGrantEntity.class));
 
         BucketGrantMetadata groupGrantMetadata = bucketGrantService.deleteBucketGrantForAGroup(DUMMY_BUCKET,
@@ -249,7 +251,7 @@ public class BucketGrantServiceTest {
         assertEquals(groupGrantMetadata.getBucketId(), 1L);
 
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
-        verify(bucketGrantRepository, times(1)).findBucketGrantByUserGroup(1L, DUMMY_GROUP);
+        verify(bucketGrantRepository, times(1)).findAccessibleBucketGrantByUserGroup(1L, DUMMY_GROUP);
         verify(bucketGrantRepository, times(1)).delete(groupBucketGrantEntity);
     }
 

@@ -64,6 +64,10 @@ public class GrantRightsService {
 
     /**
      *
+     * This method calculates the resulting grant for a user for an operation regarding a bucket, taking into consideration the priorities of the grants assigned
+     * to his group.
+     * The grant assigned to the user himself/herself is prioritized over the ones assigned to his/her group(s).
+     *
      * @param user authenticated user
      * @param bucketName name of the bucket where the catalog object is stored.
      * @return the resulting access right for a bucket related operation
@@ -99,6 +103,10 @@ public class GrantRightsService {
     }
 
     /**
+     * This method calculates the resulting grant for a user for an operation regarding an object, taking into consideration the priorities of the grants assigned
+     * to his group.
+     * The grant assigned to the user himself/herself over the object is prioritized first, then the ones over the bucket, then the ones assigned to his/her group(s) over the object
+     * and finally the ones assigned to his/her group(s) over the bucket.
      *
      * @param user authenticated user
      * @param bucketName name of the bucket where the catalog object is stored.
