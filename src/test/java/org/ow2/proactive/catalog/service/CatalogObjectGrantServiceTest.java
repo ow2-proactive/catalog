@@ -187,9 +187,9 @@ public class CatalogObjectGrantServiceTest {
         when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(dummyBucketsName,
                                                                                     DUMMY_OBJECT)).thenReturn(dummyCatalogObjectRevisionEntity);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
-        when(catalogObjectGrantRepository.findCatalogObjectGrantByUsername(anyLong(),
-                                                                           anyString(),
-                                                                           anyLong())).thenReturn(catalogObjectGrantEntity);
+        when(catalogObjectGrantRepository.findCatalogObjectGrantByUsernameForUpdate(anyLong(),
+                                                                                    anyString(),
+                                                                                    anyLong())).thenReturn(catalogObjectGrantEntity);
         when(catalogObjectGrantRepository.save(any(CatalogObjectGrantEntity.class))).thenReturn(catalogObjectGrantEntity);
         CatalogObjectGrantMetadata result = catalogObjectGrantService.updateCatalogObjectGrantForAUser(DUMMY_USERNAME,
                                                                                                        DUMMY_OBJECT,
@@ -205,62 +205,10 @@ public class CatalogObjectGrantServiceTest {
 
         verify(catalogObjectRevisionRepository, times(1)).findDefaultCatalogObjectByNameInBucket(dummyBucketsName,
                                                                                                  DUMMY_OBJECT);
-        verify(catalogObjectGrantRepository, times(1)).findCatalogObjectGrantByUsername(CATALOG_OBJECT_ID,
-                                                                                        DUMMY_USERNAME,
-                                                                                        BUCKET_ID);
+        verify(catalogObjectGrantRepository, times(1)).findCatalogObjectGrantByUsernameForUpdate(CATALOG_OBJECT_ID,
+                                                                                                 DUMMY_USERNAME,
+                                                                                                 BUCKET_ID);
         verify(catalogObjectGrantRepository, times(1)).save(catalogObjectGrantEntity);
-    }
-
-    @Test
-    public void testGetAllAssignedCatalogObjectGrantsForTheCurrentUserAndHisGroup() {
-        List<String> dummyBucketsName = new LinkedList<>();
-        dummyBucketsName.add(DUMMY_BUCKET);
-        BucketEntity mockedBucket = newMockedBucket();
-        CatalogObjectRevisionEntity dummyCatalogObjectRevisionEntity = newCatalogObjectRevisionEntity();
-        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity("user",
-                                                                                         DUMMY_CURRENT_USERNAME,
-                                                                                         DUMMY_USERNAME,
-                                                                                         DUMMY_ACCESS_TYPE,
-                                                                                         dummyCatalogObjectRevisionEntity,
-                                                                                         mockedBucket);
-
-        List<CatalogObjectGrantEntity> dbUserObjectGrants = new LinkedList<>();
-        dbUserObjectGrants.add(catalogObjectGrantEntity);
-
-        when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(dummyBucketsName,
-                                                                                    DUMMY_OBJECT)).thenReturn(dummyCatalogObjectRevisionEntity);
-        when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
-        when(catalogObjectGrantRepository.findAllCatalogObjectGrantsAssignedToAUsername(DUMMY_CURRENT_USERNAME,
-                                                                                        CATALOG_OBJECT_ID,
-                                                                                        BUCKET_ID)).thenReturn(dbUserObjectGrants);
-        String DUMMY_GROUP = "dummyGroup";
-        when(catalogObjectGrantRepository.findAllCatalogObjectGrantsAssignedToAUserGroup(DUMMY_GROUP,
-                                                                                         CATALOG_OBJECT_ID,
-                                                                                         BUCKET_ID)).thenReturn(new LinkedList<>());
-
-        List<CatalogObjectGrantMetadata> results = catalogObjectGrantService.getAllAssignedCatalogObjectGrantsForTheCurrentUserAndHisGroup(DUMMY_CURRENT_USERNAME,
-                                                                                                                                           DUMMY_GROUP,
-                                                                                                                                           DUMMY_OBJECT,
-                                                                                                                                           DUMMY_BUCKET);
-
-        assertEquals(1, results.size());
-        assertEquals("user", results.get(0).getGranteeType());
-        assertEquals(DUMMY_USERNAME, results.get(0).getGrantee());
-        assertEquals(DUMMY_ACCESS_TYPE, results.get(0).getAccessType());
-        assertEquals(DUMMY_CURRENT_USERNAME, results.get(0).getCreator());
-        assertEquals(BUCKET_ID, results.get(0).getCatalogObjectBucketId());
-        assertEquals(CATALOG_OBJECT_ID, results.get(0).getCatalogObjectId());
-
-        verify(catalogObjectRevisionRepository, times(1)).findDefaultCatalogObjectByNameInBucket(dummyBucketsName,
-                                                                                                 DUMMY_OBJECT);
-        verify(catalogObjectGrantRepository, times(1)).findAllCatalogObjectGrantsAssignedToAUsername(
-                                                                                                     DUMMY_CURRENT_USERNAME,
-                                                                                                     CATALOG_OBJECT_ID,
-                                                                                                     BUCKET_ID);
-        verify(catalogObjectGrantRepository, times(1)).findAllCatalogObjectGrantsAssignedToAUserGroup(DUMMY_GROUP,
-                                                                                                      CATALOG_OBJECT_ID,
-                                                                                                      BUCKET_ID);
-        verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
     }
 
     @Test

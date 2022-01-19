@@ -25,9 +25,18 @@
  */
 package org.ow2.proactive.catalog.util;
 
-public enum AccessType {
-    admin,
-    write,
-    read,
-    noAccess
+import java.io.Serializable;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+
+
+@Data
+@AllArgsConstructor
+@Getter
+public class AccessTypeAndPriorityForGroupGrant implements Serializable {
+    private String accessType;
+
+    private int priorityLevel;
 }

@@ -41,11 +41,13 @@ public final class AccessTypeValidator {
                 return admin.toString();
             } else if (accessType.equalsIgnoreCase(write.toString())) {
                 return write.toString();
-            } else {
+            } else if (accessType.equalsIgnoreCase(read.toString())) {
                 return read.toString();
+            } else {
+                return noAccess.toString();
             }
         } else {
-            throw new InvalidAccessTypeException("The type of the provided access grant is invalid. It can be either read, write or admin.");
+            throw new InvalidAccessTypeException("The type of the provided access grant is invalid. It can be either noAccess, read, write or admin.");
         }
     }
 }

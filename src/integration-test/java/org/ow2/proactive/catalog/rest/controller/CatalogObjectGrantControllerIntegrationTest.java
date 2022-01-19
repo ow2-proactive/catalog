@@ -106,7 +106,12 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
         Response createCatalogObjectGrantResponse = given().header("sessionID", "12345")
                                                            .pathParam("bucketName", bucketName)
                                                            .pathParam("catalogObjectName", catalogObjectName)
-                                                           .parameters("accessType", accessType, "username", grantee)
+                                                           .parameters("accessType",
+                                                                       accessType,
+                                                                       "priority",
+                                                                       1,
+                                                                       "username",
+                                                                       grantee)
                                                            .when()
                                                            .post(CATALOG_OBJECT_GRANTS_RESOURCE_USER);
 
@@ -122,7 +127,12 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
         Response createCatalogObjectGrantResponse = given().header("sessionID", "12345")
                                                            .pathParam("bucketName", bucketName)
                                                            .pathParam("catalogObjectName", catalogObjectName)
-                                                           .parameters("accessType", accessType, "userGroup", grantee)
+                                                           .parameters("accessType",
+                                                                       accessType,
+                                                                       "priority",
+                                                                       1,
+                                                                       "userGroup",
+                                                                       grantee)
                                                            .when()
                                                            .post(CATALOG_OBJECTS_GRANTS_RESOURCE_GROUP);
 
@@ -169,7 +179,12 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
         Response createCatalogObjectGrantResponse = given().header("sessionID", "12345")
                                                            .pathParam("bucketName", bucketName)
                                                            .pathParam("catalogObjectName", catalogObjectName)
-                                                           .parameters("accessType", accessType, "userGroup", grantee)
+                                                           .parameters("accessType",
+                                                                       accessType,
+                                                                       "priority",
+                                                                       1,
+                                                                       "userGroup",
+                                                                       grantee)
                                                            .when()
                                                            .post(CATALOG_OBJECTS_GRANTS_RESOURCE_GROUP);
 
@@ -182,7 +197,12 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
         Response updateCatalogObjectGrantResponse = given().header("sessionID", "12345")
                                                            .pathParam("bucketName", bucketName)
                                                            .pathParam("catalogObjectName", catalogObjectName)
-                                                           .parameters("accessType", "admin", "userGroup", grantee)
+                                                           .parameters("accessType",
+                                                                       "admin",
+                                                                       "priority",
+                                                                       1,
+                                                                       "userGroup",
+                                                                       grantee)
                                                            .when()
                                                            .put(CATALOG_OBJECTS_GRANTS_RESOURCE_GROUP);
 

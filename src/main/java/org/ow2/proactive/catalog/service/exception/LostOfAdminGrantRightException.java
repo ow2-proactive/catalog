@@ -23,11 +23,16 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.util;
+package org.ow2.proactive.catalog.service.exception;
 
-public enum AccessType {
-    admin,
-    write,
-    read,
-    noAccess
+import org.ow2.proactive.microservices.common.exception.ClientException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+
+@ResponseStatus(HttpStatus.FORBIDDEN)
+public class LostOfAdminGrantRightException extends ClientException {
+    public LostOfAdminGrantRightException(String message) {
+        super(message);
+    }
 }

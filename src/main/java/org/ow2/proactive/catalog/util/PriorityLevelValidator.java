@@ -25,9 +25,14 @@
  */
 package org.ow2.proactive.catalog.util;
 
-public enum AccessType {
-    admin,
-    write,
-    read,
-    noAccess
+import org.ow2.proactive.catalog.service.exception.GrantPriorityLevelException;
+
+
+public final class PriorityLevelValidator {
+
+    public static void checkAndValidateTheGivenPriorityLevel(int priority) {
+        if (priority < 0 || priority > 10) {
+            throw new GrantPriorityLevelException(priority);
+        }
+    }
 }

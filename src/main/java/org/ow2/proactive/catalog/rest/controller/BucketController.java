@@ -37,10 +37,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.ow2.proactive.catalog.dto.BucketMetadata;
-import org.ow2.proactive.catalog.service.BucketGrantService;
-import org.ow2.proactive.catalog.service.BucketService;
-import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
-import org.ow2.proactive.catalog.service.RestApiAccessService;
+import org.ow2.proactive.catalog.service.*;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
@@ -80,7 +77,13 @@ public class BucketController {
     private RestApiAccessService restApiAccessService;
 
     @Autowired
+    private GrantRightsService grantRightsService;
+
+    @Autowired
     private BucketGrantService bucketGrantService;
+
+    @Autowired
+    private GrantAccessTypeHelperService grantAccessTypeHelperService;
 
     @Autowired
     private CatalogObjectGrantService catalogObjectGrantService;
@@ -129,11 +132,10 @@ public class BucketController {
             }
 
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         }
         try {
@@ -160,13 +162,13 @@ public class BucketController {
             }
 
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, read.toString()) &&
-                    !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user,
-                                                                                                         bucketName)) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
+                                                                                                                                                bucketName),
+                                                                     read.toString()) &&
+                !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user,
+                                                                                                     bucketName)) {
+                throw new BucketGrantAccessException(bucketName);
             }
 
         }
@@ -206,12 +208,17 @@ public class BucketController {
                                                                                      .getGroups());
 
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            listBucket.addAll(bucketGrantService.getBucketsForUserByGrants(user));
+            listBucket.addAll(grantRightsService.getBucketsForUserByGrantsAndPriority(user));
             List<BucketMetadata> res = new LinkedList<>();
             for (BucketMetadata data : listBucket) {
-                String bucketGrantAccessType = bucketGrantService.getHighestGrantAccessTypeFromBucketGrants(user,
-                                                                                                            data.getName(),
-                                                                                                            data.getOwner());
+                String bucketGrantAccessType;
+                if (user.getName().equals(data.getOwner()) || user.getGroups().contains(data.getOwner().substring(6)) ||
+                    data.getOwner().equals("GROUP:public-objects")) {
+                    bucketGrantAccessType = admin.toString();
+                } else {
+                    bucketGrantAccessType = grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
+                                                                                                                       data.getName());
+                }
                 int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(user, data);
                 BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), objectCount);
                 metadata.setRights(bucketGrantAccessType);
@@ -253,11 +260,10 @@ public class BucketController {
             }
 
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-                if (!bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(user, bucketName, admin.toString())) {
-                    throw new BucketGrantAccessException(bucketName);
-                }
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         }
         return bucketService.deleteEmptyBucket(bucketName);

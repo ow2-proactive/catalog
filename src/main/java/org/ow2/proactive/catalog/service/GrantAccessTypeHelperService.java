@@ -67,7 +67,12 @@ public class GrantAccessTypeHelperService {
             priority = 2;
         } else if (accessType1.equals(write.toString()) && accessType2.equals(admin.toString())) {
             priority = 2;
+        } else if (accessType1.equals(noAccess.toString()) &&
+                   (accessType2.equals(admin.toString()) || accessType2.equals(write.toString()) ||
+                    accessType2.equals(read.toString()))) {
+            priority = 2;
         }
+
         return priority;
     }
 }

@@ -53,6 +53,9 @@ public class BucketGrantMetadata extends ResourceSupport {
     private final String accessType;
 
     @JsonProperty
+    private final int priority;
+
+    @JsonProperty
     private final long bucketId;
 
     @JsonProperty
@@ -63,16 +66,18 @@ public class BucketGrantMetadata extends ResourceSupport {
         this.creator = bucketGrantEntity.getCreator();
         this.grantee = bucketGrantEntity.getGrantee();
         this.accessType = bucketGrantEntity.getAccessType();
+        this.priority = bucketGrantEntity.getPriority();
         this.bucketId = bucketGrantEntity.getBucketEntity().getId();
         this.bucketName = bucketGrantEntity.getBucketEntity().getBucketName();
     }
 
-    public BucketGrantMetadata(String granteeType, String creator, String grantee, String accessType, long bucketId,
-            String bucketName) {
+    public BucketGrantMetadata(String granteeType, String creator, String grantee, String accessType, int priority,
+            long bucketId, String bucketName) {
         this.granteeType = granteeType;
         this.creator = creator;
         this.grantee = grantee;
         this.accessType = accessType;
+        this.priority = priority;
         this.bucketId = bucketId;
         this.bucketName = bucketName;
     }

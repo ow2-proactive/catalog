@@ -27,16 +27,13 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static org.mockito.Mockito.*;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.service.BucketGrantService;
-import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
+import org.ow2.proactive.catalog.service.GrantRightsService;
 
 
 public class BucketGrantControllerTest {
@@ -48,7 +45,7 @@ public class BucketGrantControllerTest {
     private BucketGrantService bucketGrantService;
 
     @Mock
-    private CatalogObjectGrantService catalogObjectGrantService;
+    GrantRightsService grantRightsService;
 
     private final String DUMMY_SESSION_ID = "12345";
 
@@ -65,12 +62,13 @@ public class BucketGrantControllerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(bucketGrantService.isTheUserGrantSufficientForTheCurrentTask(any(), any(), any())).thenReturn(true);
-        when(catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(any(),
-                                                                                                                        any(),
-                                                                                                                        any())).thenReturn(true);
-        when(catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(any(),
-                                                                                                 any())).thenReturn(true);
+        when(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(any(),
+                                                                                        anyString())).thenReturn("admin");
+        when(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(any(),
+                                                                                        anyString())).thenReturn("admin");
+        when(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(any(),
+                                                                                               anyString(),
+                                                                                               anyString())).thenReturn("admin");
     }
 
     @Test
@@ -85,10 +83,12 @@ public class BucketGrantControllerTest {
         bucketGrantController.updateBucketGrantForAGroup(DUMMY_SESSION_ID,
                                                          DUMMY_BUCKET_NAME,
                                                          DUMMY_GROUP,
-                                                         DUMMY_ACCESS_TYPE);
+                                                         DUMMY_ACCESS_TYPE,
+                                                         1);
         verify(bucketGrantService, times(1)).updateBucketGrantForASpecificUserGroup(DUMMY_BUCKET_NAME,
                                                                                     DUMMY_GROUP,
-                                                                                    DUMMY_ACCESS_TYPE);
+                                                                                    DUMMY_ACCESS_TYPE,
+                                                                                    1);
     }
 
     @Test
@@ -97,17 +97,19 @@ public class BucketGrantControllerTest {
                                                         DUMMY_BUCKET_NAME,
                                                         DUMMY_ACCESS_TYPE,
                                                         DUMMY_USER);
-        verify(bucketGrantService, times(1)).createBucketGrantForAUSer(DUMMY_BUCKET_NAME,
+        verify(bucketGrantService, times(1)).createBucketGrantForAUser(DUMMY_BUCKET_NAME,
                                                                        DUMMY_CURRENT_USER,
                                                                        DUMMY_ACCESS_TYPE,
                                                                        DUMMY_USER);
         bucketGrantController.createBucketGrantForAGroup(DUMMY_SESSION_ID,
                                                          DUMMY_BUCKET_NAME,
                                                          DUMMY_ACCESS_TYPE,
+                                                         1,
                                                          DUMMY_GROUP);
         verify(bucketGrantService, times(1)).createBucketGrantForAGroup(DUMMY_BUCKET_NAME,
                                                                         DUMMY_CURRENT_USER,
                                                                         DUMMY_ACCESS_TYPE,
+                                                                        1,
                                                                         DUMMY_GROUP);
     }
 

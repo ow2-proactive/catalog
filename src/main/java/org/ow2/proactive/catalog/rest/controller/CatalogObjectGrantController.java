@@ -28,23 +28,22 @@ package org.ow2.proactive.catalog.rest.controller;
 import static org.ow2.proactive.catalog.util.AccessType.admin;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
-import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
+import org.ow2.proactive.catalog.service.GrantRightsService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.exception.CatalogObjectGrantAccessException;
+import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
+import org.ow2.proactive.catalog.service.exception.LostOfAdminGrantRightException;
 import org.ow2.proactive.catalog.service.exception.PublicBucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.ApiOperation;
@@ -68,7 +67,7 @@ public class CatalogObjectGrantController {
     private RestApiAccessService restApiAccessService;
 
     @Autowired
-    private BucketGrantService bucketGrantService;
+    private GrantRightsService grantRightsService;
 
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
@@ -79,11 +78,12 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY + "/user", method = POST)
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
     public CatalogObjectGrantMetadata createCatalogObjectGrantForAUser(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
-            @ApiParam(value = "The type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
             @ApiParam(value = "The name of the user that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
@@ -98,19 +98,32 @@ public class CatalogObjectGrantController {
                                                            " is public. You can not assign a grant to it or to any of its object");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                bucketGrantService.checkIfTheUserHasAdminRightsOverTheObjectOrOverTheBucket(user,
-                                                                                            bucketName,
-                                                                                            catalogObjectName);
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
         }
-        return catalogObjectGrantService.createCatalogObjectGrantForAUser(bucketName,
-                                                                          catalogObjectName,
-                                                                          user.getName(),
-                                                                          accessType,
-                                                                          username);
+        CatalogObjectGrantMetadata createdUserObjectGrant = catalogObjectGrantService.createCatalogObjectGrantForAUser(bucketName,
+                                                                                                                       catalogObjectName,
+                                                                                                                       user.getName(),
+                                                                                                                       accessType,
+                                                                                                                       username);
+        if (sessionIdRequired) {
+            if (user.getName().equals(username)) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By creating this grant for yourself, you will lose your admin rights over the object: " +
+                                                             catalogObjectName + ".");
+                }
+            }
+        }
+        return createdUserObjectGrant;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -119,11 +132,15 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY + "/group", method = POST)
     @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
     public CatalogObjectGrantMetadata createCatalogObjectGrantForAGroup(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
-            @ApiParam(value = "The type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The new priority of the access grant. It can be a value from 1 (lowest) to 10 (highest), with 5 as default.\n" +
+                              "Priorities are used to compute the final access rights of a user belonging to multiple groups. Group grants with the same priority will resolve with the default accessType order (admin > write > read > noAccess).\n" +
+                              "Finally, please note that a user grant has always more priority than a group grant.", required = true, defaultValue = "5") @RequestParam(value = "priority", required = true, defaultValue = "5") int priority,
             @ApiParam(value = "The name of the group of users that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
@@ -138,19 +155,34 @@ public class CatalogObjectGrantController {
                                                            " is public. You can not assign a grant to it or to any of its object");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                bucketGrantService.checkIfTheUserHasAdminRightsOverTheObjectOrOverTheBucket(user,
-                                                                                            bucketName,
-                                                                                            catalogObjectName);
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
         }
-        return catalogObjectGrantService.createCatalogObjectGrantForAGroup(bucketName,
-                                                                           catalogObjectName,
-                                                                           user.getName(),
-                                                                           accessType,
-                                                                           userGroup);
+        CatalogObjectGrantMetadata createdUserGroupObjectGrant = catalogObjectGrantService.createCatalogObjectGrantForAGroup(bucketName,
+                                                                                                                             catalogObjectName,
+                                                                                                                             user.getName(),
+                                                                                                                             accessType,
+                                                                                                                             priority,
+                                                                                                                             userGroup);
+        if (sessionIdRequired) {
+            if (user.getGroups().contains(userGroup)) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By creating this grant for your group: " + userGroup +
+                                                             ", you will lose your admin rights over the object: " +
+                                                             catalogObjectName + ".");
+                }
+            }
+        }
+        return createdUserGroupObjectGrant;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -159,13 +191,14 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY + "/user", method = DELETE)
     @ResponseStatus(HttpStatus.OK)
+    @Transactional
     public CatalogObjectGrantMetadata deleteCatalogObjectGrantForAUser(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
             @ApiParam(value = "The name of the user that is benefiting of the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
-        AuthenticatedUser user = null;
+        AuthenticatedUser user;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
@@ -177,15 +210,30 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+        } else {
+            user = AuthenticatedUser.EMPTY;
+        }
+        CatalogObjectGrantMetadata deletedUserObjectGrant = catalogObjectGrantService.deleteCatalogObjectGrantForAUser(bucketName,
+                                                                                                                       catalogObjectName,
+                                                                                                                       username);
+        if (sessionIdRequired) {
+            if (user.getName().equals(username)) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By deleting this grant assigned to yourself, you will lose your admin rights over the object: " +
+                                                             catalogObjectName + ".");
                 }
             }
         }
-        return catalogObjectGrantService.deleteCatalogObjectGrantForAUser(bucketName, catalogObjectName, username);
+        return deletedUserObjectGrant;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -194,14 +242,16 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY + "/group", method = DELETE)
     @ResponseStatus(HttpStatus.OK)
+    @Transactional
     public CatalogObjectGrantMetadata deleteCatalogObjectGrantForAGroup(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
             @ApiParam(value = "The name of the group of users that are benefiting of the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
+        AuthenticatedUser user;
         if (sessionIdRequired) {
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
@@ -211,15 +261,32 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+        } else {
+            user = AuthenticatedUser.EMPTY;
+        }
+        CatalogObjectGrantMetadata deletedUserGroupObjectGrant = catalogObjectGrantService.deleteCatalogObjectGrantForAGroup(bucketName,
+                                                                                                                             catalogObjectName,
+                                                                                                                             userGroup);
+        if (sessionIdRequired) {
+            if (user.getGroups().contains(userGroup)) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By deleting this grant assigned to your group: " +
+                                                             userGroup +
+                                                             ", you will lose your admin rights over the object: " +
+                                                             catalogObjectName + ".");
                 }
             }
         }
-        return catalogObjectGrantService.deleteCatalogObjectGrantForAGroup(bucketName, catalogObjectName, userGroup);
+        return deletedUserGroupObjectGrant;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -228,15 +295,17 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY + "/user", method = PUT)
     @ResponseStatus(HttpStatus.OK)
-    private CatalogObjectGrantMetadata updateCatalogObjectGrantForAUser(
+    @Transactional
+    public CatalogObjectGrantMetadata updateCatalogObjectGrantForAUser(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
-            @ApiParam(value = "The new type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The new type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
             @ApiParam(value = "The name of the user that is benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
+        AuthenticatedUser user;
         if (sessionIdRequired) {
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
@@ -246,18 +315,31 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+        } else {
+            user = AuthenticatedUser.EMPTY;
+        }
+        CatalogObjectGrantMetadata updatedUserObjectGrant = catalogObjectGrantService.updateCatalogObjectGrantForAUser(username,
+                                                                                                                       catalogObjectName,
+                                                                                                                       bucketName,
+                                                                                                                       accessType);
+        if (sessionIdRequired) {
+            if (user.getName().equals(username)) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By updating this grant assigned to yourself, you will lose your admin rights over the object: " +
+                                                             catalogObjectName + ".");
                 }
             }
         }
-        return catalogObjectGrantService.updateCatalogObjectGrantForAUser(username,
-                                                                          catalogObjectName,
-                                                                          bucketName,
-                                                                          accessType);
+        return updatedUserObjectGrant;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -266,15 +348,20 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY + "/group", method = PUT)
     @ResponseStatus(HttpStatus.OK)
-    private CatalogObjectGrantMetadata updateCatalogObjectGrantForAGroup(
+    @Transactional
+    public CatalogObjectGrantMetadata updateCatalogObjectGrantForAGroup(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog object is stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName,
-            @ApiParam(value = "The new type of the access grant. It can be either read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
-            @ApiParam(value = "The name of the group of users that are benefiting of the access grant.", defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
+            @ApiParam(value = "The new type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @ApiParam(value = "The new priority of the access grant. It can be a value from 1 (lowest) to 10 (highest), with 5 as default.\n" +
+                              "Priorities are used to compute the final access rights of a user belonging to multiple groups. Group grants with the same priority will resolve with the default accessType order (admin > write > read > noAccess).\n" +
+                              "Finally, please note that a user grant has always more priority than a group grant.", required = true) @RequestParam(value = "priority", required = true) int priority,
+            @ApiParam(value = "The name of the group of users that are benefiting of the access grant.", required = true) @RequestParam(value = "userGroup", required = true) String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
+        AuthenticatedUser user;
         if (sessionIdRequired) {
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
@@ -284,18 +371,34 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+        } else {
+            user = AuthenticatedUser.EMPTY;
+        }
+        CatalogObjectGrantMetadata updatedUserGroupObjectGrant = catalogObjectGrantService.updateCatalogObjectGrantForAGroup(userGroup,
+                                                                                                                             catalogObjectName,
+                                                                                                                             bucketName,
+                                                                                                                             accessType,
+                                                                                                                             priority);
+        if (sessionIdRequired) {
+            if (user.getGroups().contains(userGroup)) {
+                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                       bucketName,
+                                                                                                       catalogObjectName)
+                                       .equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By updating this grant assigned to your group: " +
+                                                             userGroup +
+                                                             ", you will lose your admin rights over the object: " +
+                                                             catalogObjectName + ".");
                 }
             }
         }
-        return catalogObjectGrantService.updateCatalogObjectGrantForAGroup(userGroup,
-                                                                           catalogObjectName,
-                                                                           bucketName,
-                                                                           accessType);
+        return updatedUserGroupObjectGrant;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -320,12 +423,11 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
             }
         }
         return catalogObjectGrantService.getAllCreatedCatalogObjectGrantsForThisBucket(bucketName, catalogObjectName);
@@ -337,13 +439,15 @@ public class CatalogObjectGrantController {
                             @ApiResponse(code = 403, message = "Permission denied"), })
     @RequestMapping(value = REQUEST_API_QUERY, method = DELETE)
     @ResponseStatus(HttpStatus.OK)
+    @Transactional
     public List<CatalogObjectGrantMetadata> deleteAllCatalogObjectGrants(
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName)
             throws NotAuthenticatedException, AccessDeniedException {
+        AuthenticatedUser user;
         if (sessionIdRequired) {
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
             if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
@@ -353,12 +457,23 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!restApiAccessService.isBucketAccessibleByUser(sessionIdRequired, sessionId, bucketName)) {
-                if (!catalogObjectGrantService.checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(user,
-                                                                                                                                bucketName,
-                                                                                                                                catalogObjectName)) {
-                    throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
-                }
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+        } else {
+            user = AuthenticatedUser.EMPTY;
+        }
+        if (sessionIdRequired) {
+            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                   bucketName,
+                                                                                                   catalogObjectName)
+                                   .equals(admin.toString())) {
+                throw new LostOfAdminGrantRightException("By deleting all grants assigned to the object: " +
+                                                         catalogObjectName +
+                                                         ", you will lose your admin rights over it.");
             }
         }
         return catalogObjectGrantService.deleteAllCatalogObjectGrantsAssignedToABucket(bucketName, catalogObjectName);

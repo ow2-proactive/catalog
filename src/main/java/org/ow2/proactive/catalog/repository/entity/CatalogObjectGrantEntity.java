@@ -70,6 +70,10 @@ public class CatalogObjectGrantEntity implements Serializable {
     @Column(name = "ACCESS_TYPE", nullable = false)
     protected String accessType;
 
+    // Grant priority level used for group grants only
+    @Column(name = "PRIORITY")
+    protected int priority;
+
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = CatalogObjectRevisionEntity.class)
     @JoinColumn(name = "CATALOG_OBJECT_REVISION", nullable = false)
     protected CatalogObjectRevisionEntity catalogObjectRevisionEntity;
@@ -82,12 +86,25 @@ public class CatalogObjectGrantEntity implements Serializable {
     public CatalogObjectGrantEntity() {
     }
 
+    // Constructor used to create user grant
     public CatalogObjectGrantEntity(String granteeType, String creator, String grantee, String accessType,
             CatalogObjectRevisionEntity catalogObjectRevisionEntity, BucketEntity bucketEntity) {
         this.granteeType = granteeType;
         this.creator = creator;
         this.grantee = grantee;
         this.accessType = accessType;
+        this.catalogObjectRevisionEntity = catalogObjectRevisionEntity;
+        this.bucketEntity = bucketEntity;
+    }
+
+    // Constructor used to create group grant
+    public CatalogObjectGrantEntity(String granteeType, String creator, String grantee, String accessType, int priority,
+            CatalogObjectRevisionEntity catalogObjectRevisionEntity, BucketEntity bucketEntity) {
+        this.granteeType = granteeType;
+        this.creator = creator;
+        this.grantee = grantee;
+        this.accessType = accessType;
+        this.priority = priority;
         this.catalogObjectRevisionEntity = catalogObjectRevisionEntity;
         this.bucketEntity = bucketEntity;
     }
