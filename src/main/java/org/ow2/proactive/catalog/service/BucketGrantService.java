@@ -39,6 +39,7 @@ import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAlreadyExistsException;
+import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AccessTypeValidator;
 import org.ow2.proactive.catalog.util.AllBucketGrants;
@@ -321,7 +322,12 @@ public class BucketGrantService {
      * @return the id of a bucket
      */
     public long getBucketIdByName(String bucketName) {
-        return bucketRepository.findOneByBucketName(bucketName).getId();
+        BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
+        if (bucket != null) {
+            return bucket.getId();
+        } else {
+            throw new BucketNotFoundException(bucketName);
+        }
     }
 
     /**

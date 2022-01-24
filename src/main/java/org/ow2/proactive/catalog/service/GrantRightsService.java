@@ -36,6 +36,9 @@ import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
+import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
+import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AccessTypeAndPriorityForGroupGrant;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +76,12 @@ public class GrantRightsService {
      * @return the resulting access right for a bucket related operation
      */
     public String getResultingAccessTypeFromUserGrantsForBucketOperations(AuthenticatedUser user, String bucketName) {
+        BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
+        if (bucket == null) {
+            throw new BucketNotFoundException(bucketName);
+        }
         List<BucketGrantMetadata> allUserBucketGrants = bucketGrantService.getAllBucketGrantsAssignedForTheUserOnABucket(user,
                                                                                                                          bucketName);
-        BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
         if (user.getGroups().contains(bucket.getOwner().substring(6)) ||
             bucket.getOwner().substring(6).equals("public-objects")) {
             BucketGrantMetadata defaultBucketGrantMetadata = new BucketGrantMetadata("group",
@@ -115,6 +121,11 @@ public class GrantRightsService {
      */
     public String getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(AuthenticatedUser user,
             String bucketName, String catalogObjectName) {
+        CatalogObjectRevisionEntity catalogObjectEntity = catalogObjectGrantService.getCatalogObject(bucketName,
+                                                                                                     catalogObjectName);
+        if (catalogObjectEntity == null) {
+            throw new CatalogObjectNotFoundException(bucketName, catalogObjectName);
+        }
         List<CatalogObjectGrantMetadata> allUserCatalogObjectGrants = catalogObjectGrantService.getAllObjectGrantsAssignedToAnObjectInsideABucketForAUser(user,
                                                                                                                                                           bucketName,
                                                                                                                                                           catalogObjectName);
