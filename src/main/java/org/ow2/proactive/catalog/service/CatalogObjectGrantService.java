@@ -418,7 +418,7 @@ public class CatalogObjectGrantService {
     public List<CatalogObjectGrantMetadata> deleteAllCatalogObjectGrantsAssignedToABucket(String bucketName,
             String catalogObjectName) {
         long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
-        long catalogObjectId = getCatalogObjectId(bucketName, catalogObjectName);
+        long catalogObjectId = getCatalogObject(bucketName, catalogObjectName).getId();
         List<CatalogObjectGrantEntity> result = catalogObjectGrantRepository.deleteAllByBucketEntityIdAndCatalogObjectRevisionEntityId(bucketId,
                                                                                                                                        catalogObjectId);
         return result.stream().map(CatalogObjectGrantMetadata::new).collect(Collectors.toList());
@@ -430,13 +430,17 @@ public class CatalogObjectGrantService {
      * @param catalogObjectName object name
      * @return the id of an object
      */
-    private long getCatalogObjectId(String bucketName, String catalogObjectName) {
+    public CatalogObjectRevisionEntity getCatalogObject(String bucketName, String catalogObjectName) {
         // Find the catalog object id
         List<String> bucketsName = new LinkedList<>();
         bucketsName.add(bucketName);
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(bucketsName,
                                                                                                                                          catalogObjectName);
-        return catalogObjectRevisionEntity.getId();
+        if (catalogObjectRevisionEntity != null) {
+            return catalogObjectRevisionEntity;
+        } else {
+            throw new CatalogObjectNotFoundException(bucketName, catalogObjectName);
+        }
     }
 
     /**
