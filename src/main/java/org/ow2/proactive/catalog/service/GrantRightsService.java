@@ -296,8 +296,11 @@ public class GrantRightsService {
      */
     public List<BucketMetadata> getBucketsForUserByGrantsAndPriority(AuthenticatedUser user) {
         List<BucketGrantMetadata> bucketGrants = bucketGrantService.getAllBucketGrantsAssignedToAUser(user);
-        List<CatalogObjectGrantMetadata> catalogGrants = catalogObjectGrantService.getAllGrantsAssignedToAUser(user);
-
+        List<CatalogObjectGrantMetadata> catalogObjectGrants = catalogObjectGrantService.getAllGrantsAssignedToAUser(user);
+        Optional<BucketGrantMetadata> optUserBucketGrant = bucketGrants.stream()
+                                                                       .filter(grant -> grant.getGranteeType()
+                                                                                             .equals("user"))
+                                                                       .findFirst();
         List<BucketGrantMetadata> noAccessGrantBuckets = bucketGrantService.getAllNoAccessGrants();
         for (BucketGrantMetadata nonAccessibleBucketGrants : noAccessGrantBuckets) {
             if (nonAccessibleBucketGrants.getGranteeType().equals("user") &&
@@ -306,7 +309,9 @@ public class GrantRightsService {
             } else if (nonAccessibleBucketGrants.getGranteeType().equals("group") &&
                        user.getGroups().contains(nonAccessibleBucketGrants.getGrantee())) {
                 bucketGrants.removeIf(grant -> grant.getPriority() < nonAccessibleBucketGrants.getPriority() &&
-                                               grant.getBucketName().equals(nonAccessibleBucketGrants.getBucketName()));
+                                               grant.getBucketName()
+                                                    .equals(nonAccessibleBucketGrants.getBucketName()) &&
+                                               !optUserBucketGrant.isPresent());
             }
         }
 
@@ -314,9 +319,9 @@ public class GrantRightsService {
                                               .map(BucketGrantMetadata::getBucketName)
                                               .collect(Collectors.toSet());
 
-        bucketNames.addAll(catalogGrants.stream()
-                                        .map(CatalogObjectGrantMetadata::getBucketName)
-                                        .collect(Collectors.toSet()));
+        bucketNames.addAll(catalogObjectGrants.stream()
+                                              .map(CatalogObjectGrantMetadata::getBucketName)
+                                              .collect(Collectors.toSet()));
         List<BucketMetadata> bucketMetadataList = new LinkedList<>();
         for (String bucketName : bucketNames) {
             long bucketId = bucketGrantService.getBucketIdByName(bucketName);
