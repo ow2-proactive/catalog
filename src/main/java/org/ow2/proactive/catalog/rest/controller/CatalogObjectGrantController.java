@@ -34,10 +34,7 @@ import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
 import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
 import org.ow2.proactive.catalog.service.GrantRightsService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
-import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
-import org.ow2.proactive.catalog.service.exception.LostOfAdminGrantRightException;
-import org.ow2.proactive.catalog.service.exception.PublicBucketGrantAccessException;
+import org.ow2.proactive.catalog.service.exception.*;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +99,7 @@ public class CatalogObjectGrantController {
                                                                                                    bucketName,
                                                                                                    catalogObjectName)
                                    .equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -159,7 +156,7 @@ public class CatalogObjectGrantController {
                                                                                                    bucketName,
                                                                                                    catalogObjectName)
                                    .equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -214,7 +211,7 @@ public class CatalogObjectGrantController {
                                                                                                    bucketName,
                                                                                                    catalogObjectName)
                                    .equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -265,7 +262,7 @@ public class CatalogObjectGrantController {
                                                                                                    bucketName,
                                                                                                    catalogObjectName)
                                    .equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -319,7 +316,7 @@ public class CatalogObjectGrantController {
                                                                                                    bucketName,
                                                                                                    catalogObjectName)
                                    .equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -375,7 +372,7 @@ public class CatalogObjectGrantController {
                                                                                                    bucketName,
                                                                                                    catalogObjectName)
                                    .equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -427,7 +424,7 @@ public class CatalogObjectGrantController {
                                                                                                    bucketName,
                                                                                                    catalogObjectName)
                                    .equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
         }
         return catalogObjectGrantService.getAllCreatedCatalogObjectGrantsForThisBucket(bucketName, catalogObjectName);

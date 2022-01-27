@@ -43,6 +43,7 @@ import org.ow2.proactive.catalog.dto.*;
 import org.ow2.proactive.catalog.service.*;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
+import org.ow2.proactive.catalog.service.exception.CatalogObjectGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.LinkUtil;
@@ -232,7 +233,7 @@ public class CatalogObjectController {
                                                                                                                                                        bucketName,
                                                                                                                                                        name),
                                                                      write.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+                throw new CatalogObjectGrantAccessException(bucketName, name);
             }
 
         }
@@ -263,7 +264,7 @@ public class CatalogObjectController {
                                                                                                                                                        bucketName,
                                                                                                                                                        name),
                                                                      read.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+                throw new CatalogObjectGrantAccessException(bucketName, name);
             }
 
         }
@@ -298,7 +299,7 @@ public class CatalogObjectController {
                                                                                                                                                        bucketName,
                                                                                                                                                        name),
                                                                      read.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+                throw new CatalogObjectGrantAccessException(bucketName, name);
             }
 
         }
@@ -332,7 +333,7 @@ public class CatalogObjectController {
                                                                                                                                                        bucketName,
                                                                                                                                                        name),
                                                                      read.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+                throw new CatalogObjectGrantAccessException(bucketName, name);
             }
         }
 
@@ -480,7 +481,7 @@ public class CatalogObjectController {
                                                                                                                                                        bucketName,
                                                                                                                                                        name),
                                                                      write.toString())) {
-                throw new BucketGrantAccessException(bucketName);
+                throw new CatalogObjectGrantAccessException(bucketName, name);
             }
 
         }

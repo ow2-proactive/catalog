@@ -34,6 +34,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class BucketGrantAccessException extends ClientException {
 
     public BucketGrantAccessException(String bucketName) {
-        super("You do not have admin rights over the bucket: " + bucketName);
+        super("You do not have enough permissions over the bucket: " + bucketName);
     }
 }
