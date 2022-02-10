@@ -85,9 +85,9 @@ public class CatalogObjectGrantService {
         BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
         throwExceptionIfCatalogObjectIsNull(catalogObjectRevisionEntity, bucketName, catalogObjectName);
         // Check if a similar grant exists
-        CatalogObjectGrantEntity dbCatalogObjectGrantEntityForUser = catalogObjectGrantRepository.findCatalogObjectGrantByUsername(catalogObjectRevisionEntity.getId(),
-                                                                                                                                   username,
-                                                                                                                                   bucket.getId());
+        CatalogObjectGrantEntity dbCatalogObjectGrantEntityForUser = catalogObjectGrantRepository.findCatalogObjectGrantByUsernameForUpdate(catalogObjectRevisionEntity.getId(),
+                                                                                                                                            username,
+                                                                                                                                            bucket.getId());
         if (dbCatalogObjectGrantEntityForUser != null &&
             (dbCatalogObjectGrantEntityForUser.getGrantee().equals(username) &&
              dbCatalogObjectGrantEntityForUser.getCatalogObjectRevisionEntity()
@@ -135,9 +135,9 @@ public class CatalogObjectGrantService {
         BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
         throwExceptionIfCatalogObjectIsNull(catalogObjectRevisionEntity, bucketName, catalogObjectName);
         // Check if a similar grant exists
-        CatalogObjectGrantEntity dbCatalogObjectGrantEntityForUserGroup = catalogObjectGrantRepository.findCatalogObjectGrantByUserGroup(catalogObjectRevisionEntity.getId(),
-                                                                                                                                         userGroup,
-                                                                                                                                         bucket.getId());
+        CatalogObjectGrantEntity dbCatalogObjectGrantEntityForUserGroup = catalogObjectGrantRepository.findCatalogObjectGrantByUserGroupForUpdate(catalogObjectRevisionEntity.getId(),
+                                                                                                                                                  userGroup,
+                                                                                                                                                  bucket.getId());
         if (dbCatalogObjectGrantEntityForUserGroup != null &&
             dbCatalogObjectGrantEntityForUserGroup.getGrantee().equals(userGroup) &&
             dbCatalogObjectGrantEntityForUserGroup.getCatalogObjectRevisionEntity()
@@ -179,9 +179,9 @@ public class CatalogObjectGrantService {
         throwExceptionIfCatalogObjectIsNull(catalogObjectRevisionEntity, bucketName, catalogObjectName);
         BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
         assert bucket != null;
-        CatalogObjectGrantEntity catalogObjectGrantEntity = catalogObjectGrantRepository.findCatalogObjectGrantByUsername(catalogObjectRevisionEntity.getId(),
-                                                                                                                          username,
-                                                                                                                          bucket.getId());
+        CatalogObjectGrantEntity catalogObjectGrantEntity = catalogObjectGrantRepository.findCatalogObjectGrantByUsernameForUpdate(catalogObjectRevisionEntity.getId(),
+                                                                                                                                   username,
+                                                                                                                                   bucket.getId());
         if (catalogObjectGrantEntity != null) {
             catalogObjectGrantRepository.delete(catalogObjectGrantEntity);
         } else {
@@ -207,9 +207,9 @@ public class CatalogObjectGrantService {
         throwExceptionIfCatalogObjectIsNull(catalogObjectRevisionEntity, bucketName, catalogObjectName);
         BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
         assert bucket != null;
-        CatalogObjectGrantEntity catalogObjectGrantEntity = catalogObjectGrantRepository.findCatalogObjectGrantByUserGroup(catalogObjectRevisionEntity.getId(),
-                                                                                                                           userGroup,
-                                                                                                                           bucket.getId());
+        CatalogObjectGrantEntity catalogObjectGrantEntity = catalogObjectGrantRepository.findCatalogObjectGrantByUserGroupForUpdate(catalogObjectRevisionEntity.getId(),
+                                                                                                                                    userGroup,
+                                                                                                                                    bucket.getId());
         if (catalogObjectGrantEntity != null) {
             catalogObjectGrantRepository.delete(catalogObjectGrantEntity);
         } else {

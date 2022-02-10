@@ -41,17 +41,11 @@ public interface BucketGrantRepository extends JpaRepository<BucketGrantEntity, 
 
     List<BucketGrantEntity> deleteAllByBucketEntityId(long bucketId);
 
-    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.grantee = ?2 AND bge.granteeType='user' AND bge.accessType<>'noAccess'")
-    BucketGrantEntity findAccessibleBucketGrantByUsername(long bucketId, String username);
-
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.grantee = ?2 AND bge.granteeType='user'")
-    BucketGrantEntity findAllBucketGrantByUsername(long bucketId, String username);
-
-    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.grantee = ?2 AND bge.granteeType='group' AND bge.accessType<>'noAccess'")
-    BucketGrantEntity findAccessibleBucketGrantByUserGroup(long bucketId, String userGroup);
+    BucketGrantEntity findBucketGrantByUsername(long bucketId, String username);
 
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.grantee = ?2 AND bge.granteeType='group'")
-    BucketGrantEntity findAllBucketGrantByUserGroup(long bucketId, String userGroup);
+    BucketGrantEntity findBucketGrantByUserGroup(long bucketId, String userGroup);
 
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee = ?1 And bge.granteeType='user' AND bge.accessType<>'noAccess'")
     List<BucketGrantEntity> findAllAccessibleBucketGrantsAssignedToAUsername(String username);

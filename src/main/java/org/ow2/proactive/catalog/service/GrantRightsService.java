@@ -277,20 +277,6 @@ public class GrantRightsService {
 
     /**
      *
-     * @param grants list of catalog object grants
-     * @return a hashmap that map each object ot its highest grant right
-     */
-    public Map<String, String> getHighestRightsPerObjectFromGrants(List<CatalogObjectGrantMetadata> grants) {
-        Map<String, String> accessGrantPerObject = new HashMap<>();
-        List<CatalogObjectGrantMetadata> highestGrantsPerObject = this.getListOfObjectGrantsWithHighestPriority(grants);
-        for (CatalogObjectGrantMetadata grant : highestGrantsPerObject) {
-            accessGrantPerObject.put(grant.getCatalogObjectName(), grant.getAccessType());
-        }
-        return accessGrantPerObject;
-    }
-
-    /**
-     *
      * @param user authenticated user
      * @return the list of buckets that are accessible for the user via his grants
      */
@@ -374,33 +360,6 @@ public class GrantRightsService {
 
     /**
      *
-     * @param userObjectGrants list of catalog object grants assigned to a user
-     * @return list of the highest catalog object grants assigned to a user
-     */
-    private List<CatalogObjectGrantMetadata>
-            getListOfObjectGrantsWithHighestPriority(List<CatalogObjectGrantMetadata> userObjectGrants) {
-        Set<String> objectNames = userObjectGrants.stream()
-                                                  .map(CatalogObjectGrantMetadata::getCatalogObjectName)
-                                                  .collect(Collectors.toSet());
-        List<CatalogObjectGrantMetadata> result = new LinkedList<>();
-        for (String objectName : objectNames) {
-            List<CatalogObjectGrantMetadata> objectGrants = userObjectGrants.stream()
-                                                                            .filter(grant -> grant.getCatalogObjectName()
-                                                                                                  .equals(objectName))
-                                                                            .collect(Collectors.toList());
-            Optional<CatalogObjectGrantMetadata> optUserGrant = this.checkAndReturnUserObjectGrant(objectGrants);
-            if (optUserGrant.isPresent()) {
-                result.add(optUserGrant.get());
-            } else {
-                Optional<CatalogObjectGrantMetadata> optGroupGrant = this.checkAndReturnObjectGrantWithHighestPriorityInGroupGrants(objectGrants);
-                optGroupGrant.ifPresent(result::add);
-            }
-        }
-        return result;
-    }
-
-    /**
-     *
      * @param bucketGrants list of bucket grants assigned to a user
      * @return the user grant if it exists
      */
@@ -459,16 +418,6 @@ public class GrantRightsService {
             }
         }
         return bucketGrants.get(highestAccessTypeIndex);
-    }
-
-    /**
-     *
-     * @param catalogObjectGrants list of catalog object grants
-     * @return the user catalog object grants if it exists
-     */
-    private Optional<CatalogObjectGrantMetadata>
-            checkAndReturnUserObjectGrant(List<CatalogObjectGrantMetadata> catalogObjectGrants) {
-        return catalogObjectGrants.stream().filter(grant -> grant.getGranteeType().equals("user")).findFirst();
     }
 
     /**

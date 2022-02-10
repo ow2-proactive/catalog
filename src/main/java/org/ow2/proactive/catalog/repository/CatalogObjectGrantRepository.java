@@ -47,15 +47,9 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
     List<CatalogObjectGrantEntity> findAllGrantsAssignedToAnObjectInsideABucket(String bucketName,
             String catalogObjectName);
 
-    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObjectRevisionEntity.id = ?1 AND coge.grantee = ?2 AND coge.bucketEntity.id=?3 AND coge.granteeType='user' AND coge.accessType<>'noAccess'")
-    CatalogObjectGrantEntity findCatalogObjectGrantByUsername(long catalogObjectId, String username, long bucketId);
-
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObjectRevisionEntity.id = ?1 AND coge.grantee = ?2 AND coge.bucketEntity.id=?3 AND coge.granteeType='user'")
     CatalogObjectGrantEntity findCatalogObjectGrantByUsernameForUpdate(long catalogObjectId, String username,
             long bucketId);
-
-    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObjectRevisionEntity.id = ?1 AND coge.grantee = ?2 AND coge.bucketEntity.id=?3 AND coge.granteeType='group' AND coge.accessType<>'noAccess'")
-    CatalogObjectGrantEntity findCatalogObjectGrantByUserGroup(long catalogObjectId, String userGroup, long bucketId);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObjectRevisionEntity.id = ?1 AND coge.grantee = ?2 AND coge.bucketEntity.id=?3 AND coge.granteeType='group'")
     CatalogObjectGrantEntity findCatalogObjectGrantByUserGroupForUpdate(long catalogObjectId, String userGroup,

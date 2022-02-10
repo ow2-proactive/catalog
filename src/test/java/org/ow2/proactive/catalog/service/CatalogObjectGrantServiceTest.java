@@ -105,9 +105,9 @@ public class CatalogObjectGrantServiceTest {
         when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(dummyBucketsName,
                                                                                     DUMMY_OBJECT)).thenReturn(dummyCatalogObjectRevisionEntity);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
-        when(catalogObjectGrantRepository.findCatalogObjectGrantByUsername(anyLong(),
-                                                                           anyString(),
-                                                                           anyLong())).thenReturn(dbCatalogObjectGrantEntity);
+        when(catalogObjectGrantRepository.findCatalogObjectGrantByUsernameForUpdate(anyLong(),
+                                                                                    anyString(),
+                                                                                    anyLong())).thenReturn(dbCatalogObjectGrantEntity);
         when(catalogObjectGrantRepository.save(any(CatalogObjectGrantEntity.class))).thenReturn(catalogObjectGrantEntity);
 
         CatalogObjectGrantMetadata result = catalogObjectGrantService.createCatalogObjectGrantForAUser(DUMMY_BUCKET,
@@ -125,9 +125,9 @@ public class CatalogObjectGrantServiceTest {
 
         verify(catalogObjectRevisionRepository, times(1)).findDefaultCatalogObjectByNameInBucket(dummyBucketsName,
                                                                                                  DUMMY_OBJECT);
-        verify(catalogObjectGrantRepository, times(1)).findCatalogObjectGrantByUsername(CATALOG_OBJECT_ID,
-                                                                                        DUMMY_USERNAME,
-                                                                                        BUCKET_ID);
+        verify(catalogObjectGrantRepository, times(1)).findCatalogObjectGrantByUsernameForUpdate(CATALOG_OBJECT_ID,
+                                                                                                 DUMMY_USERNAME,
+                                                                                                 BUCKET_ID);
         verify(catalogObjectGrantRepository, times(1)).save(catalogObjectGrantEntity);
     }
 
@@ -147,9 +147,9 @@ public class CatalogObjectGrantServiceTest {
         when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(dummyBucketsName,
                                                                                     DUMMY_OBJECT)).thenReturn(dummyCatalogObjectRevisionEntity);
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
-        when(catalogObjectGrantRepository.findCatalogObjectGrantByUsername(anyLong(),
-                                                                           anyString(),
-                                                                           anyLong())).thenReturn(catalogObjectGrantEntity);
+        when(catalogObjectGrantRepository.findCatalogObjectGrantByUsernameForUpdate(anyLong(),
+                                                                                    anyString(),
+                                                                                    anyLong())).thenReturn(catalogObjectGrantEntity);
         doNothing().when(catalogObjectGrantRepository).delete(any(CatalogObjectGrantEntity.class));
 
         CatalogObjectGrantMetadata result = catalogObjectGrantService.deleteCatalogObjectGrantForAUser(DUMMY_BUCKET,
@@ -165,9 +165,9 @@ public class CatalogObjectGrantServiceTest {
 
         verify(catalogObjectRevisionRepository, times(1)).findDefaultCatalogObjectByNameInBucket(dummyBucketsName,
                                                                                                  DUMMY_OBJECT);
-        verify(catalogObjectGrantRepository, times(1)).findCatalogObjectGrantByUsername(CATALOG_OBJECT_ID,
-                                                                                        DUMMY_USERNAME,
-                                                                                        BUCKET_ID);
+        verify(catalogObjectGrantRepository, times(1)).findCatalogObjectGrantByUsernameForUpdate(CATALOG_OBJECT_ID,
+                                                                                                 DUMMY_USERNAME,
+                                                                                                 BUCKET_ID);
         verify(catalogObjectGrantRepository, times(1)).delete(catalogObjectGrantEntity);
     }
 
