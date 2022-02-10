@@ -251,14 +251,14 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name) throws MalformedURLException,
             UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
-
+        AuthenticatedUser user;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
 
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check Grants
             if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
                                                                                                                                                        bucketName,
@@ -267,9 +267,16 @@ public class CatalogObjectController {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
 
+        } else {
+            user = AuthenticatedUser.EMPTY;
         }
 
         CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketName, name);
+        if (sessionIdRequired) {
+            metadata.setRights(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                 bucketName,
+                                                                                                                 name));
+        }
         metadata.add(LinkUtil.createLink(bucketName, metadata.getName()));
         metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName()));
         return metadata;
@@ -422,7 +429,6 @@ public class CatalogObjectController {
                 bucketGrantsMetadata.removeIf(grant -> !grant.getBucketName().equals(bucketName));
                 doesTheUserHasAccessToTheBucketViaBucketGrant = !bucketGrantsMetadata.isEmpty();
             }
-            Map<String, String> rightsPerObject = null;
             /*
              * This case indicates that the user has gained access to the bucket content
              * via the object grant only, therefore all inaccessible objects will be removed
@@ -432,9 +438,6 @@ public class CatalogObjectController {
                 bucketGrantService.removeAllUserInaccessibleObjectsFromTheBucket(user,
                                                                                  metadataList,
                                                                                  catalogObjectGrants);
-            } else if (!catalogObjectGrants.isEmpty()) {
-                // This function returns a map containing the grant access type for each object accessible for the user
-                rightsPerObject = grantRightsService.getHighestRightsPerObjectFromGrants(catalogObjectGrants);
             }
             // This function remove all objects that the user has a noAccess grant over them
             if (sessionIdRequired) {
@@ -443,13 +446,9 @@ public class CatalogObjectController {
 
             for (CatalogObjectMetadata catalogObject : metadataList) {
                 if (sessionIdRequired) {
-                    if (rightsPerObject != null && rightsPerObject.containsKey(catalogObject.getName())) {
-                        catalogObject.setRights(rightsPerObject.get(catalogObject.getName()));
-                    } else {
-                        // This indicates the access right is the same as the bucket
-                        catalogObject.setRights(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
-                                                                                                                           bucketName));
-                    }
+                    catalogObject.setRights(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                              bucketName,
+                                                                                                                              catalogObject.getName()));
                 }
                 catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
                 catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));

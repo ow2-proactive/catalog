@@ -154,7 +154,7 @@ public class BucketController {
     public BucketMetadata getMetadata(
             @SuppressWarnings("DefaultAnnotationParam") @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
-
+        AuthenticatedUser user;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -162,7 +162,7 @@ public class BucketController {
             }
 
             // Check Grants
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
                                                                                                                                                 bucketName),
                                                                      read.toString()) &&
@@ -171,8 +171,22 @@ public class BucketController {
                 throw new BucketGrantAccessException(bucketName);
             }
 
+        } else {
+            user = AuthenticatedUser.EMPTY;
         }
-        return bucketService.getBucketMetadata(bucketName);
+        BucketMetadata data = bucketService.getBucketMetadata(bucketName);
+        if (sessionIdRequired) {
+            String bucketGrantAccessType;
+            if (user.getName().equals(data.getOwner()) || user.getGroups().contains(data.getOwner().substring(6)) ||
+                data.getOwner().equals("GROUP:public-objects")) {
+                bucketGrantAccessType = admin.toString();
+            } else {
+                bucketGrantAccessType = grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
+                                                                                                                   data.getName());
+            }
+            data.setRights(bucketGrantAccessType);
+        }
+        return data;
     }
 
     @ApiOperation(value = "Lists the buckets")
