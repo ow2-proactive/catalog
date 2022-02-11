@@ -34,11 +34,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class GrantNotFoundException extends ClientException {
 
     public GrantNotFoundException(String grantee, String bucketName) {
-        super("There is no grant assigned for: " + grantee + " to the bucket: " + bucketName);
+        super("No grant are assigned for: " + grantee + " to the bucket: " + bucketName);
     }
 
     public GrantNotFoundException(String grantee, String bucketName, String objectName) {
-        super("There is no grant assigned for: " + grantee + " to the object: " + objectName + " in bucket: " +
+        super("No grant are assigned for: " + grantee + " to the object: " + objectName + " in bucket: " +
               bucketName);
     }
 }
