@@ -40,6 +40,7 @@ import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAlreadyExistsException;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
+import org.ow2.proactive.catalog.service.exception.GrantNotFoundException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AccessTypeValidator;
 import org.ow2.proactive.catalog.util.AllBucketGrants;
@@ -117,6 +118,8 @@ public class BucketGrantService {
                 // Save the grant
                 bucketGrantEntity = bucketGrantRepository.save(bucketGrantEntity);
                 return new BucketGrantMetadata(bucketGrantEntity);
+            } else {
+                throw new GrantNotFoundException(username, bucketName);
             }
         }
         return null;
@@ -148,7 +151,7 @@ public class BucketGrantService {
                 bucketGrantEntity.setAccessType(accessType);
                 bucketGrantEntity.setPriority(priority);
             } else {
-                throw new DataIntegrityViolationException("Bucket grant was not found in the DB");
+                throw new GrantNotFoundException(userGroup, bucketName);
             }
             // Save the modifications
             bucketGrantEntity = bucketGrantRepository.save(bucketGrantEntity);

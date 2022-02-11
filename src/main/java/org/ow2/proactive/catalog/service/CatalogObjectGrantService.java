@@ -35,6 +35,7 @@ import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.*;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectGrantAlreadyExistsException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
+import org.ow2.proactive.catalog.service.exception.GrantNotFoundException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AccessTypeValidator;
 import org.ow2.proactive.catalog.util.PriorityLevelValidator;
@@ -243,7 +244,7 @@ public class CatalogObjectGrantService {
         if (catalogObjectGrantEntity != null) {
             catalogObjectGrantEntity.setAccessType(accessType);
         } else {
-            throw new DataIntegrityViolationException("Catalog object grant was not found in the DB");
+            throw new GrantNotFoundException(username, bucketName, catalogObjectName);
         }
         catalogObjectGrantEntity = catalogObjectGrantRepository.save(catalogObjectGrantEntity);
         return new CatalogObjectGrantMetadata(catalogObjectGrantEntity);
@@ -275,7 +276,7 @@ public class CatalogObjectGrantService {
             catalogObjectGrantEntity.setAccessType(accessType);
             catalogObjectGrantEntity.setPriority(priority);
         } else {
-            throw new DataIntegrityViolationException("Catalog object grant was not found in the DB");
+            throw new GrantNotFoundException(userGroup, bucketName, catalogObjectName);
         }
         catalogObjectGrantEntity = catalogObjectGrantRepository.save(catalogObjectGrantEntity);
         return new CatalogObjectGrantMetadata(catalogObjectGrantEntity);
