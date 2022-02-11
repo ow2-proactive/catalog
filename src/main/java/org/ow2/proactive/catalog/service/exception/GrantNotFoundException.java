@@ -38,7 +38,6 @@ public class GrantNotFoundException extends ClientException {
     }
 
     public GrantNotFoundException(String grantee, String bucketName, String objectName) {
-        super("No grant are assigned for: " + grantee + " to the object: " + objectName + " in bucket: " +
-              bucketName);
+        super("No grant are assigned for: " + grantee + " to the object: " + objectName + " in bucket: " + bucketName);
     }
 }
