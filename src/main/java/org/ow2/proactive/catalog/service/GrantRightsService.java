@@ -496,13 +496,21 @@ public class GrantRightsService {
             }
             metadataList.removeAll(objectsToRemove);
         } else {
-            List<BucketGrantMetadata> userBucketNoAccessGrants = bucketGrantService.getAllNoAccessGrants().stream()
-                    .filter(grant -> (grant.getGrantee().equals(user.getName()) && grant.getGranteeType().equals("user")) || (user.getGroups().contains(grant.getGrantee()) && grant.getGranteeType().equals("group")))
-                    .collect(Collectors.toList());
-            if(!userBucketNoAccessGrants.isEmpty()){
+            List<BucketGrantMetadata> userBucketNoAccessGrants = bucketGrantService.getAllNoAccessGrants()
+                                                                                   .stream()
+                                                                                   .filter(grant -> (grant.getGrantee()
+                                                                                                          .equals(user.getName()) &&
+                                                                                                     grant.getGranteeType()
+                                                                                                          .equals("user")) ||
+                                                                                                    (user.getGroups()
+                                                                                                         .contains(grant.getGrantee()) &&
+                                                                                                     grant.getGranteeType()
+                                                                                                          .equals("group")))
+                                                                                   .collect(Collectors.toList());
+            if (!userBucketNoAccessGrants.isEmpty()) {
                 List<String> objectsNotToRemove = new LinkedList<>();
-                for(CatalogObjectGrantMetadata grantMetadata: userGrantsWithPositiveGrants){
-                    if(grantMetadata.getGranteeType().equals("user")){
+                for (CatalogObjectGrantMetadata grantMetadata : userGrantsWithPositiveGrants) {
+                    if (grantMetadata.getGranteeType().equals("user")) {
                         objectsNotToRemove.add(grantMetadata.getCatalogObjectName());
                     }
                 }
