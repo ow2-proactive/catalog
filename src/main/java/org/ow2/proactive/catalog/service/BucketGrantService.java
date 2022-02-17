@@ -350,12 +350,32 @@ public class BucketGrantService {
                                                                                                                     .map(BucketGrantMetadata::getBucketName)
                                                                                                                     .collect(Collectors.toSet());
             List<CatalogObjectGrantMetadata> userInaccessibleObjects = catalogObjectGrantService.getUserNoAccessGrant(user);
-            Set<String> catalogObjectsToRemove = userInaccessibleObjects.stream()
-                                                                        .filter(grant -> directAccessibleBucketsForTheUser.contains(grant.getBucketName()))
-                                                                        .map(CatalogObjectGrantMetadata::getCatalogObjectName)
-                                                                        .collect(Collectors.toSet());
+            List<BucketGrantMetadata> userInaccessibleBuckets = this.getAllNoAccessGrants()
+                                                                    .stream()
+                                                                    .filter(grant -> (grant.getGrantee()
+                                                                                           .equals(user.getName()) &&
+                                                                                      grant.getGranteeType()
+                                                                                           .equals("user")) ||
+                                                                                     (user.getGroups()
+                                                                                          .contains(grant.getGrantee()) &&
+                                                                                      grant.getGranteeType()
+                                                                                           .equals("group")))
+                                                                    .collect(Collectors.toList());
+            if (userInaccessibleBuckets.isEmpty()) {
+                Set<String> catalogObjectsToRemove = userInaccessibleObjects.stream()
+                                                                            .filter(grant -> directAccessibleBucketsForTheUser.contains(grant.getBucketName()))
+                                                                            .map(CatalogObjectGrantMetadata::getCatalogObjectName)
+                                                                            .collect(Collectors.toSet());
 
-            return bucket.getObjectCount() - catalogObjectsToRemove.size();
+                return bucket.getObjectCount() - catalogObjectsToRemove.size();
+            } else {
+                // List of accessible object for the user
+                List<CatalogObjectGrantMetadata> userGrantsWithPositiveGrants = catalogObjectGrantService.getAllGrantsAssignedToAUser(user);
+                Set<String> catalogObjectsNotToRemove = userGrantsWithPositiveGrants.stream()
+                                                                                    .map(CatalogObjectGrantMetadata::getCatalogObjectName)
+                                                                                    .collect(Collectors.toSet());
+                return bucket.getObjectCount() - catalogObjectsNotToRemove.size();
+            }
         } else {
             List<CatalogObjectGrantMetadata> catalogObjectGrants = getAllObjectGrantsAssignedToTheCurrentUserForTheCurrentBucket(user,
                                                                                                                                  bucketName);

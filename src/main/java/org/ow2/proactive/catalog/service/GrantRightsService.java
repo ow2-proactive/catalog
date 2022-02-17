@@ -495,6 +495,28 @@ public class GrantRightsService {
                 }
             }
             metadataList.removeAll(objectsToRemove);
+        } else { // Case triggerred when there is a noAccess user grant on a bucket
+            // In the following we are checking for each bucket that the user has for it a noAccess grant
+            //  if he has a positive grant for one of its objects
+            List<BucketGrantMetadata> userBucketNoAccessGrants = bucketGrantService.getAllNoAccessGrants()
+                                                                                   .stream()
+                                                                                   .filter(grant -> (grant.getGrantee()
+                                                                                                          .equals(user.getName()) &&
+                                                                                                     grant.getGranteeType()
+                                                                                                          .equals("user")) ||
+                                                                                                    (user.getGroups()
+                                                                                                         .contains(grant.getGrantee()) &&
+                                                                                                     grant.getGranteeType()
+                                                                                                          .equals("group")))
+                                                                                   .collect(Collectors.toList());
+            if (!userBucketNoAccessGrants.isEmpty()) {
+                List<String> objectsNotToRemove = userGrantsWithPositiveGrants.stream()
+                                                                              .filter(grant -> grant.getGranteeType()
+                                                                                                    .equals("user"))
+                                                                              .map(CatalogObjectGrantMetadata::getCatalogObjectName)
+                                                                              .collect(Collectors.toList());
+                metadataList.removeIf(object -> !objectsNotToRemove.contains(object.getName()));
+            }
         }
     }
 
