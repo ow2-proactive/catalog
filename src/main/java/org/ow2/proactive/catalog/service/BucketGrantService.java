@@ -374,7 +374,7 @@ public class BucketGrantService {
                 Set<String> catalogObjectsNotToRemove = userGrantsWithPositiveGrants.stream()
                                                                                     .map(CatalogObjectGrantMetadata::getCatalogObjectName)
                                                                                     .collect(Collectors.toSet());
-                return bucket.getObjectCount() - catalogObjectsNotToRemove.size();
+                return catalogObjectsNotToRemove.size();
             }
         } else {
             List<CatalogObjectGrantMetadata> catalogObjectGrants = getAllObjectGrantsAssignedToTheCurrentUserForTheCurrentBucket(user,
