@@ -49,9 +49,9 @@ public class WorkflowInfoAdder {
 
         if (catalogObjectEntityKind != null &&
             catalogObjectEntityKind.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase())) {
-            workflowWithReplacedGenericInfoJobName = workflowXmlManipulator.replaceGenericInformationAndNameOnJobLevel(rawObject,
-                                                                                                                       genericInformationMap,
-                                                                                                                       jobName);
+            workflowWithReplacedGenericInfoJobName = workflowXmlManipulator.replaceGenericInformationHiddenVariablesAndJobNameOnJobLevel(rawObject,
+                                                                                                                                         genericInformationMap,
+                                                                                                                                         jobName);
         }
         return workflowWithReplacedGenericInfoJobName;
     }
