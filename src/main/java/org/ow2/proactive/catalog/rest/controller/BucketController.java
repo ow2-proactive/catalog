@@ -176,14 +176,8 @@ public class BucketController {
         }
         BucketMetadata data = bucketService.getBucketMetadata(bucketName);
         if (sessionIdRequired) {
-            String bucketGrantAccessType;
-            if (user.getName().equals(data.getOwner()) || user.getGroups().contains(data.getOwner().substring(6)) ||
-                data.getOwner().equals("GROUP:public-objects")) {
-                bucketGrantAccessType = admin.toString();
-            } else {
-                bucketGrantAccessType = grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
-                                                                                                                   data.getName());
-            }
+            String bucketGrantAccessType = grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
+                                                                                                                      data.getName());
             data.setRights(bucketGrantAccessType);
         }
         return data;
