@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
+import org.ow2.proactive.core.properties.PropertyDecrypter;
 import org.ow2.proactive.scheduler.common.exception.JobCreationException;
 import org.ow2.proactive.scheduler.common.job.Job;
 import org.ow2.proactive.scheduler.common.job.JobVariable;
@@ -170,6 +171,15 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         String group = jobVariable.getGroup();
         boolean advanced = jobVariable.isAdvanced();
         boolean hidden = jobVariable.isHidden();
+        if (checkIfNotNull(model) && "PA:HIDDEN".equalsIgnoreCase(model)) {
+            if (checkIfNotNull(value) && checkIfNotEmpty(value) && !value.startsWith("ENC(")) {
+                try {
+                    value = PropertyDecrypter.encryptData(value);
+                } catch (Exception e) {
+                    log.warn("Could not encrypt hidden variable " + name, e);
+                }
+            }
+        }
         if (checkIfNotNull(name, value)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(name, value, ATTRIBUTE_VARIABLE_LABEL));
         }
