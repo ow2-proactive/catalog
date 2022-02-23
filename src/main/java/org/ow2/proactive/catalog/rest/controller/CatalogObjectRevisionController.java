@@ -25,21 +25,29 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static org.ow2.proactive.catalog.util.AccessType.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
+import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.CatalogRawObject;
+import org.ow2.proactive.catalog.service.BucketGrantService;
+import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
+import org.ow2.proactive.catalog.service.GrantAccessTypeHelperService;
+import org.ow2.proactive.catalog.service.GrantRightsService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
+import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
+import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
@@ -81,6 +89,18 @@ public class CatalogObjectRevisionController {
     @Autowired
     private RawObjectResponseCreator rawObjectResponseCreator;
 
+    @Autowired
+    private GrantRightsService grantRightsService;
+
+    @Autowired
+    private GrantAccessTypeHelperService grantAccessTypeHelperService;
+
+    @Autowired
+    private CatalogObjectGrantService catalogObjectGrantService;
+
+    @Autowired
+    private BucketGrantService bucketGrantService;
+
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
@@ -98,16 +118,35 @@ public class CatalogObjectRevisionController {
             @ApiParam(value = "Project of the object") @RequestParam(value = "projectName", required = false, defaultValue = "") Optional<String> projectName,
             @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
-        RestApiAccessResponse restApiAccessResponse = restApiAccessService.getUserDataFromSessionidAndCheckAccess(sessionIdRequired,
-                                                                                                                  sessionId,
-                                                                                                                  bucketName);
+        AuthenticatedUser user;
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+
+            // Check Grants
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                                                       bucketName,
+                                                                                                                                                       name),
+                                                                     write.toString())) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+        } else {
+            user = AuthenticatedUser.EMPTY;
+        }
         CatalogObjectMetadata catalogObjectRevision = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                                        name,
                                                                                                        projectName.orElse(""),
                                                                                                        commitMessage,
-                                                                                                       restApiAccessResponse.getAuthenticatedUser()
-                                                                                                                            .getName(),
+                                                                                                       user.getName(),
                                                                                                        file.getBytes());
+        if (sessionIdRequired) {
+            catalogObjectRevision.setRights(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                              bucketName,
+                                                                                                                              name));
+        }
         catalogObjectRevision.add(LinkUtil.createLink(bucketName,
                                                       catalogObjectRevision.getName(),
                                                       catalogObjectRevision.getCommitDateTime()));
@@ -127,9 +166,21 @@ public class CatalogObjectRevisionController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name, @PathVariable long commitTimeRaw)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
-                                                                               sessionId,
-                                                                               bucketName);
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+
+            // Check Grants
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                                                       bucketName,
+                                                                                                                                                       name),
+                                                                     read.toString())) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+        }
 
         CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectRevision(bucketName, name, commitTimeRaw);
         metadata.add(LinkUtil.createLink(bucketName, metadata.getName(), metadata.getCommitDateTime()));
@@ -149,9 +200,21 @@ public class CatalogObjectRevisionController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name, @PathVariable long commitTimeRaw)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
-                                                                               sessionId,
-                                                                               bucketName);
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+
+            // Check Grants
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                                                       bucketName,
+                                                                                                                                                       name),
+                                                                     read.toString())) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+        }
 
         CatalogRawObject objectRevisionRaw = catalogObjectService.getCatalogObjectRevisionRaw(bucketName,
                                                                                               name,
@@ -170,13 +233,36 @@ public class CatalogObjectRevisionController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
-                                                                               sessionId,
-                                                                               bucketName);
+        // Check Grants
+        AuthenticatedUser user;
+        List<CatalogObjectGrantMetadata> catalogObjectGrants = new LinkedList<>();
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                                                       bucketName,
+                                                                                                                                                       name),
+                                                                     read.toString())) {
+                throw new BucketGrantAccessException(bucketName);
+            } else {
+                catalogObjectGrants = catalogObjectGrantService.findAllCatalogObjectGrantsAssignedToABucket(bucketName);
+            }
+
+        } else {
+            user = AuthenticatedUser.EMPTY;
+        }
         List<CatalogObjectMetadata> catalogObjectMetadataList = catalogObjectService.listCatalogObjectRevisions(bucketName,
                                                                                                                 name);
 
         for (CatalogObjectMetadata catalogObjectMetadata : catalogObjectMetadataList) {
+            if (sessionIdRequired) {
+                catalogObjectMetadata.setRights(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                                  bucketName,
+                                                                                                                                  catalogObjectMetadata.getName()));
+            }
             catalogObjectMetadata.add(LinkUtil.createLink(bucketName,
                                                           catalogObjectMetadata.getName(),
                                                           catalogObjectMetadata.getCommitDateTime()));
@@ -198,9 +284,21 @@ public class CatalogObjectRevisionController {
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String name, @PathVariable Long commitTimeRaw)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
-                                                                               sessionId,
-                                                                               bucketName);
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+
+            // Check Grants
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
+                                                                                                                                                       bucketName,
+                                                                                                                                                       name),
+                                                                     write.toString())) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+        }
         return catalogObjectService.restoreCatalogObject(bucketName, name, commitTimeRaw);
     }
 
