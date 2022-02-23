@@ -219,14 +219,8 @@ public class BucketController {
             listBucket.addAll(grantRightsService.getBucketsForUserByGrantsAndPriority(user));
             List<BucketMetadata> res = new LinkedList<>();
             for (BucketMetadata data : listBucket) {
-                String bucketGrantAccessType;
-                if (user.getName().equals(data.getOwner()) || user.getGroups().contains(data.getOwner().substring(6)) ||
-                    data.getOwner().equals("GROUP:public-objects")) {
-                    bucketGrantAccessType = admin.toString();
-                } else {
-                    bucketGrantAccessType = grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
-                                                                                                                       data.getName());
-                }
+                String bucketGrantAccessType = grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
+                                                                                                                          data.getName());
                 int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(user, data);
                 BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), objectCount);
                 metadata.setRights(bucketGrantAccessType);

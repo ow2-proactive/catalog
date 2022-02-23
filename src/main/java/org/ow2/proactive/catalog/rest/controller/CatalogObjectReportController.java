@@ -25,10 +25,12 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static org.ow2.proactive.catalog.util.AccessType.read;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -36,11 +38,16 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 
 import org.ow2.proactive.catalog.dto.BucketMetadata;
+import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.BucketService;
+import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
 import org.ow2.proactive.catalog.service.CatalogObjectReportService;
+import org.ow2.proactive.catalog.service.GrantAccessTypeHelperService;
+import org.ow2.proactive.catalog.service.GrantRightsService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
-import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
+import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
+import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,6 +82,18 @@ public class CatalogObjectReportController {
 
     @Autowired
     private RestApiAccessService restApiAccessService;
+
+    @Autowired
+    private GrantRightsService grantRightsService;
+
+    @Autowired
+    private GrantAccessTypeHelperService grantAccessTypeHelperService;
+
+    @Autowired
+    private CatalogObjectGrantService catalogObjectGrantService;
+
+    @Autowired
+    private BucketGrantService bucketGrantService;
 
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
@@ -114,9 +133,23 @@ public class CatalogObjectReportController {
             @ApiParam(value = "Give a list of name separated by comma to get them in the report", allowMultiple = true, type = "string") @RequestParam(value = "name", required = false) Optional<List<String>> catalogObjectsNames)
             throws NotAuthenticatedException, AccessDeniedException, IOException {
 
-        restApiAccessService.checkAccessBySessionIdForBucketAndThrowIfDeclined(sessionIdRequired,
-                                                                               sessionId,
-                                                                               bucketName);
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+
+            // Check Grants
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
+                                                                                                                                                bucketName),
+                                                                     read.toString()) &&
+                !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user,
+                                                                                                     bucketName)) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+
+        }
 
         if (catalogObjectsNames.isPresent()) {
 
@@ -148,15 +181,31 @@ public class CatalogObjectReportController {
     private List<String> getListOfAuthorizedBuckets(String sessionId, String ownerName, Optional<String> kind,
             Optional<String> contentType) throws NotAuthenticatedException, AccessDeniedException {
         List<BucketMetadata> authorisedBuckets;
+        AuthenticatedUser user;
         if (sessionIdRequired) {
-            RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
-                                                                                                                                       ownerName);
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
 
-            authorisedBuckets = bucketService.getBucketsByGroups(ownerName,
-                                                                 kind,
-                                                                 contentType,
-                                                                 () -> restApiAccessResponse.getAuthenticatedUser()
-                                                                                            .getGroups());
+            // Check Grants
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+
+            authorisedBuckets = bucketService.getBucketsByGroups(ownerName, kind, contentType, () -> user.getGroups());
+            authorisedBuckets.addAll(grantRightsService.getBucketsForUserByGrantsAndPriority(user));
+            List<BucketMetadata> res = new LinkedList<>();
+            for (BucketMetadata data : authorisedBuckets) {
+                String bucketGrantAccessType = grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
+                                                                                                                          data.getName());
+                int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(user, data);
+                BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), objectCount);
+                metadata.setRights(bucketGrantAccessType);
+                if (!res.contains(metadata)) {
+                    res.add(metadata);
+                }
+            }
+            authorisedBuckets.clear();
+            authorisedBuckets.addAll(res);
 
         } else {
             authorisedBuckets = bucketService.listBuckets(ownerName, kind, contentType);
