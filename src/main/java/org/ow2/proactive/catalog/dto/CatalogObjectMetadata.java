@@ -151,7 +151,7 @@ public class CatalogObjectMetadata extends ResourceSupport {
                                                              .filter(property -> property.getKey()
                                                                                          .equals("project_name"))
                                                              .findAny();
-        return projectNameIfExists.map(Metadata::getValue).orElse("");
+        return projectNameIfExists.map(value -> value.getValue() == null ? "" : value.getValue()).orElse("");
     }
 
     private LinkedHashMap<String, LinkedHashMap<String, JobVariable>> setVariablesOrder(List<Metadata> metadataList) {

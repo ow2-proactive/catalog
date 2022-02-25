@@ -615,7 +615,7 @@ public class CatalogObjectService {
                                                                    .filter(property -> property.getKey()
                                                                                                .equals(PROJECT_NAME))
                                                                    .findAny();
-        return projectNameIfExists.map(Metadata::getValue).orElse("");
+        return projectNameIfExists.map(value -> value.getValue() == null ? "" : value.getValue()).orElse("");
     }
 
     public CatalogObjectMetadata createCatalogObjectRevision(CatalogObjectRevisionEntity catalogObjectRevision,
