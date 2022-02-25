@@ -115,6 +115,14 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
         keyValueMetadataList.forEach(kv -> addKeyValue(kv));
     }
 
+    public String getProjectName() {
+        return this.projectName == null ? "" : this.projectName;
+    }
+
+    public String getCommitMessage() {
+        return this.commitMessage == null ? "" : this.commitMessage;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
