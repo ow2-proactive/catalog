@@ -31,6 +31,7 @@ import java.io.File;
 
 import javax.sql.DataSource;
 
+import org.ow2.proactive.catalog.util.EntityScanRoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -79,6 +80,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableTransactionManagement
 @EnableEncryptableProperties
 @EntityScan(basePackages = "org.ow2.proactive.catalog.repository.entity")
+@EntityScanRoot("classpath:/org/ow2/proactive/catalog/repository/entity")
 @PropertySource("classpath:application.properties")
 public class Application extends WebMvcConfigurerAdapter {
 
