@@ -263,31 +263,6 @@ public class CatalogObjectGrantServiceTest {
         verify(catalogObjectGrantRepository, times(1)).delete(dbUserObjectGrants);
     }
 
-    @Test
-    public void testDeleteAllCatalogObjectGrants() {
-        BucketEntity mockedBucket = newMockedBucket();
-        CatalogObjectRevisionEntity dummyCatalogObjectRevisionEntity = newCatalogObjectRevisionEntity();
-        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity("user",
-                                                                                         DUMMY_CURRENT_USERNAME,
-                                                                                         DUMMY_USERNAME,
-                                                                                         DUMMY_ACCESS_TYPE,
-                                                                                         dummyCatalogObjectRevisionEntity,
-                                                                                         mockedBucket);
-        List<CatalogObjectGrantEntity> dbUserObjectGrants = new LinkedList<>();
-        dbUserObjectGrants.add(catalogObjectGrantEntity);
-
-        when(catalogObjectGrantRepository.findCatalogObjectGrantEntitiesByCatalogObjectRevisionEntityIdAndBucketEntityId(CATALOG_OBJECT_ID,
-                                                                                                                         BUCKET_ID)).thenReturn(dbUserObjectGrants);
-        doNothing().when(catalogObjectGrantRepository).delete(any(CatalogObjectGrantEntity.class));
-
-        catalogObjectGrantService.deleteAllCatalogObjectGrantsByBucketIdAndObjectId(BUCKET_ID, CATALOG_OBJECT_ID);
-
-        verify(catalogObjectGrantRepository,
-               times(1)).findCatalogObjectGrantEntitiesByCatalogObjectRevisionEntityIdAndBucketEntityId(CATALOG_OBJECT_ID,
-                                                                                                        BUCKET_ID);
-        verify(catalogObjectGrantRepository, times(1)).delete(dbUserObjectGrants);
-    }
-
     private CatalogObjectRevisionEntity newCatalogObjectRevisionEntity() {
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = mock(CatalogObjectRevisionEntity.class);
         when(catalogObjectRevisionEntity.getId()).thenReturn(CATALOG_OBJECT_ID);

@@ -90,7 +90,7 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
     @Column(name = "RAW_OBJECT", length = Integer.MAX_VALUE)
     private byte[] rawObject;
 
-    @OneToMany(mappedBy = "catalogObjectRevisionEntity")
+    @OneToMany(mappedBy = "catalogObjectRevisionEntity", cascade = { CascadeType.REMOVE }, orphanRemoval = true)
     private Set<CatalogObjectGrantEntity> objectGrants = new LinkedHashSet<>();
 
     @Override

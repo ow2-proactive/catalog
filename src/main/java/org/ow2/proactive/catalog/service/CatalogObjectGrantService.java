@@ -395,22 +395,6 @@ public class CatalogObjectGrantService {
 
     /**
      *
-     * Delete all catalog object grant assigned to a specific object
-     *
-     * @param bucketId bucket id
-     * @param catalogObjectId catalog object id
-     */
-    public void deleteAllCatalogObjectGrantsByBucketIdAndObjectId(long bucketId, long catalogObjectId) {
-        // Get the catalog objects grants
-        List<CatalogObjectGrantEntity> catalogObjectGrants = catalogObjectGrantRepository.findCatalogObjectGrantEntitiesByCatalogObjectRevisionEntityIdAndBucketEntityId(catalogObjectId,
-                                                                                                                                                                         bucketId);
-        if (!catalogObjectGrants.isEmpty()) {
-            catalogObjectGrantRepository.delete(catalogObjectGrants);
-        }
-    }
-
-    /**
-     *
      * @param bucketName name of the bucket where the catalog object is stored.
      * @param catalogObjectName object name
      * @return the list of deleted grants created for an object inside a bucket
@@ -451,9 +435,9 @@ public class CatalogObjectGrantService {
      */
     public List<CatalogObjectGrantMetadata> getUserNoAccessGrant(AuthenticatedUser user) {
         List<CatalogObjectGrantEntity> userGrants = new LinkedList<>();
-        CatalogObjectGrantEntity userGrant = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(user.getName());
+        List<CatalogObjectGrantEntity> userGrant = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(user.getName());
         if (userGrant != null) {
-            userGrants.add(userGrant);
+            userGrants.addAll(userGrant);
         }
         List<CatalogObjectGrantEntity> userGroupGrants = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUserGroup(user.getGroups());
         if (userGroupGrants != null && !userGroupGrants.isEmpty()) {
