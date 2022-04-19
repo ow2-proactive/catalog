@@ -35,9 +35,6 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjectGrantEntity, Long>,
         JpaSpecificationExecutor<CatalogObjectGrantEntity>, QueryDslPredicateExecutor<CatalogObjectGrantEntity> {
 
-    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByCatalogObjectRevisionEntityIdAndBucketEntityId(
-            long catalogObjectId, long bucketId);
-
     List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketEntityIdAndCatalogObjectRevisionEntityId(
             long bucketId, long catalogObjectId);
 
@@ -65,7 +62,7 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
             long catalogObjectId);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user' AND coge.accessType='noAccess'")
-    CatalogObjectGrantEntity findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(String username);
+    List<CatalogObjectGrantEntity> findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(String username);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee in ?1 AND coge.granteeType='group' AND coge.accessType='noAccess'")
     List<CatalogObjectGrantEntity>
