@@ -74,38 +74,32 @@ public class CatalogObjectGrantEntity implements Serializable {
     @Column(name = "PRIORITY")
     protected int priority;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = CatalogObjectRevisionEntity.class)
-    @JoinColumn(name = "CATALOG_OBJECT_REVISION", nullable = false)
-    protected CatalogObjectRevisionEntity catalogObjectRevisionEntity;
-
-    // Bucket association
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = BucketEntity.class)
-    @JoinColumn(name = "BUCKET", nullable = false)
-    protected BucketEntity bucketEntity;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = CatalogObjectEntity.class)
+    @JoinColumns({ @JoinColumn(name = "BUCKET", referencedColumnName = "BUCKET_ID"),
+                   @JoinColumn(name = "NAME", referencedColumnName = "NAME") })
+    private CatalogObjectEntity catalogObject;
 
     public CatalogObjectGrantEntity() {
     }
 
     // Constructor used to create user grant
     public CatalogObjectGrantEntity(String granteeType, String creator, String grantee, String accessType,
-            CatalogObjectRevisionEntity catalogObjectRevisionEntity, BucketEntity bucketEntity) {
+            CatalogObjectEntity catalogObjectEntity) {
         this.granteeType = granteeType;
         this.creator = creator;
         this.grantee = grantee;
         this.accessType = accessType;
-        this.catalogObjectRevisionEntity = catalogObjectRevisionEntity;
-        this.bucketEntity = bucketEntity;
+        this.catalogObject = catalogObjectEntity;
     }
 
     // Constructor used to create group grant
     public CatalogObjectGrantEntity(String granteeType, String creator, String grantee, String accessType, int priority,
-            CatalogObjectRevisionEntity catalogObjectRevisionEntity, BucketEntity bucketEntity) {
+            CatalogObjectEntity catalogObjectEntity) {
         this.granteeType = granteeType;
         this.creator = creator;
         this.grantee = grantee;
         this.accessType = accessType;
         this.priority = priority;
-        this.catalogObjectRevisionEntity = catalogObjectRevisionEntity;
-        this.bucketEntity = bucketEntity;
+        this.catalogObject = catalogObjectEntity;
     }
 }

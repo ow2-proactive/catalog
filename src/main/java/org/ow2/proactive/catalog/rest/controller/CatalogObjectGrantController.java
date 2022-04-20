@@ -473,7 +473,8 @@ public class CatalogObjectGrantController {
                                                          ", you will lose your admin rights over it.");
             }
         }
-        return catalogObjectGrantService.deleteAllCatalogObjectGrantsAssignedToABucket(bucketName, catalogObjectName);
+        return catalogObjectGrantService.deleteAllCatalogObjectGrantsAssignedToAnObjectInABucket(bucketName,
+                                                                                                 catalogObjectName);
     }
 
 }

@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.dto;
 
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectGrantEntity;
+import org.ow2.proactive.catalog.util.CatalogObjectID;
 import org.springframework.hateoas.ResourceSupport;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -56,7 +57,7 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
     private final int priority;
 
     @JsonProperty
-    private final long catalogObjectId;
+    private final CatalogObjectID catalogObjectId;
 
     @JsonProperty
     private final String catalogObjectName;
@@ -67,36 +68,25 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
     @JsonProperty
     private final String bucketName;
 
-    public CatalogObjectGrantMetadata(String granteeType, String creator, String grantee, String accessType,
-            int priority, long catalogObjectId, long catalogObjectBucketId, String bucketName,
-            String catalogObjectName) {
-        this.granteeType = granteeType;
-        this.creator = creator;
-        this.grantee = grantee;
-        this.accessType = accessType;
-        this.priority = priority;
-        this.catalogObjectId = catalogObjectId;
-        this.catalogObjectBucketId = catalogObjectBucketId;
-        this.bucketName = bucketName;
-        this.catalogObjectName = catalogObjectName;
-    }
-
     public CatalogObjectGrantMetadata(CatalogObjectGrantEntity catalogObjectGrantEntity) {
         this.granteeType = catalogObjectGrantEntity.getGranteeType();
         this.creator = catalogObjectGrantEntity.getCreator();
         this.grantee = catalogObjectGrantEntity.getGrantee();
         this.accessType = catalogObjectGrantEntity.getAccessType();
         this.priority = catalogObjectGrantEntity.getPriority();
-        this.catalogObjectId = catalogObjectGrantEntity.getCatalogObjectRevisionEntity().getId();
-        this.catalogObjectBucketId = catalogObjectGrantEntity.getBucketEntity().getId();
-        this.bucketName = catalogObjectGrantEntity.getBucketEntity().getBucketName();
-        if (catalogObjectGrantEntity.getCatalogObjectRevisionEntity().getCatalogObject() != null) {
-            this.catalogObjectName = catalogObjectGrantEntity.getCatalogObjectRevisionEntity()
-                                                             .getCatalogObject()
-                                                             .getId()
-                                                             .getName();
+        if (catalogObjectGrantEntity.getCatalogObject() != null) {
+            this.catalogObjectName = catalogObjectGrantEntity.getCatalogObject().getId().getName();
+            this.catalogObjectId = new CatalogObjectID(catalogObjectGrantEntity.getCatalogObject()
+                                                                               .getId()
+                                                                               .getBucketId(),
+                                                       catalogObjectGrantEntity.getCatalogObject().getId().getName());
+            this.catalogObjectBucketId = catalogObjectGrantEntity.getCatalogObject().getBucket().getId();
+            this.bucketName = catalogObjectGrantEntity.getCatalogObject().getBucket().getBucketName();
         } else {
             this.catalogObjectName = "";
+            this.catalogObjectId = new CatalogObjectID(1L, "");
+            this.catalogObjectBucketId = 1L;
+            this.bucketName = "";
         }
     }
 

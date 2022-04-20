@@ -105,7 +105,6 @@ public class CatalogObjectEntityTest {
                                                time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
                                                catalogObject,
                                                Collections.emptyList(),
-                                               new byte[0],
-                                               new LinkedHashSet<>());
+                                               new byte[0]);
     }
 }
