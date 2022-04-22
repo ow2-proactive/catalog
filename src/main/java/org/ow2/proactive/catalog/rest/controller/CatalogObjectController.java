@@ -441,7 +441,7 @@ public class CatalogObjectController {
             }
             // This function remove all objects that the user has a noAccess grant over them
             if (sessionIdRequired) {
-                grantRightsService.removeAllObjectsWithNoAccessGrant(user, metadataList);
+                grantRightsService.removeAllObjectsWithNoAccessGrant(user, metadataList, bucketName);
             }
 
             for (CatalogObjectMetadata catalogObject : metadataList) {

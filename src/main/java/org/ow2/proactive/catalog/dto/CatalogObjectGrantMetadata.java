@@ -68,6 +68,20 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
     @JsonProperty
     private final String bucketName;
 
+    public CatalogObjectGrantMetadata(String granteeType, String creator, String grantee, String accessType,
+            int priority, CatalogObjectID catalogObjectId, String catalogObjectName, long catalogObjectBucketId,
+            String bucketName) {
+        this.granteeType = granteeType;
+        this.creator = creator;
+        this.grantee = grantee;
+        this.accessType = accessType;
+        this.priority = priority;
+        this.catalogObjectId = catalogObjectId;
+        this.catalogObjectName = catalogObjectName;
+        this.catalogObjectBucketId = catalogObjectBucketId;
+        this.bucketName = bucketName;
+    }
+
     public CatalogObjectGrantMetadata(CatalogObjectGrantEntity catalogObjectGrantEntity) {
         this.granteeType = catalogObjectGrantEntity.getGranteeType();
         this.creator = catalogObjectGrantEntity.getCreator();

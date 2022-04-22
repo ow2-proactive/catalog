@@ -426,7 +426,8 @@ public class GrantRightsService {
      * @param user authenticated user
      * @param metadataList list of catalog objects in a bucket
      */
-    public void removeAllObjectsWithNoAccessGrant(AuthenticatedUser user, List<CatalogObjectMetadata> metadataList) {
+    public void removeAllObjectsWithNoAccessGrant(AuthenticatedUser user, List<CatalogObjectMetadata> metadataList,
+            String bucketName) {
         // List of inaccessible object for the user
         List<CatalogObjectGrantMetadata> userGrantsWithNoAccessRights = catalogObjectGrantService.getUserNoAccessGrant(user);
         // List of accessible object for the user
@@ -509,6 +510,7 @@ public class GrantRightsService {
                                                                                                      grant.getGranteeType()
                                                                                                           .equals("group")))
                                                                                    .collect(Collectors.toList());
+            userBucketNoAccessGrants.removeIf(grant -> !grant.getBucketName().equals(bucketName));
             if (!userBucketNoAccessGrants.isEmpty()) {
                 List<String> objectsNotToRemove = userGrantsWithPositiveGrants.stream()
                                                                               .filter(grant -> grant.getGranteeType()
