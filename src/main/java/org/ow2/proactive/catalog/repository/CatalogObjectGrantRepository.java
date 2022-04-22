@@ -35,31 +35,38 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjectGrantEntity, Long>,
         JpaSpecificationExecutor<CatalogObjectGrantEntity>, QueryDslPredicateExecutor<CatalogObjectGrantEntity> {
 
-    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketEntityIdAndCatalogObjectRevisionEntityId(
-            long bucketId, long catalogObjectId);
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.bucket.bucketName = ?1 AND  coge.catalogObject.id.name = ?2")
+    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketNameAndCatalogObjectName(String bucketName,
+            String objectName);
 
+    //TODO to test
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.bucket.id = ?1 AND  coge.catalogObject.id.name = ?2")
+    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketEntityIdAndCatalogObjectName(long bucketId,
+            String catalogObjectName);
+
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.bucket.id = ?1")
     List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketEntityId(long bucketId);
 
-    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.bucketEntity.bucketName = ?1 AND coge.catalogObjectRevisionEntity.catalogObject.id.name = ?2 AND coge.accessType<>'noAccess'")
+    //TODO to test
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.bucket.bucketName = ?1 AND  coge.catalogObject.id.name = ?2 AND coge.accessType<>'noAccess'")
     List<CatalogObjectGrantEntity> findAllGrantsAssignedToAnObjectInsideABucket(String bucketName,
             String catalogObjectName);
 
-    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObjectRevisionEntity.id = ?1 AND coge.grantee = ?2 AND coge.bucketEntity.id=?3 AND coge.granteeType='user'")
-    CatalogObjectGrantEntity findCatalogObjectGrantByUsernameForUpdate(long catalogObjectId, String username,
+    //TODO to test
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.id.name = ?1 AND coge.grantee = ?2 AND coge.catalogObject.bucket.id = ?3 AND coge.granteeType='user'")
+    CatalogObjectGrantEntity findCatalogObjectGrantByUsernameForUpdate(String catalogObjectId, String username,
             long bucketId);
 
-    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObjectRevisionEntity.id = ?1 AND coge.grantee = ?2 AND coge.bucketEntity.id=?3 AND coge.granteeType='group'")
-    CatalogObjectGrantEntity findCatalogObjectGrantByUserGroupForUpdate(long catalogObjectId, String userGroup,
+    //TODO to test
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.id.name = ?1 AND coge.grantee = ?2 AND coge.catalogObject.bucket.id = ?3 AND coge.granteeType='group'")
+    CatalogObjectGrantEntity findCatalogObjectGrantByUserGroupForUpdate(String catalogObjectName, String userGroup,
             long bucketId);
 
-    @Query(value = "SELECT coge.bucketEntity.id FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user' AND coge.accessType<>'noAccess'")
+    @Query(value = "SELECT coge.catalogObject.bucket.id FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user' AND coge.accessType<>'noAccess'")
     List<Long> findAllBucketsIdFromCatalogObjectGrantsAssignedToAUsername(String username);
 
-    @Query(value = "SELECT coge.bucketEntity.id FROM CatalogObjectGrantEntity coge WHERE coge.grantee in ?1 AND coge.granteeType='group' AND coge.accessType<>'noAccess'")
+    @Query(value = "SELECT coge.catalogObject.bucket.id FROM CatalogObjectGrantEntity coge WHERE coge.grantee in ?1 AND coge.granteeType='group' AND coge.accessType<>'noAccess'")
     List<Long> findAllBucketsIdFromCatalogObjectGrantsAssignedToAUserGroup(List<String> userGroups);
-
-    List<CatalogObjectGrantEntity> deleteAllByBucketEntityIdAndCatalogObjectRevisionEntityId(long bucketId,
-            long catalogObjectId);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user' AND coge.accessType='noAccess'")
     List<CatalogObjectGrantEntity> findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(String username);

@@ -544,6 +544,8 @@ public class CatalogObjectService {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
         CatalogObjectMetadata catalogObjectMetadata = getCatalogObjectMetadata(bucketName, name);
         try {
+            // Delete all grants that are associated to the object
+            catalogObjectGrantService.deleteAllCatalogObjectGrantsByBucketNameAndObjectName(bucketName, name);
             // Delete the catalog Object
             catalogObjectRepository.delete(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(), name));
         } catch (EmptyResultDataAccessException emptyResultDataAccessException) {

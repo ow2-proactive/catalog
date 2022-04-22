@@ -84,9 +84,6 @@ public class BucketEntity implements Serializable {
     @OneToMany(mappedBy = "bucketEntity")
     private Set<BucketGrantEntity> grants = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "bucketEntity")
-    private Set<CatalogObjectGrantEntity> objectGrants = new LinkedHashSet<>();
-
     public BucketEntity() {
         catalogObjects = new HashSet<>();
     }

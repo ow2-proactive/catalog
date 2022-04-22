@@ -39,7 +39,6 @@ import org.hibernate.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Setter;
 
 
 /**
@@ -89,9 +88,6 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
     @Lob
     @Column(name = "RAW_OBJECT", length = Integer.MAX_VALUE)
     private byte[] rawObject;
-
-    @OneToMany(mappedBy = "catalogObjectRevisionEntity", cascade = { CascadeType.REMOVE }, orphanRemoval = true)
-    private Set<CatalogObjectGrantEntity> objectGrants = new LinkedHashSet<>();
 
     @Override
     public int compareTo(Object o) {

@@ -26,6 +26,8 @@
 package org.ow2.proactive.catalog.repository.entity;
 
 import java.io.Serializable;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -53,6 +55,7 @@ import org.hibernate.annotations.FetchMode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 
@@ -71,6 +74,7 @@ public class CatalogObjectEntity implements Serializable {
     @AllArgsConstructor
     @Data
     @Embeddable
+    @Getter
     @NoArgsConstructor
     public static class CatalogObjectEntityKey implements Serializable {
 
@@ -126,6 +130,9 @@ public class CatalogObjectEntity implements Serializable {
 
     @Column(name = "KIND", nullable = false)
     private String kind;
+
+    @OneToMany(mappedBy = "catalogObject")
+    private Set<CatalogObjectGrantEntity> objectGrants = new LinkedHashSet<>();
 
     @Column(name = "KIND_LOWER")
     @ColumnTransformer(write = "LOWER(?)")
