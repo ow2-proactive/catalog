@@ -27,9 +27,10 @@ package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
+import static org.ow2.proactive.catalog.util.AccessType.noAccess;
+import static org.ow2.proactive.catalog.util.AccessType.read;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -42,9 +43,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
+import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketGrantRepository;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.entity.*;
+import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 
 
 /**
@@ -84,7 +87,7 @@ public class BucketGrantServiceTest {
 
     @Test
     public void testUpdateBucketGrantForASpecificUser() {
-        BucketEntity mockedBucket = newMockedBucket(1L);
+        BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
         BucketGrantEntity bucketGrantEntity = new BucketGrantEntity("user",
                                                                     DUMMY_CURRENT_USERNAME,
                                                                     DUMMY_USERNAME,
@@ -112,7 +115,7 @@ public class BucketGrantServiceTest {
 
     @Test
     public void testUpdateBucketGrantForASpecificUserGroup() {
-        BucketEntity mockedBucket = newMockedBucket(1L);
+        BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
         BucketGrantEntity bucketGrantEntity = new BucketGrantEntity("group",
                                                                     DUMMY_CURRENT_USERNAME,
                                                                     DUMMY_GROUP,
@@ -147,7 +150,7 @@ public class BucketGrantServiceTest {
 
     @Test
     public void testCreateBucketGrantForUser() {
-        BucketEntity mockedBucket = newMockedBucket(1L);
+        BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
         BucketGrantEntity bucketGrantEntity = new BucketGrantEntity("user",
                                                                     DUMMY_CURRENT_USERNAME,
                                                                     DUMMY_USERNAME,
@@ -174,7 +177,7 @@ public class BucketGrantServiceTest {
 
     @Test
     public void testCreateBucketGrantForUserGroup() {
-        BucketEntity mockedBucket = newMockedBucket(1L);
+        BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
         BucketGrantEntity groupBucketGrantEntity = new BucketGrantEntity("group",
                                                                          DUMMY_CURRENT_USERNAME,
                                                                          DUMMY_GROUP,
@@ -203,7 +206,7 @@ public class BucketGrantServiceTest {
 
     @Test
     public void testDeleteBucketGrantForUser() {
-        BucketEntity mockedBucket = newMockedBucket(1L);
+        BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
         BucketGrantEntity userBucketGrantEntity = new BucketGrantEntity("user",
                                                                         DUMMY_CURRENT_USERNAME,
                                                                         DUMMY_USERNAME,
@@ -229,7 +232,7 @@ public class BucketGrantServiceTest {
 
     @Test
     public void testDeleteBucketGrantForGroup() {
-        BucketEntity mockedBucket = newMockedBucket(1L);
+        BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
         BucketGrantEntity groupBucketGrantEntity = new BucketGrantEntity("group",
                                                                          DUMMY_CURRENT_USERNAME,
                                                                          DUMMY_GROUP,
@@ -255,7 +258,7 @@ public class BucketGrantServiceTest {
 
     @Test
     public void testDeleteAllBucketGrants() {
-        BucketEntity mockedBucket = newMockedBucket(1L);
+        BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
         BucketGrantEntity userBucketGrantEntity = new BucketGrantEntity("user",
                                                                         DUMMY_CURRENT_USERNAME,
                                                                         DUMMY_USERNAME,
@@ -276,10 +279,64 @@ public class BucketGrantServiceTest {
                times(1)).deleteAllCatalogObjectsGrantsAssignedToABucket(mockedBucket.getId());
     }
 
-    private BucketEntity newMockedBucket(Long id) {
+    @Test
+    public void testGetTheNumberOfAccessibleObjectsInTheBucket() {
+        List<String> userGroups = new LinkedList<>();
+        userGroups.add("user");
+        AuthenticatedUser authenticatedUser = AuthenticatedUser.builder().name("user").groups(userGroups).build();
+
+        BucketEntity bucketNoAccess = newMockedBucket("test-noaccess", 1l);
+        BucketEntity bucketRead = newMockedBucket("test-read", 2l);
+        BucketEntity bucketWrite = newMockedBucket("test-write", 3l);
+
+        when(bucketRepository.findOneByBucketName("test-noaccess")).thenReturn(bucketNoAccess);
+        when(bucketRepository.findOneByBucketName("test-read")).thenReturn(bucketRead);
+        when(bucketRepository.findOneByBucketName("test-write")).thenReturn(bucketWrite);
+
+        when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
+        when(catalogObjectGrantService.getAllGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
+
+        List<BucketGrantEntity> bucketGrantEntityList = new LinkedList<>();
+        bucketGrantEntityList.add(createBucketGrantEntity("test-noaccess", noAccess.toString()));
+        bucketGrantEntityList.add(createBucketGrantEntity("test-read", read.toString()));
+        bucketGrantEntityList.add(createBucketGrantEntity("test-write", read.toString()));
+
+        when(bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(anyLong())).thenReturn(bucketGrantEntityList);
+
+        when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
+
+        List<BucketGrantEntity> noAccessBucketGrantEntityList = new LinkedList<>();
+        noAccessBucketGrantEntityList.add(createBucketGrantEntity("test-noaccess", noAccess.toString()));
+        when(bucketGrantRepository.findAllBucketGrantsWithNoAccessRight()).thenReturn(noAccessBucketGrantEntityList);
+
+        BucketMetadata bucketMetadataRead = new BucketMetadata("test-read", "admin", 5);
+        BucketMetadata bucketMetadataWrite = new BucketMetadata("test-write", "admin", 4);
+
+        int numberOfObjectsInTheWriteBucket = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(authenticatedUser,
+                                                                                                            bucketMetadataWrite);
+        assertEquals(4, numberOfObjectsInTheWriteBucket);
+
+        int numberOfObjectsInTheReadBucket = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(authenticatedUser,
+                                                                                                           bucketMetadataRead);
+        assertEquals(5, numberOfObjectsInTheReadBucket);
+
+    }
+
+    private BucketGrantEntity createBucketGrantEntity(String bucketName, String accessType) {
+        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity();
+        bucketGrantEntity.setGrantee("user");
+        bucketGrantEntity.setGranteeType("user");
+        bucketGrantEntity.setBucketEntity(newMockedBucket(bucketName, 1L));
+        bucketGrantEntity.setPriority(0);
+        bucketGrantEntity.setAccessType(accessType);
+        bucketGrantEntity.setCreator("admin");
+        return bucketGrantEntity;
+    }
+
+    private BucketEntity newMockedBucket(String bucketName, Long id) {
         BucketEntity mockedBucket = mock(BucketEntity.class);
         when(mockedBucket.getId()).thenReturn(id);
-        when(mockedBucket.getBucketName()).thenReturn(DUMMY_BUCKET);
+        when(mockedBucket.getBucketName()).thenReturn(bucketName);
         return mockedBucket;
     }
 
