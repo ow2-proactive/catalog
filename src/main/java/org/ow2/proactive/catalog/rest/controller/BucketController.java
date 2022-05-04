@@ -221,6 +221,7 @@ public class BucketController {
             for (BucketMetadata data : listBucket) {
                 String bucketGrantAccessType = grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
                                                                                                                           data.getName());
+                //TODO try to improve performance
                 int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(user, data);
                 BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), objectCount);
                 metadata.setRights(bucketGrantAccessType);

@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectGrantRepository;
@@ -371,6 +372,23 @@ public class CatalogObjectGrantService {
                                            .collect(Collectors.toList());
     }
 
+    //TODO comment
+    public List<CatalogObjectGrantMetadata> findAllObjectsGrantsInABucket(AuthenticatedUser user, String bucketName) {
+        long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
+        //TODO one then filter ?
+        List<CatalogObjectGrantMetadata> result = catalogObjectGrantRepository.findCatalogObjectsGrantsInABucketAssignedToAUser(bucketId,
+                                                                                                                                user.getName())
+                                                                              .stream()
+                                                                              .map(CatalogObjectGrantMetadata::new)
+                                                                              .collect(Collectors.toList());
+        result.addAll(catalogObjectGrantRepository.findCatalogObjectsGrantsInABucketAssignedToAUserGroup(bucketId,
+                                                                                                         user.getGroups())
+                                                  .stream()
+                                                  .map(CatalogObjectGrantMetadata::new)
+                                                  .collect(Collectors.toList()));
+        return result;
+    }
+
     /**
      *
      * Delete all catalog object grants assigned to a specific bucket
@@ -427,14 +445,10 @@ public class CatalogObjectGrantService {
      * @return the list of all grants with a noAccess rights assigned to a user
      */
     public List<CatalogObjectGrantMetadata> getUserNoAccessGrant(AuthenticatedUser user) {
-        List<CatalogObjectGrantEntity> userGrants = new LinkedList<>();
-        List<CatalogObjectGrantEntity> userGrant = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(user.getName());
-        if (userGrant != null) {
-            userGrants.addAll(userGrant);
-        }
+        List<CatalogObjectGrantEntity> userGrants = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(user.getName());
         List<CatalogObjectGrantEntity> userGroupGrants = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUserGroup(user.getGroups());
         if (userGroupGrants != null && !userGroupGrants.isEmpty()) {
-            userGrants.addAll(catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUserGroup(user.getGroups()));
+            userGrants.addAll(userGroupGrants);
         }
         return userGrants.stream().map(CatalogObjectGrantMetadata::new).collect(Collectors.toList());
     }
