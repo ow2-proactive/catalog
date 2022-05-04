@@ -369,6 +369,7 @@ public class BucketGrantService {
                                                                                       grant.getGranteeType()
                                                                                            .equals("group")))
                                                                     .collect(Collectors.toList());
+            userInaccessibleBuckets.removeIf(grant -> !grant.getBucketName().equals(bucket.getName()));
             if (userInaccessibleBuckets.isEmpty()) {
                 Set<String> catalogObjectsToRemove = userInaccessibleObjects.stream()
                                                                             .filter(grant -> directAccessibleBucketsForTheUser.contains(grant.getBucketName()))
