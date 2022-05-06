@@ -406,6 +406,37 @@ public class BucketGrantService {
         }
     }
 
+    //TODO only refactored for the moment, may need to compare priority between negative grant and positive grants if it's for groups
+    public int getTheNumberOfAccessibleObjectsInTheBucket(BucketMetadata bucket, List<BucketGrantMetadata> bucketGrants,
+            List<BucketGrantMetadata> bucketNoAccessGrants, List<CatalogObjectGrantMetadata> objectsPositiveGrants,
+            List<CatalogObjectGrantMetadata> objectsNoAccessGrants) {
+        if (bucketGrants.size() > 0) {
+            if (bucketNoAccessGrants.isEmpty()) {
+                Set<String> catalogObjectsToRemove = objectsNoAccessGrants.stream()
+                                                                          .map(CatalogObjectGrantMetadata::getCatalogObjectName)
+                                                                          .collect(Collectors.toSet());
+
+                return bucket.getObjectCount() - catalogObjectsToRemove.size();
+            } else {
+                // List of accessible object for the user
+                Set<String> catalogObjectsToKeep = objectsPositiveGrants.stream()
+                                                                        .map(CatalogObjectGrantMetadata::getCatalogObjectName)
+                                                                        .collect(Collectors.toSet());
+                return catalogObjectsToKeep.size();
+            }
+        } else {
+            if (objectsPositiveGrants.size() > 0) {
+                Set<String> catalogObjectsToKeep = objectsPositiveGrants.stream()
+                                                                        .map(CatalogObjectGrantMetadata::getCatalogObjectName)
+                                                                        .collect(Collectors.toSet());
+                return catalogObjectsToKeep.size();
+            } else {
+                // The bucket is public since it has no bucket or object grants
+                return bucket.getObjectCount();
+            }
+        }
+    }
+
     /**
      *
      * @param user authenticated user
@@ -483,6 +514,15 @@ public class BucketGrantService {
                                     .collect(Collectors.toList());
     }
 
+    public List<BucketGrantMetadata> getNoAccessGrants(AuthenticatedUser user) {
+        return getAllNoAccessGrants().stream()
+                                     .filter(grant -> (grant.getGrantee().equals(user.getName()) &&
+                                                       grant.getGranteeType().equals("user")) ||
+                                                      (user.getGroups().contains(grant.getGrantee()) &&
+                                                       grant.getGranteeType().equals("group")))
+                                     .collect(Collectors.toList());
+    }
+
     public List<BucketGrantMetadata> getNoAccessGrants(AuthenticatedUser user, String bucketName) {
         long bucketId = this.getBucketIdByName(bucketName);
         List<BucketGrantMetadata> result = bucketGrantRepository.findBucketGrantsAssignedToAUsernameWithNoAccessRight(user.getName(),
@@ -526,7 +566,6 @@ public class BucketGrantService {
      * Remove from the list of catalog objects all the objects that are inaccessible for the user
      * TODO comment: the obj will be removed if the user has no specific grants on the object
      *
-     * @param user authenticated user
      * @param metadataList list of catalog object entities
      * @param grants list of catalog object grants
      */

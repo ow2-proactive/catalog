@@ -344,18 +344,24 @@ public class GrantRightsService {
 
         List<BucketGrantMetadata> userBucketGrants = bucketGrantService.getAllBucketGrantsAssignedForTheUserOnABucket(user,
                                                                                                                       bucketName);
-        if (user.getGroups().contains(bucket.getOwner().substring(6)) ||
-            bucket.getOwner().substring(6).equals("public-objects")) {
+        addGrantsForOwnerAndPublicBucket(user, bucketName, bucket.getOwner(), userBucketGrants);
+        return userBucketGrants;
+    }
+
+    public void addGrantsForOwnerAndPublicBucket(AuthenticatedUser user, String bucketName, String bucketOwner,
+            List<BucketGrantMetadata> userBucketGrants) {
+
+        if (user.getGroups().contains(bucketOwner.substring(6)) || bucketOwner.substring(6).equals("public-objects")) {
+
             BucketGrantMetadata defaultBucketGrantMetadata = new BucketGrantMetadata("group",
                                                                                      user.getName(),
-                                                                                     bucket.getOwner().substring(6),
+                                                                                     bucketOwner.substring(6),
                                                                                      "admin",
                                                                                      5,
-                                                                                     bucket.getId(),
+                                                                                     0,
                                                                                      bucketName);
             userBucketGrants.add(defaultBucketGrantMetadata);
         }
-        return userBucketGrants;
     }
 
     /**
