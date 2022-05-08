@@ -32,7 +32,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -198,7 +197,7 @@ public class BucketController {
             @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName)
             throws NotAuthenticatedException, AccessDeniedException {
 
-        List<BucketMetadata> listBucket = new ArrayList<>();
+        List<BucketMetadata> listBucket;
         log.debug("====== Get buckets list request started ======== ");
         long startTime = System.currentTimeMillis();
 
@@ -217,20 +216,23 @@ public class BucketController {
             List<BucketGrantMetadata> allBucketsGrants = bucketGrantService.getUserAllBucketsGrants(user);
             List<CatalogObjectGrantMetadata> allCatalogObjectsGrants = catalogObjectGrantService.getAllObjectsGrantsAssignedToAUser(user);
 
-            //TODO improve performance
             for (BucketMetadata bucket : listBucket) {
                 if (grantRightsService.isPublicBucket(bucket.getOwner())) {
                     bucket.setRights(admin.name());
                 } else {
-                    List<BucketGrantMetadata> bucketGrants = filterBucketGrantsByName(allBucketsGrants,
-                                                                                      bucket.getName());
+                    List<BucketGrantMetadata> bucketGrants = allBucketsGrants.stream()
+                                                                             .filter(g -> g.getBucketName()
+                                                                                           .equals(bucket.getName()))
+                                                                             .collect(Collectors.toList());
                     grantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
-                    List<CatalogObjectGrantMetadata> objectsInBucketGrants = filterObjGrantsByBucketName(allCatalogObjectsGrants,
-                                                                                                         bucket.getName());
 
-                    String bucketRights = grantRightsService.getBucketAccessType(bucketGrants);
+                    String bucketRights = grantRightsService.getBucketRights(bucketGrants);
                     bucket.setRights(bucketRights);
 
+                    List<CatalogObjectGrantMetadata> objectsInBucketGrants = allCatalogObjectsGrants.stream()
+                                                                                                    .filter(g -> g.getBucketName()
+                                                                                                                  .equals(bucket.getName()))
+                                                                                                    .collect(Collectors.toList());
                     int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(bucket,
                                                                                                     bucketGrants,
                                                                                                     objectsInBucketGrants);
@@ -276,14 +278,5 @@ public class BucketController {
             }
         }
         return bucketService.deleteEmptyBucket(bucketName);
-    }
-
-    private List<BucketGrantMetadata> filterBucketGrantsByName(List<BucketGrantMetadata> grants, String bucketName) {
-        return grants.stream().filter(g -> g.getBucketName().equals(bucketName)).collect(Collectors.toList());
-    }
-
-    private List<CatalogObjectGrantMetadata> filterObjGrantsByBucketName(List<CatalogObjectGrantMetadata> grants,
-            String bucketName) {
-        return grants.stream().filter(g -> g.getBucketName().equals(bucketName)).collect(Collectors.toList());
     }
 }

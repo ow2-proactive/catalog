@@ -311,10 +311,7 @@ public class CatalogObjectGrantService {
             AuthenticatedUser user, String bucketName, String catalogObjectName) {
         return catalogObjectGrantRepository.findAllGrantsAssignedToAnObjectInsideABucket(bucketName, catalogObjectName)
                                            .stream()
-                                           .filter(grant -> (grant.getGrantee().equals(user.getName()) &&
-                                                             grant.getGranteeType().equals("user")) ||
-                                                            (user.getGroups().contains(grant.getGrantee()) &&
-                                                             grant.getGranteeType().equals("group")))
+                                           .filter(grant -> isGrantAssignedToUserOrItsGroups(user, grant))
                                            .map(CatalogObjectGrantMetadata::new)
                                            .collect(Collectors.toList());
     }
@@ -397,17 +394,20 @@ public class CatalogObjectGrantService {
      * @return a list of objects grants in the bucket assigned to the user and its groups.
      */
     public List<CatalogObjectGrantMetadata> findAllObjectsGrantsInABucket(AuthenticatedUser user, String bucketName) {
-        long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
         return findAllCatalogObjectGrantsAssignedToABucket(bucketName).stream()
-                                                                      .filter(grant -> (grant.getGrantee()
-                                                                                             .equals(user.getName()) &&
-                                                                                        grant.getGranteeType()
-                                                                                             .equals("user")) ||
-                                                                                       (user.getGroups()
-                                                                                            .contains(grant.getGrantee()) &&
-                                                                                        grant.getGranteeType()
-                                                                                             .equals("group")))
+                                                                      .filter(grant -> isGrantAssignedToUserOrItsGroups(user,
+                                                                                                                        grant))
                                                                       .collect(Collectors.toList());
+    }
+
+    private boolean isGrantAssignedToUserOrItsGroups(AuthenticatedUser user, CatalogObjectGrantMetadata grant) {
+        return (grant.getGrantee().equals(user.getName()) && grant.getGranteeType().equals("user")) ||
+               (user.getGroups().contains(grant.getGrantee()) && grant.getGranteeType().equals("group"));
+    }
+
+    private boolean isGrantAssignedToUserOrItsGroups(AuthenticatedUser user, CatalogObjectGrantEntity grant) {
+        return (grant.getGrantee().equals(user.getName()) && grant.getGranteeType().equals("user")) ||
+               (user.getGroups().contains(grant.getGrantee()) && grant.getGranteeType().equals("group"));
     }
 
     /**

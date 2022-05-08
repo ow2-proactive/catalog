@@ -370,10 +370,10 @@ public class CatalogObjectController {
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
         // Check Grants
-        AuthenticatedUser user = null;
+        AuthenticatedUser user;
         boolean isPublicBucket = true;
-        List<CatalogObjectGrantMetadata> catalogObjectsGrants = new LinkedList<>(); // the user's positive grants for the catalog objects in the bucket
-        List<BucketGrantMetadata> bucketGrants = new LinkedList<>(); // the user's positive grants for the bucket
+        List<CatalogObjectGrantMetadata> catalogObjectsGrants = new LinkedList<>(); // the user's all grants for the catalog objects in the bucket
+        List<BucketGrantMetadata> bucketGrants = new LinkedList<>(); // the user's all grants for the bucket
         String bucketRights = "";
 
         if (sessionIdRequired) {
@@ -387,10 +387,10 @@ public class CatalogObjectController {
             if (isPublicBucket) {
                 bucketRights = admin.name();
             } else {
-                bucketGrants = bucketGrantService.getUserBucketAllGrants(user, bucketName); //grantRightsService.findAllUserBucketGrants(user, bucketName);
+                bucketGrants = bucketGrantService.getUserBucketAllGrants(user, bucketName);
                 grantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
                 catalogObjectsGrants = catalogObjectGrantService.findAllObjectsGrantsInABucket(user, bucketName);
-                bucketRights = grantRightsService.getBucketAccessType(bucketGrants);
+                bucketRights = grantRightsService.getBucketRights(bucketGrants);
             }
 
             if (!grantAccessTypeHelperService.compareGrantAccessType(bucketRights, read.toString()) &&
@@ -449,7 +449,7 @@ public class CatalogObjectController {
                                                                     .filter(grant -> grant.getGranteeType()
                                                                                           .equals("user"))
                                                                     .findFirst()
-                                                                    .map(g -> g.getAccessType());
+                                                                    .map(BucketGrantMetadata::getAccessType);
             for (CatalogObjectMetadata catalogObject : metadataList) {
                 catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
                 catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
@@ -458,10 +458,10 @@ public class CatalogObjectController {
                                                                                          .filter(g -> g.getCatalogObjectName()
                                                                                                        .equals(catalogObject.getName()))
                                                                                          .collect(Collectors.toList());
-                    catalogObject.setRights(grantRightsService.getCatalogObjectAccessType(isPublicBucket,
-                                                                                          bucketRights,
-                                                                                          userSpecificBucketRights,
-                                                                                          objectsGrants));
+                    catalogObject.setRights(grantRightsService.getCatalogObjectRights(isPublicBucket,
+                                                                                      bucketRights,
+                                                                                      userSpecificBucketRights,
+                                                                                      objectsGrants));
                 }
             }
             return ResponseEntity.ok(metadataList);

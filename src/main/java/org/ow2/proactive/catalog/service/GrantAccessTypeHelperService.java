@@ -38,7 +38,6 @@ import lombok.extern.log4j.Log4j2;
 @Transactional
 public class GrantAccessTypeHelperService {
 
-    // TODO hasAtLeastPermissionOf(String accessType, AccessType permission)
     public boolean compareGrantAccessType(String currentAccessType, String requiredAccessType) {
         // If user grant exists over this bucket, check the access type
         // else check the access type of the user group grant over this bucket
