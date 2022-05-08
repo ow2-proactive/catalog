@@ -98,6 +98,9 @@ public class CatalogObjectController {
     private CatalogObjectService catalogObjectService;
 
     @Autowired
+    private BucketService bucketService;
+
+    @Autowired
     private RestApiAccessService restApiAccessService;
 
     @Autowired
@@ -368,6 +371,7 @@ public class CatalogObjectController {
 
         // Check Grants
         AuthenticatedUser user = null;
+        boolean isPublicBucket = true;
         List<CatalogObjectGrantMetadata> catalogObjectsGrants = new LinkedList<>(); // the user's positive grants for the catalog objects in the bucket
         List<BucketGrantMetadata> bucketGrants = new LinkedList<>(); // the user's positive grants for the bucket
         String bucketRights = "";
@@ -378,9 +382,16 @@ public class CatalogObjectController {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
             user = restApiAccessService.getUserFromSessionId(sessionId);
-            bucketGrants = grantRightsService.findAllUserBucketGrants(user, bucketName);
-            catalogObjectsGrants = catalogObjectGrantService.findAllObjectsGrantsInABucket(user, bucketName);
-            bucketRights = grantRightsService.getBucketAccessType(bucketGrants);
+            BucketMetadata bucket = bucketService.getBucketMetadata(bucketName);
+            isPublicBucket = grantRightsService.isPublicBucket(bucket.getOwner());
+            if (isPublicBucket) {
+                bucketRights = admin.name();
+            } else {
+                bucketGrants = bucketGrantService.getUserBucketAllGrants(user, bucketName); //grantRightsService.findAllUserBucketGrants(user, bucketName);
+                grantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
+                catalogObjectsGrants = catalogObjectGrantService.findAllObjectsGrantsInABucket(user, bucketName);
+                bucketRights = grantRightsService.getBucketAccessType(bucketGrants);
+            }
 
             if (!grantAccessTypeHelperService.compareGrantAccessType(bucketRights, read.toString()) &&
                 catalogObjectsGrants.isEmpty()) {
@@ -423,23 +434,15 @@ public class CatalogObjectController {
                                                                                                pageNo,
                                                                                                pageSize);
 
-            /*
-             * This case indicates that the user has gained access to the bucket content
-             * via the object grant only, therefore all inaccessible objects will be removed
-             */
-            if (sessionIdRequired) {
-                if (bucketGrants.isEmpty() && !catalogObjectsGrants.isEmpty()) {
+            if (sessionIdRequired && !isPublicBucket) {
+                // This case indicates that the user has gained access to the bucket content via the object grant only, therefore all inaccessible objects will be removed
+                if (bucketRights.equals(noAccess.name()) && !catalogObjectsGrants.isEmpty()) {
                     // remove all objects that the user doesn't have a positive grant over them
                     bucketGrantService.removeObjectsWithoutGrants(metadataList, catalogObjectsGrants);
                 }
-                List<CatalogObjectGrantMetadata> objectsNoAccessGrants = catalogObjectGrantService.getUserNoAccessGrant(user);
-                List<BucketGrantMetadata> bucketNoAccessGrants = bucketGrantService.getNoAccessGrants(user, bucketName);
+
                 // remove all objects that the user has a noAccess grant over them
-                grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList,
-                                                                     objectsNoAccessGrants,
-                                                                     catalogObjectsGrants,
-                                                                     bucketNoAccessGrants,
-                                                                     bucketGrants);
+                grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, bucketGrants, catalogObjectsGrants);
             }
 
             Optional<String> userSpecificBucketRights = bucketGrants.stream()
@@ -448,23 +451,18 @@ public class CatalogObjectController {
                                                                     .findFirst()
                                                                     .map(g -> g.getAccessType());
             for (CatalogObjectMetadata catalogObject : metadataList) {
-                if (sessionIdRequired) {
-                    List<CatalogObjectGrantMetadata> userObjectGrants = catalogObjectsGrants.stream()
-                                                                                            .filter(g -> g.getCatalogObjectName()
-                                                                                                          .equals(catalogObject.getName()))
-                                                                                            .collect(Collectors.toList());
-                    String objectRights = bucketRights;
-                    if (!userObjectGrants.isEmpty()) {
-                        objectRights = grantRightsService.getCatalogObjectAccessType(bucketName,
-                                                                                     catalogObject.getName(),
-                                                                                     userSpecificBucketRights,
-                                                                                     userObjectGrants);
-                    }
-                    catalogObject.setRights(objectRights);
-                }
-
                 catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
                 catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
+                if (sessionIdRequired) {
+                    List<CatalogObjectGrantMetadata> objectsGrants = catalogObjectsGrants.stream()
+                                                                                         .filter(g -> g.getCatalogObjectName()
+                                                                                                       .equals(catalogObject.getName()))
+                                                                                         .collect(Collectors.toList());
+                    catalogObject.setRights(grantRightsService.getCatalogObjectAccessType(isPublicBucket,
+                                                                                          bucketRights,
+                                                                                          userSpecificBucketRights,
+                                                                                          objectsGrants));
+                }
             }
             return ResponseEntity.ok(metadataList);
         }

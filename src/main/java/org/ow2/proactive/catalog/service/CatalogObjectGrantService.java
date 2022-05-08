@@ -28,7 +28,6 @@ package org.ow2.proactive.catalog.service;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectGrantRepository;
@@ -320,7 +319,25 @@ public class CatalogObjectGrantService {
                                            .collect(Collectors.toList());
     }
 
-    public List<CatalogObjectGrantMetadata> getAllGrantsAssignedToAUser(AuthenticatedUser user) {
+    /**
+     * Get the list of positive catalog object grants assigned to the user and its groups for all the catalog objects.
+     *
+     * @param user authenticated user
+     * @return the list of all the catalog object grants assigned to the user and its groups
+     */
+    public List<CatalogObjectGrantMetadata> getAccessibleObjectsGrantsAssignedToAUser(AuthenticatedUser user) {
+        List<CatalogObjectGrantEntity> userGrants = catalogObjectGrantRepository.findAllAccessibleObjectGrantsAssignedToAUser(user.getName());
+        userGrants.addAll(catalogObjectGrantRepository.findAllAccessibleObjectGrantsAssignedToUserGroups(user.getGroups()));
+        return userGrants.stream().map(CatalogObjectGrantMetadata::new).collect(Collectors.toList());
+    }
+
+    /**
+     * Get the list of all the catalog object grants assigned to the user and its groups for all the catalog objects.
+     *
+     * @param user authenticated user
+     * @return the list of all the catalog object grants assigned to the user and its groups
+     */
+    public List<CatalogObjectGrantMetadata> getAllObjectsGrantsAssignedToAUser(AuthenticatedUser user) {
         List<CatalogObjectGrantEntity> userGrants = catalogObjectGrantRepository.findAllObjectGrantsAssignedToAUser(user.getName());
         userGrants.addAll(catalogObjectGrantRepository.findAllObjectGrantsAssignedToUserGroups(user.getGroups()));
         return userGrants.stream().map(CatalogObjectGrantMetadata::new).collect(Collectors.toList());
@@ -372,21 +389,25 @@ public class CatalogObjectGrantService {
                                            .collect(Collectors.toList());
     }
 
-    //TODO comment
+    /**
+     * Get the list of grants (including all access types) for the catalog objects in the specific bucket assigned to the specific user and its groups.
+     *
+     * @param user authenticated user
+     * @param bucketName name of the specific bucket
+     * @return a list of objects grants in the bucket assigned to the user and its groups.
+     */
     public List<CatalogObjectGrantMetadata> findAllObjectsGrantsInABucket(AuthenticatedUser user, String bucketName) {
         long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
-        //TODO one then filter ?
-        List<CatalogObjectGrantMetadata> result = catalogObjectGrantRepository.findCatalogObjectsGrantsInABucketAssignedToAUser(bucketId,
-                                                                                                                                user.getName())
-                                                                              .stream()
-                                                                              .map(CatalogObjectGrantMetadata::new)
-                                                                              .collect(Collectors.toList());
-        result.addAll(catalogObjectGrantRepository.findCatalogObjectsGrantsInABucketAssignedToAUserGroup(bucketId,
-                                                                                                         user.getGroups())
-                                                  .stream()
-                                                  .map(CatalogObjectGrantMetadata::new)
-                                                  .collect(Collectors.toList()));
-        return result;
+        return findAllCatalogObjectGrantsAssignedToABucket(bucketName).stream()
+                                                                      .filter(grant -> (grant.getGrantee()
+                                                                                             .equals(user.getName()) &&
+                                                                                        grant.getGranteeType()
+                                                                                             .equals("user")) ||
+                                                                                       (user.getGroups()
+                                                                                            .contains(grant.getGrantee()) &&
+                                                                                        grant.getGranteeType()
+                                                                                             .equals("group")))
+                                                                      .collect(Collectors.toList());
     }
 
     /**

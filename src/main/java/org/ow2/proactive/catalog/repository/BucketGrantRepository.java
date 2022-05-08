@@ -47,6 +47,12 @@ public interface BucketGrantRepository extends JpaRepository<BucketGrantEntity, 
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.bucketEntity.id = ?1 AND bge.grantee = ?2 AND bge.granteeType='group'")
     BucketGrantEntity findBucketGrantByUserGroup(long bucketId, String userGroup);
 
+    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee = ?1 AND bge.granteeType='user'")
+    List<BucketGrantEntity> findAllBucketsGrantsByUsername(String username);
+
+    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee in ?1 AND bge.granteeType='group'")
+    List<BucketGrantEntity> findAllBucketsGrantsByUserGroup(List<String> userGroup);
+
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee = ?1 And bge.granteeType='user' AND bge.accessType<>'noAccess'")
     List<BucketGrantEntity> findAllAccessibleBucketGrantsAssignedToAUsername(String username);
 

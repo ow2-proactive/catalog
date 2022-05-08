@@ -63,7 +63,7 @@ public class GrantRightServiceTest {
         userGroups.add("user");
         AuthenticatedUser authenticatedUser = AuthenticatedUser.builder().name("user").groups(userGroups).build();
         when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
-        when(catalogObjectGrantService.getAllGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
+        when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
 
         List<BucketGrantMetadata> bucketGrantMetadataList = new LinkedList<>();
         bucketGrantMetadataList.add(createBucketGrantMetadata("user", noAccess.toString(), "bucket"));
@@ -77,11 +77,7 @@ public class GrantRightServiceTest {
         metadataList.add(createCatalogObject(bucketName, "object2"));
         metadataList.add(createCatalogObject(bucketName, "object3"));
 
-        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList,
-                                                             new LinkedList<>(),
-                                                             new LinkedList<>(),
-                                                             new LinkedList<>(),
-                                                             new LinkedList<>());
+        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, new LinkedList<>(), new LinkedList<>());
 
         assertEquals(3, metadataList.size());
     }
@@ -92,7 +88,7 @@ public class GrantRightServiceTest {
         userGroups.add("user");
         AuthenticatedUser authenticatedUser = AuthenticatedUser.builder().name("user").groups(userGroups).build();
         when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
-        when(catalogObjectGrantService.getAllGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
+        when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
 
         List<BucketGrantMetadata> bucketGrantMetadataList = new LinkedList<>();
         bucketGrantMetadataList.add(createBucketGrantMetadata("user", noAccess.toString(), bucketName));
@@ -105,11 +101,7 @@ public class GrantRightServiceTest {
         metadataList.add(createCatalogObject(bucketName, "object2"));
         metadataList.add(createCatalogObject(bucketName, "object3"));
 
-        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList,
-                                                             new LinkedList<>(),
-                                                             new LinkedList<>(),
-                                                             bucketGrantMetadataList,
-                                                             new LinkedList<>());
+        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, bucketGrantMetadataList, new LinkedList<>());
 
         assertEquals(0, metadataList.size());
     }
@@ -125,7 +117,7 @@ public class GrantRightServiceTest {
         List<CatalogObjectGrantMetadata> objectGrants = new LinkedList<>();
         objectGrants.add(catalogObjectGrantMetadata);
 
-        when(catalogObjectGrantService.getAllGrantsAssignedToAUser(authenticatedUser)).thenReturn(objectGrants);
+        when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(objectGrants);
 
         List<BucketGrantMetadata> bucketGrantMetadataList = new LinkedList<>();
         bucketGrantMetadataList.add(createBucketGrantMetadata("user", noAccess.toString(), bucketName));
@@ -138,11 +130,7 @@ public class GrantRightServiceTest {
         metadataList.add(createCatalogObject(bucketName, "object2"));
         metadataList.add(createCatalogObject(bucketName, "object3"));
 
-        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList,
-                                                             new LinkedList<>(),
-                                                             objectGrants,
-                                                             bucketGrantMetadataList,
-                                                             new LinkedList<>());
+        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, bucketGrantMetadataList, objectGrants);
 
         assertEquals(1, metadataList.size());
     }

@@ -294,7 +294,7 @@ public class BucketGrantServiceTest {
         when(bucketRepository.findOneByBucketName("test-write")).thenReturn(bucketWrite);
 
         when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
-        when(catalogObjectGrantService.getAllGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
+        when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
 
         List<BucketGrantEntity> bucketGrantEntityList = new LinkedList<>();
         bucketGrantEntityList.add(createBucketGrantEntity("test-noaccess", noAccess.toString()));

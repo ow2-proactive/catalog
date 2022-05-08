@@ -33,11 +33,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
@@ -48,7 +45,6 @@ import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
-import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -218,39 +214,29 @@ public class BucketController {
             listBucket = bucketService.getBucketsByGroups(ownerName, kind, contentType, objectName, user::getGroups);
             listBucket.addAll(grantRightsService.getBucketsForUserByGrantsAndPriority(user));
 
-            log.info("====== start bucket loop; start setRights =========");
-
-            List<BucketGrantMetadata> allBucketsGrants = bucketGrantService.getAllBucketGrantsAssignedToAUser(user);
-            List<BucketGrantMetadata> bucketsNoAccessGrants = bucketGrantService.getNoAccessGrants(user);
-            List<CatalogObjectGrantMetadata> allCatalogObjectsGrants = catalogObjectGrantService.getAllGrantsAssignedToAUser(user);
-            List<CatalogObjectGrantMetadata> objectsNoAccessGrants = catalogObjectGrantService.getUserNoAccessGrant(user);
+            List<BucketGrantMetadata> allBucketsGrants = bucketGrantService.getUserAllBucketsGrants(user);
+            List<CatalogObjectGrantMetadata> allCatalogObjectsGrants = catalogObjectGrantService.getAllObjectsGrantsAssignedToAUser(user);
 
             //TODO improve performance
             for (BucketMetadata bucket : listBucket) {
-                List<BucketGrantMetadata> bucketPositiveGrants = filterBucketGrantsByName(allBucketsGrants,
-                                                                                          bucket.getName());
-                grantRightsService.addGrantsForOwnerAndPublicBucket(user,
-                                                                    bucket.getName(),
-                                                                    bucket.getOwner(),
-                                                                    bucketPositiveGrants);
-                List<BucketGrantMetadata> bucketNoAccessGrants = filterBucketGrantsByName(bucketsNoAccessGrants,
-                                                                                          bucket.getName());
-                List<CatalogObjectGrantMetadata> objectsInBucketPositiveGrants = filterObjGrantsByBucketName(allCatalogObjectsGrants,
-                                                                                                             bucket.getName());
-                List<CatalogObjectGrantMetadata> objectsInBucketNoAccessGrants = filterObjGrantsByBucketName(objectsNoAccessGrants,
-                                                                                                             bucket.getName());
+                if (grantRightsService.isPublicBucket(bucket.getOwner())) {
+                    bucket.setRights(admin.name());
+                } else {
+                    List<BucketGrantMetadata> bucketGrants = filterBucketGrantsByName(allBucketsGrants,
+                                                                                      bucket.getName());
+                    grantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
+                    List<CatalogObjectGrantMetadata> objectsInBucketGrants = filterObjGrantsByBucketName(allCatalogObjectsGrants,
+                                                                                                         bucket.getName());
 
-                String bucketRights = grantRightsService.getBucketAccessType(bucketPositiveGrants);
-                bucket.setRights(bucketRights);
+                    String bucketRights = grantRightsService.getBucketAccessType(bucketGrants);
+                    bucket.setRights(bucketRights);
 
-                int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(bucket,
-                                                                                                bucketPositiveGrants,
-                                                                                                bucketNoAccessGrants,
-                                                                                                objectsInBucketPositiveGrants,
-                                                                                                objectsInBucketNoAccessGrants);
-                bucket.setObjectCount(objectCount);
+                    int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(bucket,
+                                                                                                    bucketGrants,
+                                                                                                    objectsInBucketGrants);
+                    bucket.setObjectCount(objectCount);
+                }
             }
-            log.info("====== end setObjectCount; end bucket loop =========");
         } else {
             listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName);
         }
