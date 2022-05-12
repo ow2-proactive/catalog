@@ -47,6 +47,13 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.bucket.id = ?1")
     List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketEntityId(long bucketId);
 
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.bucket.id = ?1 AND coge.grantee = ?2 And coge.granteeType='user'")
+    List<CatalogObjectGrantEntity> findCatalogObjectsGrantsInABucketAssignedToAUser(long bucketId, String username);
+
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.bucket.id = ?1 AND coge.grantee in ?2 And coge.granteeType='group'")
+    List<CatalogObjectGrantEntity> findCatalogObjectsGrantsInABucketAssignedToAUserGroup(long bucketId,
+            List<String> userGroup);
+
     //TODO to test
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.bucket.bucketName = ?1 AND  coge.catalogObject.id.name = ?2 AND coge.accessType<>'noAccess'")
     List<CatalogObjectGrantEntity> findAllGrantsAssignedToAnObjectInsideABucket(String bucketName,
@@ -76,8 +83,14 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
             findAllObjectGrantsWithNoAccessRightsAndAssignedToAUserGroup(List<String> userGroups);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user' AND coge.accessType<>'noAccess'")
-    List<CatalogObjectGrantEntity> findAllObjectGrantsAssignedToAUser(String username);
+    List<CatalogObjectGrantEntity> findAllAccessibleObjectGrantsAssignedToAUser(String username);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee in ?1 AND coge.granteeType='group' AND coge.accessType<>'noAccess'")
+    List<CatalogObjectGrantEntity> findAllAccessibleObjectGrantsAssignedToUserGroups(List<String> userGroup);
+
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user'")
+    List<CatalogObjectGrantEntity> findAllObjectGrantsAssignedToAUser(String username);
+
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee in ?1 AND coge.granteeType='group'")
     List<CatalogObjectGrantEntity> findAllObjectGrantsAssignedToUserGroups(List<String> userGroup);
 }

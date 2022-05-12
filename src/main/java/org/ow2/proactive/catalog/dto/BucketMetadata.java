@@ -48,7 +48,7 @@ public class BucketMetadata extends ResourceSupport {
     private final String name;
 
     @JsonProperty
-    private final int objectCount;
+    private int objectCount;
 
     @JsonProperty
     private String rights;
@@ -83,6 +83,10 @@ public class BucketMetadata extends ResourceSupport {
 
     public String getName() {
         return name;
+    }
+
+    public void setObjectCount(int objectCount) {
+        this.objectCount = objectCount;
     }
 
     public void setRights(String rights) {

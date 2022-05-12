@@ -311,15 +311,30 @@ public class CatalogObjectGrantService {
             AuthenticatedUser user, String bucketName, String catalogObjectName) {
         return catalogObjectGrantRepository.findAllGrantsAssignedToAnObjectInsideABucket(bucketName, catalogObjectName)
                                            .stream()
-                                           .filter(grant -> (grant.getGrantee().equals(user.getName()) &&
-                                                             grant.getGranteeType().equals("user")) ||
-                                                            (user.getGroups().contains(grant.getGrantee()) &&
-                                                             grant.getGranteeType().equals("group")))
+                                           .filter(grant -> isGrantAssignedToUserOrItsGroups(user, grant))
                                            .map(CatalogObjectGrantMetadata::new)
                                            .collect(Collectors.toList());
     }
 
-    public List<CatalogObjectGrantMetadata> getAllGrantsAssignedToAUser(AuthenticatedUser user) {
+    /**
+     * Get the list of positive catalog object grants assigned to the user and its groups for all the catalog objects.
+     *
+     * @param user authenticated user
+     * @return the list of all the catalog object grants assigned to the user and its groups
+     */
+    public List<CatalogObjectGrantMetadata> getAccessibleObjectsGrantsAssignedToAUser(AuthenticatedUser user) {
+        List<CatalogObjectGrantEntity> userGrants = catalogObjectGrantRepository.findAllAccessibleObjectGrantsAssignedToAUser(user.getName());
+        userGrants.addAll(catalogObjectGrantRepository.findAllAccessibleObjectGrantsAssignedToUserGroups(user.getGroups()));
+        return userGrants.stream().map(CatalogObjectGrantMetadata::new).collect(Collectors.toList());
+    }
+
+    /**
+     * Get the list of all the catalog object grants assigned to the user and its groups for all the catalog objects.
+     *
+     * @param user authenticated user
+     * @return the list of all the catalog object grants assigned to the user and its groups
+     */
+    public List<CatalogObjectGrantMetadata> getAllObjectsGrantsAssignedToAUser(AuthenticatedUser user) {
         List<CatalogObjectGrantEntity> userGrants = catalogObjectGrantRepository.findAllObjectGrantsAssignedToAUser(user.getName());
         userGrants.addAll(catalogObjectGrantRepository.findAllObjectGrantsAssignedToUserGroups(user.getGroups()));
         return userGrants.stream().map(CatalogObjectGrantMetadata::new).collect(Collectors.toList());
@@ -369,6 +384,30 @@ public class CatalogObjectGrantService {
                                            .stream()
                                            .map(CatalogObjectGrantMetadata::new)
                                            .collect(Collectors.toList());
+    }
+
+    /**
+     * Get the list of grants (including all access types) for the catalog objects in the specific bucket assigned to the specific user and its groups.
+     *
+     * @param user authenticated user
+     * @param bucketName name of the specific bucket
+     * @return a list of objects grants in the bucket assigned to the user and its groups.
+     */
+    public List<CatalogObjectGrantMetadata> findAllObjectsGrantsInABucket(AuthenticatedUser user, String bucketName) {
+        return findAllCatalogObjectGrantsAssignedToABucket(bucketName).stream()
+                                                                      .filter(grant -> isGrantAssignedToUserOrItsGroups(user,
+                                                                                                                        grant))
+                                                                      .collect(Collectors.toList());
+    }
+
+    private boolean isGrantAssignedToUserOrItsGroups(AuthenticatedUser user, CatalogObjectGrantMetadata grant) {
+        return (grant.getGrantee().equals(user.getName()) && grant.getGranteeType().equals("user")) ||
+               (user.getGroups().contains(grant.getGrantee()) && grant.getGranteeType().equals("group"));
+    }
+
+    private boolean isGrantAssignedToUserOrItsGroups(AuthenticatedUser user, CatalogObjectGrantEntity grant) {
+        return (grant.getGrantee().equals(user.getName()) && grant.getGranteeType().equals("user")) ||
+               (user.getGroups().contains(grant.getGrantee()) && grant.getGranteeType().equals("group"));
     }
 
     /**
@@ -427,14 +466,10 @@ public class CatalogObjectGrantService {
      * @return the list of all grants with a noAccess rights assigned to a user
      */
     public List<CatalogObjectGrantMetadata> getUserNoAccessGrant(AuthenticatedUser user) {
-        List<CatalogObjectGrantEntity> userGrants = new LinkedList<>();
-        List<CatalogObjectGrantEntity> userGrant = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(user.getName());
-        if (userGrant != null) {
-            userGrants.addAll(userGrant);
-        }
+        List<CatalogObjectGrantEntity> userGrants = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(user.getName());
         List<CatalogObjectGrantEntity> userGroupGrants = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUserGroup(user.getGroups());
         if (userGroupGrants != null && !userGroupGrants.isEmpty()) {
-            userGrants.addAll(catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUserGroup(user.getGroups()));
+            userGrants.addAll(userGroupGrants);
         }
         return userGrants.stream().map(CatalogObjectGrantMetadata::new).collect(Collectors.toList());
     }

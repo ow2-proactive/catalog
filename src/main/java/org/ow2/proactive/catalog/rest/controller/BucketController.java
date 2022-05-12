@@ -32,17 +32,18 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
+import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
 import org.ow2.proactive.catalog.service.*;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
-import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -205,31 +206,39 @@ public class BucketController {
         contentType = contentType.filter(s -> !s.isEmpty());
         objectName = objectName.filter(s -> !s.isEmpty());
         if (sessionIdRequired) {
-            RestApiAccessResponse restApiAccessResponse = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
-                                                                                                                                       ownerName);
+            AuthenticatedUser user = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
+                                                                                                                  ownerName)
+                                                         .getAuthenticatedUser();
             log.debug("bucket list timer : validate session : " + (System.currentTimeMillis() - startTime) + " ms");
-            listBucket = bucketService.getBucketsByGroups(ownerName,
-                                                          kind,
-                                                          contentType,
-                                                          objectName,
-                                                          () -> restApiAccessResponse.getAuthenticatedUser()
-                                                                                     .getGroups());
-
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            listBucket = bucketService.getBucketsByGroups(ownerName, kind, contentType, objectName, user::getGroups);
             listBucket.addAll(grantRightsService.getBucketsForUserByGrantsAndPriority(user));
-            List<BucketMetadata> res = new LinkedList<>();
-            for (BucketMetadata data : listBucket) {
-                String bucketGrantAccessType = grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
-                                                                                                                          data.getName());
-                int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(user, data);
-                BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), objectCount);
-                metadata.setRights(bucketGrantAccessType);
-                if (!res.contains(metadata)) {
-                    res.add(metadata);
+
+            List<BucketGrantMetadata> allBucketsGrants = bucketGrantService.getUserAllBucketsGrants(user);
+            List<CatalogObjectGrantMetadata> allCatalogObjectsGrants = catalogObjectGrantService.getAllObjectsGrantsAssignedToAUser(user);
+
+            for (BucketMetadata bucket : listBucket) {
+                if (grantRightsService.isPublicBucket(bucket.getOwner())) {
+                    bucket.setRights(admin.name());
+                } else {
+                    List<BucketGrantMetadata> bucketGrants = allBucketsGrants.stream()
+                                                                             .filter(g -> g.getBucketName()
+                                                                                           .equals(bucket.getName()))
+                                                                             .collect(Collectors.toList());
+                    grantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
+
+                    String bucketRights = grantRightsService.getBucketRights(bucketGrants);
+                    bucket.setRights(bucketRights);
+
+                    List<CatalogObjectGrantMetadata> objectsInBucketGrants = allCatalogObjectsGrants.stream()
+                                                                                                    .filter(g -> g.getBucketName()
+                                                                                                                  .equals(bucket.getName()))
+                                                                                                    .collect(Collectors.toList());
+                    int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(bucket,
+                                                                                                    bucketGrants,
+                                                                                                    objectsInBucketGrants);
+                    bucket.setObjectCount(objectCount);
                 }
             }
-            listBucket.clear();
-            listBucket.addAll(res);
         } else {
             listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName);
         }
