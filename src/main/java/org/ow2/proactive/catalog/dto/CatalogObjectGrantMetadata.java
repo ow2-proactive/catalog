@@ -25,8 +25,11 @@
  */
 package org.ow2.proactive.catalog.dto;
 
+import java.util.Deque;
+
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectGrantEntity;
 import org.ow2.proactive.catalog.util.CatalogObjectID;
+import org.ow2.proactive.catalog.util.ModificationHistoryData;
 import org.springframework.hateoas.ResourceSupport;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -68,6 +71,12 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
     @JsonProperty
     private final String bucketName;
 
+    @JsonProperty
+    protected long creationDate;
+
+    @JsonProperty
+    protected Deque<ModificationHistoryData> modificationHistory;
+
     public CatalogObjectGrantMetadata(String granteeType, String creator, String grantee, String accessType,
             int priority, CatalogObjectID catalogObjectId, String catalogObjectName, long catalogObjectBucketId,
             String bucketName) {
@@ -102,6 +111,8 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
             this.catalogObjectBucketId = 1L;
             this.bucketName = "";
         }
+        this.creationDate = catalogObjectGrantEntity.getCreationDate();
+        this.modificationHistory = catalogObjectGrantEntity.getModificationHistory();
     }
 
 }

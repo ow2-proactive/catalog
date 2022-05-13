@@ -106,7 +106,8 @@ public class BucketGrantController {
         } else {
             user = AuthenticatedUser.EMPTY;
         }
-        BucketGrantMetadata updatedUserGrant = bucketGrantService.updateBucketGrantForASpecificUser(bucketName,
+        BucketGrantMetadata updatedUserGrant = bucketGrantService.updateBucketGrantForASpecificUser(user,
+                                                                                                    bucketName,
                                                                                                     username,
                                                                                                     accessType);
         if (sessionIdRequired) {
@@ -155,7 +156,8 @@ public class BucketGrantController {
         } else {
             user = AuthenticatedUser.EMPTY;
         }
-        BucketGrantMetadata updatedUserGroupGrant = bucketGrantService.updateBucketGrantForASpecificUserGroup(bucketName,
+        BucketGrantMetadata updatedUserGroupGrant = bucketGrantService.updateBucketGrantForASpecificUserGroup(user,
+                                                                                                              bucketName,
                                                                                                               userGroup,
                                                                                                               accessType,
                                                                                                               priority);
