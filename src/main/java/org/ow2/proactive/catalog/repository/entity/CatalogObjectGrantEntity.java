@@ -26,10 +26,16 @@
 package org.ow2.proactive.catalog.repository.entity;
 
 import java.io.Serializable;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import javax.persistence.*;
 
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SerializableToBlobType;
+import org.ow2.proactive.catalog.util.ModificationHistoryData;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -79,6 +85,14 @@ public class CatalogObjectGrantEntity implements Serializable {
                    @JoinColumn(name = "NAME", referencedColumnName = "NAME") })
     private CatalogObjectEntity catalogObject;
 
+    // Created date
+    @Column(name = "CREATION_DATE")
+    protected long creationDate;
+
+    @Column(name = "MODIFICATION_HISTORY", length = Integer.MAX_VALUE)
+    @Type(type = "org.hibernate.type.SerializableToBlobType", parameters = @Parameter(name = SerializableToBlobType.CLASS_NAME, value = "java.lang.Object"))
+    protected Deque<ModificationHistoryData> modificationHistory;
+
     public CatalogObjectGrantEntity() {
     }
 
@@ -90,6 +104,8 @@ public class CatalogObjectGrantEntity implements Serializable {
         this.grantee = grantee;
         this.accessType = accessType;
         this.catalogObject = catalogObjectEntity;
+        this.creationDate = System.currentTimeMillis();
+        this.modificationHistory = new ArrayDeque<>();
     }
 
     // Constructor used to create group grant
@@ -101,5 +117,16 @@ public class CatalogObjectGrantEntity implements Serializable {
         this.accessType = accessType;
         this.priority = priority;
         this.catalogObject = catalogObjectEntity;
+        this.creationDate = System.currentTimeMillis();
+        this.modificationHistory = new ArrayDeque<>();
+    }
+
+    @Override
+    public String toString() {
+        if (this.granteeType.equals("user")) {
+            return accessType;
+        } else {
+            return accessType + "/" + priority;
+        }
     }
 }

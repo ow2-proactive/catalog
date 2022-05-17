@@ -98,7 +98,8 @@ public class BucketGrantServiceTest {
         when(bucketGrantRepository.findBucketGrantByUsername(mockedBucket.getId(),
                                                              DUMMY_USERNAME)).thenReturn(bucketGrantEntity);
 
-        BucketGrantMetadata result = bucketGrantService.updateBucketGrantForASpecificUser(DUMMY_BUCKET,
+        BucketGrantMetadata result = bucketGrantService.updateBucketGrantForASpecificUser(AuthenticatedUser.EMPTY,
+                                                                                          DUMMY_BUCKET,
                                                                                           DUMMY_USERNAME,
                                                                                           DUMMY_ACCESS_TYPE);
 
@@ -126,7 +127,8 @@ public class BucketGrantServiceTest {
         when(bucketGrantRepository.findBucketGrantByUserGroup(mockedBucket.getId(),
                                                               DUMMY_GROUP)).thenReturn(bucketGrantEntity);
 
-        BucketGrantMetadata result = bucketGrantService.updateBucketGrantForASpecificUserGroup(DUMMY_BUCKET,
+        BucketGrantMetadata result = bucketGrantService.updateBucketGrantForASpecificUserGroup(AuthenticatedUser.EMPTY,
+                                                                                               DUMMY_BUCKET,
                                                                                                DUMMY_GROUP,
                                                                                                DUMMY_ACCESS_TYPE,
                                                                                                1);
@@ -172,7 +174,7 @@ public class BucketGrantServiceTest {
 
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
         verify(bucketGrantRepository, times(1)).findBucketGrantByUsername(1L, DUMMY_USERNAME);
-        verify(bucketGrantRepository, times(1)).save(bucketGrantEntity);
+        verify(bucketGrantRepository, times(1)).save(any(BucketGrantEntity.class));
     }
 
     @Test
@@ -201,7 +203,7 @@ public class BucketGrantServiceTest {
 
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
         verify(bucketGrantRepository, times(1)).findBucketGrantByUserGroup(1L, DUMMY_GROUP);
-        verify(bucketGrantRepository, times(1)).save(groupBucketGrantEntity);
+        verify(bucketGrantRepository, times(1)).save(any(BucketGrantEntity.class));
     }
 
     @Test

@@ -26,10 +26,16 @@
 package org.ow2.proactive.catalog.repository.entity;
 
 import java.io.Serializable;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import javax.persistence.*;
 
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SerializableToBlobType;
+import org.ow2.proactive.catalog.util.ModificationHistoryData;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -79,6 +85,13 @@ public class BucketGrantEntity implements Serializable {
     @JoinColumn(name = "BUCKET", nullable = false)
     protected BucketEntity bucketEntity;
 
+    @Column(name = "CREATION_DATE")
+    protected long creationDate;
+
+    @Column(name = "MODIFICATION_HISTORY", length = Integer.MAX_VALUE)
+    @Type(type = "org.hibernate.type.SerializableToBlobType", parameters = @Parameter(name = SerializableToBlobType.CLASS_NAME, value = "java.lang.Object"))
+    protected Deque<ModificationHistoryData> modificationHistory;
+
     // Constructor used to create user grants
     public BucketGrantEntity(String granteeType, String creator, String grantee, String accessType,
             BucketEntity bucketEntity) {
@@ -87,6 +100,8 @@ public class BucketGrantEntity implements Serializable {
         this.grantee = grantee;
         this.accessType = accessType;
         this.bucketEntity = bucketEntity;
+        this.creationDate = System.currentTimeMillis();
+        this.modificationHistory = new ArrayDeque<>();
     }
 
     // Constructor used to create group grants
@@ -98,8 +113,20 @@ public class BucketGrantEntity implements Serializable {
         this.accessType = accessType;
         this.priority = priority;
         this.bucketEntity = bucketEntity;
+        this.creationDate = System.currentTimeMillis();
+        this.modificationHistory = new ArrayDeque<>();
     }
 
     public BucketGrantEntity() {
     }
+
+    @Override
+    public String toString() {
+        if (this.granteeType.equals("user")) {
+            return accessType;
+        } else {
+            return accessType + "/" + priority;
+        }
+    }
+
 }

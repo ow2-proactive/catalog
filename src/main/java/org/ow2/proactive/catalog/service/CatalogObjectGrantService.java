@@ -38,6 +38,7 @@ import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundExceptio
 import org.ow2.proactive.catalog.service.exception.GrantNotFoundException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AccessTypeValidator;
+import org.ow2.proactive.catalog.util.ModificationHistoryData;
 import org.ow2.proactive.catalog.util.PriorityLevelValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -222,8 +223,8 @@ public class CatalogObjectGrantService {
      * @return the updated user object grant
      */
     @Transactional
-    public CatalogObjectGrantMetadata updateCatalogObjectGrantForAUser(String username, String catalogObjectName,
-            String bucketName, String accessType) {
+    public CatalogObjectGrantMetadata updateCatalogObjectGrantForAUser(AuthenticatedUser currentUser, String username,
+            String catalogObjectName, String bucketName, String accessType) {
         accessType = AccessTypeValidator.checkAndValidateTheGivenAccessType(accessType);
         List<String> bucketsName = new LinkedList<>();
         bucketsName.add(bucketName);
@@ -236,7 +237,19 @@ public class CatalogObjectGrantService {
                                                                                                                                    username,
                                                                                                                                    bucket.getId());
         if (catalogObjectGrantEntity != null) {
+            String oldValue = catalogObjectGrantEntity.toString();
+            // Update the access type
             catalogObjectGrantEntity.setAccessType(accessType);
+            // Add modification history
+            ModificationHistoryData modificationHistoryData = new ModificationHistoryData(System.currentTimeMillis(),
+                                                                                          currentUser.getName());
+            // Set old values in history
+            modificationHistoryData.setOldValues(oldValue);
+            // Set new values in history
+            modificationHistoryData.setNewValues(catalogObjectGrantEntity.toString());
+            // Compute changes
+            modificationHistoryData.computeChanges("user", oldValue, catalogObjectGrantEntity.toString());
+            catalogObjectGrantEntity.getModificationHistory().push(modificationHistoryData);
         } else {
             throw new GrantNotFoundException(username, bucketName, catalogObjectName);
         }
@@ -253,8 +266,8 @@ public class CatalogObjectGrantService {
      * @return the updated group object grant
      */
     @Transactional
-    public CatalogObjectGrantMetadata updateCatalogObjectGrantForAGroup(String userGroup, String catalogObjectName,
-            String bucketName, String accessType, int priority) {
+    public CatalogObjectGrantMetadata updateCatalogObjectGrantForAGroup(AuthenticatedUser currentUser, String userGroup,
+            String catalogObjectName, String bucketName, String accessType, int priority) {
         PriorityLevelValidator.checkAndValidateTheGivenPriorityLevel(priority);
         accessType = AccessTypeValidator.checkAndValidateTheGivenAccessType(accessType);
         List<String> bucketsName = new LinkedList<>();
@@ -267,8 +280,21 @@ public class CatalogObjectGrantService {
                                                                                                                                     userGroup,
                                                                                                                                     bucket.getId());
         if (catalogObjectGrantEntity != null) {
+            String oldValue = catalogObjectGrantEntity.toString();
+            // Update th access type
             catalogObjectGrantEntity.setAccessType(accessType);
+            // Update the priority
             catalogObjectGrantEntity.setPriority(priority);
+            // Add modification history
+            ModificationHistoryData modificationHistoryData = new ModificationHistoryData(System.currentTimeMillis(),
+                                                                                          currentUser.getName());
+            // Set old values in history
+            modificationHistoryData.setOldValues(oldValue);
+            // Set new values in history
+            modificationHistoryData.setNewValues(catalogObjectGrantEntity.toString());
+            // Compute changes
+            modificationHistoryData.computeChanges("group", oldValue, catalogObjectGrantEntity.toString());
+            catalogObjectGrantEntity.getModificationHistory().push(modificationHistoryData);
         } else {
             throw new GrantNotFoundException(userGroup, bucketName, catalogObjectName);
         }

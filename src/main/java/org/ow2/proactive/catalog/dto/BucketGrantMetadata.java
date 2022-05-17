@@ -25,7 +25,10 @@
  */
 package org.ow2.proactive.catalog.dto;
 
+import java.util.Deque;
+
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
+import org.ow2.proactive.catalog.util.ModificationHistoryData;
 import org.springframework.hateoas.ResourceSupport;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -61,6 +64,12 @@ public class BucketGrantMetadata extends ResourceSupport {
     @JsonProperty
     private final String bucketName;
 
+    @JsonProperty
+    protected long creationDate;
+
+    @JsonProperty
+    protected Deque<ModificationHistoryData> modificationHistory;
+
     public BucketGrantMetadata(BucketGrantEntity bucketGrantEntity) {
         this.granteeType = bucketGrantEntity.getGranteeType();
         this.creator = bucketGrantEntity.getCreator();
@@ -69,6 +78,8 @@ public class BucketGrantMetadata extends ResourceSupport {
         this.priority = bucketGrantEntity.getPriority();
         this.bucketId = bucketGrantEntity.getBucketEntity().getId();
         this.bucketName = bucketGrantEntity.getBucketEntity().getBucketName();
+        this.creationDate = bucketGrantEntity.getCreationDate();
+        this.modificationHistory = bucketGrantEntity.getModificationHistory();
     }
 
     public BucketGrantMetadata(String granteeType, String creator, String grantee, String accessType, int priority,

@@ -44,6 +44,7 @@ import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectGrantRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.*;
+import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 
 
 /**
@@ -125,7 +126,7 @@ public class CatalogObjectGrantServiceTest {
         verify(catalogObjectGrantRepository, times(1)).findCatalogObjectGrantByUsernameForUpdate(DUMMY_OBJECT,
                                                                                                  DUMMY_USERNAME,
                                                                                                  BUCKET_ID);
-        verify(catalogObjectGrantRepository, times(1)).save(catalogObjectGrantEntity);
+        verify(catalogObjectGrantRepository, times(1)).save((CatalogObjectGrantEntity) anyObject());
     }
 
     @Test
@@ -185,7 +186,8 @@ public class CatalogObjectGrantServiceTest {
                                                                                     anyString(),
                                                                                     anyLong())).thenReturn(catalogObjectGrantEntity);
         when(catalogObjectGrantRepository.save(any(CatalogObjectGrantEntity.class))).thenReturn(catalogObjectGrantEntity);
-        CatalogObjectGrantMetadata result = catalogObjectGrantService.updateCatalogObjectGrantForAUser(DUMMY_USERNAME,
+        CatalogObjectGrantMetadata result = catalogObjectGrantService.updateCatalogObjectGrantForAUser(AuthenticatedUser.EMPTY,
+                                                                                                       DUMMY_USERNAME,
                                                                                                        DUMMY_OBJECT,
                                                                                                        DUMMY_BUCKET,
                                                                                                        DUMMY_ACCESS_TYPE);

@@ -44,6 +44,7 @@ import org.ow2.proactive.catalog.service.exception.GrantNotFoundException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AccessTypeValidator;
 import org.ow2.proactive.catalog.util.AllBucketGrants;
+import org.ow2.proactive.catalog.util.ModificationHistoryData;
 import org.ow2.proactive.catalog.util.PriorityLevelValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -107,8 +108,9 @@ public class BucketGrantService {
      * @param accessType new type of the access grant. It can be either noAccess, read, write or admin.
      * @return the updated grant assigned to the user for a specific bucket
      */
-    public BucketGrantMetadata updateBucketGrantForASpecificUser(String bucketName, String username,
-            String accessType) {
+    @Transactional
+    public BucketGrantMetadata updateBucketGrantForASpecificUser(AuthenticatedUser currentUser, String bucketName,
+            String username, String accessType) {
         accessType = AccessTypeValidator.checkAndValidateTheGivenAccessType(accessType);
         // Find the bucket and get its id
         long bucketId;
@@ -118,8 +120,19 @@ public class BucketGrantService {
             // Find the bucket grant assigned to the current user
             BucketGrantEntity bucketGrantEntity = bucketGrantRepository.findBucketGrantByUsername(bucketId, username);
             if (bucketGrantEntity != null) {
+                String oldValue = bucketGrantEntity.toString();
                 // Update the access type
                 bucketGrantEntity.setAccessType(accessType);
+                // Add modification history
+                ModificationHistoryData modificationHistoryData = new ModificationHistoryData(System.currentTimeMillis(),
+                                                                                              currentUser.getName());
+                // Set old values in history
+                modificationHistoryData.setOldValues(oldValue);
+                // Set new values in history
+                modificationHistoryData.setNewValues(bucketGrantEntity.toString());
+                // Compute changes
+                modificationHistoryData.computeChanges("user", oldValue, bucketGrantEntity.toString());
+                bucketGrantEntity.getModificationHistory().push(modificationHistoryData);
                 // Save the grant
                 bucketGrantEntity = bucketGrantRepository.save(bucketGrantEntity);
                 return new BucketGrantMetadata(bucketGrantEntity);
@@ -140,8 +153,8 @@ public class BucketGrantService {
      * @return the updated grant assigned to the group of users for a specific bucket
      */
     @Transactional
-    public BucketGrantMetadata updateBucketGrantForASpecificUserGroup(String bucketName, String userGroup,
-            String accessType, int priority) {
+    public BucketGrantMetadata updateBucketGrantForASpecificUserGroup(AuthenticatedUser currentUser, String bucketName,
+            String userGroup, String accessType, int priority) {
         PriorityLevelValidator.checkAndValidateTheGivenPriorityLevel(priority);
         accessType = AccessTypeValidator.checkAndValidateTheGivenAccessType(accessType);
         // Find the bucket and get its id
@@ -152,9 +165,21 @@ public class BucketGrantService {
             // Find the bucket grant assigned to the current user group
             BucketGrantEntity bucketGrantEntity = bucketGrantRepository.findBucketGrantByUserGroup(bucketId, userGroup);
             if (bucketGrantEntity != null) {
+                String oldValue = bucketGrantEntity.toString();
                 // Update the access type
                 bucketGrantEntity.setAccessType(accessType);
+                // Update the priority
                 bucketGrantEntity.setPriority(priority);
+                // Add modification history
+                ModificationHistoryData modificationHistoryData = new ModificationHistoryData(System.currentTimeMillis(),
+                                                                                              currentUser.getName());
+                // Set old values in history
+                modificationHistoryData.setOldValues(oldValue);
+                // Set new values in history
+                modificationHistoryData.setNewValues(bucketGrantEntity.toString());
+                // Compute changes
+                modificationHistoryData.computeChanges("group", oldValue, bucketGrantEntity.toString());
+                bucketGrantEntity.getModificationHistory().push(modificationHistoryData);
             } else {
                 throw new GrantNotFoundException(userGroup, bucketName);
             }

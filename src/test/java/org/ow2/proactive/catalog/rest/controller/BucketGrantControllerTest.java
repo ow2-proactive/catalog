@@ -34,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.GrantRightsService;
+import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 
 
 public class BucketGrantControllerTest {
@@ -77,7 +78,8 @@ public class BucketGrantControllerTest {
                                                         DUMMY_BUCKET_NAME,
                                                         DUMMY_USER,
                                                         DUMMY_ACCESS_TYPE);
-        verify(bucketGrantService, times(1)).updateBucketGrantForASpecificUser(DUMMY_BUCKET_NAME,
+        verify(bucketGrantService, times(1)).updateBucketGrantForASpecificUser(AuthenticatedUser.EMPTY,
+                                                                               DUMMY_BUCKET_NAME,
                                                                                DUMMY_USER,
                                                                                DUMMY_ACCESS_TYPE);
         bucketGrantController.updateBucketGrantForAGroup(DUMMY_SESSION_ID,
@@ -85,7 +87,8 @@ public class BucketGrantControllerTest {
                                                          DUMMY_GROUP,
                                                          DUMMY_ACCESS_TYPE,
                                                          1);
-        verify(bucketGrantService, times(1)).updateBucketGrantForASpecificUserGroup(DUMMY_BUCKET_NAME,
+        verify(bucketGrantService, times(1)).updateBucketGrantForASpecificUserGroup(AuthenticatedUser.EMPTY,
+                                                                                    DUMMY_BUCKET_NAME,
                                                                                     DUMMY_GROUP,
                                                                                     DUMMY_ACCESS_TYPE,
                                                                                     1);

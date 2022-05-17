@@ -321,7 +321,8 @@ public class CatalogObjectGrantController {
         } else {
             user = AuthenticatedUser.EMPTY;
         }
-        CatalogObjectGrantMetadata updatedUserObjectGrant = catalogObjectGrantService.updateCatalogObjectGrantForAUser(username,
+        CatalogObjectGrantMetadata updatedUserObjectGrant = catalogObjectGrantService.updateCatalogObjectGrantForAUser(user,
+                                                                                                                       username,
                                                                                                                        catalogObjectName,
                                                                                                                        bucketName,
                                                                                                                        accessType);
@@ -377,7 +378,8 @@ public class CatalogObjectGrantController {
         } else {
             user = AuthenticatedUser.EMPTY;
         }
-        CatalogObjectGrantMetadata updatedUserGroupObjectGrant = catalogObjectGrantService.updateCatalogObjectGrantForAGroup(userGroup,
+        CatalogObjectGrantMetadata updatedUserGroupObjectGrant = catalogObjectGrantService.updateCatalogObjectGrantForAGroup(user,
+                                                                                                                             userGroup,
                                                                                                                              catalogObjectName,
                                                                                                                              bucketName,
                                                                                                                              accessType,
