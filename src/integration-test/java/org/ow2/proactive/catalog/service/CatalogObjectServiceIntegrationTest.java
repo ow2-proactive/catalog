@@ -1696,17 +1696,11 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                                                          Optional.empty());
 
         assertThat(catalogObjectNameReferences).hasSize(5);
-        assertThat(catalogObjectNameReferences.get(0).getBucketName()).isEqualTo(secondBucketName);
+        assertThat(catalogObjectNameReferences.get(0).getBucketName()).isEqualTo(bucket.getName());
         assertThat(catalogObjectNameReferences.get(1).getBucketName()).isEqualTo(bucket.getName());
         assertThat(catalogObjectNameReferences.get(2).getBucketName()).isEqualTo(bucket.getName());
         assertThat(catalogObjectNameReferences.get(3).getBucketName()).isEqualTo(bucket.getName());
-        assertThat(catalogObjectNameReferences.get(4).getBucketName()).isEqualTo(bucket.getName());
-
-        assertThat(catalogObjectNameReferences.get(0).getName()).isEqualTo("object-in-new-bucket-0");
-        assertThat(catalogObjectNameReferences.get(1).getName()).isEqualTo(firstObjName);
-        assertThat(catalogObjectNameReferences.get(2).getName()).isEqualTo("object-name-1");
-        assertThat(catalogObjectNameReferences.get(3).getName()).isEqualTo("object-name-2");
-        assertThat(catalogObjectNameReferences.get(4).getName()).isEqualTo("object-name-3");
+        assertThat(catalogObjectNameReferences.get(4).getBucketName()).isEqualTo(secondBucketName);
     }
 
     @Test

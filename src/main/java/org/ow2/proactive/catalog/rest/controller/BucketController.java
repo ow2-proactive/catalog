@@ -32,7 +32,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -243,7 +242,6 @@ public class BucketController {
         } else {
             listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName);
         }
-        Collections.sort(listBucket);
         log.debug("bucket list timer : total : " + (System.currentTimeMillis() - startTime) + " ms");
         log.debug("====== Get buckets list request finished ========");
         return listBucket;

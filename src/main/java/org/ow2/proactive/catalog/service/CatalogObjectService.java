@@ -717,7 +717,6 @@ public class CatalogObjectService {
                       .map(bucketEntity -> catalogObjectsGroupedByBucket.get(bucketEntity.getBucketName()))
                       .filter(Objects::nonNull)
                       .flatMap(Collection::stream)
-                      .sorted()
                       .collect(Collectors.toList());
     }
 
