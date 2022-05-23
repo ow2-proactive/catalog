@@ -39,7 +39,7 @@ import lombok.Data;
  * @author ActiveEon Team
  */
 @Data
-public class BucketMetadata extends ResourceSupport {
+public class BucketMetadata extends ResourceSupport implements Comparable<BucketMetadata> {
 
     @JsonProperty
     private final String owner;
@@ -109,5 +109,10 @@ public class BucketMetadata extends ResourceSupport {
     @Override
     public int hashCode() {
         return Objects.hash(name);
+    }
+
+    @Override
+    public int compareTo(BucketMetadata bucketMetadata) {
+        return getName().compareTo(bucketMetadata.getName());
     }
 }

@@ -35,7 +35,7 @@ import lombok.Data;
  * @since 2019-04-01
  */
 @Data
-public class CatalogObjectNameReference {
+public class CatalogObjectNameReference implements Comparable<CatalogObjectNameReference> {
 
     @JsonProperty("bucket_name")
     private final String bucketName;
@@ -50,5 +50,13 @@ public class CatalogObjectNameReference {
         this.bucketName = bucketName;
         this.projectName = projectName;
         this.name = name;
+    }
+
+    @Override
+    public int compareTo(CatalogObjectNameReference catalogObjectNameReference) {
+        if (getBucketName().equals(catalogObjectNameReference.getBucketName())) {
+            return getName().compareTo(catalogObjectNameReference.getName());
+        }
+        return getBucketName().compareTo(catalogObjectNameReference.getBucketName());
     }
 }
