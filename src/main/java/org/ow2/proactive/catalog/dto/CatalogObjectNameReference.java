@@ -28,7 +28,6 @@ package org.ow2.proactive.catalog.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
-import lombok.NonNull;
 
 
 /**

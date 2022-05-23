@@ -33,7 +33,6 @@ import org.springframework.hateoas.ResourceSupport;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
-import lombok.NonNull;
 
 
 /**
@@ -113,7 +112,7 @@ public class BucketMetadata extends ResourceSupport implements Comparable<Bucket
     }
 
     @Override
-    public int compareTo(@NonNull BucketMetadata bucketMetadata) {
+    public int compareTo(BucketMetadata bucketMetadata) {
         return getName().compareTo(bucketMetadata.getName());
     }
 }
