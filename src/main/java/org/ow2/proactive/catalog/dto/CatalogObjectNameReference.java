@@ -54,11 +54,8 @@ public class CatalogObjectNameReference implements Comparable<CatalogObjectNameR
     }
 
     @Override
-    public int compareTo(@NonNull CatalogObjectNameReference catalogObjectNameReference) {
-        if (getBucketName() == null || catalogObjectNameReference.getBucketName() == null || getName() == null ||
-            catalogObjectNameReference.getName() == null) {
-            return 0;
-        } else if (getBucketName().equals(catalogObjectNameReference.getBucketName())) {
+    public int compareTo(CatalogObjectNameReference catalogObjectNameReference) {
+        if (getBucketName().equals(catalogObjectNameReference.getBucketName())) {
             return getName().compareTo(catalogObjectNameReference.getName());
         }
         return getBucketName().compareTo(catalogObjectNameReference.getBucketName());

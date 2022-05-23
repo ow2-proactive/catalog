@@ -114,9 +114,6 @@ public class BucketMetadata extends ResourceSupport implements Comparable<Bucket
 
     @Override
     public int compareTo(@NonNull BucketMetadata bucketMetadata) {
-        if (getName() == null || bucketMetadata.getName() == null) {
-            return 0;
-        }
         return getName().compareTo(bucketMetadata.getName());
     }
 }
