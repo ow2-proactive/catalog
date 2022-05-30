@@ -53,7 +53,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class CatalogObjectMetadata extends ResourceSupport {
+public class CatalogObjectMetadata extends ResourceSupport implements Comparable<CatalogObjectMetadata> {
 
     @JsonProperty("commit_time_raw")
     protected final String commitTimeRaw;
@@ -258,5 +258,17 @@ public class CatalogObjectMetadata extends ResourceSupport {
                                groupName,
                                advanced.map(metadata -> Boolean.parseBoolean(advanced.get().getValue())).orElse(false),
                                hidden.map(metadata -> Boolean.parseBoolean(hidden.get().getValue())).orElse(false));
+    }
+
+    @Override
+    public int compareTo(CatalogObjectMetadata catalogObjectMetadata) {
+        if (getBucketName().equals(catalogObjectMetadata.getBucketName())) {
+            if (getProjectName().equals(catalogObjectMetadata.getProjectName())) {
+                return getName().compareTo(catalogObjectMetadata.getName());
+            } else {
+                return getProjectName().compareTo(catalogObjectMetadata.getProjectName());
+            }
+        }
+        return getBucketName().compareTo(catalogObjectMetadata.getBucketName());
     }
 }

@@ -464,6 +464,7 @@ public class CatalogObjectController {
                                                                                       objectsGrants));
                 }
             }
+            Collections.sort(metadataList);
             return ResponseEntity.ok(metadataList);
         }
     }
