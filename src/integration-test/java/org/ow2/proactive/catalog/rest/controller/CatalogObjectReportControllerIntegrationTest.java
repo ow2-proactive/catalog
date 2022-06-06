@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -33,19 +34,21 @@ import java.util.HashMap;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.http.HttpStatus;
+import org.json.simple.JSONArray;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
-import org.ow2.proactive.catalog.IntegrationTestConfig;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.jayway.restassured.response.Response;
+import com.jayway.restassured.specification.RequestSpecification;
 
 
 @ActiveProfiles("test")
@@ -55,6 +58,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class CatalogObjectReportControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private BucketMetadata bucket;
+
+    private String bucketObjectName = "workflowname";
 
     @Before
     public void setup() throws IOException {
@@ -77,7 +82,7 @@ public class CatalogObjectReportControllerIntegrationTest extends AbstractRestAs
         given().header("sessionID", "12345")
                .pathParam("bucketName", bucket.getName())
                .queryParam("kind", "workflow")
-               .queryParam("name", "workflowname")
+               .queryParam("name", bucketObjectName)
                .queryParam("commitMessage", "commit message")
                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
@@ -99,11 +104,17 @@ public class CatalogObjectReportControllerIntegrationTest extends AbstractRestAs
 
     @Test
     public void getReportForSelectedObjectsTest() {
-        given().pathParam("bucketName", bucket.getName())
-               .when()
-               .get(CATALOG_OBJECT_BUCKET_REPORT)
-               .then()
-               .statusCode(HttpStatus.SC_OK);
-    }
 
+        RequestSpecification request = given().pathParam("bucketName", bucket.getName());
+
+        JSONArray requestParamArray = new JSONArray();
+        requestParamArray.add(bucketObjectName);
+
+        request.header("Content-Type", "application/json");
+        request.body(requestParamArray.toJSONString());
+
+        Response response = request.post(CATALOG_OBJECT_BUCKET_REPORT);
+
+        assertEquals(HttpStatus.SC_OK, response.getStatusCode());
+    }
 }
