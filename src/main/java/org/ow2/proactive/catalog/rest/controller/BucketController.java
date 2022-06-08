@@ -234,7 +234,7 @@ public class BucketController {
                                                                                                     .filter(g -> g.getBucketName()
                                                                                                                   .equals(bucket.getName()))
                                                                                                     .collect(Collectors.toList());
-                    int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(bucket,
+                    int objectCount = grantRightsService.getTheNumberOfAccessibleObjectsInTheBucket(bucket,
                                                                                                     bucketGrants,
                                                                                                     objectsInBucketGrants);
                     bucket.setObjectCount(objectCount);

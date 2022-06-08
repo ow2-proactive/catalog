@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
+import static org.ow2.proactive.catalog.util.AccessType.admin;
 import static org.ow2.proactive.catalog.util.AccessType.noAccess;
 
 import java.util.LinkedList;
@@ -66,8 +67,7 @@ public class GrantRightServiceTest {
         when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
 
         List<BucketGrantMetadata> bucketGrantMetadataList = new LinkedList<>();
-        bucketGrantMetadataList.add(createBucketGrantMetadata("user", noAccess.toString(), "bucket"));
-        bucketGrantMetadataList.add(createBucketGrantMetadata("user1", noAccess.toString(), "bucket"));
+        bucketGrantMetadataList.add(createBucketGrantMetadata("user", admin.toString(), "bucket"));
 
         when(bucketGrantService.getAllNoAccessGrants()).thenReturn(bucketGrantMetadataList);
 
@@ -77,7 +77,7 @@ public class GrantRightServiceTest {
         metadataList.add(createCatalogObject(bucketName, "object2"));
         metadataList.add(createCatalogObject(bucketName, "object3"));
 
-        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, new LinkedList<>(), new LinkedList<>());
+        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, bucketGrantMetadataList, new LinkedList<>());
 
         assertEquals(3, metadataList.size());
     }

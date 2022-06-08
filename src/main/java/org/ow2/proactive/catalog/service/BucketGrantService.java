@@ -428,44 +428,6 @@ public class BucketGrantService {
         }
     }
 
-    //TODO only refactored for the moment, but it will have bug when the user have both negative and positive grants from different groups, we need to compare priority between grants.
-    public int getTheNumberOfAccessibleObjectsInTheBucket(BucketMetadata bucket, List<BucketGrantMetadata> bucketGrants,
-            List<CatalogObjectGrantMetadata> objectsGrants) {
-
-        List<BucketGrantMetadata> bucketPositiveGrants = bucketGrants.stream()
-                                                                     .filter(g -> !g.getAccessType()
-                                                                                    .equals(noAccess.name()))
-                                                                     .collect(Collectors.toList());
-        List<BucketGrantMetadata> bucketNoAccessGrants = bucketGrants.stream()
-                                                                     .filter(g -> g.getAccessType()
-                                                                                   .equals(noAccess.name()))
-                                                                     .collect(Collectors.toList());
-
-        boolean isBucketAccessible = !bucketPositiveGrants.isEmpty() && bucketNoAccessGrants.isEmpty();
-        if (isBucketAccessible) {
-            List<CatalogObjectGrantMetadata> objectsNoAccessGrants = objectsGrants.stream()
-                                                                                  .filter(g -> g.getAccessType()
-                                                                                                .equals(noAccess.name()))
-                                                                                  .collect(Collectors.toList());
-
-            Set<String> catalogObjectsToRemove = objectsNoAccessGrants.stream()
-                                                                      .map(CatalogObjectGrantMetadata::getCatalogObjectName)
-                                                                      .collect(Collectors.toSet());
-
-            return bucket.getObjectCount() - catalogObjectsToRemove.size();
-        } else {
-            List<CatalogObjectGrantMetadata> objectsPositiveGrants = objectsGrants.stream()
-                                                                                  .filter(g -> !g.getAccessType()
-                                                                                                 .equals(noAccess.name()))
-                                                                                  .collect(Collectors.toList());
-            // List of accessible object for the user
-            Set<String> catalogObjectsToKeep = objectsPositiveGrants.stream()
-                                                                    .map(CatalogObjectGrantMetadata::getCatalogObjectName)
-                                                                    .collect(Collectors.toSet());
-            return catalogObjectsToKeep.size();
-        }
-    }
-
     /**
      *
      * @param user authenticated user

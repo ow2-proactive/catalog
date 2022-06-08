@@ -148,17 +148,17 @@ public class GrantRightsService {
             throw new CatalogObjectNotFoundException(bucketName, catalogObjectName);
         }
 
-        List<CatalogObjectGrantMetadata> allUserCatalogObjectGrants = catalogObjectGrantService.getAllObjectGrantsAssignedToAnObjectInsideABucketForAUser(user,
-                                                                                                                                                          bucketName,
-                                                                                                                                                          catalogObjectName);
-        if (!allUserCatalogObjectGrants.isEmpty()) {
+        List<CatalogObjectGrantMetadata> userCatalogObjectGrants = catalogObjectGrantService.getAllObjectGrantsAssignedToAnObjectInsideABucketForAUser(user,
+                                                                                                                                                       bucketName,
+                                                                                                                                                       catalogObjectName);
+        if (!userCatalogObjectGrants.isEmpty()) {
             Optional<String> userBucketRights = bucketGrantService.getUserAccessibleBucketGrants(user, bucketName)
                                                                   .stream()
                                                                   .filter(grant -> grant.getGranteeType()
                                                                                         .equals("user"))
                                                                   .findFirst()
                                                                   .map(BucketGrantMetadata::getAccessType);
-            return getHighestPriorityRightForCatalogObject(userBucketRights, allUserCatalogObjectGrants);
+            return getHighestPriorityRightForCatalogObject(userBucketRights, userCatalogObjectGrants);
         }
         // In case when the user and user group object grants are unavailable, we check in the bucket grants for the accessType
         return this.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName);
@@ -166,12 +166,12 @@ public class GrantRightsService {
 
     /**
      * Calculate the rights (i.e., access type) of the catalog object based on 1) whether its bucket is public 2) its bucket rights
-     * 3) its bucket rights which is defined by a user-specific grant (Optional) 4) its catalog objects grants
+     * 3) its bucket rights which is defined by a user-specific grant (Optional) 4) the grants specified for this catalog object
      *
      * @param isPublicBucket whether its bucket is public
      * @param bucketRights the rights of its bucket
      * @param userSpecificBucketRights its bucket rights which is defined by a user-specific grant (Optional)
-     * @param userObjectGrants its catalog objects grants
+     * @param userObjectGrants the grants specified for this catalog object
      * @return catalog object rights as string
      */
     public String getCatalogObjectRights(boolean isPublicBucket, String bucketRights,
@@ -187,10 +187,101 @@ public class GrantRightsService {
         }
     }
 
+    public int getTheNumberOfAccessibleObjectsInTheBucket(BucketMetadata bucket, List<BucketGrantMetadata> bucketGrants,
+            List<CatalogObjectGrantMetadata> objectsGrants) {
+        List<CatalogObjectGrantMetadata> objectsPositiveGrants = objectsGrants.stream()
+                                                                              .filter(g -> !g.getAccessType()
+                                                                                             .equals(noAccess.name()))
+                                                                              .collect(Collectors.toList());
+        List<CatalogObjectGrantMetadata> objectsNoAccessGrants = objectsGrants.stream()
+                                                                              .filter(g -> g.getAccessType()
+                                                                                            .equals(noAccess.name()))
+                                                                              .collect(Collectors.toList());
+        String bucketRights = getBucketRights(bucketGrants);
+        Optional<BucketGrantMetadata> bucketUserSpecificGrant = bucketGrants.stream()
+                                                                            .filter(g -> g.getGranteeType()
+                                                                                          .equals("user"))
+                                                                            .findAny();
+
+        if (bucketRights.equals(noAccess.name())) {
+            // When the user has no access on the bucket, we count only objects that the user have a positive grant over them
+
+            // The catalog objects have a user-specific positive grant (the user-specific objects' grants always has the highest priority)
+            // Remainder: for each catalog object, the user has only one user-specific grant.
+            Set<String> accessibleObjects = objectsPositiveGrants.stream()
+                                                                 .filter(g -> g.getGranteeType().equals("user"))
+                                                                 .map(CatalogObjectGrantMetadata::getCatalogObjectName)
+                                                                 .collect(Collectors.toSet());
+
+            if (!bucketUserSpecificGrant.isPresent()) {
+                // When the bucket has the no-access right not through user-specific grant (i.e., through its groups grants), we need to
+                // calculate grant priority for getting the accessible catalog objects.
+                Set<String> objectsWithPositiveGrants = new HashSet<>();
+                for (CatalogObjectGrantMetadata grant : objectsPositiveGrants) {
+                    objectsWithPositiveGrants.add(grant.getCatalogObjectName());
+                }
+                for (String catalogObjectName : objectsWithPositiveGrants) {
+                    // Get the list of grants assigned to the user groups for this catalog object
+                    List<CatalogObjectGrantMetadata> objectGrants = objectsGrants.stream()
+                                                                                 .filter(g -> g.getCatalogObjectName()
+                                                                                               .equals(catalogObjectName))
+                                                                                 .collect(Collectors.toList());
+                    // Check and get the group grant that has the highest priority to decide whether the object accessible
+                    Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.checkAndReturnObjectGrantWithHighestPriorityInGroupGrants(objectGrants);
+                    if (highestPriorityPositiveGroupsObjectGrant.isPresent() &&
+                        !noAccess.name().equals(highestPriorityPositiveGroupsObjectGrant.get().getAccessType())) {
+                        accessibleObjects.add(catalogObjectName);
+                    }
+                }
+            }
+            // When the bucket has a user-specific no-access grant, group grants are ignored, only the user-specific catalog object grants are taken into account.
+            return accessibleObjects.size();
+        } else {
+            // When the user has access on the bucket, we count the objects that the user has a negative grant over it, then reduce it from the bucket objects count
+
+            // user specific catalog object grants have the highest priority. The objects having a user-speicific no-access grant are always not accessible.
+            Set<String> inaccessibleObjects = objectsNoAccessGrants.stream()
+                                                                   .filter(g -> g.getGranteeType().equals("user"))
+                                                                   .map(CatalogObjectGrantMetadata::getCatalogObjectName)
+                                                                   .collect(Collectors.toSet());
+
+            if (!bucketUserSpecificGrant.isPresent()) {
+                // When the bucket has the positive right not through user-specific grant (i.e., through its groups grants), we need to
+                // calculate grant priority for getting the inaccessible catalog objects.
+                // Therefore, for each object which has no-access grants, we calculate the highest priority grant for this object. If the highest priority grant is the type of no-access, it's added to the inaccessibleObjects.
+                Set<String> objectsWithNoAccessGrants = new HashSet<>();
+                for (CatalogObjectGrantMetadata grant : objectsNoAccessGrants) {
+                    objectsWithNoAccessGrants.add(grant.getCatalogObjectName());
+                }
+                for (String catalogObjectName : objectsWithNoAccessGrants) {
+                    // Get the list of grants assigned to this catalog object
+                    List<CatalogObjectGrantMetadata> objectGrants = objectsGrants.stream()
+                                                                                 .filter(g -> g.getCatalogObjectName()
+                                                                                               .equals(catalogObjectName))
+                                                                                 .collect(Collectors.toList());
+                    // Check and get the group grant that has the highest priority to decide whether the object accessible
+                    Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.checkAndReturnObjectGrantWithHighestPriorityInGroupGrants(objectGrants);
+                    if (highestPriorityPositiveGroupsObjectGrant.isPresent() &&
+                        noAccess.name().equals(highestPriorityPositiveGroupsObjectGrant.get().getAccessType())) {
+                        inaccessibleObjects.add(catalogObjectName);
+                    }
+                }
+            }
+            // // When the bucket has a user-specific positive grant, group grants are ignored, only the user-specific no-access catalog object grants are taken into account.
+            return bucket.getObjectCount() - inaccessibleObjects.size();
+        }
+    }
+
+    /**
+     * calculate the user's highest priority right defined for the catalog object
+     * @param userSpecificBucketRights the user's right on the bucket which is defined through a user-specific bucket grant which is optional
+     * @param userCatalogObjectGrants all the grants specified for this catalog object for this user or its groups.
+     * @return the user's right for the catalog object calculated through its highest priority grant
+     */
     private String getHighestPriorityRightForCatalogObject(Optional<String> userSpecificBucketRights,
-            List<CatalogObjectGrantMetadata> allUserCatalogObjectGrants) {
+            List<CatalogObjectGrantMetadata> userCatalogObjectGrants) {
         // Check for a user grant
-        Optional<String> userSpecificObjectRight = this.getUserSpecificObjectGrantAccessType(allUserCatalogObjectGrants);
+        Optional<String> userSpecificObjectRight = this.getUserSpecificObjectGrantAccessType(userCatalogObjectGrants);
         if (userSpecificObjectRight.isPresent()) {
             // Return the user grant accessType (A user has only one user grant)
             return userSpecificObjectRight.get();
@@ -198,7 +289,7 @@ public class GrantRightsService {
             return userSpecificBucketRights.get();
         } else {
             // Check the user group grants
-            return this.getAccessTypeFromHighestPriorityUserGroupGrant(getObjectGrantsAccessTypePerUserGroup(allUserCatalogObjectGrants));
+            return this.getAccessTypeFromHighestPriorityUserGroupGrant(getObjectGrantsAccessTypePerUserGroup(userCatalogObjectGrants));
         }
     }
 
@@ -448,84 +539,79 @@ public class GrantRightsService {
                                                                               .filter(g -> g.getAccessType()
                                                                                             .equals(noAccess.name()))
                                                                               .collect(Collectors.toList());
-        List<BucketGrantMetadata> bucketPositiveGrants = bucketGrants.stream()
-                                                                     .filter(g -> !g.getAccessType()
-                                                                                    .equals(noAccess.name()))
-                                                                     .collect(Collectors.toList());
-        List<BucketGrantMetadata> bucketNoAccessGrants = bucketGrants.stream()
-                                                                     .filter(g -> g.getAccessType()
-                                                                                   .equals(noAccess.name()))
-                                                                     .collect(Collectors.toList());
+        String bucketRights = getBucketRights(bucketGrants);
+        Optional<BucketGrantMetadata> bucketUserSpecificGrant = bucketGrants.stream()
+                                                                            .filter(g -> g.getGranteeType()
+                                                                                          .equals("user"))
+                                                                            .findAny();
 
-        // For the catalog objects have a user-specific positive grant, it will be kept (i.e., it's accessible regardless the access type of his groups).
-        // Because the user-specific objects' grants has the highest priority, and for each catalog object, the user has only one user-specific grant.
-        Set<String> objectsToKeep = objectsPositiveGrants.stream()
-                                                         .filter(g -> g.getGranteeType().equals("user"))
-                                                         .map(CatalogObjectGrantMetadata::getCatalogObjectName)
-                                                         .collect(Collectors.toSet());
+        if (bucketRights.equals(noAccess.name())) {
+            // When the user has no access on the bucket, we count only objects that the user have a positive grant over them
 
-        if (objectsNoAccessGrants.isEmpty()) {
-            if (!bucketNoAccessGrants.isEmpty()) {
-                // Case triggered when there is a noAccess user grant on the bucket
-                // In the following we are checking if the user has a positive grant for one of its objects
-                metadataList.removeIf(object -> !objectsToKeep.contains(object.getName()));
-            }
-            return;
-        }
+            // The catalog objects have a user-specific positive grant (the user-specific objects' grants always has the highest priority)
+            // Remainder: for each catalog object, the user has only one user-specific grant.
+            Set<String> accessibleObjects = objectsPositiveGrants.stream()
+                                                                 .filter(g -> g.getGranteeType().equals("user"))
+                                                                 .map(CatalogObjectGrantMetadata::getCatalogObjectName)
+                                                                 .collect(Collectors.toSet());
 
-        // For the catalog objects with a user-specific no-access grant, it will be removed.
-        Set<String> objectsToRemove = objectsNoAccessGrants.stream()
-                                                           .filter(g -> g.getGranteeType().equals("user"))
-                                                           .map(CatalogObjectGrantMetadata::getCatalogObjectName)
-                                                           .collect(Collectors.toSet());
-
-        // Check and get the user grant on the bucket (higher priority than groupNoAccessGrants)
-        boolean isBucketAccessibleByUserSpecificGrant = filterFirstUserSpecificBucketGrant(bucketPositiveGrants).isPresent();
-
-        // group no access grants compare priority
-        if (isBucketAccessibleByUserSpecificGrant) {
-            metadataList.removeIf(object -> objectsToRemove.contains(object.getName()) &&
-                                            !objectsToKeep.contains(object.getName()));
-            return;
-        }
-
-        // Handle group no-access grant for catalog objects
-        for (CatalogObjectGrantMetadata userGrantWithNoAccessRight : objectsNoAccessGrants) {
-            if (userGrantWithNoAccessRight.getGranteeType().equals("user")) {
-                // user-specific grants already handled
-                continue;
-            }
-
-            String catalogObjectName = userGrantWithNoAccessRight.getCatalogObjectName();
-
-            // Get the list of positive catalog objects grants assigned to the user
-            List<CatalogObjectGrantMetadata> userGroupsCatalogObjectPositiveGrants = objectsPositiveGrants.stream()
-                                                                                                          .filter(grant -> grant.getCatalogObjectName()
-                                                                                                                                .equals(catalogObjectName))
-                                                                                                          .collect(Collectors.toList());
-
-            // Check and get the group grant that has the highest priority
-            Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.checkAndReturnObjectGrantWithHighestPriorityInGroupGrants(userGroupsCatalogObjectPositiveGrants);
-
-            if (highestPriorityPositiveGroupsObjectGrant.isPresent()) {
-                // This case indicates that there is not a direct access grant on the object itself for the user, but he got a positive
-                // grant assigned to his group
-                // Get the highest priority value from his group grant
-                int highestPossitivePriority = highestPriorityPositiveGroupsObjectGrant.get().getPriority();
-                // Check if the priority value is lower than the priority value of the no access grant assigned to the same object
-                if (userGrantWithNoAccessRight.getPriority() < highestPossitivePriority) {
-                    // Add the object to the list of objects to be removed if the priority of the positive grant > negative grant
-                    objectsToRemove.add(catalogObjectName);
+            if (!bucketUserSpecificGrant.isPresent()) {
+                // When the bucket has the no-access right not through user-specific grant (i.e., through its groups grants), we need to
+                // calculate grant priority for getting the accessible catalog objects.
+                Set<String> objectsWithPositiveGrants = new HashSet<>();
+                for (CatalogObjectGrantMetadata grant : objectsPositiveGrants) {
+                    objectsWithPositiveGrants.add(grant.getCatalogObjectName());
                 }
-            } else {
-                // The user has no positive group grant with a higher priority than the negative grant
-                // Add the object to the list of objects to be removed
-                objectsToRemove.add(catalogObjectName);
+                for (String catalogObjectName : objectsWithPositiveGrants) {
+                    // Get the list of grants assigned to the user groups for this catalog object
+                    List<CatalogObjectGrantMetadata> objectGrants = objectsGrants.stream()
+                                                                                 .filter(g -> g.getCatalogObjectName()
+                                                                                               .equals(catalogObjectName))
+                                                                                 .collect(Collectors.toList());
+                    // Check and get the group grant that has the highest priority to decide whether the object accessible
+                    Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.checkAndReturnObjectGrantWithHighestPriorityInGroupGrants(objectGrants);
+                    if (highestPriorityPositiveGroupsObjectGrant.isPresent() &&
+                        !noAccess.name().equals(highestPriorityPositiveGroupsObjectGrant.get().getAccessType())) {
+                        accessibleObjects.add(catalogObjectName);
+                    }
+                }
             }
-        }
+            // When the bucket has a user-specific no-access grant, group grants are ignored, only the user-specific catalog object grants are taken into account.
+            metadataList.removeIf(object -> !accessibleObjects.contains(object.getName()));
+        } else {
+            // When the user has access on the bucket, we count the objects that the user has a negative grant over it, then reduce it from the bucket objects count
 
-        metadataList.removeIf(object -> objectsToRemove.contains(object.getName()) &&
-                                        !objectsToKeep.contains(object.getName()));
+            // user specific catalog object grants have the highest priority. The objects having a user-speicific no-access grant are always not accessible.
+            Set<String> inaccessibleObjects = objectsNoAccessGrants.stream()
+                                                                   .filter(g -> g.getGranteeType().equals("user"))
+                                                                   .map(CatalogObjectGrantMetadata::getCatalogObjectName)
+                                                                   .collect(Collectors.toSet());
+
+            if (!bucketUserSpecificGrant.isPresent()) {
+                // When the bucket has the positive right not through user-specific grant (i.e., through its groups grants), we need to
+                // calculate grant priority for getting the inaccessible catalog objects.
+                // Therefore, for each object which has no-access grants, we calculate the highest priority grant for this object. If the highest priority grant is the type of no-access, it's added to the inaccessibleObjects.
+                Set<String> objectsWithNoAccessGrants = new HashSet<>();
+                for (CatalogObjectGrantMetadata grant : objectsNoAccessGrants) {
+                    objectsWithNoAccessGrants.add(grant.getCatalogObjectName());
+                }
+                for (String catalogObjectName : objectsWithNoAccessGrants) {
+                    // Get the list of grants assigned to this catalog object
+                    List<CatalogObjectGrantMetadata> objectGrants = objectsGrants.stream()
+                                                                                 .filter(g -> g.getCatalogObjectName()
+                                                                                               .equals(catalogObjectName))
+                                                                                 .collect(Collectors.toList());
+                    // Check and get the group grant that has the highest priority to decide whether the object accessible
+                    Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.checkAndReturnObjectGrantWithHighestPriorityInGroupGrants(objectGrants);
+                    if (highestPriorityPositiveGroupsObjectGrant.isPresent() &&
+                        noAccess.name().equals(highestPriorityPositiveGroupsObjectGrant.get().getAccessType())) {
+                        inaccessibleObjects.add(catalogObjectName);
+                    }
+                }
+            }
+            // // When the bucket has a user-specific positive grant, group grants are ignored, only the user-specific no-access catalog object grants are taken into account.
+            metadataList.removeIf(object -> inaccessibleObjects.contains(object.getName()));
+        }
     }
 
     /**
