@@ -114,7 +114,7 @@ public class CatalogObjectReportController {
 
     }
 
-    @ApiOperation(value = "Get list of selected catalog objects in a PDF report file")
+    @ApiOperation(value = "Get list of selected catalog objects in a PDF report file", consumes = "application/json")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
@@ -122,7 +122,6 @@ public class CatalogObjectReportController {
     @ResponseStatus(HttpStatus.OK)
     public void getReportForSelectedObjects(HttpServletResponse response,
             @ApiParam(value = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @PathVariable String bucketName,
             @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
             @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
