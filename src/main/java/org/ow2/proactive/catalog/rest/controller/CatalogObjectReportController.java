@@ -146,22 +146,19 @@ public class CatalogObjectReportController {
 
         }
 
+        byte[] content;
+
         if (catalogObjectsNames.isPresent()) {
-
-            byte[] content = catalogObjectReportService.generateBytesReportForSelectedObjects(bucketName,
-                                                                                              catalogObjectsNames.get(),
-                                                                                              kind,
-                                                                                              contentType);
-            flushResponse(response, content);
-
+            content = catalogObjectReportService.generateBytesReportForSelectedObjects(bucketName,
+                                                                                       catalogObjectsNames.get(),
+                                                                                       kind,
+                                                                                       contentType);
         } else {
-
-            byte[] content = catalogObjectReportService.generateBytesReport(Collections.singletonList(bucketName),
-                                                                            kind,
-                                                                            contentType);
-            flushResponse(response, content);
-
+            content = catalogObjectReportService.generateBytesReport(Collections.singletonList(bucketName),
+                                                                     kind,
+                                                                     contentType);
         }
+        flushResponse(response, content);
     }
 
     private void flushResponse(HttpServletResponse response, byte[] content) throws IOException {
