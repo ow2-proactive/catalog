@@ -73,6 +73,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -84,6 +85,9 @@ import lombok.extern.log4j.Log4j2;
 @Service
 @Transactional
 public class CatalogObjectService {
+
+    public static int ORACLEDB_MAX_IN_PARAMS = 1000;
+
     @Autowired
     private CatalogObjectRepository catalogObjectRepository;
 
@@ -523,8 +527,7 @@ public class CatalogObjectService {
 
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {
         List<CatalogObjectRevisionEntity> revisions = getCatalogObjects(bucketName, catalogObjectsNames);
-
-        return archiveManager.compressZIP(revisions);
+        return archiveManager.compressZIP(catalogObjectsNames.size() != revisions.size(), revisions);
     }
 
     public List<CatalogObjectMetadata> listSelectedCatalogObjects(String bucketName, List<String> catalogObjectsNames) {
@@ -534,10 +537,13 @@ public class CatalogObjectService {
 
     private List<CatalogObjectRevisionEntity> getCatalogObjects(String bucketName, List<String> catalogObjectsNames) {
         findBucketByNameAndCheck(bucketName);
-        return catalogObjectsNames.stream()
-                                  .map(name -> catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
-                                                                                                                      name))
-                                  .collect(Collectors.toList());
+
+        return Lists.partition(catalogObjectsNames, ORACLEDB_MAX_IN_PARAMS)
+                    .stream()
+                    .map(partitionedCatalogObjectsName -> catalogObjectRevisionRepository.findDefaultCatalogObjectsByNameInBucket(bucketName,
+                                                                                                                                  catalogObjectsNames))
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
     }
 
     public CatalogObjectMetadata delete(String bucketName, String name) throws CatalogObjectNotFoundException {
