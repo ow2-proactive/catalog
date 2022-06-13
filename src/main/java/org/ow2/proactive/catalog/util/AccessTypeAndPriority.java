@@ -35,8 +35,8 @@ import lombok.Getter;
 @Data
 @AllArgsConstructor
 @Getter
-public class AccessTypeAndPriorityForGroupGrant implements Serializable {
+public class AccessTypeAndPriority implements Serializable {
     private String accessType;
 
-    private int priorityLevel;
+    private int priority;
 }

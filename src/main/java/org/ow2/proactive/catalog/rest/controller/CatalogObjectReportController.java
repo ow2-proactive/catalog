@@ -42,12 +42,12 @@ import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
 import org.ow2.proactive.catalog.service.CatalogObjectReportService;
-import org.ow2.proactive.catalog.service.GrantAccessTypeHelperService;
 import org.ow2.proactive.catalog.service.GrantRightsService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import org.ow2.proactive.catalog.util.AccessTypeHelper;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -85,9 +85,6 @@ public class CatalogObjectReportController {
 
     @Autowired
     private GrantRightsService grantRightsService;
-
-    @Autowired
-    private GrantAccessTypeHelperService grantAccessTypeHelperService;
 
     @Autowired
     private CatalogObjectGrantService catalogObjectGrantService;
@@ -141,9 +138,7 @@ public class CatalogObjectReportController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
-                                                                                                                                                bucketName),
-                                                                     read.toString()) &&
+            if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), read.toString()) &&
                 !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user,
                                                                                                      bucketName)) {
                 throw new BucketGrantAccessException(bucketName);
@@ -192,11 +187,10 @@ public class CatalogObjectReportController {
             user = restApiAccessService.getUserFromSessionId(sessionId);
 
             authorisedBuckets = bucketService.getBucketsByGroups(ownerName, kind, contentType, () -> user.getGroups());
-            authorisedBuckets.addAll(grantRightsService.getBucketsForUserByGrantsAndPriority(user));
+            authorisedBuckets.addAll(grantRightsService.getBucketsByPrioritiedGrants(user));
             List<BucketMetadata> res = new LinkedList<>();
             for (BucketMetadata data : authorisedBuckets) {
-                String bucketGrantAccessType = grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
-                                                                                                                          data.getName());
+                String bucketGrantAccessType = grantRightsService.getBucketRights(user, data.getName());
                 int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(user, data);
                 BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), objectCount);
                 metadata.setRights(bucketGrantAccessType);

@@ -29,7 +29,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -70,13 +69,9 @@ public class CatalogObjectGrantControllerTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(any(),
-                                                                                        anyString())).thenReturn("admin");
-        when(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(any(),
-                                                                                        anyString())).thenReturn("admin");
-        when(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(any(),
-                                                                                               anyString(),
-                                                                                               anyString())).thenReturn("admin");
+        when(grantRightsService.getBucketRights(any(), anyString())).thenReturn("admin");
+        when(grantRightsService.getBucketRights(any(), anyString())).thenReturn("admin");
+        when(grantRightsService.getCatalogObjectRights(any(), anyString(), anyString())).thenReturn("admin");
         when(catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(any(),
                                                                                                  any())).thenReturn(true);
     }

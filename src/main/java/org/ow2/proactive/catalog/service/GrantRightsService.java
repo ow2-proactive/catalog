@@ -41,7 +41,8 @@ import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
-import org.ow2.proactive.catalog.util.AccessTypeAndPriorityForGroupGrant;
+import org.ow2.proactive.catalog.util.AccessTypeAndPriority;
+import org.ow2.proactive.catalog.util.AccessTypeHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,9 +64,6 @@ public class GrantRightsService {
     @Autowired
     private BucketRepository bucketRepository;
 
-    @Autowired
-    GrantAccessTypeHelperService grantAccessTypeHelperService;
-
     /**
      *
      * This method calculates the resulting grant for a user for an operation regarding a bucket, taking into consideration the priorities of the grants assigned
@@ -76,12 +74,11 @@ public class GrantRightsService {
      * @param bucketName name of the bucket where the catalog object is stored.
      * @return the resulting access right for a bucket related operation
      */
-    public String getResultingAccessTypeFromUserGrantsForBucketOperations(AuthenticatedUser user, String bucketName) {
+    public String getBucketRights(AuthenticatedUser user, String bucketName) {
         BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
         if (bucket == null) {
             throw new BucketNotFoundException(bucketName);
         }
-        //        String assignedRights = getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName);
 
         List<BucketGrantMetadata> userBucketGrants = bucketGrantService.getUserAccessibleBucketGrants(user, bucketName);
         if (user.getGroups().contains(bucket.getOwner().substring(6)) ||
@@ -103,8 +100,7 @@ public class GrantRightsService {
                 return optUserSpecificGrant.get().getAccessType();
             } else {
                 // Check the user group grants
-                Map<String, AccessTypeAndPriorityForGroupGrant> accessTypePerUserGroup = this.checkIfUserGroupBucketGrantsExistsForTheCurrentBucketGrantListAndReturnTheMapOfAccessTypePerUserGroup(userBucketGrants);
-                return this.getAccessTypeFromHighestPriorityUserGroupGrant(accessTypePerUserGroup);
+                return getAccessTypeFromHighestPriorityUserGroupGrant(getBucketAccessTypePerUserGroup(userBucketGrants));
             }
         }
         return noAccess.toString();
@@ -140,8 +136,7 @@ public class GrantRightsService {
      * @param catalogObjectName name of the catalog object subject of the access grant.
      * @return the resulting access rights for a catalog object related operation
      */
-    public String getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(AuthenticatedUser user,
-            String bucketName, String catalogObjectName) {
+    public String getCatalogObjectRights(AuthenticatedUser user, String bucketName, String catalogObjectName) {
         CatalogObjectRevisionEntity catalogObjectEntity = catalogObjectGrantService.getCatalogObject(bucketName,
                                                                                                      catalogObjectName);
         if (catalogObjectEntity == null) {
@@ -161,7 +156,7 @@ public class GrantRightsService {
             return getHighestPriorityRightForCatalogObject(userBucketRights, userCatalogObjectGrants);
         }
         // In case when the user and user group object grants are unavailable, we check in the bucket grants for the accessType
-        return this.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName);
+        return this.getBucketRights(user, bucketName);
     }
 
     /**
@@ -227,7 +222,7 @@ public class GrantRightsService {
                                                                                                .equals(catalogObjectName))
                                                                                  .collect(Collectors.toList());
                     // Check and get the group grant that has the highest priority to decide whether the object accessible
-                    Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.checkAndReturnObjectGrantWithHighestPriorityInGroupGrants(objectGrants);
+                    Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.getHighestPriorityObjectGroupGrants(objectGrants);
                     if (highestPriorityPositiveGroupsObjectGrant.isPresent() &&
                         !noAccess.name().equals(highestPriorityPositiveGroupsObjectGrant.get().getAccessType())) {
                         accessibleObjects.add(catalogObjectName);
@@ -260,7 +255,7 @@ public class GrantRightsService {
                                                                                                .equals(catalogObjectName))
                                                                                  .collect(Collectors.toList());
                     // Check and get the group grant that has the highest priority to decide whether the object accessible
-                    Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.checkAndReturnObjectGrantWithHighestPriorityInGroupGrants(objectGrants);
+                    Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.getHighestPriorityObjectGroupGrants(objectGrants);
                     if (highestPriorityPositiveGroupsObjectGrant.isPresent() &&
                         noAccess.name().equals(highestPriorityPositiveGroupsObjectGrant.get().getAccessType())) {
                         inaccessibleObjects.add(catalogObjectName);
@@ -281,7 +276,11 @@ public class GrantRightsService {
     private String getHighestPriorityRightForCatalogObject(Optional<String> userSpecificBucketRights,
             List<CatalogObjectGrantMetadata> userCatalogObjectGrants) {
         // Check for a user grant
-        Optional<String> userSpecificObjectRight = this.getUserSpecificObjectGrantAccessType(userCatalogObjectGrants);
+        Optional<String> userSpecificObjectRight = userCatalogObjectGrants.stream()
+                                                                          .filter(grant -> grant.getGranteeType()
+                                                                                                .equals("user"))
+                                                                          .map(CatalogObjectGrantMetadata::getAccessType)
+                                                                          .findFirst();
         if (userSpecificObjectRight.isPresent()) {
             // Return the user grant accessType (A user has only one user grant)
             return userSpecificObjectRight.get();
@@ -289,45 +288,29 @@ public class GrantRightsService {
             return userSpecificBucketRights.get();
         } else {
             // Check the user group grants
-            return this.getAccessTypeFromHighestPriorityUserGroupGrant(getObjectGrantsAccessTypePerUserGroup(userCatalogObjectGrants));
+            return this.getAccessTypeFromHighestPriorityUserGroupGrant(getObjectAccessTypePerUserGroup(userCatalogObjectGrants));
         }
     }
 
     /**
-     * Check if the user has an object grant and return its access right value
+     * Get the user group bucket grants and return the access right and priority per group
      *
-     * @param allUserCatalogObjectGrants catalog objects grants assigned to the user
-     * @return the catalog object grant access right from the user grant
-     */
-    private Optional<String>
-            getUserSpecificObjectGrantAccessType(List<CatalogObjectGrantMetadata> allUserCatalogObjectGrants) {
-        return allUserCatalogObjectGrants.stream()
-                                         .filter(grant -> grant.getGranteeType().equals("user"))
-                                         .map(CatalogObjectGrantMetadata::getAccessType)
-                                         .findFirst();
-    }
-
-    /**
-     * Check the user group bucket grants and return the access right and priority level per group
-     *
-     * @param allUserBucketGrants bucket grants assigned to a user
+     * @param userBucketGrants bucket grants assigned to a user
      * @return a hashmap that map each group to its access right and its priority
      */
-    private Map<String, AccessTypeAndPriorityForGroupGrant>
-            checkIfUserGroupBucketGrantsExistsForTheCurrentBucketGrantListAndReturnTheMapOfAccessTypePerUserGroup(
-                    List<BucketGrantMetadata> allUserBucketGrants) {
-        Map<String, AccessTypeAndPriorityForGroupGrant> accessTypesPerUserGroup = new HashMap<>();
-        List<BucketGrantMetadata> userGroupBucketGrants = allUserBucketGrants.stream()
-                                                                             .filter(grant -> grant.getGranteeType()
-                                                                                                   .equals("group"))
-                                                                             .sorted(Comparator.comparingInt(BucketGrantMetadata::getPriority))
-                                                                             .collect(Collectors.toList());
+    private Map<String, AccessTypeAndPriority>
+            getBucketAccessTypePerUserGroup(List<BucketGrantMetadata> userBucketGrants) {
+        Map<String, AccessTypeAndPriority> accessTypePerUserGroup = new HashMap<>();
+        List<BucketGrantMetadata> userGroupBucketGrants = userBucketGrants.stream()
+                                                                          .filter(grant -> grant.getGranteeType()
+                                                                                                .equals("group"))
+                                                                          .sorted(Comparator.comparingInt(BucketGrantMetadata::getPriority))
+                                                                          .collect(Collectors.toList());
         for (BucketGrantMetadata grant : userGroupBucketGrants) {
-            AccessTypeAndPriorityForGroupGrant accessTypeAndPriorityForGroupGrant = new AccessTypeAndPriorityForGroupGrant(grant.getAccessType(),
-                                                                                                                           grant.getPriority());
-            accessTypesPerUserGroup.put(grant.getGrantee(), accessTypeAndPriorityForGroupGrant);
+            accessTypePerUserGroup.put(grant.getGrantee(),
+                                       new AccessTypeAndPriority(grant.getAccessType(), grant.getPriority()));
         }
-        return accessTypesPerUserGroup;
+        return accessTypePerUserGroup;
     }
 
     /**
@@ -336,17 +319,17 @@ public class GrantRightsService {
      * @param allUserObjectGrants catalog object grants assigned to a user
      * @return a hashmap that map each group to its access right and its priority
      */
-    private Map<String, AccessTypeAndPriorityForGroupGrant>
-            getObjectGrantsAccessTypePerUserGroup(List<CatalogObjectGrantMetadata> allUserObjectGrants) {
-        Map<String, AccessTypeAndPriorityForGroupGrant> accessTypesPerUserGroup = new HashMap<>();
+    private Map<String, AccessTypeAndPriority>
+            getObjectAccessTypePerUserGroup(List<CatalogObjectGrantMetadata> allUserObjectGrants) {
+        Map<String, AccessTypeAndPriority> accessTypesPerUserGroup = new HashMap<>();
         List<CatalogObjectGrantMetadata> userGroupCatalogObjectGrants = allUserObjectGrants.stream()
                                                                                            .filter(grant -> grant.getGranteeType()
                                                                                                                  .equals("group"))
                                                                                            .collect(Collectors.toList());
         if (!userGroupCatalogObjectGrants.isEmpty()) {
             for (CatalogObjectGrantMetadata grant : userGroupCatalogObjectGrants) {
-                AccessTypeAndPriorityForGroupGrant accessTypeAndPriorityForGroupGrant = new AccessTypeAndPriorityForGroupGrant(grant.getAccessType(),
-                                                                                                                               grant.getPriority());
+                AccessTypeAndPriority accessTypeAndPriorityForGroupGrant = new AccessTypeAndPriority(grant.getAccessType(),
+                                                                                                     grant.getPriority());
                 accessTypesPerUserGroup.put(grant.getGrantee(), accessTypeAndPriorityForGroupGrant);
             }
         }
@@ -358,21 +341,22 @@ public class GrantRightsService {
      * @param accessTypesPerUserGroup a map of access rights and their priority
      * @return the access right of the grant with the highest priority
      */
-    private String getAccessTypeFromHighestPriorityUserGroupGrant(
-            Map<String, AccessTypeAndPriorityForGroupGrant> accessTypesPerUserGroup) {
+    private String
+            getAccessTypeFromHighestPriorityUserGroupGrant(Map<String, AccessTypeAndPriority> accessTypesPerUserGroup) {
         int highestPriority = 0;
+        String highestAccessType = "";
         String highestGrantByPriorityKey = "";
         if (!accessTypesPerUserGroup.isEmpty()) {
             for (String groupKey : accessTypesPerUserGroup.keySet()) {
-                AccessTypeAndPriorityForGroupGrant currentGroupAccessAccessTypeAndPriority = accessTypesPerUserGroup.get(groupKey);
-                if (currentGroupAccessAccessTypeAndPriority.getPriorityLevel() > highestPriority) {
-                    highestPriority = currentGroupAccessAccessTypeAndPriority.getPriorityLevel();
+                AccessTypeAndPriority groupAccessTypeAndPriority = accessTypesPerUserGroup.get(groupKey);
+                if (groupAccessTypeAndPriority.getPriority() > highestPriority) {
+                    highestPriority = groupAccessTypeAndPriority.getPriority();
+                    highestAccessType = groupAccessTypeAndPriority.getAccessType();
                     highestGrantByPriorityKey = groupKey;
-                } else if (currentGroupAccessAccessTypeAndPriority.getPriorityLevel() == highestPriority) {
-                    if (grantAccessTypeHelperService.getPriorityLevel(accessTypesPerUserGroup.get(highestGrantByPriorityKey)
-                                                                                             .getAccessType(),
-                                                                      currentGroupAccessAccessTypeAndPriority.getAccessType()) == 2) {
-                        highestPriority = currentGroupAccessAccessTypeAndPriority.getPriorityLevel();
+                } else if (groupAccessTypeAndPriority.getPriority() == highestPriority) {
+                    if (AccessTypeHelper.compare(groupAccessTypeAndPriority.getAccessType(), highestAccessType) > 0) {
+                        highestPriority = groupAccessTypeAndPriority.getPriority();
+                        highestAccessType = groupAccessTypeAndPriority.getAccessType();
                         highestGrantByPriorityKey = groupKey;
                     }
                 }
@@ -387,24 +371,24 @@ public class GrantRightsService {
      * @param user authenticated user
      * @return the list of buckets that are accessible for the user via his grants
      */
-    public List<BucketMetadata> getBucketsForUserByGrantsAndPriority(AuthenticatedUser user) {
+    public List<BucketMetadata> getBucketsByPrioritiedGrants(AuthenticatedUser user) {
         List<BucketGrantMetadata> bucketGrants = bucketGrantService.getUserAccessibleBucketsGrants(user);
         List<CatalogObjectGrantMetadata> catalogObjectGrants = catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(user);
-        Optional<BucketGrantMetadata> optUserBucketGrant = bucketGrants.stream()
-                                                                       .filter(grant -> grant.getGranteeType()
-                                                                                             .equals("user"))
-                                                                       .findFirst();
+
         List<BucketGrantMetadata> noAccessGrantBuckets = bucketGrantService.getAllNoAccessGrants();
-        for (BucketGrantMetadata nonAccessibleBucketGrants : noAccessGrantBuckets) {
-            if (nonAccessibleBucketGrants.getGranteeType().equals("user") &&
-                nonAccessibleBucketGrants.getGrantee().equals(user.getName())) {
-                bucketGrants.removeIf(grant -> grant.getBucketName().equals(nonAccessibleBucketGrants.getBucketName()));
-            } else if (nonAccessibleBucketGrants.getGranteeType().equals("group") &&
-                       user.getGroups().contains(nonAccessibleBucketGrants.getGrantee())) {
-                bucketGrants.removeIf(grant -> grant.getPriority() < nonAccessibleBucketGrants.getPriority() &&
-                                               grant.getBucketName()
-                                                    .equals(nonAccessibleBucketGrants.getBucketName()) &&
-                                               !optUserBucketGrant.isPresent());
+        for (BucketGrantMetadata nonAccessibleBucketGrant : noAccessGrantBuckets) {
+            if (nonAccessibleBucketGrant.getGranteeType().equals("user") &&
+                nonAccessibleBucketGrant.getGrantee().equals(user.getName())) {
+                bucketGrants.removeIf(grant -> grant.getBucketName().equals(nonAccessibleBucketGrant.getBucketName()));
+                // userBucket grant > groupObject grant
+                catalogObjectGrants.removeIf(grant -> grant.getGranteeType().equals("group") &&
+                                                      grant.getBucketName()
+                                                           .equals(nonAccessibleBucketGrant.getBucketName()));
+            } else if (nonAccessibleBucketGrant.getGranteeType().equals("group") &&
+                       user.getGroups().contains(nonAccessibleBucketGrant.getGrantee())) {
+                bucketGrants.removeIf(grant -> grant.getGranteeType().equals("group") &&
+                                               grant.getPriority() < nonAccessibleBucketGrant.getPriority() &&
+                                               grant.getBucketName().equals(nonAccessibleBucketGrant.getBucketName()));
             }
         }
 
@@ -511,9 +495,11 @@ public class GrantRightsService {
      */
     private BucketGrantMetadata getHighestGrantFromSamePriorityLevelGrants(List<BucketGrantMetadata> bucketGrants) {
         int highestAccessTypeIndex = 0;
+        String highestAccess = bucketGrants.get(0).getAccessType();
         for (int index = 1; index < bucketGrants.size(); index++) {
-            if (grantAccessTypeHelperService.getPriorityLevel(bucketGrants.get(highestAccessTypeIndex).getAccessType(),
-                                                              bucketGrants.get(index).getAccessType()) == 2) {
+            // when find a grant with higher access type
+            if (AccessTypeHelper.compare(bucketGrants.get(index).getAccessType(), highestAccess) > 0) {
+                highestAccess = bucketGrants.get(index).getAccessType();
                 highestAccessTypeIndex = index;
             }
         }
@@ -529,7 +515,7 @@ public class GrantRightsService {
      * @param bucketGrants list of user's bucket grants
      * @param objectsGrants list of user's catalog object grants for catalog objects in the bucket
      */
-    public void removeAllObjectsWithNoAccessGrant(List<CatalogObjectMetadata> metadataList,
+    public void removeAllObjectsWithoutAccessRights(List<CatalogObjectMetadata> metadataList,
             List<BucketGrantMetadata> bucketGrants, List<CatalogObjectGrantMetadata> objectsGrants) {
         List<CatalogObjectGrantMetadata> objectsPositiveGrants = objectsGrants.stream()
                                                                               .filter(g -> !g.getAccessType()
@@ -569,7 +555,7 @@ public class GrantRightsService {
                                                                                                .equals(catalogObjectName))
                                                                                  .collect(Collectors.toList());
                     // Check and get the group grant that has the highest priority to decide whether the object accessible
-                    Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.checkAndReturnObjectGrantWithHighestPriorityInGroupGrants(objectGrants);
+                    Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.getHighestPriorityObjectGroupGrants(objectGrants);
                     if (highestPriorityPositiveGroupsObjectGrant.isPresent() &&
                         !noAccess.name().equals(highestPriorityPositiveGroupsObjectGrant.get().getAccessType())) {
                         accessibleObjects.add(catalogObjectName);
@@ -602,7 +588,7 @@ public class GrantRightsService {
                                                                                                .equals(catalogObjectName))
                                                                                  .collect(Collectors.toList());
                     // Check and get the group grant that has the highest priority to decide whether the object accessible
-                    Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.checkAndReturnObjectGrantWithHighestPriorityInGroupGrants(objectGrants);
+                    Optional<CatalogObjectGrantMetadata> highestPriorityPositiveGroupsObjectGrant = this.getHighestPriorityObjectGroupGrants(objectGrants);
                     if (highestPriorityPositiveGroupsObjectGrant.isPresent() &&
                         noAccess.name().equals(highestPriorityPositiveGroupsObjectGrant.get().getAccessType())) {
                         inaccessibleObjects.add(catalogObjectName);
@@ -620,7 +606,7 @@ public class GrantRightsService {
      * @return the group grant with the highest priority
      */
     private Optional<CatalogObjectGrantMetadata>
-            checkAndReturnObjectGrantWithHighestPriorityInGroupGrants(List<CatalogObjectGrantMetadata> objectGrants) {
+            getHighestPriorityObjectGroupGrants(List<CatalogObjectGrantMetadata> objectGrants) {
         OptionalInt highestRank = this.getHighestRankFromObjectGrants(objectGrants);
         Optional<CatalogObjectGrantMetadata> result = Optional.empty();
         if (highestRank.isPresent()) {
@@ -632,7 +618,7 @@ public class GrantRightsService {
             if (highestGrants.size() == 1) {
                 result = Optional.of(highestGrants.get(0));
             } else if (highestGrants.size() > 1) {
-                result = Optional.of(this.getHighestPriorityObjectGrant(objectGrants));
+                result = Optional.of(this.getHighestAccesTypeObjectGrant(objectGrants));
             }
         }
         return result;
@@ -656,11 +642,11 @@ public class GrantRightsService {
      * @param objectGrants list of object grants assigen to the user groups with the same priority level
      * @return the object grant with the highest access rights
      */
-    private CatalogObjectGrantMetadata getHighestPriorityObjectGrant(List<CatalogObjectGrantMetadata> objectGrants) {
+    private CatalogObjectGrantMetadata getHighestAccesTypeObjectGrant(List<CatalogObjectGrantMetadata> objectGrants) {
         int highestAccessTypeIndex = 0;
         for (int index = 1; index < objectGrants.size(); index++) {
-            if (grantAccessTypeHelperService.getPriorityLevel(objectGrants.get(highestAccessTypeIndex).getAccessType(),
-                                                              objectGrants.get(index).getAccessType()) == 2) {
+            if (AccessTypeHelper.compare(objectGrants.get(highestAccessTypeIndex).getAccessType(),
+                                         objectGrants.get(index).getAccessType()) < 0) {
                 highestAccessTypeIndex = index;
             }
         }

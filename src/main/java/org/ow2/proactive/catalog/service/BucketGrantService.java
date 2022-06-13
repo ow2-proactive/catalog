@@ -536,22 +536,4 @@ public class BucketGrantService {
                                     .map(BucketGrantMetadata::new)
                                     .collect(Collectors.toList());
     }
-
-    /**
-     *
-     * Remove from the list of catalog objects all the objects that are inaccessible for the user (i.e., the user has no assigned grants on the object)
-     *
-     * @param metadataList list of catalog object entities
-     * @param grants list of catalog object grants
-     */
-    public void removeObjectsWithoutGrants(List<CatalogObjectMetadata> metadataList,
-            List<CatalogObjectGrantMetadata> grants) {
-        Set<CatalogObjectMetadata> objectsToRemove = new HashSet<>();
-        for (CatalogObjectMetadata catalogObject : metadataList) {
-            if (grants.stream().noneMatch(g -> g.getCatalogObjectName().equals(catalogObject.getName()))) {
-                objectsToRemove.add(catalogObject);
-            }
-        }
-        metadataList.removeAll(objectsToRemove);
-    }
 }

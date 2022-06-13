@@ -95,9 +95,7 @@ public class CatalogObjectGrantController {
                                                            " is public. You can not assign a grant to it or to any of its object");
             }
             // Check Grants
-            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                   bucketName,
-                                                                                                   catalogObjectName)
+            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                    .equals(admin.toString())) {
                 throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
@@ -111,9 +109,7 @@ public class CatalogObjectGrantController {
                                                                                                                        username);
         if (sessionIdRequired) {
             if (user.getName().equals(username)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
+                if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                        .equals(admin.toString())) {
                     throw new LostOfAdminGrantRightException("By creating this grant for yourself, you will lose your admin rights over the object: " +
                                                              catalogObjectName + ".");
@@ -152,9 +148,7 @@ public class CatalogObjectGrantController {
                                                            " is public. You can not assign a grant to it or to any of its object");
             }
             // Check Grants
-            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                   bucketName,
-                                                                                                   catalogObjectName)
+            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                    .equals(admin.toString())) {
                 throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
@@ -169,9 +163,7 @@ public class CatalogObjectGrantController {
                                                                                                                              userGroup);
         if (sessionIdRequired) {
             if (user.getGroups().contains(userGroup)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
+                if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                        .equals(admin.toString())) {
                     throw new LostOfAdminGrantRightException("By creating this grant for your group: " + userGroup +
                                                              ", you will lose your admin rights over the object: " +
@@ -207,9 +199,7 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                   bucketName,
-                                                                                                   catalogObjectName)
+            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                    .equals(admin.toString())) {
                 throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
@@ -221,9 +211,7 @@ public class CatalogObjectGrantController {
                                                                                                                        username);
         if (sessionIdRequired) {
             if (user.getName().equals(username)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
+                if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                        .equals(admin.toString())) {
                     throw new LostOfAdminGrantRightException("By deleting this grant assigned to yourself, you will lose your admin rights over the object: " +
                                                              catalogObjectName + ".");
@@ -258,9 +246,7 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                   bucketName,
-                                                                                                   catalogObjectName)
+            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                    .equals(admin.toString())) {
                 throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
@@ -272,9 +258,7 @@ public class CatalogObjectGrantController {
                                                                                                                              userGroup);
         if (sessionIdRequired) {
             if (user.getGroups().contains(userGroup)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
+                if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                        .equals(admin.toString())) {
                     throw new LostOfAdminGrantRightException("By deleting this grant assigned to your group: " +
                                                              userGroup +
@@ -312,9 +296,7 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                   bucketName,
-                                                                                                   catalogObjectName)
+            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                    .equals(admin.toString())) {
                 throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
@@ -328,9 +310,7 @@ public class CatalogObjectGrantController {
                                                                                                                        accessType);
         if (sessionIdRequired) {
             if (user.getName().equals(username)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
+                if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                        .equals(admin.toString())) {
                     throw new LostOfAdminGrantRightException("By updating this grant assigned to yourself, you will lose your admin rights over the object: " +
                                                              catalogObjectName + ".");
@@ -369,9 +349,7 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                   bucketName,
-                                                                                                   catalogObjectName)
+            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                    .equals(admin.toString())) {
                 throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
@@ -386,9 +364,7 @@ public class CatalogObjectGrantController {
                                                                                                                              priority);
         if (sessionIdRequired) {
             if (user.getGroups().contains(userGroup)) {
-                if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                       bucketName,
-                                                                                                       catalogObjectName)
+                if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                        .equals(admin.toString())) {
                     throw new LostOfAdminGrantRightException("By updating this grant assigned to your group: " +
                                                              userGroup +
@@ -422,9 +398,7 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                   bucketName,
-                                                                                                   catalogObjectName)
+            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                    .equals(admin.toString())) {
                 throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
@@ -456,9 +430,7 @@ public class CatalogObjectGrantController {
                                                            " is public. No grants are assigned to it or to its objects");
             }
             // Check Grants
-            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                   bucketName,
-                                                                                                   catalogObjectName)
+            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                    .equals(admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
@@ -466,9 +438,7 @@ public class CatalogObjectGrantController {
             user = AuthenticatedUser.EMPTY;
         }
         if (sessionIdRequired) {
-            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                   bucketName,
-                                                                                                   catalogObjectName)
+            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
                                    .equals(admin.toString())) {
                 throw new LostOfAdminGrantRightException("By deleting all grants assigned to the object: " +
                                                          catalogObjectName +

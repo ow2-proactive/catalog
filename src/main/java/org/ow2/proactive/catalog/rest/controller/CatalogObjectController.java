@@ -46,6 +46,7 @@ import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import org.ow2.proactive.catalog.util.AccessTypeHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
@@ -92,9 +93,6 @@ public class CatalogObjectController {
     CatalogObjectGrantService catalogObjectGrantService;
 
     @Autowired
-    private GrantAccessTypeHelperService grantAccessTypeHelperService;
-
-    @Autowired
     private CatalogObjectService catalogObjectService;
 
     @Autowired
@@ -137,9 +135,7 @@ public class CatalogObjectController {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
             user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
-                                                                                                                                                bucketName),
-                                                                     write.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), write.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -232,10 +228,8 @@ public class CatalogObjectController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                                                       bucketName,
-                                                                                                                                                       name),
-                                                                     write.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
+                                          write.toString())) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
 
@@ -254,31 +248,24 @@ public class CatalogObjectController {
             @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName, @PathVariable String name) throws MalformedURLException,
             UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
-        AuthenticatedUser user;
+        String objectRights = "";
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
 
-            user = restApiAccessService.getUserFromSessionId(sessionId);
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check Grants
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                                                       bucketName,
-                                                                                                                                                       name),
-                                                                     read.toString())) {
+            objectRights = grantRightsService.getCatalogObjectRights(user, bucketName, name);
+            if (!AccessTypeHelper.satisfy(objectRights, read.toString())) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
-
-        } else {
-            user = AuthenticatedUser.EMPTY;
         }
 
         CatalogObjectMetadata metadata = catalogObjectService.getCatalogObjectMetadata(bucketName, name);
         if (sessionIdRequired) {
-            metadata.setRights(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                 bucketName,
-                                                                                                                 name));
+            metadata.setRights(objectRights);
         }
         metadata.add(LinkUtil.createLink(bucketName, metadata.getName()));
         metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName()));
@@ -305,10 +292,8 @@ public class CatalogObjectController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                                                       bucketName,
-                                                                                                                                                       name),
-                                                                     read.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
+                                          read.toString())) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
 
@@ -339,10 +324,8 @@ public class CatalogObjectController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                                                       bucketName,
-                                                                                                                                                       name),
-                                                                     read.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
+                                          read.toString())) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
         }
@@ -393,8 +376,7 @@ public class CatalogObjectController {
                 bucketRights = grantRightsService.getBucketRights(bucketGrants);
             }
 
-            if (!grantAccessTypeHelperService.compareGrantAccessType(bucketRights, read.toString()) &&
-                catalogObjectsGrants.isEmpty()) {
+            if (!isBucketAccessible(bucketRights, bucketGrants, catalogObjectsGrants)) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -404,28 +386,8 @@ public class CatalogObjectController {
         contentType = contentType.filter(s -> !s.isEmpty());
         objectNameFilter = objectNameFilter.filter(s -> !s.isEmpty());
         if (names.isPresent()) {
-            ZipArchiveContent zipArchiveContent = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName,
-                                                                                                     names.get());
-
-            HttpStatus status;
-            if (zipArchiveContent.isPartial()) {
-                status = HttpStatus.PARTIAL_CONTENT;
-                response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
-            } else {
-                status = HttpStatus.OK;
-                response.setStatus(HttpServletResponse.SC_OK);
-            }
-
-            response.setContentType(ZIP_CONTENT_TYPE);
-            response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
-            response.addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
-            try {
-                response.getOutputStream().write(zipArchiveContent.getContent());
-                response.getOutputStream().flush();
-            } catch (IOException ioe) {
-                throw new RuntimeException(ioe);
-            }
-            return new ResponseEntity<>(status);
+            ZipArchiveContent content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, names.get());
+            return getResponseAsArchive(content, response);
         } else {
             List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Arrays.asList(bucketName),
                                                                                                kind,
@@ -435,14 +397,10 @@ public class CatalogObjectController {
                                                                                                pageSize);
 
             if (sessionIdRequired && !isPublicBucket) {
-                // This case indicates that the user has gained access to the bucket content via the object grant only, therefore all inaccessible objects will be removed
-                if (bucketRights.equals(noAccess.name()) && !catalogObjectsGrants.isEmpty()) {
-                    // remove all objects that the user doesn't have a positive grant over them
-                    bucketGrantService.removeObjectsWithoutGrants(metadataList, catalogObjectsGrants);
-                }
-
-                // remove all objects that the user has a noAccess grant over them
-                grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, bucketGrants, catalogObjectsGrants);
+                // remove all objects that the user shouldn't have access according to the grants specification.
+                grantRightsService.removeAllObjectsWithoutAccessRights(metadataList,
+                                                                       bucketGrants,
+                                                                       catalogObjectsGrants);
             }
 
             Optional<String> userSpecificBucketRights = bucketGrants.stream()
@@ -487,15 +445,55 @@ public class CatalogObjectController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                                                       bucketName,
-                                                                                                                                                       name),
-                                                                     write.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
+                                          write.toString())) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
 
         }
         return catalogObjectService.delete(bucketName, name);
+    }
+
+    private ResponseEntity<List<CatalogObjectMetadata>> getResponseAsArchive(ZipArchiveContent zipArchiveContent,
+            HttpServletResponse response) {
+        HttpStatus status;
+        if (zipArchiveContent.isPartial()) {
+            status = HttpStatus.PARTIAL_CONTENT;
+            response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+        } else {
+            status = HttpStatus.OK;
+            response.setStatus(HttpServletResponse.SC_OK);
+        }
+
+        response.setContentType(ZIP_CONTENT_TYPE);
+        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
+        response.addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
+        try {
+            response.getOutputStream().write(zipArchiveContent.getContent());
+            response.getOutputStream().flush();
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+        return new ResponseEntity<>(status);
+    }
+
+    private boolean isBucketAccessible(String bucketRights, List<BucketGrantMetadata> bucketGrants,
+            List<CatalogObjectGrantMetadata> catalogObjectsGrants) {
+        List<CatalogObjectGrantMetadata> positiveObjectsGrants = catalogObjectsGrants.stream()
+                                                                                     .filter(grant -> !grant.getAccessType()
+                                                                                                            .equals(noAccess.name()))
+                                                                                     .collect(Collectors.toList());
+        if (AccessTypeHelper.satisfy(bucketRights, read.toString())) {
+            return true;
+        }
+        // Check whether the user has the access to any object in the bucket (based on the rule: userObject grant > userBucket grant > groupObject grant > groupBucket grant).
+        if (bucketGrants.stream().anyMatch(grant -> grant.getGranteeType().equals("user"))) {
+            // When the bucket has a user-specific grant, only user-specific catalog object grants are taken into consideration.
+            return positiveObjectsGrants.stream().anyMatch(grant -> grant.getGranteeType().equals("user"));
+        } else {
+            // Otherwise, all the catalog objects grants are taken into consideration.
+            return !positiveObjectsGrants.isEmpty();
+        }
     }
 
 }

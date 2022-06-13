@@ -77,7 +77,9 @@ public class GrantRightServiceTest {
         metadataList.add(createCatalogObject(bucketName, "object2"));
         metadataList.add(createCatalogObject(bucketName, "object3"));
 
-        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, bucketGrantMetadataList, new LinkedList<>());
+        grantRightsService.removeAllObjectsWithoutAccessRights(metadataList,
+                                                               bucketGrantMetadataList,
+                                                               new LinkedList<>());
 
         assertEquals(3, metadataList.size());
     }
@@ -101,7 +103,9 @@ public class GrantRightServiceTest {
         metadataList.add(createCatalogObject(bucketName, "object2"));
         metadataList.add(createCatalogObject(bucketName, "object3"));
 
-        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, bucketGrantMetadataList, new LinkedList<>());
+        grantRightsService.removeAllObjectsWithoutAccessRights(metadataList,
+                                                               bucketGrantMetadataList,
+                                                               new LinkedList<>());
 
         assertEquals(0, metadataList.size());
     }
@@ -130,7 +134,7 @@ public class GrantRightServiceTest {
         metadataList.add(createCatalogObject(bucketName, "object2"));
         metadataList.add(createCatalogObject(bucketName, "object3"));
 
-        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, bucketGrantMetadataList, objectGrants);
+        grantRightsService.removeAllObjectsWithoutAccessRights(metadataList, bucketGrantMetadataList, objectGrants);
 
         assertEquals(1, metadataList.size());
     }

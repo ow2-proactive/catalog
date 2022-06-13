@@ -42,12 +42,12 @@ import org.ow2.proactive.catalog.dto.CatalogRawObject;
 import org.ow2.proactive.catalog.service.BucketGrantService;
 import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
 import org.ow2.proactive.catalog.service.CatalogObjectService;
-import org.ow2.proactive.catalog.service.GrantAccessTypeHelperService;
 import org.ow2.proactive.catalog.service.GrantRightsService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import org.ow2.proactive.catalog.util.AccessTypeHelper;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
@@ -93,9 +93,6 @@ public class CatalogObjectRevisionController {
     private GrantRightsService grantRightsService;
 
     @Autowired
-    private GrantAccessTypeHelperService grantAccessTypeHelperService;
-
-    @Autowired
     private CatalogObjectGrantService catalogObjectGrantService;
 
     @Autowired
@@ -127,10 +124,8 @@ public class CatalogObjectRevisionController {
 
             // Check Grants
             user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                                                       bucketName,
-                                                                                                                                                       name),
-                                                                     write.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
+                                          write.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         } else {
@@ -143,9 +138,7 @@ public class CatalogObjectRevisionController {
                                                                                                        user.getName(),
                                                                                                        file.getBytes());
         if (sessionIdRequired) {
-            catalogObjectRevision.setRights(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                              bucketName,
-                                                                                                                              name));
+            catalogObjectRevision.setRights(grantRightsService.getCatalogObjectRights(user, bucketName, name));
         }
         catalogObjectRevision.add(LinkUtil.createLink(bucketName,
                                                       catalogObjectRevision.getName(),
@@ -174,10 +167,8 @@ public class CatalogObjectRevisionController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                                                       bucketName,
-                                                                                                                                                       name),
-                                                                     read.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
+                                          read.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -208,10 +199,8 @@ public class CatalogObjectRevisionController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                                                       bucketName,
-                                                                                                                                                       name),
-                                                                     read.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
+                                          read.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -242,10 +231,8 @@ public class CatalogObjectRevisionController {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
             user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                                                       bucketName,
-                                                                                                                                                       name),
-                                                                     read.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
+                                          read.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             } else {
                 catalogObjectGrants = catalogObjectGrantService.findAllCatalogObjectGrantsAssignedToABucket(bucketName);
@@ -259,9 +246,9 @@ public class CatalogObjectRevisionController {
 
         for (CatalogObjectMetadata catalogObjectMetadata : catalogObjectMetadataList) {
             if (sessionIdRequired) {
-                catalogObjectMetadata.setRights(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                                  bucketName,
-                                                                                                                                  catalogObjectMetadata.getName()));
+                catalogObjectMetadata.setRights(grantRightsService.getCatalogObjectRights(user,
+                                                                                          bucketName,
+                                                                                          catalogObjectMetadata.getName()));
             }
             catalogObjectMetadata.add(LinkUtil.createLink(bucketName,
                                                           catalogObjectMetadata.getName(),
@@ -292,10 +279,8 @@ public class CatalogObjectRevisionController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForCatalogObjectOperations(user,
-                                                                                                                                                       bucketName,
-                                                                                                                                                       name),
-                                                                     write.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
+                                          write.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
