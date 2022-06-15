@@ -37,22 +37,21 @@ import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
 import org.ow2.proactive.catalog.dto.GrantMetadata;
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectGrantEntity;
+import org.ow2.proactive.catalog.service.BucketService;
+import org.ow2.proactive.catalog.service.OwnerGroupStringHelper;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 
 
 public class GrantHelper {
-    private static final String PUBLIC_BUCKET_OWNER = "public-objects";
-
     private static final String GROUP_GRANTEE_TYPE = "group";
 
     private static final String USER_GRANTEE_TYPE = "user";
 
     // bucket owner is in the format of "GROUP:XXXXX"
-    private static final int BUCKET_OWNER_PREFIX_LENGTH = 6;
+    private static final int BUCKET_OWNER_PREFIX_LENGTH = OwnerGroupStringHelper.GROUP_PREFIX.length();
 
     public static boolean isPublicBucket(String bucketOwner) {
-        // public bucket owner is GROUP:public-objects
-        return bucketOwnerGroup(bucketOwner).equals(PUBLIC_BUCKET_OWNER);
+        return BucketService.DEFAULT_BUCKET_OWNER.equals(bucketOwner);
     }
 
     /**
@@ -61,7 +60,7 @@ public class GrantHelper {
      * @param bucketOwner bucket owner (complete format, "GROUP:XXXXX")
      * @return the group name that the bucket belongs to
      */
-    public static String bucketOwnerGroup(String bucketOwner) {
+    public static String extractBucketOwnerGroup(String bucketOwner) {
         return bucketOwner.substring(BUCKET_OWNER_PREFIX_LENGTH);
     }
 

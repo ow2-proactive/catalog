@@ -253,7 +253,7 @@ public class GrantRightsService {
      */
     public void addGrantsForBucketOwner(AuthenticatedUser user, String bucketName, String bucketOwner,
             List<BucketGrantMetadata> userBucketGrants) {
-        if (user.getGroups().contains(GrantHelper.bucketOwnerGroup(bucketOwner))) {
+        if (user.getGroups().contains(GrantHelper.extractBucketOwnerGroup(bucketOwner))) {
             userBucketGrants.add(GrantHelper.ownerGroupGrant(bucketOwner, bucketName));
         }
     }
@@ -292,7 +292,7 @@ public class GrantRightsService {
     public boolean isBucketAccessible(String bucketRights, List<BucketGrantMetadata> bucketGrants,
             List<CatalogObjectGrantMetadata> catalogObjectsGrants) {
         List<CatalogObjectGrantMetadata> positiveObjectsGrants = GrantHelper.filterPositiveGrants(catalogObjectsGrants);
-        if (AccessTypeHelper.satisfy(bucketRights, read.toString())) {
+        if (AccessTypeHelper.satisfy(bucketRights, read)) {
             return true;
         }
         // Check whether the user has the access to any object in the bucket (based on the rule: userObject grant > userBucket grant > groupObject grant > groupBucket grant).

@@ -32,13 +32,24 @@ public class AccessTypeHelper {
 
     /**
      * Check whether currentAccessType satisfies requiredAccessType, i.e., whether the current access type is larger than required access type
-     * @param currentAccessType the access type to check
-     * @param requiredAccessType the target access type
+     * @param currentAccessType the access type to check as a string
+     * @param requiredAccessType the target access type as a string
      * @return true when the current access type satisfies the required access type
      */
     public static boolean satisfy(String currentAccessType, String requiredAccessType) {
         // currentAccessType satisfies requiredAccessType when currentAccessType > requiredAccessType (Note: as defined by the enum AccessType order, admin > write > read > noAccess)
-        return AccessType.valueOf(currentAccessType).compareTo(AccessType.valueOf(requiredAccessType)) >= 0;
+        return satisfy(currentAccessType, AccessType.valueOf(requiredAccessType));
+    }
+
+    /**
+     * Check whether currentAccessType satisfies requiredAccessType, i.e., whether the current access type is larger than required access type
+     * @param currentAccessType the access type to check as a string
+     * @param requiredAccessType the target access type as an AccessType enum
+     * @return true when the current access type satisfies the required access type
+     */
+    public static boolean satisfy(String currentAccessType, AccessType requiredAccessType) {
+        // currentAccessType satisfies requiredAccessType when currentAccessType > requiredAccessType (Note: as defined by the enum AccessType order, admin > write > read > noAccess)
+        return AccessType.valueOf(currentAccessType).compareTo(requiredAccessType) >= 0;
     }
 
     /**

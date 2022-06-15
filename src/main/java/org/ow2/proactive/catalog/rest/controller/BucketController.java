@@ -43,6 +43,7 @@ import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import org.ow2.proactive.catalog.util.AccessTypeHelper;
 import org.ow2.proactive.catalog.util.GrantHelper;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,7 +132,7 @@ public class BucketController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), admin)) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }

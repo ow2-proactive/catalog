@@ -135,7 +135,7 @@ public class CatalogObjectController {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
             user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), write.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), write)) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -228,8 +228,7 @@ public class CatalogObjectController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
-                                          write.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), write)) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
 
@@ -258,7 +257,7 @@ public class CatalogObjectController {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check Grants
             objectRights = grantRightsService.getCatalogObjectRights(user, bucketName, name);
-            if (!AccessTypeHelper.satisfy(objectRights, read.toString())) {
+            if (!AccessTypeHelper.satisfy(objectRights, read)) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
         }
@@ -292,8 +291,7 @@ public class CatalogObjectController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
-                                          read.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), read)) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
 
@@ -324,8 +322,7 @@ public class CatalogObjectController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
-                                          read.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), read)) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
         }
@@ -440,8 +437,7 @@ public class CatalogObjectController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
-                                          write.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), write)) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
 
