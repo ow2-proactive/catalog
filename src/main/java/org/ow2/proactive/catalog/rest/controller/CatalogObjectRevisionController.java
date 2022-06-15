@@ -235,7 +235,7 @@ public class CatalogObjectRevisionController {
                                           read.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             } else {
-                catalogObjectGrants = catalogObjectGrantService.findAllCatalogObjectGrantsAssignedToABucket(bucketName);
+                catalogObjectGrants = catalogObjectGrantService.getObjectsGrantsInABucket(bucketName);
             }
 
         } else {

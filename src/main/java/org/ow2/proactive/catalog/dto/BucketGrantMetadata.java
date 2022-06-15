@@ -41,55 +41,27 @@ import lombok.Getter;
 @Data
 @Getter
 @EqualsAndHashCode(callSuper = false)
-public class BucketGrantMetadata extends ResourceSupport {
-
-    @JsonProperty
-    private final String granteeType;
-
-    @JsonProperty
-    private final String creator;
-
-    @JsonProperty
-    private final String grantee;
-
-    @JsonProperty
-    private final String accessType;
-
-    @JsonProperty
-    private final int priority;
+public class BucketGrantMetadata extends GrantMetadata {
 
     @JsonProperty
     private final long bucketId;
 
-    @JsonProperty
-    private final String bucketName;
-
-    @JsonProperty
-    protected long creationDate;
-
-    @JsonProperty
-    protected Deque<ModificationHistoryData> modificationHistory;
-
     public BucketGrantMetadata(BucketGrantEntity bucketGrantEntity) {
-        this.granteeType = bucketGrantEntity.getGranteeType();
-        this.creator = bucketGrantEntity.getCreator();
-        this.grantee = bucketGrantEntity.getGrantee();
-        this.accessType = bucketGrantEntity.getAccessType();
-        this.priority = bucketGrantEntity.getPriority();
+        super(bucketGrantEntity.getGranteeType(),
+              bucketGrantEntity.getGrantee(),
+              bucketGrantEntity.getAccessType(),
+              bucketGrantEntity.getPriority(),
+              bucketGrantEntity.getBucketEntity().getBucketName(),
+              bucketGrantEntity.getCreator(),
+              bucketGrantEntity.getCreationDate(),
+              bucketGrantEntity.getModificationHistory());
+
         this.bucketId = bucketGrantEntity.getBucketEntity().getId();
-        this.bucketName = bucketGrantEntity.getBucketEntity().getBucketName();
-        this.creationDate = bucketGrantEntity.getCreationDate();
-        this.modificationHistory = bucketGrantEntity.getModificationHistory();
     }
 
     public BucketGrantMetadata(String granteeType, String creator, String grantee, String accessType, int priority,
             long bucketId, String bucketName) {
-        this.granteeType = granteeType;
-        this.creator = creator;
-        this.grantee = grantee;
-        this.accessType = accessType;
-        this.priority = priority;
+        super(granteeType, grantee, accessType, priority, bucketName, creator);
         this.bucketId = bucketId;
-        this.bucketName = bucketName;
     }
 }

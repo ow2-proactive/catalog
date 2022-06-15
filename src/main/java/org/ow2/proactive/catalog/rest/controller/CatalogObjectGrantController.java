@@ -403,7 +403,7 @@ public class CatalogObjectGrantController {
                 throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
             }
         }
-        return catalogObjectGrantService.getAllCreatedCatalogObjectGrantsForThisBucket(bucketName, catalogObjectName);
+        return catalogObjectGrantService.getObjectGrants(bucketName, catalogObjectName);
     }
 
     @SuppressWarnings("DefaultAnnotationParam")

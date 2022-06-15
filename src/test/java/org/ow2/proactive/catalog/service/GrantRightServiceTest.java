@@ -63,13 +63,13 @@ public class GrantRightServiceTest {
         List<String> userGroups = new LinkedList<>();
         userGroups.add("user");
         AuthenticatedUser authenticatedUser = AuthenticatedUser.builder().name("user").groups(userGroups).build();
-        when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
-        when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
+        when(catalogObjectGrantService.getNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
+        when(catalogObjectGrantService.getAccessibleObjectsGrants(authenticatedUser)).thenReturn(new LinkedList<>());
 
         List<BucketGrantMetadata> bucketGrantMetadataList = new LinkedList<>();
         bucketGrantMetadataList.add(createBucketGrantMetadata("user", admin.toString(), "bucket"));
 
-        when(bucketGrantService.getAllNoAccessGrants()).thenReturn(bucketGrantMetadataList);
+        when(bucketGrantService.getNoAccessBucketsGrants(authenticatedUser)).thenReturn(bucketGrantMetadataList);
 
         List<CatalogObjectMetadata> metadataList = new LinkedList<>();
 
@@ -89,13 +89,13 @@ public class GrantRightServiceTest {
         List<String> userGroups = new LinkedList<>();
         userGroups.add("user");
         AuthenticatedUser authenticatedUser = AuthenticatedUser.builder().name("user").groups(userGroups).build();
-        when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
-        when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
+        when(catalogObjectGrantService.getNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
+        when(catalogObjectGrantService.getAccessibleObjectsGrants(authenticatedUser)).thenReturn(new LinkedList<>());
 
         List<BucketGrantMetadata> bucketGrantMetadataList = new LinkedList<>();
         bucketGrantMetadataList.add(createBucketGrantMetadata("user", noAccess.toString(), bucketName));
 
-        when(bucketGrantService.getAllNoAccessGrants()).thenReturn(bucketGrantMetadataList);
+        when(bucketGrantService.getNoAccessBucketsGrants(authenticatedUser)).thenReturn(bucketGrantMetadataList);
 
         List<CatalogObjectMetadata> metadataList = new LinkedList<>();
 
@@ -115,18 +115,18 @@ public class GrantRightServiceTest {
         List<String> userGroups = new LinkedList<>();
         userGroups.add("user");
         AuthenticatedUser authenticatedUser = AuthenticatedUser.builder().name("user").groups(userGroups).build();
-        when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
+        when(catalogObjectGrantService.getNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
 
         CatalogObjectGrantMetadata catalogObjectGrantMetadata = createObjectGrantMetadata(bucketName, "object1");
         List<CatalogObjectGrantMetadata> objectGrants = new LinkedList<>();
         objectGrants.add(catalogObjectGrantMetadata);
 
-        when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(objectGrants);
+        when(catalogObjectGrantService.getAccessibleObjectsGrants(authenticatedUser)).thenReturn(objectGrants);
 
         List<BucketGrantMetadata> bucketGrantMetadataList = new LinkedList<>();
         bucketGrantMetadataList.add(createBucketGrantMetadata("user", noAccess.toString(), bucketName));
 
-        when(bucketGrantService.getAllNoAccessGrants()).thenReturn(bucketGrantMetadataList);
+        when(bucketGrantService.getNoAccessBucketsGrants(authenticatedUser)).thenReturn(bucketGrantMetadataList);
 
         List<CatalogObjectMetadata> metadataList = new LinkedList<>();
 
@@ -137,6 +137,46 @@ public class GrantRightServiceTest {
         grantRightsService.removeAllObjectsWithoutAccessRights(metadataList, bucketGrantMetadataList, objectGrants);
 
         assertEquals(1, metadataList.size());
+    }
+
+    @Test
+    public void testGetTheNumberOfAccessibleObjectsInTheBucket() {
+        // TODO
+        //        List<String> userGroups = new LinkedList<>();
+        //        userGroups.add("user");
+        //        AuthenticatedUser authenticatedUser = AuthenticatedUser.builder().name("user").groups(userGroups).build();
+        //
+        //        BucketEntity bucketNoAccess = newMockedBucket("test-noaccess", 1l);
+        //        BucketEntity bucketRead = newMockedBucket("test-read", 2l);
+        //        BucketEntity bucketWrite = newMockedBucket("test-write", 3l);
+        //
+        //        when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
+        //        when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
+        //
+        //        List<BucketGrantEntity> bucketGrantEntityList = new LinkedList<>();
+        //        bucketGrantEntityList.add(createBucketGrantEntity("test-noaccess", noAccess.toString()));
+        //        bucketGrantEntityList.add(createBucketGrantEntity("test-read", read.toString()));
+        //        bucketGrantEntityList.add(createBucketGrantEntity("test-write", read.toString()));
+        //
+        //        when(bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(anyLong())).thenReturn(bucketGrantEntityList);
+        //
+        //        when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
+        //
+        //        List<BucketGrantEntity> noAccessBucketGrantEntityList = new LinkedList<>();
+        //        noAccessBucketGrantEntityList.add(createBucketGrantEntity("test-noaccess", noAccess.toString()));
+        //        when(bucketGrantRepository.findAllBucketGrantsWithNoAccessRight()).thenReturn(noAccessBucketGrantEntityList);
+        //
+        //        BucketMetadata bucketMetadataRead = new BucketMetadata("test-read", "admin", 5);
+        //        BucketMetadata bucketMetadataWrite = new BucketMetadata("test-write", "admin", 4);
+        //
+        //        int numberOfObjectsInTheWriteBucket = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(authenticatedUser,
+        //                bucketMetadataWrite);
+        //        assertEquals(4, numberOfObjectsInTheWriteBucket);
+        //
+        //        int numberOfObjectsInTheReadBucket = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(authenticatedUser,
+        //                bucketMetadataRead);
+        //        assertEquals(5, numberOfObjectsInTheReadBucket);
+
     }
 
     private BucketGrantMetadata createBucketGrantMetadata(String userName, String accessType, String bucketName) {

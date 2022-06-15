@@ -25,6 +25,9 @@
  */
 package org.ow2.proactive.catalog.util;
 
+import org.ow2.proactive.catalog.dto.GrantMetadata;
+
+
 public class AccessTypeHelper {
 
     /**
@@ -35,17 +38,7 @@ public class AccessTypeHelper {
      */
     public static boolean satisfy(String currentAccessType, String requiredAccessType) {
         // currentAccessType satisfies requiredAccessType when currentAccessType > requiredAccessType (Note: as defined by the enum AccessType order, admin > write > read > noAccess)
-        return AccessType.valueOf(currentAccessType).compareTo(AccessType.valueOf(requiredAccessType)) > 0;
-    }
-
-    /**
-     * Compare two access type (as defined by the enum AccessType order: admin > write > read > noAccess)
-     * @param accessType1 first access type
-     * @param accessType2 second access type
-     * @return 1 if the first access type is higher than the second, otherwise return -1
-     */
-    public static int compare(AccessType accessType1, AccessType accessType2) {
-        return accessType1.compareTo(accessType2);
+        return AccessType.valueOf(currentAccessType).compareTo(AccessType.valueOf(requiredAccessType)) >= 0;
     }
 
     /**

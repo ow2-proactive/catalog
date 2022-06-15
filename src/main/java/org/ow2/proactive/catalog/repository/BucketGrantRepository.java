@@ -54,27 +54,21 @@ public interface BucketGrantRepository extends JpaRepository<BucketGrantEntity, 
     List<BucketGrantEntity> findAllBucketsGrantsByUserGroup(List<String> userGroup);
 
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee = ?1 And bge.granteeType='user' AND bge.accessType<>'noAccess'")
-    List<BucketGrantEntity> findAllAccessibleBucketGrantsAssignedToAUsername(String username);
+    List<BucketGrantEntity> findAccessibleBucketsGrantsAssignedToAUsername(String username);
 
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee in ?1 And bge.granteeType='group' AND bge.accessType<>'noAccess'")
-    List<BucketGrantEntity> findAllAccessibleBucketGrantsAssignedToTheUserGroups(List<String> userGroup);
+    List<BucketGrantEntity> findAccessibleBucketsGrantsAssignedToUserGroups(List<String> userGroup);
 
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee = ?1 AND bge.bucketEntity.id=?2 And bge.granteeType='user' AND bge.accessType<>'noAccess'")
-    List<BucketGrantEntity> findAllAccessibleBucketGrantsAssignedToAUsernameInsideABucket(String username,
-            long bucketId);
+    List<BucketGrantEntity> findAccessibleBucketsGrantsAssignedToAUsername(String username, long bucketId);
 
     @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee in ?1 AND bge.bucketEntity.id=?2 And bge.granteeType='group' AND bge.accessType<>'noAccess'")
-    List<BucketGrantEntity> findAllAccessibleBucketGrantsAssignedToTheUserGroupsInsideABucket(List<String> userGroup,
-            long bucketId);
+    List<BucketGrantEntity> findAccessibleBucketsGrantsAssignedToUserGroups(List<String> userGroup, long bucketId);
 
-    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.accessType='noAccess'")
-    List<BucketGrantEntity> findAllBucketGrantsWithNoAccessRight();
+    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee = ?1 And bge.granteeType='user' AND bge.accessType='noAccess'")
+    List<BucketGrantEntity> findBucketsGrantsAssignedToAUsernameWithNoAccessRight(String username);
 
-    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee = ?1 AND bge.bucketEntity.id=?2 And bge.granteeType='user' AND bge.accessType='noAccess'")
-    List<BucketGrantEntity> findBucketGrantsAssignedToAUsernameWithNoAccessRight(String username, long bucketId);
-
-    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee in ?1 AND bge.bucketEntity.id=?2 And bge.granteeType='group' AND bge.accessType='noAccess'")
-    List<BucketGrantEntity> findBucketGrantsAssignedToUserGroupsWithNoAccessRight(List<String> userGroup,
-            long bucketId);
+    @Query(value = "SELECT bge FROM BucketGrantEntity bge WHERE bge.grantee in ?1 And bge.granteeType='group' AND bge.accessType='noAccess'")
+    List<BucketGrantEntity> findBucketsGrantsAssignedToUserGroupsWithNoAccessRight(List<String> userGroup);
 
 }

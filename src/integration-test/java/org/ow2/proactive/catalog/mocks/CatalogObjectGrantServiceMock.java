@@ -45,7 +45,7 @@ public class CatalogObjectGrantServiceMock extends CatalogObjectGrantService {
         return true;
     }
 
-    public List<CatalogObjectGrantMetadata> findAllCatalogObjectGrantsAssignedToABucket(String bucketName) {
+    public List<CatalogObjectGrantMetadata> getObjectsGrantsInABucket(String bucketName) {
         return new LinkedList<>();
     }
 

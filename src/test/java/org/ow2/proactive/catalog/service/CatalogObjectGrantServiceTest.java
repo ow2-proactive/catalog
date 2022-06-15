@@ -220,7 +220,7 @@ public class CatalogObjectGrantServiceTest {
         when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
         when(catalogObjectGrantRepository.findCatalogObjectGrantEntitiesByBucketEntityId(BUCKET_ID)).thenReturn(dbUserObjectGrants);
 
-        List<CatalogObjectGrantMetadata> results = catalogObjectGrantService.findAllCatalogObjectGrantsAssignedToABucket(DUMMY_BUCKET);
+        List<CatalogObjectGrantMetadata> results = catalogObjectGrantService.getObjectsGrantsInABucket(DUMMY_BUCKET);
 
         assertEquals(1, results.size());
         assertEquals("user", results.get(0).getGranteeType());

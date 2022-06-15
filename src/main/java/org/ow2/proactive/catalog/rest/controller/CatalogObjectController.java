@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -48,6 +47,7 @@ import org.ow2.proactive.catalog.service.exception.CatalogObjectGrantAccessExcep
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AccessTypeHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
+import org.ow2.proactive.catalog.util.GrantHelper;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
@@ -366,17 +366,17 @@ public class CatalogObjectController {
             }
             user = restApiAccessService.getUserFromSessionId(sessionId);
             BucketMetadata bucket = bucketService.getBucketMetadata(bucketName);
-            isPublicBucket = grantRightsService.isPublicBucket(bucket.getOwner());
+            isPublicBucket = GrantHelper.isPublicBucket(bucket.getOwner());
             if (isPublicBucket) {
                 bucketRights = admin.name();
             } else {
-                bucketGrants = bucketGrantService.getUserBucketAllGrants(user, bucketName);
+                bucketGrants = bucketGrantService.getUserBucketGrants(user, bucketName);
                 grantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
-                catalogObjectsGrants = catalogObjectGrantService.findAllObjectsGrantsInABucket(user, bucketName);
+                catalogObjectsGrants = catalogObjectGrantService.getObjectsGrantsInABucket(user, bucketName);
                 bucketRights = grantRightsService.getBucketRights(bucketGrants);
             }
 
-            if (!isBucketAccessible(bucketRights, bucketGrants, catalogObjectsGrants)) {
+            if (!grantRightsService.isBucketAccessible(bucketRights, bucketGrants, catalogObjectsGrants)) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -389,7 +389,7 @@ public class CatalogObjectController {
             ZipArchiveContent content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, names.get());
             return getResponseAsArchive(content, response);
         } else {
-            List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Arrays.asList(bucketName),
+            List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
                                                                                                kind,
                                                                                                contentType,
                                                                                                objectNameFilter,
@@ -403,19 +403,14 @@ public class CatalogObjectController {
                                                                        catalogObjectsGrants);
             }
 
-            Optional<String> userSpecificBucketRights = bucketGrants.stream()
-                                                                    .filter(grant -> grant.getGranteeType()
-                                                                                          .equals("user"))
-                                                                    .findFirst()
-                                                                    .map(BucketGrantMetadata::getAccessType);
+            Optional<String> userSpecificBucketRights = GrantHelper.filterFirstUserSpecificGrant(bucketGrants)
+                                                                   .map(BucketGrantMetadata::getAccessType);
             for (CatalogObjectMetadata catalogObject : metadataList) {
                 catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
                 catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
                 if (sessionIdRequired) {
-                    List<CatalogObjectGrantMetadata> objectsGrants = catalogObjectsGrants.stream()
-                                                                                         .filter(g -> g.getCatalogObjectName()
-                                                                                                       .equals(catalogObject.getName()))
-                                                                                         .collect(Collectors.toList());
+                    List<CatalogObjectGrantMetadata> objectsGrants = GrantHelper.filterObjectGrants(catalogObjectsGrants,
+                                                                                                    catalogObject.getName());
                     catalogObject.setRights(grantRightsService.getCatalogObjectRights(isPublicBucket,
                                                                                       bucketRights,
                                                                                       userSpecificBucketRights,
@@ -476,24 +471,4 @@ public class CatalogObjectController {
         }
         return new ResponseEntity<>(status);
     }
-
-    private boolean isBucketAccessible(String bucketRights, List<BucketGrantMetadata> bucketGrants,
-            List<CatalogObjectGrantMetadata> catalogObjectsGrants) {
-        List<CatalogObjectGrantMetadata> positiveObjectsGrants = catalogObjectsGrants.stream()
-                                                                                     .filter(grant -> !grant.getAccessType()
-                                                                                                            .equals(noAccess.name()))
-                                                                                     .collect(Collectors.toList());
-        if (AccessTypeHelper.satisfy(bucketRights, read.toString())) {
-            return true;
-        }
-        // Check whether the user has the access to any object in the bucket (based on the rule: userObject grant > userBucket grant > groupObject grant > groupBucket grant).
-        if (bucketGrants.stream().anyMatch(grant -> grant.getGranteeType().equals("user"))) {
-            // When the bucket has a user-specific grant, only user-specific catalog object grants are taken into consideration.
-            return positiveObjectsGrants.stream().anyMatch(grant -> grant.getGranteeType().equals("user"));
-        } else {
-            // Otherwise, all the catalog objects grants are taken into consideration.
-            return !positiveObjectsGrants.isEmpty();
-        }
-    }
-
 }

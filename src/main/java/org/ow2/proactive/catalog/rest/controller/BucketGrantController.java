@@ -283,7 +283,7 @@ public class BucketGrantController {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
-        return bucketGrantService.getAllCreatedBucketGrantsForABucket(bucketName);
+        return bucketGrantService.getAllBucketGrantsForABucket(bucketName);
     }
 
     @SuppressWarnings("DefaultAnnotationParam")

@@ -42,22 +42,7 @@ import lombok.Getter;
 @Data
 @Getter
 @EqualsAndHashCode(callSuper = false)
-public class CatalogObjectGrantMetadata extends ResourceSupport {
-
-    @JsonProperty
-    private final String granteeType;
-
-    @JsonProperty
-    private final String creator;
-
-    @JsonProperty
-    private final String grantee;
-
-    @JsonProperty
-    private final String accessType;
-
-    @JsonProperty
-    private final int priority;
+public class CatalogObjectGrantMetadata extends GrantMetadata {
 
     @JsonProperty
     private final CatalogObjectID catalogObjectId;
@@ -71,20 +56,10 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
     @JsonProperty
     private final String bucketName;
 
-    @JsonProperty
-    protected long creationDate;
-
-    @JsonProperty
-    protected Deque<ModificationHistoryData> modificationHistory;
-
     public CatalogObjectGrantMetadata(String granteeType, String creator, String grantee, String accessType,
             int priority, CatalogObjectID catalogObjectId, String catalogObjectName, long catalogObjectBucketId,
             String bucketName) {
-        this.granteeType = granteeType;
-        this.creator = creator;
-        this.grantee = grantee;
-        this.accessType = accessType;
-        this.priority = priority;
+        super(granteeType, grantee, accessType, priority, bucketName, creator);
         this.catalogObjectId = catalogObjectId;
         this.catalogObjectName = catalogObjectName;
         this.catalogObjectBucketId = catalogObjectBucketId;
@@ -92,11 +67,11 @@ public class CatalogObjectGrantMetadata extends ResourceSupport {
     }
 
     public CatalogObjectGrantMetadata(CatalogObjectGrantEntity catalogObjectGrantEntity) {
-        this.granteeType = catalogObjectGrantEntity.getGranteeType();
-        this.creator = catalogObjectGrantEntity.getCreator();
-        this.grantee = catalogObjectGrantEntity.getGrantee();
-        this.accessType = catalogObjectGrantEntity.getAccessType();
-        this.priority = catalogObjectGrantEntity.getPriority();
+        super(catalogObjectGrantEntity.getGranteeType(),
+              catalogObjectGrantEntity.getGrantee(),
+              catalogObjectGrantEntity.getAccessType(),
+              catalogObjectGrantEntity.getPriority(),
+              catalogObjectGrantEntity.getCreator());
         if (catalogObjectGrantEntity.getCatalogObject() != null) {
             this.catalogObjectName = catalogObjectGrantEntity.getCatalogObject().getId().getName();
             this.catalogObjectId = new CatalogObjectID(catalogObjectGrantEntity.getCatalogObject()

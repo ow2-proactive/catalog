@@ -72,8 +72,6 @@ public class CatalogObjectGrantControllerTest {
         when(grantRightsService.getBucketRights(any(), anyString())).thenReturn("admin");
         when(grantRightsService.getBucketRights(any(), anyString())).thenReturn("admin");
         when(grantRightsService.getCatalogObjectRights(any(), anyString(), anyString())).thenReturn("admin");
-        when(catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(any(),
-                                                                                                 any())).thenReturn(true);
     }
 
     @Test
