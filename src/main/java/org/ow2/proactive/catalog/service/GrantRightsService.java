@@ -227,7 +227,7 @@ public class GrantRightsService {
      * @param bucketGrants list of user's bucket grants
      * @param objectsGrants list of user's catalog object grants for catalog objects in the bucket
      */
-    public void removeInaccessibleObjects(List<CatalogObjectMetadata> metadataList,
+    public void removeInaccessibleObjectsInBucket(List<CatalogObjectMetadata> metadataList,
             List<BucketGrantMetadata> bucketGrants, List<CatalogObjectGrantMetadata> objectsGrants) {
         String bucketRights = getBucketRights(bucketGrants);
         Optional<BucketGrantMetadata> bucketUserSpecificGrant = GrantHelper.filterFirstUserSpecificGrant(bucketGrants);
