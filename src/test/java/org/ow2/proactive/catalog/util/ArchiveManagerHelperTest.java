@@ -102,7 +102,7 @@ public class ArchiveManagerHelperTest {
     @Test
     public void testCompressZipWithDifferentFileTypes() throws IOException {
 
-        assertNull(archiveManager.compressZIP(null));
+        assertNull(archiveManager.compressZIP(false, null));
 
         byte[] workflowByteArray0 = convertFromURIToByteArray(XML_FILE_0);
         byte[] jsonByteArray1 = convertFromURIToByteArray(XML_FILE_1);
@@ -112,7 +112,7 @@ public class ArchiveManagerHelperTest {
         expectedFiles.add(getCatalogObjectRevisionEntity("workflow_0", workflowByteArray0, "xml"));
         expectedFiles.add(getCatalogObjectRevisionEntity("array", jsonByteArray1, "json"));
         //Compress
-        ZipArchiveContent archive = archiveManager.compressZIP(expectedFiles);
+        ZipArchiveContent archive = archiveManager.compressZIP(false, expectedFiles);
         //Then extract
         List<FileNameAndContent> actualFiles = archiveManager.extractZIP(archive.getContent());
         assertEquals(2, actualFiles.size());
@@ -126,7 +126,7 @@ public class ArchiveManagerHelperTest {
     @Test
     public void testCompressZip() throws IOException {
 
-        assertNull(archiveManager.compressZIP(null));
+        assertNull(archiveManager.compressZIP(false, null));
 
         byte[] workflowByteArray0 = convertFromURIToByteArray(XML_FILE_0);
         byte[] workflowByteArray1 = convertFromURIToByteArray(XML_FILE_1);
@@ -136,7 +136,7 @@ public class ArchiveManagerHelperTest {
         when(rawObjectResponseCreator.getNameWithFileExtension("workflow_0", "xml", null)).thenReturn("workflow_0.xml");
         when(rawObjectResponseCreator.getNameWithFileExtension("workflow_1", "xml", null)).thenReturn("workflow_1.xml");
         //Compress
-        ZipArchiveContent archive = archiveManager.compressZIP(expectedFiles);
+        ZipArchiveContent archive = archiveManager.compressZIP(false, expectedFiles);
         //Then extract
         List<FileNameAndContent> actualFiles = archiveManager.extractZIP(archive.getContent());
         assertEquals(2, actualFiles.size());

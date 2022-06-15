@@ -54,6 +54,10 @@ public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogOb
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName in ?1 AND cor.catalogObject.id.name = ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
     CatalogObjectRevisionEntity findDefaultCatalogObjectByNameInBucket(List<String> bucketNames, String name);
 
+    @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.catalogObject.bucket.bucketName = ?1 AND cor.catalogObject.id.name in ?2 AND cor.catalogObject.lastCommitTime = cor.commitTime")
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsByNameInBucket(String bucketName,
+            List<String> objectName);
+
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor WHERE cor.id = ?1")
     List<CatalogObjectRevisionEntity> findCatalogObject(long catalogObjectId);
 

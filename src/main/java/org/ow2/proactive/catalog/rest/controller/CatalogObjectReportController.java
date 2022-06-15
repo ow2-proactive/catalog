@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -53,12 +54,7 @@ import org.ow2.proactive.microservices.common.exception.NotAuthenticatedExceptio
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -116,19 +112,18 @@ public class CatalogObjectReportController {
 
     }
 
-    @ApiOperation(value = "Get list of selected catalog objects in a PDF report file")
+    @ApiOperation(value = "Get list of selected catalog objects in a PDF report file", consumes = "application/json")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
-    @RequestMapping(value = "/selected/{bucketName}", method = GET)
+    @RequestMapping(value = "/selected/{bucketName}", method = POST)
     @ResponseStatus(HttpStatus.OK)
     public void getReportForSelectedObjects(HttpServletResponse response,
             @ApiParam(value = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @PathVariable String bucketName,
             @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
             @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
-            @ApiParam(value = "Give a list of name separated by comma to get them in the report", allowMultiple = true, type = "string") @RequestParam(value = "name", required = false) Optional<List<String>> catalogObjectsNames)
+            @ApiParam(value = "Give a list of name separated by comma to get them in the report") @RequestBody Optional<List<String>> catalogObjectsNames)
             throws NotAuthenticatedException, AccessDeniedException, IOException {
 
         if (sessionIdRequired) {
@@ -146,23 +141,19 @@ public class CatalogObjectReportController {
 
         }
 
+        byte[] content;
+
         if (catalogObjectsNames.isPresent()) {
-
-            byte[] content = catalogObjectReportService.generateBytesReportForSelectedObjects(bucketName,
-                                                                                              catalogObjectsNames.get(),
-                                                                                              kind,
-                                                                                              contentType);
-            flushResponse(response, content);
-
+            content = catalogObjectReportService.generateBytesReportForSelectedObjects(bucketName,
+                                                                                       catalogObjectsNames.get(),
+                                                                                       kind,
+                                                                                       contentType);
         } else {
-
-            byte[] content = catalogObjectReportService.generateBytesReport(Collections.singletonList(bucketName),
-                                                                            kind,
-                                                                            contentType);
-            flushResponse(response, content);
-
+            content = catalogObjectReportService.generateBytesReport(Collections.singletonList(bucketName),
+                                                                     kind,
+                                                                     contentType);
         }
-
+        flushResponse(response, content);
     }
 
     private void flushResponse(HttpServletResponse response, byte[] content) throws IOException {

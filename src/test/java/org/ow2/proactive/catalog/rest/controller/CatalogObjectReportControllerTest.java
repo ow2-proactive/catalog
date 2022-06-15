@@ -124,7 +124,6 @@ public class CatalogObjectReportControllerTest {
         Optional<List<String>> catalogObjectsNames = Optional.of(Lists.newArrayList("object1"));
         catalogObjectReportController.getReportForSelectedObjects(response,
                                                                   "sessionId",
-                                                                  "ownerName",
                                                                   bucketName,
                                                                   kind,
                                                                   contentType,
@@ -156,7 +155,6 @@ public class CatalogObjectReportControllerTest {
         Optional<List<String>> catalogObjectsNames = Optional.empty();
         catalogObjectReportController.getReportForSelectedObjects(response,
                                                                   "sessionId",
-                                                                  "ownerName",
                                                                   bucketName,
                                                                   kind,
                                                                   contentType,

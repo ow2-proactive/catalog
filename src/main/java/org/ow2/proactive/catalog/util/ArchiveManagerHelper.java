@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
@@ -117,7 +118,7 @@ public class ArchiveManagerHelper {
      * @param catalogObjectList the list of catalogObjects to compress
      * @return a byte array corresponding to the archive containing the files
      */
-    public ZipArchiveContent compressZIP(List<CatalogObjectRevisionEntity> catalogObjectList) {
+    public ZipArchiveContent compressZIP(boolean isPartial, List<CatalogObjectRevisionEntity> catalogObjectList) {
 
         if (catalogObjectList == null) {
             return null;
@@ -127,23 +128,21 @@ public class ArchiveManagerHelper {
 
             ZipArchiveContent zipContent = new ZipArchiveContent();
 
-            Stream<ZipEntrySource> streamSources = catalogObjectList.stream().filter(catalogObjectRevision -> {
-                if (catalogObjectRevision == null) {
-                    zipContent.setPartial(true);
-                }
-                return catalogObjectRevision != null;
-            }).map(catalogObjectRevision -> {
-                CatalogObjectEntity catalogObjectEntity = catalogObjectRevision.getCatalogObject();
-                String fileNameWithExtension = rawObjectResponseCreator.getNameWithFileExtension(catalogObjectEntity.getId()
-                                                                                                                    .getName(),
-                                                                                                 catalogObjectEntity.getExtension(),
-                                                                                                 catalogObjectEntity.getKind());
-                return new ByteSource(fileNameWithExtension, catalogObjectRevision.getRawObject());
-            });
+            Stream<ZipEntrySource> streamSources = catalogObjectList.stream()
+                                                                    .filter(Objects::nonNull)
+                                                                    .map(catalogObjectRevision -> {
+                                                                        CatalogObjectEntity catalogObjectEntity = catalogObjectRevision.getCatalogObject();
+                                                                        String fileNameWithExtension = rawObjectResponseCreator.getNameWithFileExtension(catalogObjectEntity.getId()
+                                                                                                                                                                            .getName(),
+                                                                                                                                                         catalogObjectEntity.getExtension(),
+                                                                                                                                                         catalogObjectEntity.getKind());
+                                                                        return new ByteSource(fileNameWithExtension,
+                                                                                              catalogObjectRevision.getRawObject());
+                                                                    });
             ZipEntrySource[] sources = streamSources.toArray(size -> new ZipEntrySource[size]);
             ZipUtil.pack(sources, byteArrayOutputStream);
-
             zipContent.setContent(byteArrayOutputStream.toByteArray());
+            zipContent.setPartial(isPartial);
             return zipContent;
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
