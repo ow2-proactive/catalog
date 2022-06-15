@@ -395,9 +395,7 @@ public class CatalogObjectController {
 
             if (sessionIdRequired && !isPublicBucket) {
                 // remove all objects that the user shouldn't have access according to the grants specification.
-                grantRightsService.removeAllObjectsWithoutAccessRights(metadataList,
-                                                                       bucketGrants,
-                                                                       catalogObjectsGrants);
+                grantRightsService.removeInaccessibleObjects(metadataList, bucketGrants, catalogObjectsGrants);
             }
 
             Optional<String> userSpecificBucketRights = GrantHelper.filterFirstUserSpecificGrant(bucketGrants)

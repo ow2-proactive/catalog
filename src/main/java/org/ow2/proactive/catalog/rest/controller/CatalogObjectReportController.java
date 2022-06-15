@@ -201,10 +201,9 @@ public class CatalogObjectReportController {
                                                                                                         data.getName());
 
                 String bucketGrantAccessType = grantRightsService.getBucketRights(bucketGrants);
-                int objectCount = grantRightsService.getTheNumberOfAccessibleObjectsInTheBucket(data,
-                                                                                                bucketGrantAccessType,
-                                                                                                bucketGrants,
-                                                                                                objectsInBucketGrants);
+                int objectCount = grantRightsService.getNumberOfAccessibleObjectsInBucket(data,
+                                                                                          bucketGrants,
+                                                                                          objectsInBucketGrants);
                 BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), objectCount);
                 metadata.setRights(bucketGrantAccessType);
                 if (!res.contains(metadata)) {

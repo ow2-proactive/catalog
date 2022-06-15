@@ -201,13 +201,13 @@ public class GrantRightsService {
      * Get the number of accessible catalog objects in the bucket.
      *
      * @param bucket bucket metadata
-     * @param bucketRights the user's rights on the bucket
      * @param bucketGrants list of all the user's grants on the bucket
      * @param objectsGrants list of all the user's grants on the catalog objects in the bucket
      * @return the number of accessible catalog objects in the bucket
      */
-    public int getTheNumberOfAccessibleObjectsInTheBucket(BucketMetadata bucket, String bucketRights,
-            List<BucketGrantMetadata> bucketGrants, List<CatalogObjectGrantMetadata> objectsGrants) {
+    public int getNumberOfAccessibleObjectsInBucket(BucketMetadata bucket, List<BucketGrantMetadata> bucketGrants,
+            List<CatalogObjectGrantMetadata> objectsGrants) {
+        String bucketRights = getBucketRights(bucketGrants);
         Optional<BucketGrantMetadata> bucketUserSpecificGrant = GrantHelper.filterFirstUserSpecificGrant(bucketGrants);
         if (bucketRights.equals(noAccess.name())) {
             // When the user has no access on the bucket, we count only objects that the user have a positive grant over them
@@ -227,7 +227,7 @@ public class GrantRightsService {
      * @param bucketGrants list of user's bucket grants
      * @param objectsGrants list of user's catalog object grants for catalog objects in the bucket
      */
-    public void removeAllObjectsWithoutAccessRights(List<CatalogObjectMetadata> metadataList,
+    public void removeInaccessibleObjects(List<CatalogObjectMetadata> metadataList,
             List<BucketGrantMetadata> bucketGrants, List<CatalogObjectGrantMetadata> objectsGrants) {
         String bucketRights = getBucketRights(bucketGrants);
         Optional<BucketGrantMetadata> bucketUserSpecificGrant = GrantHelper.filterFirstUserSpecificGrant(bucketGrants);

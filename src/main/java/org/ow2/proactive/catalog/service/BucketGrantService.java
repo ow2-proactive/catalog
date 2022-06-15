@@ -88,9 +88,8 @@ public class BucketGrantService {
      */
     public List<BucketGrantMetadata> getUserBucketGrants(AuthenticatedUser user, String bucketName) {
         long bucketId = getBucketIdByName(bucketName);
-        return GrantHelper.filterBucketsGrantsAssignedToUser(user,
-                                                             bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(bucketId));
-
+        List<BucketGrantEntity> grants = bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(bucketId);
+        return GrantHelper.filterBucketsGrantsAssignedToUser(user, grants);
     }
 
     /**

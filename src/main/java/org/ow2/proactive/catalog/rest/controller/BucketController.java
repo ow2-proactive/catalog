@@ -218,10 +218,9 @@ public class BucketController {
 
                     List<CatalogObjectGrantMetadata> objectsInBucketGrants = GrantHelper.filterBucketGrants(allCatalogObjectsGrants,
                                                                                                             bucket.getName());
-                    int objectCount = grantRightsService.getTheNumberOfAccessibleObjectsInTheBucket(bucket,
-                                                                                                    bucketRights,
-                                                                                                    bucketGrants,
-                                                                                                    objectsInBucketGrants);
+                    int objectCount = grantRightsService.getNumberOfAccessibleObjectsInBucket(bucket,
+                                                                                              bucketGrants,
+                                                                                              objectsInBucketGrants);
                     bucket.setObjectCount(objectCount);
                 }
             }

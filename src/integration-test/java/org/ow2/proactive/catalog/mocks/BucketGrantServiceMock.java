@@ -31,11 +31,6 @@ import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 
 public class BucketGrantServiceMock extends BucketGrantService {
 
-    public boolean isTheUserGrantSufficientForTheCurrentTask(AuthenticatedUser user, String bucketName,
-            String requiredAccessType) {
-        return true;
-    }
-
     public void deleteAllGrantsAssignedToABucketAndItsObjects(long bucketId) {
 
     }
