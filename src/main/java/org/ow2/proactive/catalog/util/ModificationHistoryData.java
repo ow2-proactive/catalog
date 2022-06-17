@@ -25,6 +25,8 @@
  */
 package org.ow2.proactive.catalog.util;
 
+import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,7 +70,7 @@ public class ModificationHistoryData implements Serializable {
                                           newValues.stream(),
                                           (oldValue, newValue) -> oldValue + " => " + newValue)
                                      .collect(Collectors.toList());
-        if (granteeType.equals("user")) {
+        if (granteeType.equals(USER_GRANTEE_TYPE)) {
             this.changes = "Right: " + values.get(0);
         } else {
             this.changes = "Right: " + values.get(0) + ", Priority: " + values.get(1);

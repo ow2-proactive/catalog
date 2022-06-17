@@ -30,6 +30,7 @@ import static org.ow2.proactive.catalog.util.AccessType.admin;
 import static org.ow2.proactive.catalog.util.AccessType.noAccess;
 import static org.ow2.proactive.catalog.util.AccessType.read;
 import static org.ow2.proactive.catalog.util.AccessType.write;
+import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,10 +62,12 @@ public class GrantRightServiceTest {
 
     private final String bucketName = "test-bucket";
 
+    private final String username = "user";
+
     @Test
     public void testRemoveInaccessibleObjectsGivenUserHasAdminBucketGrant() {
         List<BucketGrantMetadata> bucketGrants = new LinkedList<>();
-        bucketGrants.add(createBucketGrantMetadata("user", admin.toString(), bucketName));
+        bucketGrants.add(createBucketGrantMetadata(username, admin.toString(), bucketName));
 
         List<CatalogObjectMetadata> metadataList = new LinkedList<>();
         metadataList.add(createCatalogObject(bucketName, "object1"));
@@ -79,7 +82,7 @@ public class GrantRightServiceTest {
     @Test
     public void testRemoveInaccessibleObjectsGivenUserHasNoAccessBucketGrant() {
         List<BucketGrantMetadata> bucketGrants = new LinkedList<>();
-        bucketGrants.add(createBucketGrantMetadata("user", noAccess.toString(), bucketName));
+        bucketGrants.add(createBucketGrantMetadata(username, noAccess.toString(), bucketName));
 
         List<CatalogObjectMetadata> metadataList = new LinkedList<>();
         metadataList.add(createCatalogObject(bucketName, "object1"));
@@ -94,7 +97,7 @@ public class GrantRightServiceTest {
     @Test
     public void testRemoveInaccessibleObjectsGivenUserHasNoAccessBucketGrantAndPositiveObjectGrants() {
         List<BucketGrantMetadata> bucketGrants = new LinkedList<>();
-        bucketGrants.add(createBucketGrantMetadata("user", noAccess.toString(), bucketName));
+        bucketGrants.add(createBucketGrantMetadata(username, noAccess.toString(), bucketName));
 
         CatalogObjectGrantMetadata catalogObjectGrantMetadata = createObjectGrantMetadata(bucketName,
                                                                                           "object1",
@@ -115,7 +118,7 @@ public class GrantRightServiceTest {
     @Test
     public void testGetTheNumberOfAccessibleObjectsInTheBucketWithReadGrantBucketAndNoObjectGrants() {
         BucketMetadata bucketRead = new BucketMetadata(bucketName, "admin-group", 5);
-        List<BucketGrantMetadata> bucketReadGrants = Collections.singletonList(createBucketGrantMetadata("user",
+        List<BucketGrantMetadata> bucketReadGrants = Collections.singletonList(createBucketGrantMetadata(username,
                                                                                                          read.toString(),
                                                                                                          bucketName));
         int numberOfObjectsInBucketRead = grantRightsService.getNumberOfAccessibleObjectsInBucket(bucketRead,
@@ -132,7 +135,7 @@ public class GrantRightServiceTest {
         objectGrants.add(createObjectGrantMetadata(bucketName, "object3", read.name()));
 
         BucketMetadata bucketWrite = new BucketMetadata("test-write", "admin-group", 4);
-        List<BucketGrantMetadata> bucketWriteGrants = Collections.singletonList(createBucketGrantMetadata("user",
+        List<BucketGrantMetadata> bucketWriteGrants = Collections.singletonList(createBucketGrantMetadata(username,
                                                                                                           write.toString(),
                                                                                                           bucketWrite.getName()));
         int numberOfObjectsInBucketWrite = grantRightsService.getNumberOfAccessibleObjectsInBucket(bucketWrite,
@@ -149,7 +152,7 @@ public class GrantRightServiceTest {
         objectGrants.add(createObjectGrantMetadata(bucketName, "object3", noAccess.name()));
 
         BucketMetadata bucketNoAccess = new BucketMetadata("test-noaccess", "admin-group", 7);
-        List<BucketGrantMetadata> bucketNoAccessGrants = Collections.singletonList(createBucketGrantMetadata("user",
+        List<BucketGrantMetadata> bucketNoAccessGrants = Collections.singletonList(createBucketGrantMetadata(username,
                                                                                                              noAccess.toString(),
                                                                                                              bucketNoAccess.getName()));
         int numberOfObjectsInBucketNoAccess = grantRightsService.getNumberOfAccessibleObjectsInBucket(bucketNoAccess,
@@ -159,7 +162,7 @@ public class GrantRightServiceTest {
     }
 
     private BucketGrantMetadata createBucketGrantMetadata(String userName, String accessType, String bucketName) {
-        return new BucketGrantMetadata(userName, "admin", "user", accessType, 0, 1L, bucketName);
+        return new BucketGrantMetadata(userName, "admin", username, accessType, 0, 1L, bucketName);
     }
 
     private CatalogObjectMetadata createCatalogObject(String bucketName, String objectName) {
@@ -168,6 +171,14 @@ public class GrantRightServiceTest {
 
     private CatalogObjectGrantMetadata createObjectGrantMetadata(String bucketName, String objectName,
             String accessType) {
-        return new CatalogObjectGrantMetadata("user", "admin", "user", accessType, 0, null, objectName, 0, bucketName);
+        return new CatalogObjectGrantMetadata(USER_GRANTEE_TYPE,
+                                              "admin",
+                                              username,
+                                              accessType,
+                                              0,
+                                              null,
+                                              objectName,
+                                              0,
+                                              bucketName);
     }
 }

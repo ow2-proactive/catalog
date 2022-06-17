@@ -25,6 +25,9 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import static org.ow2.proactive.catalog.util.GrantHelper.GROUP_GRANTEE_TYPE;
+import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -126,7 +129,7 @@ public class CatalogObjectGrantService {
             String catalogObjectName) {
         List<CatalogObjectGrantEntity> result = catalogObjectGrantRepository.findGrantsAssignedToAnObject(bucketName,
                                                                                                           catalogObjectName);
-        return GrantHelper.filterObjectsGrantsAssignedToUser(user, result);
+        return GrantHelper.filterObjectsGrantsAssignedToUserOrItsGroups(user, result);
     }
 
     /**
@@ -149,7 +152,7 @@ public class CatalogObjectGrantService {
      * @return a list of objects grants in the bucket assigned to the user and its groups.
      */
     public List<CatalogObjectGrantMetadata> getObjectsGrantsInABucket(AuthenticatedUser user, String bucketName) {
-        return GrantHelper.filterGrantsAssignedToUser(user, getObjectsGrantsInABucket(bucketName));
+        return GrantHelper.filterGrantsAssignedToUserOrItsGroups(user, getObjectsGrantsInABucket(bucketName));
     }
 
     /**
@@ -211,7 +214,7 @@ public class CatalogObjectGrantService {
                                                                " and already assigned to user: " + username);
         }
         // Create new grant
-        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity("user",
+        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity(USER_GRANTEE_TYPE,
                                                                                          currentUser,
                                                                                          username,
                                                                                          accessType,
@@ -258,7 +261,7 @@ public class CatalogObjectGrantService {
                                                                " and already assigned to user group: " + userGroup);
         }
         // Create new grant
-        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity("group",
+        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity(GROUP_GRANTEE_TYPE,
                                                                                          currentUser,
                                                                                          userGroup,
                                                                                          accessType,
@@ -304,7 +307,7 @@ public class CatalogObjectGrantService {
             // Set new values in history
             modificationHistoryData.setNewValues(catalogObjectGrantEntity.toString());
             // Compute changes
-            modificationHistoryData.computeChanges("user", oldValue, catalogObjectGrantEntity.toString());
+            modificationHistoryData.computeChanges(USER_GRANTEE_TYPE, oldValue, catalogObjectGrantEntity.toString());
             catalogObjectGrantEntity.getModificationHistory().push(modificationHistoryData);
         } else {
             throw new GrantNotFoundException(username, bucketName, catalogObjectName);
@@ -349,7 +352,7 @@ public class CatalogObjectGrantService {
             // Set new values in history
             modificationHistoryData.setNewValues(catalogObjectGrantEntity.toString());
             // Compute changes
-            modificationHistoryData.computeChanges("group", oldValue, catalogObjectGrantEntity.toString());
+            modificationHistoryData.computeChanges(GROUP_GRANTEE_TYPE, oldValue, catalogObjectGrantEntity.toString());
             catalogObjectGrantEntity.getModificationHistory().push(modificationHistoryData);
         } else {
             throw new GrantNotFoundException(userGroup, bucketName, catalogObjectName);

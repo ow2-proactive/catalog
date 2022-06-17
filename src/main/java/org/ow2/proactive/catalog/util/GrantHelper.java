@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.util;
 
+import static org.ow2.proactive.catalog.util.AccessType.admin;
 import static org.ow2.proactive.catalog.util.AccessType.noAccess;
 
 import java.util.List;
@@ -43,9 +44,9 @@ import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 
 
 public class GrantHelper {
-    private static final String GROUP_GRANTEE_TYPE = "group";
+    public static final String GROUP_GRANTEE_TYPE = "group";
 
-    private static final String USER_GRANTEE_TYPE = "user";
+    public static final String USER_GRANTEE_TYPE = "user";
 
     // bucket owner is in the format of "GROUP:XXXXX"
     private static final int BUCKET_OWNER_PREFIX_LENGTH = OwnerGroupStringHelper.GROUP_PREFIX.length();
@@ -65,7 +66,13 @@ public class GrantHelper {
     }
 
     public static BucketGrantMetadata ownerGroupGrant(String bucketOwner, String bucketName) {
-        return new BucketGrantMetadata("group", "", bucketOwner.substring(6), "admin", 5, 0, bucketName);
+        return new BucketGrantMetadata(GROUP_GRANTEE_TYPE,
+                                       "",
+                                       extractBucketOwnerGroup(bucketOwner),
+                                       admin.name(),
+                                       5,
+                                       0,
+                                       bucketName);
     }
 
     /**
@@ -136,51 +143,48 @@ public class GrantHelper {
         return grant.getAccessType().equals(noAccess.name());
     }
 
-    public static boolean hasBucketName(BucketGrantMetadata grant, String bucketName) {
-        return grant.getBucketName().equals(bucketName);
-    }
-
-    public static boolean hasSameBucketName(BucketGrantMetadata grant, BucketGrantMetadata targetGrant) {
+    public static boolean hasSameBucketName(GrantMetadata grant, BucketGrantMetadata targetGrant) {
         return grant.getBucketName().equals(targetGrant.getBucketName());
     }
 
-    public static boolean hasSameBucketName(CatalogObjectGrantMetadata grant, BucketGrantMetadata targetGrant) {
-        return grant.getBucketName().equals(targetGrant.getBucketName());
-    }
-
-    public static List<BucketGrantMetadata> filterBucketsGrantsAssignedToUser(AuthenticatedUser user,
+    public static List<BucketGrantMetadata> filterBucketsGrantsAssignedToUserOrItsGroups(AuthenticatedUser user,
             List<BucketGrantEntity> grants) {
         return grants.stream()
-                     .filter(grant -> isGrantAssignedToUser(user, grant))
+                     .filter(grant -> isGrantAssignedToUserOrItsGroups(user, grant))
                      .map(BucketGrantMetadata::new)
                      .collect(Collectors.toList());
     }
 
-    public static List<CatalogObjectGrantMetadata> filterObjectsGrantsAssignedToUser(AuthenticatedUser user,
+    public static List<CatalogObjectGrantMetadata> filterObjectsGrantsAssignedToUserOrItsGroups(AuthenticatedUser user,
             List<CatalogObjectGrantEntity> grants) {
         return grants.stream()
-                     .filter(grant -> isGrantAssignedToUser(user, grant))
+                     .filter(grant -> isGrantAssignedToUserOrItsGroups(user, grant))
                      .map(CatalogObjectGrantMetadata::new)
                      .collect(Collectors.toList());
     }
 
-    public static <T extends GrantMetadata> List<T> filterGrantsAssignedToUser(AuthenticatedUser user, List<T> grants) {
-        return grants.stream().filter(grant -> isGrantAssignedToUser(user, grant)).collect(Collectors.toList());
+    public static <T extends GrantMetadata> List<T> filterGrantsAssignedToUserOrItsGroups(AuthenticatedUser user,
+            List<T> grants) {
+        return grants.stream()
+                     .filter(grant -> isGrantAssignedToUserOrItsGroups(user, grant))
+                     .collect(Collectors.toList());
     }
 
-    public static boolean isGrantAssignedToUser(AuthenticatedUser user, GrantMetadata grant) {
-        return (grant.getGrantee().equals(user.getName()) && grant.getGranteeType().equals("user")) ||
-               (user.getGroups().contains(grant.getGrantee()) && grant.getGranteeType().equals("group"));
+    public static boolean isGrantAssignedToUserOrItsGroups(AuthenticatedUser user, GrantMetadata grant) {
+        return isGrantAssignedToUserOrItsGroups(user, grant.getGranteeType(), grant.getGrantee());
     }
 
-    public static boolean isGrantAssignedToUser(AuthenticatedUser user, BucketGrantEntity grant) {
-        return (grant.getGrantee().equals(user.getName()) && grant.getGranteeType().equals("user")) ||
-               (user.getGroups().contains(grant.getGrantee()) && grant.getGranteeType().equals("group"));
+    public static boolean isGrantAssignedToUserOrItsGroups(AuthenticatedUser user, BucketGrantEntity grant) {
+        return isGrantAssignedToUserOrItsGroups(user, grant.getGranteeType(), grant.getGrantee());
     }
 
-    public static boolean isGrantAssignedToUser(AuthenticatedUser user, CatalogObjectGrantEntity grant) {
-        return (grant.getGrantee().equals(user.getName()) && grant.getGranteeType().equals("user")) ||
-               (user.getGroups().contains(grant.getGrantee()) && grant.getGranteeType().equals("group"));
+    public static boolean isGrantAssignedToUserOrItsGroups(AuthenticatedUser user, CatalogObjectGrantEntity grant) {
+        return isGrantAssignedToUserOrItsGroups(user, grant.getGranteeType(), grant.getGrantee());
+    }
+
+    public static boolean isGrantAssignedToUserOrItsGroups(AuthenticatedUser user, String granteeType, String grantee) {
+        return (grantee.equals(user.getName()) && granteeType.equals(USER_GRANTEE_TYPE)) ||
+               (user.getGroups().contains(grantee) && granteeType.equals(GROUP_GRANTEE_TYPE));
     }
 
     public static List<BucketGrantMetadata> mapToGrants(List<BucketGrantEntity> grantEntities) {

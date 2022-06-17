@@ -25,6 +25,9 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import static org.ow2.proactive.catalog.util.GrantHelper.GROUP_GRANTEE_TYPE;
+import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
+
 import java.util.*;
 
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
@@ -89,7 +92,7 @@ public class BucketGrantService {
     public List<BucketGrantMetadata> getUserBucketGrants(AuthenticatedUser user, String bucketName) {
         long bucketId = getBucketIdByName(bucketName);
         List<BucketGrantEntity> grants = bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(bucketId);
-        return GrantHelper.filterBucketsGrantsAssignedToUser(user, grants);
+        return GrantHelper.filterBucketsGrantsAssignedToUserOrItsGroups(user, grants);
     }
 
     /**
@@ -186,7 +189,7 @@ public class BucketGrantService {
                 // Set new values in history
                 modificationHistoryData.setNewValues(bucketGrantEntity.toString());
                 // Compute changes
-                modificationHistoryData.computeChanges("user", oldValue, bucketGrantEntity.toString());
+                modificationHistoryData.computeChanges(USER_GRANTEE_TYPE, oldValue, bucketGrantEntity.toString());
                 bucketGrantEntity.getModificationHistory().push(modificationHistoryData);
                 // Save the grant
                 bucketGrantEntity = bucketGrantRepository.save(bucketGrantEntity);
@@ -233,7 +236,7 @@ public class BucketGrantService {
                 // Set new values in history
                 modificationHistoryData.setNewValues(bucketGrantEntity.toString());
                 // Compute changes
-                modificationHistoryData.computeChanges("group", oldValue, bucketGrantEntity.toString());
+                modificationHistoryData.computeChanges(GROUP_GRANTEE_TYPE, oldValue, bucketGrantEntity.toString());
                 bucketGrantEntity.getModificationHistory().push(modificationHistoryData);
             } else {
                 throw new GrantNotFoundException(userGroup, bucketName);
@@ -276,7 +279,11 @@ public class BucketGrantService {
                                                         " and already assigned to user: " + username);
         }
         // BucketGrant attributes: Type, Profiteer, Access Type and the Bucket
-        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity("user", currentUser, username, accessType, bucket);
+        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity(USER_GRANTEE_TYPE,
+                                                                    currentUser,
+                                                                    username,
+                                                                    accessType,
+                                                                    bucket);
         // Save the grant in db
         bucketGrantEntity = bucketGrantRepository.save(bucketGrantEntity);
         return new BucketGrantMetadata(bucketGrantEntity);
@@ -312,7 +319,7 @@ public class BucketGrantService {
                                                         " and already assigned to user group: " + userGroup);
         }
         // BucketGrant attributes: Type, Profiteer, Access Type and the Bucket
-        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity("group",
+        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity(GROUP_GRANTEE_TYPE,
                                                                     currentUser,
                                                                     userGroup,
                                                                     accessType,

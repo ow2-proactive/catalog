@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.service;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
+import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -90,12 +91,12 @@ public class CatalogObjectGrantServiceTest {
         dummyBucketsName.add(DUMMY_BUCKET);
         BucketEntity mockedBucket = newMockedBucket();
         CatalogObjectRevisionEntity dummyCatalogObjectRevisionEntity = newCatalogObjectRevisionEntity();
-        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity("user",
+        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity(USER_GRANTEE_TYPE,
                                                                                          DUMMY_CURRENT_USERNAME,
                                                                                          DUMMY_USERNAME,
                                                                                          DUMMY_ACCESS_TYPE,
                                                                                          null);
-        CatalogObjectGrantEntity dbCatalogObjectGrantEntity = new CatalogObjectGrantEntity("user",
+        CatalogObjectGrantEntity dbCatalogObjectGrantEntity = new CatalogObjectGrantEntity(USER_GRANTEE_TYPE,
                                                                                            "admin",
                                                                                            "user",
                                                                                            "admin",
@@ -115,7 +116,7 @@ public class CatalogObjectGrantServiceTest {
                                                                                                        DUMMY_ACCESS_TYPE,
                                                                                                        DUMMY_USERNAME);
 
-        assertEquals("user", result.getGranteeType());
+        assertEquals(USER_GRANTEE_TYPE, result.getGranteeType());
         assertEquals(DUMMY_USERNAME, result.getGrantee());
         assertEquals(DUMMY_ACCESS_TYPE, result.getAccessType());
         assertEquals(DUMMY_CURRENT_USERNAME, result.getCreator());
@@ -135,7 +136,7 @@ public class CatalogObjectGrantServiceTest {
         dummyBucketsName.add(DUMMY_BUCKET);
         BucketEntity mockedBucket = newMockedBucket();
         CatalogObjectRevisionEntity dummyCatalogObjectRevisionEntity = newCatalogObjectRevisionEntity();
-        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity("user",
+        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity(USER_GRANTEE_TYPE,
                                                                                          DUMMY_CURRENT_USERNAME,
                                                                                          DUMMY_USERNAME,
                                                                                          DUMMY_ACCESS_TYPE,
@@ -153,7 +154,7 @@ public class CatalogObjectGrantServiceTest {
                                                                                                        DUMMY_OBJECT,
                                                                                                        DUMMY_USERNAME);
 
-        assertEquals("user", result.getGranteeType());
+        assertEquals(USER_GRANTEE_TYPE, result.getGranteeType());
         assertEquals(DUMMY_USERNAME, result.getGrantee());
         assertEquals(DUMMY_ACCESS_TYPE, result.getAccessType());
         assertEquals(DUMMY_CURRENT_USERNAME, result.getCreator());
@@ -173,7 +174,7 @@ public class CatalogObjectGrantServiceTest {
         dummyBucketsName.add(DUMMY_BUCKET);
         BucketEntity mockedBucket = newMockedBucket();
         CatalogObjectRevisionEntity dummyCatalogObjectRevisionEntity = newCatalogObjectRevisionEntity();
-        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity("user",
+        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity(USER_GRANTEE_TYPE,
                                                                                          DUMMY_CURRENT_USERNAME,
                                                                                          DUMMY_USERNAME,
                                                                                          DUMMY_ACCESS_TYPE,
@@ -192,7 +193,7 @@ public class CatalogObjectGrantServiceTest {
                                                                                                        DUMMY_BUCKET,
                                                                                                        DUMMY_ACCESS_TYPE);
 
-        assertEquals("user", result.getGranteeType());
+        assertEquals(USER_GRANTEE_TYPE, result.getGranteeType());
         assertEquals(DUMMY_USERNAME, result.getGrantee());
         assertEquals(DUMMY_ACCESS_TYPE, result.getAccessType());
         assertEquals(DUMMY_CURRENT_USERNAME, result.getCreator());
@@ -209,7 +210,7 @@ public class CatalogObjectGrantServiceTest {
     @Test
     public void testFindAllCatalogObjectGrantsAssignedToABucket() {
         BucketEntity mockedBucket = newMockedBucket();
-        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity("user",
+        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity(USER_GRANTEE_TYPE,
                                                                                          DUMMY_CURRENT_USERNAME,
                                                                                          DUMMY_USERNAME,
                                                                                          DUMMY_ACCESS_TYPE,
@@ -223,7 +224,7 @@ public class CatalogObjectGrantServiceTest {
         List<CatalogObjectGrantMetadata> results = catalogObjectGrantService.getObjectsGrantsInABucket(DUMMY_BUCKET);
 
         assertEquals(1, results.size());
-        assertEquals("user", results.get(0).getGranteeType());
+        assertEquals(USER_GRANTEE_TYPE, results.get(0).getGranteeType());
         assertEquals(DUMMY_USERNAME, results.get(0).getGrantee());
         assertEquals(DUMMY_ACCESS_TYPE, results.get(0).getAccessType());
         assertEquals(DUMMY_CURRENT_USERNAME, results.get(0).getCreator());
@@ -235,7 +236,7 @@ public class CatalogObjectGrantServiceTest {
 
     @Test
     public void testDeleteAllCatalogObjectsGrantsAssignedToABucket() {
-        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity("user",
+        CatalogObjectGrantEntity catalogObjectGrantEntity = new CatalogObjectGrantEntity(USER_GRANTEE_TYPE,
                                                                                          DUMMY_CURRENT_USERNAME,
                                                                                          DUMMY_USERNAME,
                                                                                          DUMMY_ACCESS_TYPE,

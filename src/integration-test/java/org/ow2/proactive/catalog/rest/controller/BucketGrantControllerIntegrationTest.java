@@ -27,6 +27,8 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
+import static org.ow2.proactive.catalog.util.GrantHelper.GROUP_GRANTEE_TYPE;
+import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -88,7 +90,7 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
                                  .assertThat()
                                  .statusCode(HttpStatus.SC_CREATED)
                                  .body("accessType", is(accessType))
-                                 .body("granteeType", is("user"))
+                                 .body("granteeType", is(USER_GRANTEE_TYPE))
                                  .body("grantee", is(grantee));
     }
 
@@ -120,7 +122,7 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
                                  .assertThat()
                                  .statusCode(HttpStatus.SC_CREATED)
                                  .body("accessType", is(accessType))
-                                 .body("granteeType", is("group"))
+                                 .body("granteeType", is(GROUP_GRANTEE_TYPE))
                                  .body("grantee", is(grantee));
     }
 
@@ -158,7 +160,7 @@ public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTes
         updateBucketGrantResponse.then()
                                  .assertThat()
                                  .statusCode(HttpStatus.SC_OK)
-                                 .body("granteeType", is("user"))
+                                 .body("granteeType", is(USER_GRANTEE_TYPE))
                                  .body("accessType", not(accessType))
                                  .body("grantee", is(grantee));
     }
