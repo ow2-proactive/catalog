@@ -48,6 +48,8 @@ public class GrantHelper {
 
     public static final String USER_GRANTEE_TYPE = "user";
 
+    public static int DEFAULT_OWNER_GRANT_PRIORITY = 5;
+
     // bucket owner is in the format of "GROUP:XXXXX"
     private static final int BUCKET_OWNER_PREFIX_LENGTH = OwnerGroupStringHelper.GROUP_PREFIX.length();
 
@@ -70,7 +72,7 @@ public class GrantHelper {
                                        "",
                                        extractBucketOwnerGroup(bucketOwner),
                                        admin.name(),
-                                       5,
+                                       DEFAULT_OWNER_GRANT_PRIORITY,
                                        0,
                                        bucketName);
     }
