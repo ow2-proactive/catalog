@@ -38,7 +38,6 @@ import org.ow2.proactive.catalog.graphql.handler.FilterHandler;
 import org.ow2.proactive.catalog.graphql.handler.catalogobject.*;
 import org.ow2.proactive.catalog.mocks.BucketGrantServiceMock;
 import org.ow2.proactive.catalog.mocks.CatalogObjectGrantServiceMock;
-import org.ow2.proactive.catalog.mocks.GrantAccessTypeHelperServiceMock;
 import org.ow2.proactive.catalog.mocks.RestApiAccessServiceMock;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.*;
@@ -287,9 +286,4 @@ public class IntegrationTestConfig {
         return new CatalogObjectGrantServiceMock();
     }
 
-    @Bean
-    @Primary
-    public GrantAccessTypeHelperService grantAccessTypeHelperService() {
-        return new GrantAccessTypeHelperServiceMock();
-    }
 }

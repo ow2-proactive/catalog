@@ -25,6 +25,8 @@
  */
 package org.ow2.proactive.catalog.repository.entity;
 
+import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
+
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -123,7 +125,7 @@ public class CatalogObjectGrantEntity implements Serializable {
 
     @Override
     public String toString() {
-        if (this.granteeType.equals("user")) {
+        if (this.granteeType.equals(USER_GRANTEE_TYPE)) {
             return accessType;
         } else {
             return accessType + "/" + priority;

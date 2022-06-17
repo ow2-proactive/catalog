@@ -29,6 +29,8 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
+import static org.ow2.proactive.catalog.util.GrantHelper.GROUP_GRANTEE_TYPE;
+import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
 
 import java.util.HashMap;
 import java.util.List;
@@ -117,7 +119,7 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
 
         createCatalogObjectGrantResponse.then()
                                         .assertThat()
-                                        .body("granteeType", is("user"))
+                                        .body("granteeType", is(USER_GRANTEE_TYPE))
                                         .body("grantee", is(grantee))
                                         .body("accessType", is(accessType));
     }
@@ -138,7 +140,7 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
 
         createCatalogObjectGrantResponse.then()
                                         .assertThat()
-                                        .body("granteeType", is("group"))
+                                        .body("granteeType", is(GROUP_GRANTEE_TYPE))
                                         .body("grantee", is(grantee))
                                         .body("accessType", is(accessType));
     }
@@ -154,7 +156,7 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
 
         createCatalogObjectGrantResponse.then()
                                         .assertThat()
-                                        .body("granteeType", is("user"))
+                                        .body("granteeType", is(USER_GRANTEE_TYPE))
                                         .body("grantee", is(grantee))
                                         .body("accessType", is(accessType));
 
@@ -169,7 +171,7 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
         updateCatalogObjectGrantResponse.then()
                                         .assertThat()
                                         .statusCode(HttpStatus.SC_OK)
-                                        .body("granteeType", is("user"))
+                                        .body("granteeType", is(USER_GRANTEE_TYPE))
                                         .body("grantee", is(grantee))
                                         .body("accessType", not(accessType));
     }
@@ -190,7 +192,7 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
 
         createCatalogObjectGrantResponse.then()
                                         .assertThat()
-                                        .body("granteeType", is("group"))
+                                        .body("granteeType", is(GROUP_GRANTEE_TYPE))
                                         .body("grantee", is(grantee))
                                         .body("accessType", is(accessType));
 
@@ -209,7 +211,7 @@ public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAss
         updateCatalogObjectGrantResponse.then()
                                         .assertThat()
                                         .statusCode(HttpStatus.SC_OK)
-                                        .body("granteeType", is("group"))
+                                        .body("granteeType", is(GROUP_GRANTEE_TYPE))
                                         .body("grantee", is(grantee))
                                         .body("accessType", not(accessType));
     }

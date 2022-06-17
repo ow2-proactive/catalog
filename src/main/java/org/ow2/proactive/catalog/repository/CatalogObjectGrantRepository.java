@@ -36,13 +36,8 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
         JpaSpecificationExecutor<CatalogObjectGrantEntity>, QueryDslPredicateExecutor<CatalogObjectGrantEntity> {
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.bucket.bucketName = ?1 AND  coge.catalogObject.id.name = ?2")
-    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketNameAndCatalogObjectName(String bucketName,
+    List<CatalogObjectGrantEntity> findCatalogObjectGrantsByBucketNameAndCatalogObjectName(String bucketName,
             String objectName);
-
-    //TODO to test
-    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.bucket.id = ?1 AND  coge.catalogObject.id.name = ?2")
-    List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketEntityIdAndCatalogObjectName(long bucketId,
-            String catalogObjectName);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.bucket.id = ?1")
     List<CatalogObjectGrantEntity> findCatalogObjectGrantEntitiesByBucketEntityId(long bucketId);
@@ -56,8 +51,7 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
 
     //TODO to test
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.bucket.bucketName = ?1 AND  coge.catalogObject.id.name = ?2 AND coge.accessType<>'noAccess'")
-    List<CatalogObjectGrantEntity> findAllGrantsAssignedToAnObjectInsideABucket(String bucketName,
-            String catalogObjectName);
+    List<CatalogObjectGrantEntity> findGrantsAssignedToAnObject(String bucketName, String catalogObjectName);
 
     //TODO to test
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.id.name = ?1 AND coge.grantee = ?2 AND coge.catalogObject.bucket.id = ?3 AND coge.granteeType='user'")

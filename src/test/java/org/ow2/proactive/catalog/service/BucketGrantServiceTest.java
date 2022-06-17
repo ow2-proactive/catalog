@@ -31,6 +31,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.ow2.proactive.catalog.util.AccessType.noAccess;
 import static org.ow2.proactive.catalog.util.AccessType.read;
+import static org.ow2.proactive.catalog.util.GrantHelper.GROUP_GRANTEE_TYPE;
+import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -88,7 +90,7 @@ public class BucketGrantServiceTest {
     @Test
     public void testUpdateBucketGrantForASpecificUser() {
         BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
-        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity("user",
+        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity(USER_GRANTEE_TYPE,
                                                                     DUMMY_CURRENT_USERNAME,
                                                                     DUMMY_USERNAME,
                                                                     DUMMY_ACCESS_TYPE,
@@ -104,7 +106,7 @@ public class BucketGrantServiceTest {
                                                                                           DUMMY_ACCESS_TYPE);
 
         assertEquals(DUMMY_ACCESS_TYPE, result.getAccessType());
-        assertEquals("user", result.getGranteeType());
+        assertEquals(USER_GRANTEE_TYPE, result.getGranteeType());
         assertEquals(DUMMY_CURRENT_USERNAME, result.getCreator());
         assertEquals(DUMMY_USERNAME, result.getGrantee());
         assertEquals(1L, result.getBucketId());
@@ -117,7 +119,7 @@ public class BucketGrantServiceTest {
     @Test
     public void testUpdateBucketGrantForASpecificUserGroup() {
         BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
-        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity("group",
+        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity(GROUP_GRANTEE_TYPE,
                                                                     DUMMY_CURRENT_USERNAME,
                                                                     DUMMY_GROUP,
                                                                     DUMMY_ACCESS_TYPE,
@@ -134,7 +136,7 @@ public class BucketGrantServiceTest {
                                                                                                1);
 
         assertEquals(DUMMY_ACCESS_TYPE, result.getAccessType());
-        assertEquals("group", result.getGranteeType());
+        assertEquals(GROUP_GRANTEE_TYPE, result.getGranteeType());
         assertEquals(DUMMY_CURRENT_USERNAME, result.getCreator());
         assertEquals(DUMMY_GROUP, result.getGrantee());
         assertEquals(1L, result.getBucketId());
@@ -145,15 +147,9 @@ public class BucketGrantServiceTest {
     }
 
     @Test
-    public void testGetAllGrantsCreatedByUsername() {
-        assertThat(bucketGrantService.getAllGrantsCreatedByUsername(DUMMY_USERNAME)).isEmpty();
-        verify(bucketGrantRepository, times(1)).findBucketGrantEntitiesByCreator(DUMMY_USERNAME);
-    }
-
-    @Test
     public void testCreateBucketGrantForUser() {
         BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
-        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity("user",
+        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity(USER_GRANTEE_TYPE,
                                                                     DUMMY_CURRENT_USERNAME,
                                                                     DUMMY_USERNAME,
                                                                     DUMMY_ACCESS_TYPE,
@@ -167,7 +163,7 @@ public class BucketGrantServiceTest {
                                                                                              DUMMY_USERNAME);
 
         assertEquals(DUMMY_ACCESS_TYPE, userGrantMetadata.getAccessType());
-        assertEquals("user", userGrantMetadata.getGranteeType());
+        assertEquals(USER_GRANTEE_TYPE, userGrantMetadata.getGranteeType());
         assertEquals(DUMMY_CURRENT_USERNAME, userGrantMetadata.getCreator());
         assertEquals(DUMMY_USERNAME, userGrantMetadata.getGrantee());
         assertEquals(1L, userGrantMetadata.getBucketId());
@@ -180,7 +176,7 @@ public class BucketGrantServiceTest {
     @Test
     public void testCreateBucketGrantForUserGroup() {
         BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
-        BucketGrantEntity groupBucketGrantEntity = new BucketGrantEntity("group",
+        BucketGrantEntity groupBucketGrantEntity = new BucketGrantEntity(GROUP_GRANTEE_TYPE,
                                                                          DUMMY_CURRENT_USERNAME,
                                                                          DUMMY_GROUP,
                                                                          DUMMY_ACCESS_TYPE,
@@ -196,7 +192,7 @@ public class BucketGrantServiceTest {
                                                                                                    DUMMY_GROUP);
 
         assertEquals(userGroupGrantMetadata.getAccessType(), DUMMY_ACCESS_TYPE);
-        assertEquals(userGroupGrantMetadata.getGranteeType(), "group");
+        assertEquals(userGroupGrantMetadata.getGranteeType(), GROUP_GRANTEE_TYPE);
         assertEquals(userGroupGrantMetadata.getCreator(), DUMMY_CURRENT_USERNAME);
         assertEquals(userGroupGrantMetadata.getGrantee(), DUMMY_GROUP);
         assertEquals(userGroupGrantMetadata.getBucketId(), 1L);
@@ -209,7 +205,7 @@ public class BucketGrantServiceTest {
     @Test
     public void testDeleteBucketGrantForUser() {
         BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
-        BucketGrantEntity userBucketGrantEntity = new BucketGrantEntity("user",
+        BucketGrantEntity userBucketGrantEntity = new BucketGrantEntity(USER_GRANTEE_TYPE,
                                                                         DUMMY_CURRENT_USERNAME,
                                                                         DUMMY_USERNAME,
                                                                         DUMMY_ACCESS_TYPE,
@@ -222,7 +218,7 @@ public class BucketGrantServiceTest {
                                                                                              DUMMY_USERNAME);
 
         assertEquals(userGrantMetadata.getAccessType(), DUMMY_ACCESS_TYPE);
-        assertEquals(userGrantMetadata.getGranteeType(), "user");
+        assertEquals(userGrantMetadata.getGranteeType(), USER_GRANTEE_TYPE);
         assertEquals(userGrantMetadata.getCreator(), DUMMY_CURRENT_USERNAME);
         assertEquals(userGrantMetadata.getGrantee(), DUMMY_USERNAME);
         assertEquals(userGrantMetadata.getBucketId(), 1L);
@@ -235,7 +231,7 @@ public class BucketGrantServiceTest {
     @Test
     public void testDeleteBucketGrantForGroup() {
         BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
-        BucketGrantEntity groupBucketGrantEntity = new BucketGrantEntity("group",
+        BucketGrantEntity groupBucketGrantEntity = new BucketGrantEntity(GROUP_GRANTEE_TYPE,
                                                                          DUMMY_CURRENT_USERNAME,
                                                                          DUMMY_GROUP,
                                                                          DUMMY_ACCESS_TYPE,
@@ -248,7 +244,7 @@ public class BucketGrantServiceTest {
                                                                                                DUMMY_GROUP);
 
         assertEquals(groupGrantMetadata.getAccessType(), DUMMY_ACCESS_TYPE);
-        assertEquals(groupGrantMetadata.getGranteeType(), "group");
+        assertEquals(groupGrantMetadata.getGranteeType(), GROUP_GRANTEE_TYPE);
         assertEquals(groupGrantMetadata.getCreator(), DUMMY_CURRENT_USERNAME);
         assertEquals(groupGrantMetadata.getGrantee(), DUMMY_GROUP);
         assertEquals(groupGrantMetadata.getBucketId(), 1L);
@@ -261,7 +257,7 @@ public class BucketGrantServiceTest {
     @Test
     public void testDeleteAllBucketGrants() {
         BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
-        BucketGrantEntity userBucketGrantEntity = new BucketGrantEntity("user",
+        BucketGrantEntity userBucketGrantEntity = new BucketGrantEntity(USER_GRANTEE_TYPE,
                                                                         DUMMY_CURRENT_USERNAME,
                                                                         DUMMY_USERNAME,
                                                                         DUMMY_ACCESS_TYPE,
@@ -281,53 +277,10 @@ public class BucketGrantServiceTest {
                times(1)).deleteAllCatalogObjectsGrantsAssignedToABucket(mockedBucket.getId());
     }
 
-    @Test
-    public void testGetTheNumberOfAccessibleObjectsInTheBucket() {
-        List<String> userGroups = new LinkedList<>();
-        userGroups.add("user");
-        AuthenticatedUser authenticatedUser = AuthenticatedUser.builder().name("user").groups(userGroups).build();
-
-        BucketEntity bucketNoAccess = newMockedBucket("test-noaccess", 1l);
-        BucketEntity bucketRead = newMockedBucket("test-read", 2l);
-        BucketEntity bucketWrite = newMockedBucket("test-write", 3l);
-
-        when(bucketRepository.findOneByBucketName("test-noaccess")).thenReturn(bucketNoAccess);
-        when(bucketRepository.findOneByBucketName("test-read")).thenReturn(bucketRead);
-        when(bucketRepository.findOneByBucketName("test-write")).thenReturn(bucketWrite);
-
-        when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
-        when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
-
-        List<BucketGrantEntity> bucketGrantEntityList = new LinkedList<>();
-        bucketGrantEntityList.add(createBucketGrantEntity("test-noaccess", noAccess.toString()));
-        bucketGrantEntityList.add(createBucketGrantEntity("test-read", read.toString()));
-        bucketGrantEntityList.add(createBucketGrantEntity("test-write", read.toString()));
-
-        when(bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(anyLong())).thenReturn(bucketGrantEntityList);
-
-        when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
-
-        List<BucketGrantEntity> noAccessBucketGrantEntityList = new LinkedList<>();
-        noAccessBucketGrantEntityList.add(createBucketGrantEntity("test-noaccess", noAccess.toString()));
-        when(bucketGrantRepository.findAllBucketGrantsWithNoAccessRight()).thenReturn(noAccessBucketGrantEntityList);
-
-        BucketMetadata bucketMetadataRead = new BucketMetadata("test-read", "admin", 5);
-        BucketMetadata bucketMetadataWrite = new BucketMetadata("test-write", "admin", 4);
-
-        int numberOfObjectsInTheWriteBucket = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(authenticatedUser,
-                                                                                                            bucketMetadataWrite);
-        assertEquals(4, numberOfObjectsInTheWriteBucket);
-
-        int numberOfObjectsInTheReadBucket = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(authenticatedUser,
-                                                                                                           bucketMetadataRead);
-        assertEquals(5, numberOfObjectsInTheReadBucket);
-
-    }
-
     private BucketGrantEntity createBucketGrantEntity(String bucketName, String accessType) {
         BucketGrantEntity bucketGrantEntity = new BucketGrantEntity();
         bucketGrantEntity.setGrantee("user");
-        bucketGrantEntity.setGranteeType("user");
+        bucketGrantEntity.setGranteeType(USER_GRANTEE_TYPE);
         bucketGrantEntity.setBucketEntity(newMockedBucket(bucketName, 1L));
         bucketGrantEntity.setPriority(0);
         bucketGrantEntity.setAccessType(accessType);

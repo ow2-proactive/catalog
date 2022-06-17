@@ -26,7 +26,6 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static org.ow2.proactive.catalog.util.AccessType.admin;
-import static org.ow2.proactive.catalog.util.AccessType.read;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -35,7 +34,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
@@ -45,6 +43,8 @@ import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketAlreadyExistingException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import org.ow2.proactive.catalog.util.AccessTypeHelper;
+import org.ow2.proactive.catalog.util.GrantHelper;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -83,9 +83,6 @@ public class BucketController {
 
     @Autowired
     private BucketGrantService bucketGrantService;
-
-    @Autowired
-    private GrantAccessTypeHelperService grantAccessTypeHelperService;
 
     @Autowired
     private CatalogObjectGrantService catalogObjectGrantService;
@@ -135,8 +132,7 @@ public class BucketController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                   .equals(admin.toString())) {
+            if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), admin)) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
@@ -157,6 +153,8 @@ public class BucketController {
             @SuppressWarnings("DefaultAnnotationParam") @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        BucketMetadata data = bucketService.getBucketMetadata(bucketName);
+
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -165,22 +163,12 @@ public class BucketController {
 
             // Check Grants
             user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantAccessTypeHelperService.compareGrantAccessType(grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
-                                                                                                                                                bucketName),
-                                                                     read.toString()) &&
-                !catalogObjectGrantService.checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(user,
-                                                                                                     bucketName)) {
+
+            if (!grantRightsService.isBucketAccessible(user, data)) {
                 throw new BucketGrantAccessException(bucketName);
             }
 
-        } else {
-            user = AuthenticatedUser.EMPTY;
-        }
-        BucketMetadata data = bucketService.getBucketMetadata(bucketName);
-        if (sessionIdRequired) {
-            String bucketGrantAccessType = grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user,
-                                                                                                                      data.getName());
-            data.setRights(bucketGrantAccessType);
+            data.setRights(grantRightsService.getBucketRights(user, bucketName));
         }
         return data;
     }
@@ -212,31 +200,27 @@ public class BucketController {
                                                          .getAuthenticatedUser();
             log.debug("bucket list timer : validate session : " + (System.currentTimeMillis() - startTime) + " ms");
             listBucket = bucketService.getBucketsByGroups(ownerName, kind, contentType, objectName, user::getGroups);
-            listBucket.addAll(grantRightsService.getBucketsForUserByGrantsAndPriority(user));
+            listBucket.addAll(grantRightsService.getBucketsByPrioritiedGrants(user));
 
             List<BucketGrantMetadata> allBucketsGrants = bucketGrantService.getUserAllBucketsGrants(user);
-            List<CatalogObjectGrantMetadata> allCatalogObjectsGrants = catalogObjectGrantService.getAllObjectsGrantsAssignedToAUser(user);
+            List<CatalogObjectGrantMetadata> allCatalogObjectsGrants = catalogObjectGrantService.getObjectsGrants(user);
 
             for (BucketMetadata bucket : listBucket) {
-                if (grantRightsService.isPublicBucket(bucket.getOwner())) {
+                if (GrantHelper.isPublicBucket(bucket.getOwner())) {
                     bucket.setRights(admin.name());
                 } else {
-                    List<BucketGrantMetadata> bucketGrants = allBucketsGrants.stream()
-                                                                             .filter(g -> g.getBucketName()
-                                                                                           .equals(bucket.getName()))
-                                                                             .collect(Collectors.toList());
+                    List<BucketGrantMetadata> bucketGrants = GrantHelper.filterBucketGrants(allBucketsGrants,
+                                                                                            bucket.getName());
                     grantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
 
                     String bucketRights = grantRightsService.getBucketRights(bucketGrants);
                     bucket.setRights(bucketRights);
 
-                    List<CatalogObjectGrantMetadata> objectsInBucketGrants = allCatalogObjectsGrants.stream()
-                                                                                                    .filter(g -> g.getBucketName()
-                                                                                                                  .equals(bucket.getName()))
-                                                                                                    .collect(Collectors.toList());
-                    int objectCount = bucketGrantService.getTheNumberOfAccessibleObjectsInTheBucket(bucket,
-                                                                                                    bucketGrants,
-                                                                                                    objectsInBucketGrants);
+                    List<CatalogObjectGrantMetadata> objectsInBucketGrants = GrantHelper.filterBucketGrants(allCatalogObjectsGrants,
+                                                                                                            bucket.getName());
+                    int objectCount = grantRightsService.getNumberOfAccessibleObjectsInBucket(bucket,
+                                                                                              bucketGrants,
+                                                                                              objectsInBucketGrants);
                     bucket.setObjectCount(objectCount);
                 }
             }
@@ -274,8 +258,7 @@ public class BucketController {
 
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantRightsService.getResultingAccessTypeFromUserGrantsForBucketOperations(user, bucketName)
-                                   .equals(admin.toString())) {
+            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }

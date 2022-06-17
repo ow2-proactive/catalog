@@ -26,9 +26,14 @@
 package org.ow2.proactive.catalog.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.ow2.proactive.catalog.util.AccessType.admin;
 import static org.ow2.proactive.catalog.util.AccessType.noAccess;
+import static org.ow2.proactive.catalog.util.AccessType.read;
+import static org.ow2.proactive.catalog.util.AccessType.write;
+import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -38,9 +43,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
+import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
-import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -57,93 +62,123 @@ public class GrantRightServiceTest {
 
     private final String bucketName = "test-bucket";
 
+    private final String username = "user";
+
     @Test
-    public void testRemoveAllObjectsWithNoAccessGrantWhenTheUserHasNotANoAccessGrantForTheCurrentBucket() {
-        List<String> userGroups = new LinkedList<>();
-        userGroups.add("user");
-        AuthenticatedUser authenticatedUser = AuthenticatedUser.builder().name("user").groups(userGroups).build();
-        when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
-        when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
-
-        List<BucketGrantMetadata> bucketGrantMetadataList = new LinkedList<>();
-        bucketGrantMetadataList.add(createBucketGrantMetadata("user", noAccess.toString(), "bucket"));
-        bucketGrantMetadataList.add(createBucketGrantMetadata("user1", noAccess.toString(), "bucket"));
-
-        when(bucketGrantService.getAllNoAccessGrants()).thenReturn(bucketGrantMetadataList);
+    public void testRemoveInaccessibleObjectsGivenUserHasAdminBucketGrant() {
+        List<BucketGrantMetadata> bucketGrants = new LinkedList<>();
+        bucketGrants.add(createBucketGrantMetadata(username, admin.toString(), bucketName));
 
         List<CatalogObjectMetadata> metadataList = new LinkedList<>();
-
         metadataList.add(createCatalogObject(bucketName, "object1"));
         metadataList.add(createCatalogObject(bucketName, "object2"));
         metadataList.add(createCatalogObject(bucketName, "object3"));
 
-        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, new LinkedList<>(), new LinkedList<>());
+        grantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, new LinkedList<>());
 
         assertEquals(3, metadataList.size());
     }
 
     @Test
-    public void testRemoveAllObjectsWithNoAccessGrantWhenTheUserHasANoAccessGrantForTheCurrentBucket() {
-        List<String> userGroups = new LinkedList<>();
-        userGroups.add("user");
-        AuthenticatedUser authenticatedUser = AuthenticatedUser.builder().name("user").groups(userGroups).build();
-        when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
-        when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(new LinkedList<>());
-
-        List<BucketGrantMetadata> bucketGrantMetadataList = new LinkedList<>();
-        bucketGrantMetadataList.add(createBucketGrantMetadata("user", noAccess.toString(), bucketName));
-
-        when(bucketGrantService.getAllNoAccessGrants()).thenReturn(bucketGrantMetadataList);
+    public void testRemoveInaccessibleObjectsGivenUserHasNoAccessBucketGrant() {
+        List<BucketGrantMetadata> bucketGrants = new LinkedList<>();
+        bucketGrants.add(createBucketGrantMetadata(username, noAccess.toString(), bucketName));
 
         List<CatalogObjectMetadata> metadataList = new LinkedList<>();
-
         metadataList.add(createCatalogObject(bucketName, "object1"));
         metadataList.add(createCatalogObject(bucketName, "object2"));
         metadataList.add(createCatalogObject(bucketName, "object3"));
 
-        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, bucketGrantMetadataList, new LinkedList<>());
+        grantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, new LinkedList<>());
 
         assertEquals(0, metadataList.size());
     }
 
     @Test
-    public void testRemoveAllObjectsWhenTheUserHasANoAccessGrantForTheCurrentBucketButKeepObjectsWithPositiveGrants() {
-        List<String> userGroups = new LinkedList<>();
-        userGroups.add("user");
-        AuthenticatedUser authenticatedUser = AuthenticatedUser.builder().name("user").groups(userGroups).build();
-        when(catalogObjectGrantService.getUserNoAccessGrant(authenticatedUser)).thenReturn(new LinkedList<>());
+    public void testRemoveInaccessibleObjectsGivenUserHasNoAccessBucketGrantAndPositiveObjectGrants() {
+        List<BucketGrantMetadata> bucketGrants = new LinkedList<>();
+        bucketGrants.add(createBucketGrantMetadata(username, noAccess.toString(), bucketName));
 
-        CatalogObjectGrantMetadata catalogObjectGrantMetadata = createObjectGrantMetadata(bucketName, "object1");
+        CatalogObjectGrantMetadata catalogObjectGrantMetadata = createObjectGrantMetadata(bucketName,
+                                                                                          "object1",
+                                                                                          read.name());
         List<CatalogObjectGrantMetadata> objectGrants = new LinkedList<>();
         objectGrants.add(catalogObjectGrantMetadata);
 
-        when(catalogObjectGrantService.getAccessibleObjectsGrantsAssignedToAUser(authenticatedUser)).thenReturn(objectGrants);
-
-        List<BucketGrantMetadata> bucketGrantMetadataList = new LinkedList<>();
-        bucketGrantMetadataList.add(createBucketGrantMetadata("user", noAccess.toString(), bucketName));
-
-        when(bucketGrantService.getAllNoAccessGrants()).thenReturn(bucketGrantMetadataList);
-
         List<CatalogObjectMetadata> metadataList = new LinkedList<>();
-
         metadataList.add(createCatalogObject(bucketName, "object1"));
         metadataList.add(createCatalogObject(bucketName, "object2"));
         metadataList.add(createCatalogObject(bucketName, "object3"));
 
-        grantRightsService.removeAllObjectsWithNoAccessGrant(metadataList, bucketGrantMetadataList, objectGrants);
+        grantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, objectGrants);
 
         assertEquals(1, metadataList.size());
     }
 
+    @Test
+    public void testGetTheNumberOfAccessibleObjectsInTheBucketWithReadGrantBucketAndNoObjectGrants() {
+        BucketMetadata bucketRead = new BucketMetadata(bucketName, "admin-group", 5);
+        List<BucketGrantMetadata> bucketReadGrants = Collections.singletonList(createBucketGrantMetadata(username,
+                                                                                                         read.toString(),
+                                                                                                         bucketName));
+        int numberOfObjectsInBucketRead = grantRightsService.getNumberOfAccessibleObjectsInBucket(bucketRead,
+                                                                                                  bucketReadGrants,
+                                                                                                  new ArrayList<>());
+        assertEquals(5, numberOfObjectsInBucketRead);
+    }
+
+    @Test
+    public void testGetTheNumberOfAccessibleObjectsInTheBucketWithWriteGrantBucketAndNoAccessObjects() {
+        List<CatalogObjectGrantMetadata> objectGrants = new LinkedList<>();
+        objectGrants.add(createObjectGrantMetadata(bucketName, "object1", noAccess.name()));
+        objectGrants.add(createObjectGrantMetadata(bucketName, "object2", noAccess.name()));
+        objectGrants.add(createObjectGrantMetadata(bucketName, "object3", read.name()));
+
+        BucketMetadata bucketWrite = new BucketMetadata("test-write", "admin-group", 4);
+        List<BucketGrantMetadata> bucketWriteGrants = Collections.singletonList(createBucketGrantMetadata(username,
+                                                                                                          write.toString(),
+                                                                                                          bucketWrite.getName()));
+        int numberOfObjectsInBucketWrite = grantRightsService.getNumberOfAccessibleObjectsInBucket(bucketWrite,
+                                                                                                   bucketWriteGrants,
+                                                                                                   objectGrants);
+        assertEquals(2, numberOfObjectsInBucketWrite);
+    }
+
+    @Test
+    public void testGetTheNumberOfAccessibleObjectsInTheBucketWithNoAccessBucketAndObjectsGrants() {
+        List<CatalogObjectGrantMetadata> objectGrants = new LinkedList<>();
+        objectGrants.add(createObjectGrantMetadata(bucketName, "object1", read.name()));
+        objectGrants.add(createObjectGrantMetadata(bucketName, "object2", write.name()));
+        objectGrants.add(createObjectGrantMetadata(bucketName, "object3", noAccess.name()));
+
+        BucketMetadata bucketNoAccess = new BucketMetadata("test-noaccess", "admin-group", 7);
+        List<BucketGrantMetadata> bucketNoAccessGrants = Collections.singletonList(createBucketGrantMetadata(username,
+                                                                                                             noAccess.toString(),
+                                                                                                             bucketNoAccess.getName()));
+        int numberOfObjectsInBucketNoAccess = grantRightsService.getNumberOfAccessibleObjectsInBucket(bucketNoAccess,
+                                                                                                      bucketNoAccessGrants,
+                                                                                                      objectGrants);
+        assertEquals(2, numberOfObjectsInBucketNoAccess);
+    }
+
     private BucketGrantMetadata createBucketGrantMetadata(String userName, String accessType, String bucketName) {
-        return new BucketGrantMetadata(userName, "admin", "user", accessType, 0, 1L, bucketName);
+        return new BucketGrantMetadata(userName, "admin", username, accessType, 0, 1L, bucketName);
     }
 
     private CatalogObjectMetadata createCatalogObject(String bucketName, String objectName) {
         return new CatalogObjectMetadata(bucketName, objectName, "", "", "", 0, "", "", new LinkedList<>(), "");
     }
 
-    private CatalogObjectGrantMetadata createObjectGrantMetadata(String bucketName, String objectName) {
-        return new CatalogObjectGrantMetadata("user", "admin", "user", "read", 0, null, objectName, 0, bucketName);
+    private CatalogObjectGrantMetadata createObjectGrantMetadata(String bucketName, String objectName,
+            String accessType) {
+        return new CatalogObjectGrantMetadata(USER_GRANTEE_TYPE,
+                                              "admin",
+                                              username,
+                                              accessType,
+                                              0,
+                                              null,
+                                              objectName,
+                                              0,
+                                              bucketName);
     }
 }

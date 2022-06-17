@@ -35,17 +35,7 @@ import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 
 public class CatalogObjectGrantServiceMock extends CatalogObjectGrantService {
 
-    public boolean checkInCatalogObjectGrantsIfTheUserOrUserGroupHasAdminRightsOverTheCatalogObject(
-            AuthenticatedUser user, String bucketName, String catalogObjectName) {
-        return true;
-    }
-
-    public boolean checkInCatalogGrantsIfUserOrUserGroupHasGrantsOverABucket(AuthenticatedUser user,
-            String bucketName) {
-        return true;
-    }
-
-    public List<CatalogObjectGrantMetadata> findAllCatalogObjectGrantsAssignedToABucket(String bucketName) {
+    public List<CatalogObjectGrantMetadata> getObjectsGrantsInABucket(String bucketName) {
         return new LinkedList<>();
     }
 
