@@ -160,7 +160,7 @@ public class BucketGrantController {
                                                                                                               priority);
         if (sessionIdRequired) {
             if (user.getGroups().contains(userGroup)) {
-                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) &&
+                if (!restApiAccessService.isBucketAccessibleByUser(true, sessionId, bucketName) ||
                     !grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
                     throw new LostOfAdminGrantRightException("By updating this grant assigned to your group: " +
                                                              userGroup +
