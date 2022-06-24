@@ -135,7 +135,7 @@ public class CatalogObjectReportController {
             // Check Grants
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             BucketMetadata bucket = bucketService.getBucketMetadata(bucketName);
-            if (grantRightsService.isBucketAccessible(user, bucket)) {
+            if (!grantRightsService.isBucketAccessible(user, bucket)) {
                 throw new BucketGrantAccessException(bucketName);
             }
 
