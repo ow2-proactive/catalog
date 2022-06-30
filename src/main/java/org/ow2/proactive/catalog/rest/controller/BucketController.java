@@ -201,6 +201,7 @@ public class BucketController {
             log.debug("bucket list timer : validate session : " + (System.currentTimeMillis() - startTime) + " ms");
             listBucket = bucketService.getBucketsByGroups(ownerName, kind, contentType, objectName, user::getGroups);
             listBucket.addAll(grantRightsService.getBucketsByPrioritiedGrants(user));
+            listBucket = GrantHelper.removeDuplicate(listBucket);
 
             List<BucketGrantMetadata> allBucketsGrants = bucketGrantService.getUserAllBucketsGrants(user);
             List<CatalogObjectGrantMetadata> allCatalogObjectsGrants = catalogObjectGrantService.getObjectsGrants(user);

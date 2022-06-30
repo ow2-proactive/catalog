@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
+import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
 import org.ow2.proactive.catalog.dto.GrantMetadata;
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
@@ -92,10 +93,6 @@ public class GrantHelper {
 
     public static <T extends GrantMetadata> List<T> filterUserSpecificGrants(List<T> grants) {
         return grants.stream().filter(GrantHelper::isUserSpecificGrant).collect(Collectors.toList());
-    }
-
-    public static List<GrantMetadata> filterGroupGrants(List<? extends GrantMetadata> grants) {
-        return grants.stream().filter(GrantHelper::isGroupGrant).collect(Collectors.toList());
     }
 
     public static <T extends GrantMetadata> List<T> filterPositiveGrants(List<T> grants) {
@@ -195,5 +192,9 @@ public class GrantHelper {
 
     public static List<CatalogObjectGrantMetadata> mapToObjectGrants(List<CatalogObjectGrantEntity> grantEntities) {
         return grantEntities.stream().map(CatalogObjectGrantMetadata::new).collect(Collectors.toList());
+    }
+
+    public static List<BucketMetadata> removeDuplicate(List<BucketMetadata> listBuckets) {
+        return listBuckets.stream().distinct().collect(Collectors.toList());
     }
 }
