@@ -34,6 +34,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
@@ -183,8 +184,10 @@ public class BucketController {
             @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @ApiParam(value = "The kind(s) of objects that buckets must contain. Multiple kinds can be specified using comma separators") @RequestParam(value = "kind", required = false) Optional<String> kind,
             @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
-            @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName)
-            throws NotAuthenticatedException, AccessDeniedException {
+            @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
+            @ApiParam(value = "Starts with bucket name (case insensitive)")
+            @RequestParam(value = "bucketName", required = false)
+            final Optional<String> bucketName) throws NotAuthenticatedException, AccessDeniedException {
 
         List<BucketMetadata> listBucket;
         log.debug("====== Get buckets list request started ======== ");
@@ -194,6 +197,7 @@ public class BucketController {
         kind = kind.filter(s -> !s.isEmpty());
         contentType = contentType.filter(s -> !s.isEmpty());
         objectName = objectName.filter(s -> !s.isEmpty());
+        bucketName.filter(s -> !s.isEmpty());
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
                                                                                                                   ownerName)
@@ -228,6 +232,11 @@ public class BucketController {
         } else {
             listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName);
         }
+        listBucket = listBucket.stream()
+                               .filter(bucketMetadata -> bucketMetadata.getName()
+                                                                       .toLowerCase()
+                                                                       .startsWith(bucketName.orElse("").toLowerCase()))
+                               .collect(Collectors.toList());
         Collections.sort(listBucket);
         log.debug("bucket list timer : total : " + (System.currentTimeMillis() - startTime) + " ms");
         log.debug("====== Get buckets list request finished ========");
