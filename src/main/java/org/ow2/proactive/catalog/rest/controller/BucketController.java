@@ -188,7 +188,8 @@ public class BucketController {
             @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
             @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
             @ApiParam(value = "The bucket name contains the value of this parameter (case insensitive)")
-            @RequestParam(value = "bucketName", required = false) final Optional<String> bucketName) throws NotAuthenticatedException, AccessDeniedException {
+            @RequestParam(value = "bucketName", required = false)
+            final Optional<String> bucketName) throws NotAuthenticatedException, AccessDeniedException {
 
         List<BucketMetadata> listBucket;
         log.debug("====== Get buckets list request started ======== ");
@@ -233,16 +234,15 @@ public class BucketController {
             listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName);
         }
         // Filter by bucket name
-        if (!Strings.isNullOrEmpty(bucketName.orElse("")))
-        {
+        if (!Strings.isNullOrEmpty(bucketName.orElse(""))) {
             listBucket = listBucket.stream()
                                    .filter(bucketMetadata -> bucketMetadata.getName()
                                                                            .toLowerCase()
                                                                            .contains(bucketName.orElse("")
-                                                                                                 .toLowerCase()))
+                                                                                               .toLowerCase()))
                                    .collect(Collectors.toList());
-            Collections.sort(listBucket);
         }
+        Collections.sort(listBucket);
         log.debug("bucket list timer : total : " + (System.currentTimeMillis() - startTime) + " ms");
         log.debug("====== Get buckets list request finished ========");
         return listBucket;

@@ -41,7 +41,6 @@ import org.ow2.proactive.catalog.util.ModificationHistoryData;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.ToString;
 
 
 /**
@@ -51,7 +50,6 @@ import lombok.ToString;
 @Data
 @Entity
 @Table(name = "CATALOG_OBJECT_GRANT", uniqueConstraints = @UniqueConstraint(columnNames = { "ID" }), indexes = { @Index(name = "OBJECT_GRANT_IBDEX", columnList = "ID, GRANTEE, CREATOR, GRANTEE_TYPE") })
-@ToString()
 public class CatalogObjectGrantEntity implements Serializable {
 
     @Id

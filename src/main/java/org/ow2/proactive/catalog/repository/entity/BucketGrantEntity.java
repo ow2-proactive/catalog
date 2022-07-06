@@ -41,7 +41,6 @@ import org.ow2.proactive.catalog.util.ModificationHistoryData;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.ToString;
 
 
 /**
@@ -51,7 +50,6 @@ import lombok.ToString;
 @Data
 @Entity
 @Table(name = "BUCKET_GRANT", uniqueConstraints = @UniqueConstraint(columnNames = { "ID" }), indexes = { @Index(name = "BUCKET_GRANT_INDEX", columnList = "ID, GRANTEE_TYPE, CREATOR, GRANTEE") })
-@ToString()
 public class BucketGrantEntity implements Serializable {
 
     @Id
