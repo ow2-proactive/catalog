@@ -34,6 +34,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
@@ -56,6 +57,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.google.common.base.Strings;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -183,8 +186,10 @@ public class BucketController {
             @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @ApiParam(value = "The kind(s) of objects that buckets must contain. Multiple kinds can be specified using comma separators") @RequestParam(value = "kind", required = false) Optional<String> kind,
             @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
-            @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName)
-            throws NotAuthenticatedException, AccessDeniedException {
+            @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
+            @ApiParam(value = "The bucket name contains the value of this parameter (case insensitive)")
+            @RequestParam(value = "bucketName", required = false)
+            final Optional<String> bucketName) throws NotAuthenticatedException, AccessDeniedException {
 
         List<BucketMetadata> listBucket;
         log.debug("====== Get buckets list request started ======== ");
@@ -227,6 +232,15 @@ public class BucketController {
             }
         } else {
             listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName);
+        }
+        // Filter by bucket name
+        if (!Strings.isNullOrEmpty(bucketName.orElse(""))) {
+            listBucket = listBucket.stream()
+                                   .filter(bucketMetadata -> bucketMetadata.getName()
+                                                                           .toLowerCase()
+                                                                           .contains(bucketName.orElse("")
+                                                                                               .toLowerCase()))
+                                   .collect(Collectors.toList());
         }
         Collections.sort(listBucket);
         log.debug("bucket list timer : total : " + (System.currentTimeMillis() - startTime) + " ms");
