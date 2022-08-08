@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -74,31 +75,48 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
         cq.orderBy(cb.asc(bucketEntityRoot.get("id")));
         Join<BucketEntity, CatalogObjectEntity> catalogObjectsJoin = bucketEntityRoot.join("catalogObjects",
                                                                                            JoinType.LEFT);
+        List<Predicate> allPredicates = new ArrayList<>();
 
-        Predicate kindPredicate = cb.or();
-        for (String kind : kindList) {
-            kindPredicate = cb.or(kindPredicate,
-                                  cb.like(catalogObjectsJoin.get("kindLower"), kind.toLowerCase() + "%"));
+        if (kindList.size() > 0) {
+            List<Predicate> kindPredicatesList = new ArrayList<>();
+            for (String kind : kindList) {
+                kindPredicatesList.add(cb.like(catalogObjectsJoin.get("kindLower"), kind.toLowerCase() + "%"));
+            }
+            Predicate kindPredicate;
+            if (kindList.size() == 1) {
+                kindPredicate = kindPredicatesList.get(0);
+            } else {
+                kindPredicate = cb.or(kindPredicatesList.toArray(new Predicate[0]));
+            }
+            allPredicates.add(kindPredicate);
         }
-        Predicate contentTypePredicate = cb.and();
+
         if (contentType != null) {
-            contentTypePredicate = cb.like(catalogObjectsJoin.get("contentTypeLower"), contentType.toLowerCase() + "%");
+            Predicate contentTypePredicate = cb.like(catalogObjectsJoin.get("contentTypeLower"),
+                                                     contentType.toLowerCase() + "%");
+            allPredicates.add(contentTypePredicate);
         }
-        Predicate objectNamePredicate = cb.and();
+
         if (objectName != null) {
-            objectNamePredicate = cb.like(catalogObjectsJoin.get("nameLower"), "%" + objectName.toLowerCase() + "%");
+            Predicate objectNamePredicate = cb.like(catalogObjectsJoin.get("nameLower"),
+                                                    "%" + objectName.toLowerCase() + "%");
+            allPredicates.add(objectNamePredicate);
         }
 
-        Predicate ownerPredicate = cb.and();
         if (owners != null) {
-            ownerPredicate = cb.in(bucketEntityRoot.get("owner")).value(owners);
-
+            Predicate ownerPredicate = cb.in(bucketEntityRoot.get("owner")).value(owners);
+            allPredicates.add(ownerPredicate);
         }
-        Predicate filtersPredicate = cb.and(kindPredicate, contentTypePredicate, objectNamePredicate);
-        Predicate emptyBucketPredicate = cb.isEmpty(bucketEntityRoot.get("catalogObjects"));
-        Predicate filtersOrEmptyBucketPredicate = cb.or(filtersPredicate, emptyBucketPredicate);
-        Predicate finalPredicate = cb.and(filtersOrEmptyBucketPredicate, ownerPredicate);
-        cq.where(finalPredicate);
+        if (allPredicates.size() > 0) {
+            Predicate finalPredicate;
+            if (allPredicates.size() == 1) {
+                finalPredicate = allPredicates.get(0);
+            } else {
+                finalPredicate = cb.and(allPredicates.toArray(new Predicate[0]));
+            }
+
+            cq.where(finalPredicate);
+        }
         cq.multiselect(bucketEntityRoot.get("bucketName"),
                        bucketEntityRoot.get("owner"),
                        cb.count(catalogObjectsJoin.get("id").get("name")),
