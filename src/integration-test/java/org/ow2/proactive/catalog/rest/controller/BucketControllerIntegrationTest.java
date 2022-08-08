@@ -309,7 +309,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(2));
+               .body("", hasSize(1));
 
         // list buckets by prefix kind -> should return two buckets, matching kind pattern, and empty bucket
         given().param("kind", "MY-Object")
@@ -317,7 +317,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(3));
+               .body("", hasSize(2));
     }
 
     @Test
@@ -544,7 +544,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(2));
+               .body("", hasSize(1));
 
         // list buckets by general Name -> should return one specified buckets and empty bucket
         given().param("objectName", "my-object-name")
@@ -552,7 +552,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(3));
+               .body("", hasSize(2));
 
         // list buckets by non-existing Name -> should return only empty bucket
         given().param("objectName", "non-existing name")
@@ -560,7 +560,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(1));
+               .body("", hasSize(0));
 
         // list buckets by specific kind and Name -> should return one specified bucket and empty bucket
         given().param("kind", "my-object-kind")
@@ -569,7 +569,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(2));
+               .body("", hasSize(1));
 
         // list buckets by content-type and Name -> should return two buckets, matching contentType, name pattern, and empty bucket
         given().param("contentType", MediaType.APPLICATION_ATOM_XML_VALUE)
@@ -578,7 +578,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(3));
+               .body("", hasSize(2));
 
         // list buckets by content-type, kind and Name -> should return two buckets, matching contentType, kind and object name pattern, and empty bucket
         given().param("contentType", MediaType.APPLICATION_ATOM_XML_VALUE)
@@ -588,7 +588,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(1));
+               .body("", hasSize(0));
 
         // list buckets by specific Name and owner -> should return one specified bucket and empty bucket
         given().param("objectName", "my-object-name-1")
@@ -597,7 +597,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(2));
+               .body("", hasSize(1));
     }
 
     @Test
@@ -637,21 +637,23 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
-                                               "other new object",
+                                               "new object 1",
                                                "myobjectprojectname",
                                                "other-kind",
                                                "bucket-admin-owner-content-type",
                                                "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
+        //String bucketId, String kind, String name, String contentType, String commitMessage, File file
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
                                                "new-kind",
-                                               "first commit",
+                                               "new object 2",
                                                "bucket-admin-owner-content-type",
+                                               "first commit",
                                                IntegrationTestUtil.getWorkflowFile("workflow.xml"));
 
         IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerMixedKindId,
-                                               "other new object",
+                                               "new object 3",
                                                "myobjectprojectname",
                                                "new-kind-2",
                                                "new-content-2",
@@ -675,7 +677,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(4));
+               .body("", hasSize(3));
 
         // list bucket with the given kind -> should return the specified buckets and empty
         // buckets
@@ -694,13 +696,13 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
-               .body("", hasSize(3));
+               .body("", hasSize(2));
 
         // list bucket with the given kind of objects and Content-Type inside bucket -> should
         // return the specified buckets
         given().param("owner", adminOwner)
                .param("kind", "new-kind-2")
-               .param("objectContentType", "new-content-2")
+               .param("contentType", "new-content-2")
                .get(BUCKETS_RESOURCE)
                .then()
                .assertThat()
@@ -708,8 +710,8 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .body("", hasSize(1));
 
         // list buckets by specific kind and specified Content-Type -> should return one specified bucket and empty bucket
-        given().param("kind", "my-object-kind")
-               .param("contentType", "my-content")
+        given().param("kind", "other-kind")
+               .param("contentType", "bucket-admin-owner-content-type")
                .get(BUCKETS_RESOURCE)
                .then()
                .assertThat()
@@ -717,8 +719,7 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .body("", hasSize(1));
 
         // list buckets by specific kind, specified Content-Type and Object name-> should return one specified bucket and empty bucket
-        given().param("kind", "my-object-kind")
-               .param("contentType", "my-content")
+        given().param("kind", "other-kind")
                .param("objectName", "object")
                .get(BUCKETS_RESOURCE)
                .then()
