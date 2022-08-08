@@ -175,7 +175,10 @@ public class IntegrationTestUtil {
                .queryParam("objectContentType", objectContentType)
                .multiPart(file)
                .when()
-               .post(CATALOG_OBJECTS_RESOURCE);
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED);
     }
 
     /**
@@ -186,15 +189,20 @@ public class IntegrationTestUtil {
      * @param commitMessage
      * @param file
      */
-    public static void postObjectToBucket(String bucketId, String kind, String name, String commitMessage, File file) {
+    public static void postObjectToBucket(String bucketId, String kind, String name, String contentType,
+            String commitMessage, File file) {
         given().header("sessionID", "12345")
                .pathParam("bucketName", bucketId)
                .queryParam("kind", kind)
                .queryParam("name", name)
                .queryParam("commitMessage", commitMessage)
+               .queryParam("objectContentType", contentType)
                .multiPart(file)
                .when()
-               .post(CATALOG_OBJECTS_RESOURCE);
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED);
     }
 
     /**
