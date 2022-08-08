@@ -240,7 +240,7 @@ public class BucketServiceIntegrationTest {
                                               org.hamcrest.Matchers.hasItem(org.hamcrest.beans.HasPropertyWithValue.hasProperty("name",
                                                                                                                                 org.hamcrest.CoreMatchers.is(bucket.getName()))));
 
-        //we expect to get only workflow/pca bucket and empty bucket
+        //we expect to get only workflow/pca bucket
         List<BucketMetadata> bucketMetadatasWfPCA = bucketService.listBuckets(null,
                                                                               Optional.of("Workflow/pca"),
                                                                               Optional.empty());
@@ -250,7 +250,7 @@ public class BucketServiceIntegrationTest {
                                               org.hamcrest.Matchers.hasItem(org.hamcrest.beans.HasPropertyWithValue.hasProperty("name",
                                                                                                                                 org.hamcrest.CoreMatchers.is(bucketWfPCA.getName()))));
 
-        //we expect to get only workflow/standard bucket and empty bucket
+        //we expect to get only workflow/standard bucket
         List<BucketMetadata> bucketMetadatasWfStandard = bucketService.listBuckets(null,
                                                                                    Optional.of("workflow/STANDARD"),
                                                                                    Optional.empty());
@@ -260,7 +260,7 @@ public class BucketServiceIntegrationTest {
                                               org.hamcrest.Matchers.hasItem(org.hamcrest.beans.HasPropertyWithValue.hasProperty("name",
                                                                                                                                 org.hamcrest.CoreMatchers.is(bucketWfStandard.getName()))));
 
-        //we expect to get all workflow kind bucket and empty bucket
+        //we expect to get all workflow kind bucket
         List<BucketMetadata> bucketMetadatasWorkflows = bucketService.listBuckets(null,
                                                                                   Optional.of("WORKFLOW"),
                                                                                   Optional.empty());
@@ -330,13 +330,13 @@ public class BucketServiceIntegrationTest {
                                                  null,
                                                  null);
 
-        //we expect to get workflow buckets and empty bucket
+        //we expect to get workflow buckets
         List<BucketMetadata> bucketMetadatasWorkflow = bucketService.listBuckets(null,
                                                                                  Optional.of("Workflow,Workflow/PCA"),
                                                                                  Optional.empty());
         assertThat(bucketMetadatasWorkflow).hasSize(2);
 
-        //we expect to get all buckets and empty bucket
+        //we expect to get all buckets
         List<BucketMetadata> bucketMetadatasWorkflowRuleScript = bucketService.listBuckets(null,
                                                                                            Optional.of("Workflow,RULE,ScriPT"),
                                                                                            Optional.empty());
