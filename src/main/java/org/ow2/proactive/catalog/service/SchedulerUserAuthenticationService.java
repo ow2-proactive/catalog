@@ -71,8 +71,11 @@ public class SchedulerUserAuthenticationService {
     }
 
     public AuthenticatedUser authenticateBySessionId(String sessionId) throws NotAuthenticatedException {
-        String key = "sessionId";
-        UserData userData = getCache().getIfPresent(key);
+        if (sessionId == null || sessionId.isEmpty()) {
+            throw new NotAuthenticatedException("Could not validate empty sessionId");
+        }
+
+        UserData userData = getCache().getIfPresent(sessionId);
 
         if (userData == null) {
             try {
@@ -87,7 +90,7 @@ public class SchedulerUserAuthenticationService {
             if (userData == null || StringUtils.isEmpty(userData.getUserName())) {
                 throw new NotAuthenticatedException("SessionId is invalid");
             }
-            getCache().put(key, userData);
+            getCache().put(sessionId, userData);
         }
 
         return AuthenticatedUser.builder()
