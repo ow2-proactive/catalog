@@ -532,7 +532,7 @@ public class CatalogObjectService {
                                                                                                                                                               pageNo,
                                                                                                                                                               pageSize);
 
-        // Consider now workflowTag filter                                                                                                                                                   pageSize);
+        // Consider now workflowTag filter
         if (workflowTag != null && !workflowTag.isEmpty()) {
             objectList = objectList.stream()
                                    .filter(catalogObjectRevisionEntity -> catalogObjectRevisionEntity.getKeyValueMetadataList()
