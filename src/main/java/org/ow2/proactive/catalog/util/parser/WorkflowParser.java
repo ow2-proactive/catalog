@@ -71,6 +71,8 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     private static final String PROJECT_NAME_KEY = "project_name";
 
+    public static final String JOB_WORKFLOW_TAG_LABEL = "workflow_tag";
+
     private static final String JOB_AND_PROJECT_LABEL = "job_information";
 
     public static final String ATTRIBUTE_GENERIC_INFORMATION_LABEL = "generic_information";
@@ -122,6 +124,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
         addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobNameIfNotNull(keyValueMapBuilder, job);
+        addJobWorkflowTagsIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
         job.getUnresolvedVariables()
            .values()
@@ -324,6 +327,15 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
             return Optional.of(calledWorkflow.split(DEPENDS_ON_SEPARATOR)[2]);
         } catch (Exception e) {
             return Optional.empty();
+        }
+    }
+
+    private void addJobWorkflowTagsIfNotNullAndNotEmpty(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
+        Set<String> workflowTags = job.getWorkflowTags();
+        if (workflowTags != null && !workflowTags.isEmpty()) {
+            workflowTags.forEach(workflowTag -> keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(workflowTag,
+                                                                                                       workflowTag,
+                                                                                                       JOB_WORKFLOW_TAG_LABEL)));
         }
     }
 

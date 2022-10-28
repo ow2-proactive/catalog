@@ -482,19 +482,28 @@ public class CatalogObjectService {
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
             Optional<String> contentType) {
-        return listCatalogObjects(bucketsNames, kind, contentType, Optional.empty(), 0, Integer.MAX_VALUE);
+        return listCatalogObjects(bucketsNames,
+                                  kind,
+                                  contentType,
+                                  Optional.empty(),
+                                  Optional.empty(),
+                                  0,
+                                  Integer.MAX_VALUE);
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
-            Optional<String> contentType, Optional<String> objectNameFilter, int pageNo, int pageSize) {
+            Optional<String> contentType, Optional<String> objectNameFilter, Optional<String> workflowTagFilter,
+            int pageNo, int pageSize) {
         List<CatalogObjectMetadata> metadataList;
-        if (kind.isPresent() || contentType.isPresent() || objectNameFilter.isPresent()) {
-            metadataList = listCatalogObjectsByKindListAndContentTypeAndObjectName(bucketsNames,
-                                                                                   kind.orElse(""),
-                                                                                   contentType.orElse(""),
-                                                                                   objectNameFilter.orElse(""),
-                                                                                   pageNo,
-                                                                                   pageSize);
+        if (kind.isPresent() || contentType.isPresent() || objectNameFilter.isPresent() ||
+            workflowTagFilter.isPresent()) {
+            metadataList = listCatalogObjectsByKindListAndContentTypeAndObjectNameAndWorkflowTag(bucketsNames,
+                                                                                                 kind.orElse(""),
+                                                                                                 contentType.orElse(""),
+                                                                                                 objectNameFilter.orElse(""),
+                                                                                                 workflowTagFilter.orElse(""),
+                                                                                                 pageNo,
+                                                                                                 pageSize);
         } else {
             metadataList = listCatalogObjects(bucketsNames, pageNo, pageSize);
         }
@@ -505,9 +514,10 @@ public class CatalogObjectService {
         return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
-    // find pageable catalog objects by kind(s) and Content-Type and objectName
-    public List<CatalogObjectMetadata> listCatalogObjectsByKindListAndContentTypeAndObjectName(List<String> bucketNames,
-            String kind, String contentType, String objectName, int pageNo, int pageSize) {
+    // find pageable catalog objects by kind(s) and Content-Type and objectName and workflowTag
+    public List<CatalogObjectMetadata> listCatalogObjectsByKindListAndContentTypeAndObjectNameAndWorkflowTag(
+            List<String> bucketNames, String kind, String contentType, String objectName, String workflowTag,
+            int pageNo, int pageSize) {
         bucketNames.forEach(this::findBucketByNameAndCheck);
         List<String> kindList = new ArrayList<>();
         if (!kind.isEmpty()) {
@@ -515,14 +525,25 @@ public class CatalogObjectService {
         } else {
             kindList.add("");
         }
-        List<CatalogObjectRevisionEntity> result = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(bucketNames,
-                                                                                                                                                          kindList,
-                                                                                                                                                          contentType,
-                                                                                                                                                          objectName,
-                                                                                                                                                          pageNo,
-                                                                                                                                                          pageSize);
+        List<CatalogObjectRevisionEntity> objectList = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(bucketNames,
+                                                                                                                                                              kindList,
+                                                                                                                                                              contentType,
+                                                                                                                                                              objectName,
+                                                                                                                                                              pageNo,
+                                                                                                                                                              pageSize);
 
-        return buildMetadataWithLink(result);
+        // Consider now workflowTag filter                                                                                                                                                   pageSize);
+        if (workflowTag != null && !workflowTag.isEmpty()) {
+            objectList = objectList.stream()
+                                   .filter(catalogObjectRevisionEntity -> catalogObjectRevisionEntity.getKeyValueMetadataList()
+                                                                                                     .stream()
+                                                                                                     .filter(keyValueLabelMetadataEntity -> keyValueLabelMetadataEntity.getLabel() == WorkflowParser.JOB_WORKFLOW_TAG_LABEL &&
+                                                                                                                                            keyValueLabelMetadataEntity.getValue() == workflowTag)
+                                                                                                     .count() > 0)
+                                   .collect(Collectors.toList());
+        }
+
+        return buildMetadataWithLink(objectList);
     }
 
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {
@@ -705,6 +726,13 @@ public class CatalogObjectService {
      */
     public TreeSet<String> getContentTypes() {
         return new TreeSet<>(catalogObjectRepository.findAllContentTypes());
+    }
+
+    /**
+     * @return all ordered workflow tags for all objects in catalog
+     */
+    public TreeSet<String> getWorflowTags() {
+        return new TreeSet<>(catalogObjectRepository.findAllWorkflowTags());
     }
 
     public List<CatalogObjectNameReference> getAccessibleCatalogObjectsNameReferenceByKindAndContentType(
