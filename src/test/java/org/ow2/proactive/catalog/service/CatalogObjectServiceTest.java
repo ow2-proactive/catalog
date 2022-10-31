@@ -161,15 +161,15 @@ public class CatalogObjectServiceTest {
     }
 
     @Test
-    public void testGetWorkflowTags() {
-        TreeSet<String> storedWorkflowTags = new TreeSet<>();
-        storedWorkflowTags.add("workflowTagA");
-        storedWorkflowTags.add("workflowTagB");
-        storedWorkflowTags.add("workflowTagB");
-        when(catalogObjectRepository.findAllWorkflowTags()).thenReturn(storedWorkflowTags);
-        Set<String> returnedWorkflowTags = catalogObjectService.getWorflowTags();
-        verify(catalogObjectRepository, times(1)).findAllWorkflowTags();
-        assertThat(storedWorkflowTags).isEqualTo(returnedWorkflowTags);
+    public void testGetObjectTags() {
+        TreeSet<String> storedObjectTags = new TreeSet<>();
+        storedObjectTags.add("objectTagA");
+        storedObjectTags.add("objectTagB");
+        storedObjectTags.add("objectTagB");
+        when(catalogObjectRepository.findAllObjectTags()).thenReturn(storedObjectTags);
+        Set<String> returnedObjectTags = catalogObjectService.getObjectTags();
+        verify(catalogObjectRepository, times(1)).findAllObjectTags();
+        assertThat(storedObjectTags).isEqualTo(returnedObjectTags);
     }
 
     @Test

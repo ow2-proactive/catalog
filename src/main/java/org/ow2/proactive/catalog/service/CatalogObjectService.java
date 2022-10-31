@@ -492,18 +492,18 @@ public class CatalogObjectService {
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
-            Optional<String> contentType, Optional<String> objectNameFilter, Optional<String> workflowTagFilter,
+            Optional<String> contentType, Optional<String> objectNameFilter, Optional<String> objectTagFilter,
             int pageNo, int pageSize) {
         List<CatalogObjectMetadata> metadataList;
         if (kind.isPresent() || contentType.isPresent() || objectNameFilter.isPresent() ||
-            workflowTagFilter.isPresent()) {
-            metadataList = listCatalogObjectsByKindListAndContentTypeAndObjectNameAndWorkflowTag(bucketsNames,
-                                                                                                 kind.orElse(""),
-                                                                                                 contentType.orElse(""),
-                                                                                                 objectNameFilter.orElse(""),
-                                                                                                 workflowTagFilter.orElse(""),
-                                                                                                 pageNo,
-                                                                                                 pageSize);
+            objectTagFilter.isPresent()) {
+            metadataList = listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(bucketsNames,
+                                                                                               kind.orElse(""),
+                                                                                               contentType.orElse(""),
+                                                                                               objectNameFilter.orElse(""),
+                                                                                               objectTagFilter.orElse(""),
+                                                                                               pageNo,
+                                                                                               pageSize);
         } else {
             metadataList = listCatalogObjects(bucketsNames, pageNo, pageSize);
         }
@@ -514,10 +514,10 @@ public class CatalogObjectService {
         return result.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
-    // find pageable catalog objects by kind(s) and Content-Type and objectName and workflowTag
-    public List<CatalogObjectMetadata> listCatalogObjectsByKindListAndContentTypeAndObjectNameAndWorkflowTag(
-            List<String> bucketNames, String kind, String contentType, String objectName, String workflowTag,
-            int pageNo, int pageSize) {
+    // find pageable catalog objects by kind(s) and Content-Type and objectName and objectTag
+    public List<CatalogObjectMetadata> listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(
+            List<String> bucketNames, String kind, String contentType, String objectName, String objectTag, int pageNo,
+            int pageSize) {
         bucketNames.forEach(this::findBucketByNameAndCheck);
         List<String> kindList = new ArrayList<>();
         if (!kind.isEmpty()) {
@@ -532,13 +532,13 @@ public class CatalogObjectService {
                                                                                                                                                               pageNo,
                                                                                                                                                               pageSize);
 
-        // Consider now workflowTag filter
-        if (workflowTag != null && !workflowTag.isEmpty()) {
+        // Consider now objectTag filter
+        if (objectTag != null && !objectTag.isEmpty()) {
             objectList = objectList.stream()
                                    .filter(catalogObjectRevisionEntity -> catalogObjectRevisionEntity.getKeyValueMetadataList()
                                                                                                      .stream()
-                                                                                                     .filter(keyValueLabelMetadataEntity -> keyValueLabelMetadataEntity.getLabel() == WorkflowParser.JOB_WORKFLOW_TAG_LABEL &&
-                                                                                                                                            keyValueLabelMetadataEntity.getValue() == workflowTag)
+                                                                                                     .filter(keyValueLabelMetadataEntity -> keyValueLabelMetadataEntity.getLabel() == WorkflowParser.OBJECT_TAG_LABEL &&
+                                                                                                                                            keyValueLabelMetadataEntity.getValue() == objectTag)
                                                                                                      .count() > 0)
                                    .collect(Collectors.toList());
         }
@@ -731,8 +731,8 @@ public class CatalogObjectService {
     /**
      * @return all ordered workflow tags for all objects in catalog
      */
-    public TreeSet<String> getWorflowTags() {
-        return new TreeSet<>(catalogObjectRepository.findAllWorkflowTags());
+    public TreeSet<String> getObjectTags() {
+        return new TreeSet<>(catalogObjectRepository.findAllObjectTags());
     }
 
     public List<CatalogObjectNameReference> getAccessibleCatalogObjectsNameReferenceByKindAndContentType(
