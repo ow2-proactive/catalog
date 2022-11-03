@@ -190,6 +190,13 @@ public class CatalogObjectController {
         return catalogObjectService.getContentTypes();
     }
 
+    @ApiOperation(value = "Lists all tags values for all objects stored in the catalog")
+    @RequestMapping(value = "/tags", method = GET, produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    public Set<String> listObjectTags() {
+        return catalogObjectService.getObjectTags();
+    }
+
     @ApiOperation(value = "Lists catalog object name references by kind and Content-Type")
     @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
@@ -342,6 +349,7 @@ public class CatalogObjectController {
             @ApiParam(value = "Filter according to kind(s). Multiple kinds can be specified using comma separators") @RequestParam(required = false) Optional<String> kind,
             @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
             @ApiParam(value = "Filter according to Object Name.") @RequestParam(value = "objectName", required = false) Optional<String> objectNameFilter,
+            @ApiParam(value = "Filter according to Object Tag.") @RequestParam(value = "objectTag", required = false) Optional<String> objectTagFilter,
             @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
             @ApiParam(value = "Page number", required = false) @RequestParam(defaultValue = "0", value = "pageNo") int pageNo,
             @ApiParam(value = "Page size", required = false) @RequestParam(defaultValue = MAXVALUE +
@@ -382,6 +390,7 @@ public class CatalogObjectController {
         kind = kind.filter(s -> !s.isEmpty());
         contentType = contentType.filter(s -> !s.isEmpty());
         objectNameFilter = objectNameFilter.filter(s -> !s.isEmpty());
+        objectTagFilter = objectTagFilter.filter(s -> !s.isEmpty());
         if (names.isPresent()) {
             ZipArchiveContent content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, names.get());
             return getResponseAsArchive(content, response);
@@ -390,6 +399,7 @@ public class CatalogObjectController {
                                                                                                kind,
                                                                                                contentType,
                                                                                                objectNameFilter,
+                                                                                               objectTagFilter,
                                                                                                pageNo,
                                                                                                pageSize);
 

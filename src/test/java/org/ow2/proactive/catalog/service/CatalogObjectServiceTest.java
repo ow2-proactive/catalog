@@ -161,6 +161,18 @@ public class CatalogObjectServiceTest {
     }
 
     @Test
+    public void testGetObjectTags() {
+        TreeSet<String> storedObjectTags = new TreeSet<>();
+        storedObjectTags.add("objectTagA");
+        storedObjectTags.add("objectTagB");
+        storedObjectTags.add("objectTagB");
+        when(catalogObjectRepository.findAllObjectTags()).thenReturn(storedObjectTags);
+        Set<String> returnedObjectTags = catalogObjectService.getObjectTags();
+        verify(catalogObjectRepository, times(1)).findAllObjectTags();
+        assertThat(storedObjectTags).isEqualTo(returnedObjectTags);
+    }
+
+    @Test
     public void testCreateCatalogObject() {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         when(objectNameValidator.isValid(anyString())).thenReturn(true);

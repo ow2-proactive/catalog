@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -51,6 +52,10 @@ public interface CatalogObjectRepository
 
     @Query(value = "SELECT DISTINCT cos.contentType FROM CatalogObjectEntity cos")
     Set<String> findAllContentTypes();
+
+    @Query(value = "SELECT DISTINCT kvlem.value FROM KeyValueLabelMetadataEntity kvlem where kvlem.label=" +
+                   WorkflowParser.OBJECT_TAG_LABEL)
+    Set<String> findAllObjectTags();
 
     @Query("SELECT cos FROM CatalogObjectEntity cos WHERE cos.nameLower = null OR cos.kindLower = null OR cos.contentTypeLower = null")
     List<CatalogObjectEntity> findWithNullNameKindOrContentType();
