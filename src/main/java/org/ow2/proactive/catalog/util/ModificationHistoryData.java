@@ -44,6 +44,8 @@ import lombok.Setter;
 @Setter
 public class ModificationHistoryData implements Serializable {
 
+    private static final long serialVersionUid = 1L;
+
     private long modificationDate;
 
     private String username;
