@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
@@ -39,6 +40,7 @@ import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
+import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -77,6 +79,9 @@ public class BucketService {
 
     @Autowired
     CatalogObjectService catalogObjectService;
+
+    @Autowired
+    private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
 
     public BucketMetadata createBucket(String name) {
         return createBucket(name, DEFAULT_BUCKET_OWNER);
@@ -120,12 +125,17 @@ public class BucketService {
     }
 
     public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName) {
+            Optional<String> objectName, Optional<String> tag) {
         if (owners == null) {
             return Collections.emptyList();
         }
 
         List<BucketMetadata> entities = getBucketEntities(owners, kind, contentType, objectName);
+
+        // Consider now objectTag filter
+        if (tag.isPresent()) {
+            filterTag(entities, convertKindFilterToList(kind), contentType, objectName, tag);
+        }
 
         log.info("Buckets count {}", entities.size());
         return entities;
@@ -134,12 +144,7 @@ public class BucketService {
     private List<BucketMetadata> getBucketEntities(List<String> owners, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName) {
         List<BucketMetadata> entities;
-        List<String> kindList = new ArrayList<>();
-        if (kind.isPresent()) {
-            kindList = Arrays.asList(kind.get().toLowerCase().split(","));
-        } else {
-            kindList.add("");
-        }
+        List<String> kindList = convertKindFilterToList(kind);
         long startTime = System.currentTimeMillis();
         if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
             List<Object[]> bucketsFromDB;
@@ -168,6 +173,16 @@ public class BucketService {
         return entities;
     }
 
+    private List<String> convertKindFilterToList(Optional<String> kindFilter) {
+        List<String> kindList = new ArrayList<>();
+        if (kindFilter.isPresent()) {
+            kindList = Arrays.asList(kindFilter.get().toLowerCase().split(","));
+        } else {
+            kindList.add("");
+        }
+        return kindList;
+    }
+
     private List<BucketMetadata> generateBucketMetadataListFromObject(List<Object[]> bucketEntityWithContentCountList) {
         return bucketEntityWithContentCountList.stream()
                                                .map(bucketEntityWithContentCount -> new BucketMetadata((String) bucketEntityWithContentCount[0],
@@ -186,18 +201,13 @@ public class BucketService {
     }
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType) {
-        return listBuckets(ownerName, kind, contentType, Optional.empty());
+        return listBuckets(ownerName, kind, contentType, Optional.empty(), Optional.empty());
     }
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName) {
+            Optional<String> objectName, Optional<String> tag) {
         List<BucketMetadata> entities;
-        List<String> kindList = new ArrayList<>();
-        if (kind.isPresent()) {
-            kindList = Arrays.asList(kind.get().toLowerCase().split(","));
-        } else {
-            kindList.add("");
-        }
+        List<String> kindList = convertKindFilterToList(kind);
         List<String> owners = Collections.singletonList(ownerName);
 
         if (!StringUtils.isEmpty(ownerName)) {
@@ -216,7 +226,52 @@ public class BucketService {
         } else {
             entities = generateBucketMetadataList(bucketRepository.findAll(sortById));
         }
+
+        // Consider now objectTag filter
+        if (tag.isPresent()) {
+            filterTag(entities, kindList, contentType, objectName, tag);
+        }
+
         return entities;
+    }
+
+    private void filterTag(List<BucketMetadata> entities, List<String> kindList, Optional<String> contentType,
+            Optional<String> objectName, Optional<String> tag) {
+        long startTime = System.currentTimeMillis();
+        String tagFilter = tag.orElse(null);
+        if (tagFilter == null || tagFilter.isEmpty()) {
+            return;
+        }
+        List<String> bucketNames = entities.stream().map(BucketMetadata::getName).collect(Collectors.toList());
+        // request from DB the latest revision of catalog objects which matching the other filters except tag
+        List<CatalogObjectRevisionEntity> objectList = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(bucketNames,
+                                                                                                                                                              kindList,
+                                                                                                                                                              contentType.orElse(null),
+                                                                                                                                                              objectName.orElse(null),
+                                                                                                                                                              0,
+                                                                                                                                                              Integer.MAX_VALUE);
+
+        // filtering the catalog objects by the tag filter
+        Map<String, List<CatalogObjectRevisionEntity>> objectsPerBucket = objectList.stream()
+                                                                                    .filter(revision -> revision.getKeyValueMetadataList()
+                                                                                                                .stream()
+                                                                                                                .anyMatch(meta -> WorkflowParser.OBJECT_TAG_LABEL.equals(meta.getLabel()) &&
+                                                                                                                                meta.getValue()
+                                                                                                                                    .toLowerCase()
+                                                                                                                                    .contains(tagFilter.toLowerCase())))
+                                                                                    .collect(Collectors.groupingBy(obj -> obj.getCatalogObject()
+                                                                                                                             .getBucket()
+                                                                                                                             .getBucketName()));
+
+        // updating the object counts based on the objects which satisfying also the tag filter
+        for (BucketMetadata bucket : entities) {
+            int objectsCount = 0;
+            if (objectsPerBucket.containsKey(bucket.getName())) {
+                objectsCount = objectsPerBucket.get(bucket.getName()).size();
+            }
+            bucket.setObjectCount(objectsCount);
+        }
+        log.debug("bucket list timer : filter tags time: " + (System.currentTimeMillis() - startTime) + " ms");
     }
 
     public void cleanAllEmptyBuckets() {
@@ -260,11 +315,16 @@ public class BucketService {
 
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
             Optional<String> contentType, Supplier<List<String>> authenticatedUserGroupsSupplier) {
-        return getBucketsByGroups(ownerName, kind, contentType, Optional.empty(), authenticatedUserGroupsSupplier);
+        return getBucketsByGroups(ownerName,
+                                  kind,
+                                  contentType,
+                                  Optional.empty(),
+                                  Optional.empty(),
+                                  authenticatedUserGroupsSupplier);
     }
 
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
-            Optional<String> contentType, Optional<String> objectName,
+            Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
             Supplier<List<String>> authenticatedUserGroupsSupplier)
             throws NotAuthenticatedException, AccessDeniedException {
         List<String> groups;
@@ -277,7 +337,7 @@ public class BucketService {
             groups = Collections.singletonList(ownerName);
         }
 
-        List<BucketMetadata> bucketsByGroups = listBuckets(groups, kind, contentType, objectName);
+        List<BucketMetadata> bucketsByGroups = listBuckets(groups, kind, contentType, objectName, tag);
         log.debug("bucket list timer : get buckets by groups : " + (System.currentTimeMillis() - startTime) + " ms");
         return bucketsByGroups;
     }

@@ -186,6 +186,7 @@ public class BucketController {
             @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @ApiParam(value = "The kind(s) of objects that buckets must contain. Multiple kinds can be specified using comma separators") @RequestParam(value = "kind", required = false) Optional<String> kind,
             @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
+            @ApiParam(value = "The tag of objects that buckets must contain") @RequestParam(value = "objectTag", required = false) Optional<String> tag,
             @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
             @ApiParam(value = "The bucket name contains the value of this parameter (case insensitive)")
             @RequestParam(value = "bucketName", required = false)
@@ -199,12 +200,18 @@ public class BucketController {
         kind = kind.filter(s -> !s.isEmpty());
         contentType = contentType.filter(s -> !s.isEmpty());
         objectName = objectName.filter(s -> !s.isEmpty());
+        tag = tag.filter(s -> !s.isEmpty());
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
                                                                                                                   ownerName)
                                                          .getAuthenticatedUser();
             log.debug("bucket list timer : validate session : " + (System.currentTimeMillis() - startTime) + " ms");
-            listBucket = bucketService.getBucketsByGroups(ownerName, kind, contentType, objectName, user::getGroups);
+            listBucket = bucketService.getBucketsByGroups(ownerName,
+                                                          kind,
+                                                          contentType,
+                                                          objectName,
+                                                          tag,
+                                                          user::getGroups);
             listBucket.addAll(grantRightsService.getBucketsByPrioritiedGrants(user));
             listBucket = GrantHelper.removeDuplicate(listBucket);
 
@@ -231,7 +238,7 @@ public class BucketController {
                 }
             }
         } else {
-            listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName);
+            listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName, tag);
         }
         // Filter by bucket name
         if (!Strings.isNullOrEmpty(bucketName.orElse(""))) {
