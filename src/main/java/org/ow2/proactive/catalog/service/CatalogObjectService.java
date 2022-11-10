@@ -538,7 +538,9 @@ public class CatalogObjectService {
                                    .filter(catalogObjectRevisionEntity -> catalogObjectRevisionEntity.getKeyValueMetadataList()
                                                                                                      .stream()
                                                                                                      .filter(keyValueLabelMetadataEntity -> WorkflowParser.OBJECT_TAG_LABEL.equals(keyValueLabelMetadataEntity.getLabel()) &&
-                                                                                                                                            objectTag.equals(keyValueLabelMetadataEntity.getValue()))
+                                                                                                                                            keyValueLabelMetadataEntity.getValue()
+                                                                                                                                                                       .toLowerCase()
+                                                                                                                                                                       .contains(objectTag.toLowerCase()))
                                                                                                      .count() > 0)
                                    .collect(Collectors.toList());
         }
