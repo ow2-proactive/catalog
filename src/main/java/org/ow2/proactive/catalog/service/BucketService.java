@@ -177,8 +177,6 @@ public class BucketService {
         List<String> kindList = new ArrayList<>();
         if (kindFilter.isPresent()) {
             kindList = Arrays.asList(kindFilter.get().toLowerCase().split(","));
-        } else {
-            kindList.add("");
         }
         return kindList;
     }
