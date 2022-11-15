@@ -256,9 +256,9 @@ public class BucketService {
                                                                                     .filter(revision -> revision.getKeyValueMetadataList()
                                                                                                                 .stream()
                                                                                                                 .anyMatch(meta -> WorkflowParser.OBJECT_TAG_LABEL.equals(meta.getLabel()) &&
-                                                                                                                                meta.getValue()
-                                                                                                                                    .toLowerCase()
-                                                                                                                                    .contains(tagFilter.toLowerCase())))
+                                                                                                                                  meta.getValue()
+                                                                                                                                      .toLowerCase()
+                                                                                                                                      .contains(tagFilter.toLowerCase())))
                                                                                     .collect(Collectors.groupingBy(obj -> obj.getCatalogObject()
                                                                                                                              .getBucket()
                                                                                                                              .getBucketName()));
