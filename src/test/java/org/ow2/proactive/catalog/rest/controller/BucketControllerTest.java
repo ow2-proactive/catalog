@@ -83,8 +83,14 @@ public class BucketControllerTest {
     public void testList() throws Exception {
         Optional kind = Optional.ofNullable("kind");
         Optional type = Optional.ofNullable("type");
-        bucketController.list(null, null, kind, type, Optional.ofNullable(null), Optional.ofNullable(null));
-        verify(bucketService, times(1)).listBuckets((String) null, kind, type, Optional.empty());
+        bucketController.list(null,
+                              null,
+                              kind,
+                              type,
+                              Optional.ofNullable(null),
+                              Optional.ofNullable(null),
+                              Optional.ofNullable(null));
+        verify(bucketService, times(1)).listBuckets((String) null, kind, type, Optional.empty(), Optional.empty());
     }
 
     @Test
@@ -93,8 +99,10 @@ public class BucketControllerTest {
         Optional type = Optional.ofNullable("");
         Optional name = Optional.ofNullable("");
         Optional bucket = Optional.ofNullable("");
-        bucketController.list(null, null, kind, type, name, bucket);
+        Optional tag = Optional.ofNullable("");
+        bucketController.list(null, null, kind, type, name, bucket, tag);
         verify(bucketService, times(1)).listBuckets((String) null,
+                                                    Optional.empty(),
                                                     Optional.empty(),
                                                     Optional.empty(),
                                                     Optional.empty());

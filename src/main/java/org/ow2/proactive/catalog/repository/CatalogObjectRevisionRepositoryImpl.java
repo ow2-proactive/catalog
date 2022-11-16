@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -58,41 +59,52 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
         Root<CatalogObjectRevisionEntity> catalogObjectRevisionEntityRoot = cq.from(CatalogObjectRevisionEntity.class);
         cq.orderBy(cb.asc(catalogObjectRevisionEntityRoot.get("projectName")));
 
-        Predicate kindPredicate = cb.or();
-        for (String kind : kindList) {
-            kindPredicate = cb.or(kindPredicate,
-                                  cb.like(catalogObjectRevisionEntityRoot.get("catalogObject").get("kindLower"),
-                                          kind.toLowerCase() + "%"));
-        }
-        Predicate contentTypePredicate = cb.and();
-        if (contentType != null) {
-            contentTypePredicate = cb.like(catalogObjectRevisionEntityRoot.get("catalogObject").get("contentTypeLower"),
-                                           contentType.toLowerCase() + "%");
-        }
-        Predicate objectNamePredicate = cb.and();
-        if (objectName != null) {
-            objectNamePredicate = cb.like(catalogObjectRevisionEntityRoot.get("catalogObject").get("nameLower"),
-                                          "%" + objectName.toLowerCase() + "%");
+        List<Predicate> allPredicates = new ArrayList<>();
+        if (!kindList.isEmpty()) {
+            Predicate kindPredicate = cb.or();
+            for (String kind : kindList) {
+                kindPredicate = cb.or(kindPredicate,
+                                      cb.like(catalogObjectRevisionEntityRoot.get("catalogObject").get("kindLower"),
+                                              kind.toLowerCase() + "%"));
+            }
+            allPredicates.add(kindPredicate);
         }
 
-        Predicate bucketNamesPredicate = cb.and();
+        if (contentType != null) {
+            Predicate contentTypePredicate = cb.like(catalogObjectRevisionEntityRoot.get("catalogObject")
+                                                                                    .get("contentTypeLower"),
+                                                     contentType.toLowerCase() + "%");
+            allPredicates.add(contentTypePredicate);
+        }
+        if (objectName != null) {
+            Predicate objectNamePredicate = cb.like(catalogObjectRevisionEntityRoot.get("catalogObject")
+                                                                                   .get("nameLower"),
+                                                    "%" + objectName.toLowerCase() + "%");
+            allPredicates.add(objectNamePredicate);
+        }
+
         if (bucketNames != null) {
-            bucketNamesPredicate = cb.in(catalogObjectRevisionEntityRoot.get("catalogObject")
-                                                                        .get("bucket")
-                                                                        .get("bucketName"))
-                                     .value(bucketNames);
+            Predicate bucketNamesPredicate = cb.in(catalogObjectRevisionEntityRoot.get("catalogObject")
+                                                                                  .get("bucket")
+                                                                                  .get("bucketName"))
+                                               .value(bucketNames);
+            allPredicates.add(bucketNamesPredicate);
 
         }
 
         Predicate lastCommitTimePredicate = cb.equal(catalogObjectRevisionEntityRoot.get("catalogObject")
                                                                                     .get("lastCommitTime"),
                                                      catalogObjectRevisionEntityRoot.get("commitTime"));
-        Predicate filtersPredicate = cb.and(bucketNamesPredicate,
-                                            kindPredicate,
-                                            contentTypePredicate,
-                                            objectNamePredicate,
-                                            lastCommitTimePredicate);
+        allPredicates.add(lastCommitTimePredicate);
+
+        Predicate filtersPredicate;
+        if (allPredicates.size() == 1) {
+            filtersPredicate = allPredicates.get(0);
+        } else {
+            filtersPredicate = cb.and(allPredicates.toArray(new Predicate[0]));
+        }
         cq.where(filtersPredicate);
+
         cq.select(catalogObjectRevisionEntityRoot);
         return cq;
     }
