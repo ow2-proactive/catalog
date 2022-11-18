@@ -56,56 +56,45 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
             List<String> kindList, String contentType, String objectName) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<CatalogObjectRevisionEntity> cq = cb.createQuery(CatalogObjectRevisionEntity.class);
-        Root<CatalogObjectRevisionEntity> catalogObjectRevisionEntityRoot = cq.from(CatalogObjectRevisionEntity.class);
-        cq.orderBy(cb.asc(catalogObjectRevisionEntityRoot.get("projectName")));
+        Root<CatalogObjectRevisionEntity> root = cq.from(CatalogObjectRevisionEntity.class);
 
         List<Predicate> allPredicates = new ArrayList<>();
         if (!kindList.isEmpty()) {
-            Predicate kindPredicate = cb.or();
+            List<Predicate> kindPredicates = new ArrayList<>();
             for (String kind : kindList) {
-                kindPredicate = cb.or(kindPredicate,
-                                      cb.like(catalogObjectRevisionEntityRoot.get("catalogObject").get("kindLower"),
-                                              kind.toLowerCase() + "%"));
+                kindPredicates.add(cb.like(root.get("catalogObject").get("kindLower"), kind.toLowerCase() + "%"));
             }
-            allPredicates.add(kindPredicate);
+            Predicate orKindPredicate = cb.or(kindPredicates.toArray(new Predicate[0]));
+            allPredicates.add(orKindPredicate);
         }
 
         if (contentType != null) {
-            Predicate contentTypePredicate = cb.like(catalogObjectRevisionEntityRoot.get("catalogObject")
-                                                                                    .get("contentTypeLower"),
+            Predicate contentTypePredicate = cb.like(root.get("catalogObject").get("contentTypeLower"),
                                                      contentType.toLowerCase() + "%");
             allPredicates.add(contentTypePredicate);
         }
         if (objectName != null) {
-            Predicate objectNamePredicate = cb.like(catalogObjectRevisionEntityRoot.get("catalogObject")
-                                                                                   .get("nameLower"),
+            Predicate objectNamePredicate = cb.like(root.get("catalogObject").get("nameLower"),
                                                     "%" + objectName.toLowerCase() + "%");
             allPredicates.add(objectNamePredicate);
         }
 
         if (bucketNames != null) {
-            Predicate bucketNamesPredicate = cb.in(catalogObjectRevisionEntityRoot.get("catalogObject")
-                                                                                  .get("bucket")
-                                                                                  .get("bucketName"))
+            Predicate bucketNamesPredicate = cb.in(root.get("catalogObject").get("bucket").get("bucketName"))
                                                .value(bucketNames);
             allPredicates.add(bucketNamesPredicate);
 
         }
 
-        Predicate lastCommitTimePredicate = cb.equal(catalogObjectRevisionEntityRoot.get("catalogObject")
-                                                                                    .get("lastCommitTime"),
-                                                     catalogObjectRevisionEntityRoot.get("commitTime"));
+        Predicate lastCommitTimePredicate = cb.equal(root.get("catalogObject").get("lastCommitTime"),
+                                                     root.get("commitTime"));
         allPredicates.add(lastCommitTimePredicate);
 
-        Predicate filtersPredicate;
-        if (allPredicates.size() == 1) {
-            filtersPredicate = allPredicates.get(0);
-        } else {
-            filtersPredicate = cb.and(allPredicates.toArray(new Predicate[0]));
-        }
-        cq.where(filtersPredicate);
+        cq.where(allPredicates.toArray(new Predicate[0]));
 
-        cq.select(catalogObjectRevisionEntityRoot);
+        cq.orderBy(cb.asc(root.get("projectName")));
+
+        cq.select(root);
         return cq;
     }
 

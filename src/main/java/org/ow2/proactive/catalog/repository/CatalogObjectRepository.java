@@ -53,7 +53,7 @@ public interface CatalogObjectRepository
     @Query(value = "SELECT DISTINCT cos.contentType FROM CatalogObjectEntity cos")
     Set<String> findAllContentTypes();
 
-    @Query(value = "SELECT DISTINCT kvlem.value FROM KeyValueLabelMetadataEntity kvlem where kvlem.label='" +
+    @Query(value = "SELECT DISTINCT kvlem.key FROM KeyValueLabelMetadataEntity kvlem where kvlem.label='" +
                    WorkflowParser.OBJECT_TAG_LABEL + "'")
     Set<String> findAllObjectTags();
 
