@@ -48,6 +48,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.base.Strings;
+
 import lombok.extern.log4j.Log4j2;
 
 
@@ -237,26 +239,22 @@ public class BucketService {
             Optional<String> objectName, Optional<String> tag) {
         long startTime = System.currentTimeMillis();
         String tagFilter = tag.orElse(null);
-        if (tagFilter == null || tagFilter.isEmpty()) {
+        if (Strings.isNullOrEmpty(tagFilter)) {
             return;
         }
         List<String> bucketNames = entities.stream().map(BucketMetadata::getName).collect(Collectors.toList());
         // request from DB the latest revision of catalog objects which matching the other filters except tag
-        List<CatalogObjectRevisionEntity> objectList = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(bucketNames,
-                                                                                                                                                              kindList,
-                                                                                                                                                              contentType.orElse(null),
-                                                                                                                                                              objectName.orElse(null),
-                                                                                                                                                              0,
-                                                                                                                                                              Integer.MAX_VALUE);
+        List<CatalogObjectRevisionEntity> objectList;
+        objectList = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(bucketNames,
+                                                                                                                                  kindList,
+                                                                                                                                  contentType.orElse(null),
+                                                                                                                                  objectName.orElse(null),
+                                                                                                                                  tagFilter,
+                                                                                                                                  0,
+                                                                                                                                  Integer.MAX_VALUE);
 
         // filtering the catalog objects by the tag filter
         Map<String, List<CatalogObjectRevisionEntity>> objectsPerBucket = objectList.stream()
-                                                                                    .filter(revision -> revision.getKeyValueMetadataList()
-                                                                                                                .stream()
-                                                                                                                .anyMatch(meta -> WorkflowParser.OBJECT_TAG_LABEL.equals(meta.getLabel()) &&
-                                                                                                                                  meta.getValue()
-                                                                                                                                      .toLowerCase()
-                                                                                                                                      .contains(tagFilter.toLowerCase())))
                                                                                     .collect(Collectors.groupingBy(obj -> obj.getCatalogObject()
                                                                                                                              .getBucket()
                                                                                                                              .getBucketName()));

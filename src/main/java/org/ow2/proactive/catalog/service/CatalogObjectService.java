@@ -73,6 +73,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 import lombok.extern.log4j.Log4j2;
@@ -525,24 +526,22 @@ public class CatalogObjectService {
         } else {
             kindList.add("");
         }
-        List<CatalogObjectRevisionEntity> objectList = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(bucketNames,
-                                                                                                                                                              kindList,
-                                                                                                                                                              contentType,
-                                                                                                                                                              objectName,
-                                                                                                                                                              pageNo,
-                                                                                                                                                              pageSize);
-
-        // Consider now objectTag filter
-        if (objectTag != null && !objectTag.isEmpty()) {
-            objectList = objectList.stream()
-                                   .filter(catalogObjectRevisionEntity -> catalogObjectRevisionEntity.getKeyValueMetadataList()
-                                                                                                     .stream()
-                                                                                                     .filter(keyValueLabelMetadataEntity -> WorkflowParser.OBJECT_TAG_LABEL.equals(keyValueLabelMetadataEntity.getLabel()) &&
-                                                                                                                                            keyValueLabelMetadataEntity.getValue()
-                                                                                                                                                                       .toLowerCase()
-                                                                                                                                                                       .contains(objectTag.toLowerCase()))
-                                                                                                     .count() > 0)
-                                   .collect(Collectors.toList());
+        List<CatalogObjectRevisionEntity> objectList;
+        if (Strings.isNullOrEmpty(objectTag)) {
+            objectList = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(bucketNames,
+                                                                                                                                kindList,
+                                                                                                                                contentType,
+                                                                                                                                objectName,
+                                                                                                                                pageNo,
+                                                                                                                                pageSize);
+        } else {
+            objectList = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(bucketNames,
+                                                                                                                                      kindList,
+                                                                                                                                      contentType,
+                                                                                                                                      objectName,
+                                                                                                                                      objectTag,
+                                                                                                                                      pageNo,
+                                                                                                                                      pageSize);
         }
 
         return buildMetadataWithLink(objectList);
