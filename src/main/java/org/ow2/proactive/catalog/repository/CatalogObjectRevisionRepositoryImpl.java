@@ -27,12 +27,15 @@ package org.ow2.proactive.catalog.repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.*;
 
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
+import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
+import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.stereotype.Repository;
 
 
@@ -52,12 +55,48 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                  .getResultList();
     }
 
+    @Override
+    public List<CatalogObjectRevisionEntity>
+            findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(List<String> bucketNames,
+                    List<String> kindList, String contentType, String objectName, String tag, int pageNo,
+                    int pageSize) {
+        if (pageSize < 0) {
+            throw new IllegalArgumentException("pageSize cannot be negative");
+        }
+        return em.createQuery(buildCriteriaQuery(bucketNames, kindList, contentType, objectName, tag))
+                 .setMaxResults(pageSize)
+                 .setFirstResult(pageNo * pageSize)
+                 .getResultList()
+                 .stream()
+                 .distinct()
+                 .collect(Collectors.toList());
+    }
+
     private CriteriaQuery<CatalogObjectRevisionEntity> buildCriteriaQuery(List<String> bucketNames,
-            List<String> kindList, String contentType, String objectName) {
+            List<String> kindList, String contentType, String objectName, String tag) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<CatalogObjectRevisionEntity> cq = cb.createQuery(CatalogObjectRevisionEntity.class);
         Root<CatalogObjectRevisionEntity> root = cq.from(CatalogObjectRevisionEntity.class);
 
+        ListJoin<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadata = root.joinList("keyValueMetadataList");
+
+        List<Predicate> allPredicates = getCommonPredicates(kindList, cb, root, contentType, objectName, bucketNames);
+
+        allPredicates.add(cb.equal(metadata.get("label"), WorkflowParser.OBJECT_TAG_LABEL));
+        allPredicates.add(cb.like(cb.lower(metadata.get("key")), "%" + tag.toLowerCase() + "%"));
+
+        cq.where(allPredicates.toArray(new Predicate[0]));
+
+        cq.orderBy(cb.asc(root.get("projectName")));
+
+        cq.select(root);
+        // we avoid using distinct as it creates an issue in Oracle
+        // distinct is performed in java on the returned result
+        return cq;
+    }
+
+    private List<Predicate> getCommonPredicates(List<String> kindList, CriteriaBuilder cb,
+            Root<CatalogObjectRevisionEntity> root, String contentType, String objectName, List<String> bucketNames) {
         List<Predicate> allPredicates = new ArrayList<>();
         if (!kindList.isEmpty()) {
             List<Predicate> kindPredicates = new ArrayList<>();
@@ -89,6 +128,16 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
         Predicate lastCommitTimePredicate = cb.equal(root.get("catalogObject").get("lastCommitTime"),
                                                      root.get("commitTime"));
         allPredicates.add(lastCommitTimePredicate);
+        return allPredicates;
+    }
+
+    private CriteriaQuery<CatalogObjectRevisionEntity> buildCriteriaQuery(List<String> bucketNames,
+            List<String> kindList, String contentType, String objectName) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<CatalogObjectRevisionEntity> cq = cb.createQuery(CatalogObjectRevisionEntity.class);
+        Root<CatalogObjectRevisionEntity> root = cq.from(CatalogObjectRevisionEntity.class);
+
+        List<Predicate> allPredicates = getCommonPredicates(kindList, cb, root, contentType, objectName, bucketNames);
 
         cq.where(allPredicates.toArray(new Predicate[0]));
 
