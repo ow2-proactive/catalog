@@ -36,7 +36,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.ParsingObjectException;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
@@ -305,7 +304,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     }
 
     private void addDependsOn(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, String value, String model) {
-        if (StringUtils.containsIgnoreCase(model, CATALOG_OBJECT_MODEL)) {
+        if (model.toUpperCase().startsWith(CATALOG_OBJECT_MODEL)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependsOn(value),
                                                                    getRevisionFromDependsOn(value).orElse(LATEST_VERSION),
                                                                    ATTRIBUTE_DEPENDS_ON_LABEL));
