@@ -38,4 +38,9 @@ public interface CatalogObjectRevisionCustom {
     List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(
             List<String> bucketNames, List<String> kindList, String contentType, String objectName, int pageNo,
             int pageSize);
+
+    List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(
+            List<String> bucketNames, List<String> kindList, String contentType, String objectName, String tag,
+            int pageNo, int pageSize);
+
 }
