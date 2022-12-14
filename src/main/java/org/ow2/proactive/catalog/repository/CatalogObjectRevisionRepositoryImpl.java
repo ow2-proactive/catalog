@@ -49,6 +49,9 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     public List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(
             List<String> bucketNames, List<String> kindList, String contentType, String objectName, int pageNo,
             int pageSize) {
+        if (pageSize < 0) {
+            throw new IllegalArgumentException("pageSize cannot be negative");
+        }
         return em.createQuery(buildCriteriaQuery(bucketNames, kindList, contentType, objectName))
                  .setMaxResults(pageSize)
                  .setFirstResult(pageNo * pageSize)
