@@ -83,7 +83,7 @@ public interface CatalogObjectRevisionRepository extends JpaRepository<CatalogOb
     /**
      *
      * @param bucketObjectName
-     * @return a list of objects (checking only the last revision) the depend on the passed bucketObjectName
+     * @return a list of objects (checking only the last revision) that depend on the passed bucketObjectName
      */
     @Query("SELECT cor FROM CatalogObjectRevisionEntity cor INNER JOIN cor.keyValueMetadataList metadata WHERE metadata.label = '" +
            WorkflowParser.ATTRIBUTE_DEPENDS_ON_LABEL + "' AND metadata.key = :bucketObjectName" +
