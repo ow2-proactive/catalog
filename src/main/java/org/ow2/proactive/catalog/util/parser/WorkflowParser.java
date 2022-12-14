@@ -304,7 +304,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     }
 
     private void addDependsOn(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, String value, String model) {
-        if (model.equalsIgnoreCase(CATALOG_OBJECT_MODEL)) {
+        if (model.toUpperCase().startsWith(CATALOG_OBJECT_MODEL)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependsOn(value),
                                                                    getRevisionFromDependsOn(value).orElse(LATEST_VERSION),
                                                                    ATTRIBUTE_DEPENDS_ON_LABEL));
