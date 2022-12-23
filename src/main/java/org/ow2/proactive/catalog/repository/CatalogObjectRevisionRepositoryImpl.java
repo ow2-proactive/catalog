@@ -76,13 +76,11 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     }
 
     private String toRightSidePredicatePattern(String pattern) {
-        return pattern.endsWith("%") ? pattern.toLowerCase() : pattern.toLowerCase() + "%";
+        return pattern.contains("%") ? pattern.toLowerCase() : pattern.toLowerCase() + "%";
     }
 
     private String toBothSidesPredicatePattern(String pattern) {
-        String predicatePattern = toRightSidePredicatePattern(pattern);
-        predicatePattern = predicatePattern.startsWith("%") ? predicatePattern : "%" + predicatePattern;
-        return predicatePattern;
+        return pattern.contains("%") ? pattern.toLowerCase() : "%" + pattern + "%";
     }
 
     private CriteriaQuery<CatalogObjectRevisionEntity> buildCriteriaQuery(List<String> bucketNames,
