@@ -80,7 +80,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     }
 
     private String toBothSidesPredicatePattern(String pattern) {
-        return pattern.contains("%") ? pattern.toLowerCase() : "%" + pattern + "%";
+        return pattern.contains("%") ? pattern.toLowerCase() : "%" + pattern.toLowerCase() + "%";
     }
 
     private CriteriaQuery<CatalogObjectRevisionEntity> buildCriteriaQuery(List<String> bucketNames,
