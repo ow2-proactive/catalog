@@ -75,6 +75,14 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                  .collect(Collectors.toList());
     }
 
+    private String toRightSidePredicatePattern(String pattern) {
+        return pattern.contains("%") ? pattern.toLowerCase() : pattern.toLowerCase() + "%";
+    }
+
+    private String toBothSidesPredicatePattern(String pattern) {
+        return pattern.contains("%") ? pattern.toLowerCase() : "%" + pattern.toLowerCase() + "%";
+    }
+
     private CriteriaQuery<CatalogObjectRevisionEntity> buildCriteriaQuery(List<String> bucketNames,
             List<String> kindList, String contentType, String objectName, String tag) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -86,7 +94,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
         List<Predicate> allPredicates = getCommonPredicates(kindList, cb, root, contentType, objectName, bucketNames);
 
         allPredicates.add(cb.equal(metadata.get("label"), WorkflowParser.OBJECT_TAG_LABEL));
-        allPredicates.add(cb.like(cb.lower(metadata.get("key")), "%" + tag.toLowerCase() + "%"));
+        allPredicates.add(cb.like(cb.lower(metadata.get("key")), toBothSidesPredicatePattern(tag)));
 
         cq.where(allPredicates.toArray(new Predicate[0]));
 
@@ -104,7 +112,8 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
         if (!kindList.isEmpty()) {
             List<Predicate> kindPredicates = new ArrayList<>();
             for (String kind : kindList) {
-                kindPredicates.add(cb.like(root.get("catalogObject").get("kindLower"), kind.toLowerCase() + "%"));
+                kindPredicates.add(cb.like(root.get("catalogObject").get("kindLower"),
+                                           toRightSidePredicatePattern(kind)));
             }
             Predicate orKindPredicate = cb.or(kindPredicates.toArray(new Predicate[0]));
             allPredicates.add(orKindPredicate);
@@ -112,12 +121,12 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
 
         if (contentType != null) {
             Predicate contentTypePredicate = cb.like(root.get("catalogObject").get("contentTypeLower"),
-                                                     contentType.toLowerCase() + "%");
+                                                     toRightSidePredicatePattern(contentType));
             allPredicates.add(contentTypePredicate);
         }
         if (objectName != null) {
             Predicate objectNamePredicate = cb.like(root.get("catalogObject").get("nameLower"),
-                                                    "%" + objectName.toLowerCase() + "%");
+                                                    toBothSidesPredicatePattern(objectName));
             allPredicates.add(objectNamePredicate);
         }
 
