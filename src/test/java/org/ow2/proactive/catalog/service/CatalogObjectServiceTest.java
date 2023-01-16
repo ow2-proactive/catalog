@@ -109,6 +109,7 @@ public class CatalogObjectServiceTest {
     @Mock
     private KindAndContentTypeValidator kindAndContentTypeValidator;
 
+    @Mock
     private TagsValidator tagsValidator;
 
     @Mock
@@ -184,6 +185,7 @@ public class CatalogObjectServiceTest {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         when(objectNameValidator.isValid(anyString())).thenReturn(true);
         when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
+        when(tagsValidator.isValid(anyString())).thenReturn(true);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity,
                                                                                          System.currentTimeMillis());
@@ -312,6 +314,7 @@ public class CatalogObjectServiceTest {
         when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(catalogObjectEntity);
         when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
+        when(tagsValidator.isValid(anyString())).thenReturn(true);
 
         CatalogObjectMetadata catalogObject = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                                                         NAME,
@@ -330,27 +333,29 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObject.getTags()).isEqualTo("updated-tags");
         assertThat(catalogObject.getName()).isEqualTo(NAME);
         assertThat(catalogObject.getMetadataList()).isNotEmpty();
-        assertThat(catalogObject.getMetadataList()).hasSize(1);
+        assertThat(catalogObject.getMetadataList()).hasSize(2);
         assertThat(catalogObject.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
     }
 
     @Test
     public void testUpdateObjectMetadataOnlyKindOrOnlyContentTypeOrOnlyProjectName() {
         long now = System.currentTimeMillis();
-        BucketEntity bucketEntity = new BucketEntity("cket", "toto");
+        BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
+        System.out.println(catalogObjectEntity);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
         when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(catalogObjectEntity);
         when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
+        when(tagsValidator.isValid(anyString())).thenReturn(true);
 
         // only kind should be updated without changing contentType, projectName and tags
         CatalogObjectMetadata catalogObjectUpdatedKind = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                                                                    NAME,
                                                                                                    Optional.of("updated-kind"),
                                                                                                    Optional.empty(),
-                                                                                                   Optional.empty(),
-                                                                                                   Optional.empty());
+                                                                                                   Optional.of(PROJECT_NAME),
+                                                                                                   Optional.of(TAGS));
 
         assertThat(catalogObjectUpdatedKind).isNotNull();
         assertThat(catalogObjectUpdatedKind.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
@@ -362,7 +367,7 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedKind.getTags()).isEqualTo(TAGS);
         assertThat(catalogObjectUpdatedKind.getName()).isEqualTo(NAME);
         assertThat(catalogObjectUpdatedKind.getMetadataList()).isNotEmpty();
-        assertThat(catalogObjectUpdatedKind.getMetadataList()).hasSize(1);
+        assertThat(catalogObjectUpdatedKind.getMetadataList()).hasSize(3);
         assertThat(catalogObjectUpdatedKind.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
 
         // only contentType should be updated without changing kind, projectName and tags
@@ -370,8 +375,8 @@ public class CatalogObjectServiceTest {
                                                                                                           NAME,
                                                                                                           Optional.empty(),
                                                                                                           Optional.of("updated-contentType"),
-                                                                                                          Optional.empty(),
-                                                                                                          Optional.empty());
+                                                                                                          Optional.of(PROJECT_NAME),
+                                                                                                          Optional.of(TAGS));
 
         assertThat(catalogObjectUpdatedContentType).isNotNull();
         assertThat(catalogObjectUpdatedContentType.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
@@ -383,16 +388,16 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedContentType.getTags()).isEqualTo(TAGS);
         assertThat(catalogObjectUpdatedContentType.getName()).isEqualTo(NAME);
         assertThat(catalogObjectUpdatedContentType.getMetadataList()).isNotEmpty();
-        assertThat(catalogObjectUpdatedContentType.getMetadataList()).hasSize(1);
+        assertThat(catalogObjectUpdatedContentType.getMetadataList()).hasSize(3);
         assertThat(catalogObjectUpdatedContentType.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
 
         // only projectName should be updated without changing kind, contentType and tags
         CatalogObjectMetadata catalogObjectUpdatedProjectName = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                                                                           NAME,
-                                                                                                          Optional.empty(),
-                                                                                                          Optional.empty(),
+                                                                                                          Optional.of("updated-kind"),
+                                                                                                          Optional.of("updated-contentType"),
                                                                                                           Optional.of("updated-projectName"),
-                                                                                                          Optional.empty());
+                                                                                                          Optional.of(TAGS));
 
         assertThat(catalogObjectUpdatedProjectName).isNotNull();
         assertThat(catalogObjectUpdatedProjectName.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
@@ -404,15 +409,15 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedProjectName.getTags()).isEqualTo(TAGS);
         assertThat(catalogObjectUpdatedProjectName.getName()).isEqualTo(NAME);
         assertThat(catalogObjectUpdatedProjectName.getMetadataList()).isNotEmpty();
-        assertThat(catalogObjectUpdatedProjectName.getMetadataList()).hasSize(1);
+        assertThat(catalogObjectUpdatedProjectName.getMetadataList()).hasSize(3);
         assertThat(catalogObjectUpdatedProjectName.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
 
         // only tags should be updated without changing kind and contentType and projectName
         CatalogObjectMetadata catalogObjectUpdatedTags = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                                                                    NAME,
-                                                                                                   Optional.empty(),
-                                                                                                   Optional.empty(),
-                                                                                                   Optional.empty(),
+                                                                                                   Optional.of("updated-kind"),
+                                                                                                   Optional.of("updated-contentType"),
+                                                                                                   Optional.of("updated-projectName"),
                                                                                                    Optional.of("updated-tags"));
 
         assertThat(catalogObjectUpdatedTags).isNotNull();
@@ -425,7 +430,7 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedTags.getTags()).isEqualTo("updated-tags");
         assertThat(catalogObjectUpdatedTags.getName()).isEqualTo(NAME);
         assertThat(catalogObjectUpdatedTags.getMetadataList()).isNotEmpty();
-        assertThat(catalogObjectUpdatedTags.getMetadataList()).hasSize(1);
+        assertThat(catalogObjectUpdatedTags.getMetadataList()).hasSize(2);
         assertThat(catalogObjectUpdatedTags.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
     }
 
@@ -570,6 +575,7 @@ public class CatalogObjectServiceTest {
                                                                                                        null));
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .projectName(PROJECT_NAME)
+                                                                                             .tags(TAGS)
                                                                                              .commitMessage(COMMIT_MESSAGE)
                                                                                              .commitTime(now)
                                                                                              .username(USERNAME)

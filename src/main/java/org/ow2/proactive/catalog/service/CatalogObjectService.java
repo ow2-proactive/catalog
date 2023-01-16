@@ -74,6 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
@@ -516,10 +517,14 @@ public class CatalogObjectService {
             tagsList = Arrays.asList(tags.split(","));
         }
         //First remove all existing tags
-        List<KeyValueLabelMetadataEntity> synchronizedKeyValueMetadataEntityList = keyValueMetadataEntityList.stream()
-                                                                                                             .filter(metadataEntity -> !metadataEntity.getLabel()
-                                                                                                                                                      .equals(OBJECT_TAG_LABEL))
-                                                                                                             .collect(Collectors.toList());
+        List<KeyValueLabelMetadataEntity> synchronizedKeyValueMetadataEntityList = new ArrayList<>();
+        if (keyValueMetadataEntityList != null && !keyValueMetadataEntityList.isEmpty()) {
+            synchronizedKeyValueMetadataEntityList = keyValueMetadataEntityList.stream()
+                                                                               .filter(metadataEntity -> metadataEntity.getLabel() == null ||
+                                                                                                         !metadataEntity.getLabel()
+                                                                                                                        .equals(OBJECT_TAG_LABEL))
+                                                                               .collect(Collectors.toList());
+        }
         //Then add the new tags in the KeyValueMetadataEntityList
         for (String tag : tagsList) {
             synchronizedKeyValueMetadataEntityList.add(new KeyValueLabelMetadataEntity(tag, tag, OBJECT_TAG_LABEL));
