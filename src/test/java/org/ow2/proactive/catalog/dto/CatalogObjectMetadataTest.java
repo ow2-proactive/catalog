@@ -69,6 +69,7 @@ public class CatalogObjectMetadataTest {
         CatalogObjectMetadata catalogObjectMetadata = new CatalogObjectMetadata(bucketName,
                                                                                 name,
                                                                                 "",
+                                                                                "",
                                                                                 "kind",
                                                                                 "contentType",
                                                                                 123546587L,

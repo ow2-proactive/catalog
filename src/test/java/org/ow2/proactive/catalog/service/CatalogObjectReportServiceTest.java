@@ -254,6 +254,7 @@ public class CatalogObjectReportServiceTest {
         CatalogObjectMetadata catalogObjectMetadata = new CatalogObjectMetadata(bucketName,
                                                                                 name,
                                                                                 "projectName",
+                                                                                "tag1,tag2",
                                                                                 "kind",
                                                                                 "contentType",
                                                                                 System.currentTimeMillis(),

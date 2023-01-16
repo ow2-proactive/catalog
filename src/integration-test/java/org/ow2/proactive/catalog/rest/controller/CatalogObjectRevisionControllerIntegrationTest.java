@@ -194,7 +194,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                .pathParam("bucketName", bucket.getName())
                .pathParam("name", "WF_1_Rev_1.xml")
                .queryParam("commitMessage", "first commit")
-               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-no-project-name.xml"))
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow-no-project-name-and-tags.xml"))
                .when()
                .post(CATALOG_OBJECT_REVISIONS_RESOURCE)
                .then()
@@ -254,7 +254,7 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                            .body("bucket_name", is(secondCatalogObjectRevision.get("bucket_name")))
                            .body("name", is(secondCatalogObjectRevision.get("name")))
                            .body("commit_time", is(secondCatalogObjectRevision.get("commit_time")))
-                           .body("object_key_values", hasSize(14))
+                           .body("object_key_values", hasSize(16))
                            //check generic_information label
                            .body("object_key_values.find { it.key=='bucketName' }.label", is("generic_information"))
                            .body("object_key_values.find { it.key=='bucketName' }.value", is("bucket"))
@@ -285,6 +285,8 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
 
                            .body("object_key_values.find { it.key=='project_name' }.label", is("job_information"))
                            .body("object_key_values.find { it.key=='project_name' }.value", is("Project Name Updated"))
+                           .body("object_key_values.find { it.key=='tag1' }.value", is("tag1"))
+                           .body("object_key_values.find { it.key=='tag2' }.value", is("tag2"))
 
                            //check variables label
                            .body("object_key_values.find { it.key=='var1' }.label", is("variable"))

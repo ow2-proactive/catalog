@@ -166,7 +166,7 @@ public class GrantRightServiceTest {
     }
 
     private CatalogObjectMetadata createCatalogObject(String bucketName, String objectName) {
-        return new CatalogObjectMetadata(bucketName, objectName, "", "", "", 0, "", "", new LinkedList<>(), "");
+        return new CatalogObjectMetadata(bucketName, objectName, "", "", "", "", 0, "", "", new LinkedList<>(), "");
     }
 
     private CatalogObjectGrantMetadata createObjectGrantMetadata(String bucketName, String objectName,

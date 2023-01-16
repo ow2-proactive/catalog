@@ -220,21 +220,49 @@ public class WorkflowXmlManipulatorTest {
 
     @Test
     public void testThatWorkflowHasProjectNameReplaced() {
-        String modifiedWorkflow1 = new String(workflowXmlManipulator.replaceOrAddOrRemoveProjectNameOnJobLevel(simpleWorkflowWithGenericInfo,
-                                                                                                               "newProjectName"));
+        String modifiedWorkflow1 = new String(workflowXmlManipulator.replaceOrAddOrRemoveAttributeOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                             "projectName",
+                                                                                                             "newProjectName"));
         assertThat(modifiedWorkflow1).contains("projectName=\"newProjectName\"");
 
-        String modifiedWorkflow2 = new String(workflowXmlManipulator.replaceOrAddOrRemoveProjectNameOnJobLevel(simpleWorkflowWithGenericInfo,
-                                                                                                               ""));
+        String modifiedWorkflow2 = new String(workflowXmlManipulator.replaceOrAddOrRemoveAttributeOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                             "projectName",
+                                                                                                             ""));
         assertThat(modifiedWorkflow2).doesNotContain("projectName");
 
-        String modifiedWorkflow3 = new String(workflowXmlManipulator.replaceOrAddOrRemoveProjectNameOnJobLevel(simpleWorkflowWithGenericInfo,
-                                                                                                               "newProjectName2"));
+        String modifiedWorkflow3 = new String(workflowXmlManipulator.replaceOrAddOrRemoveAttributeOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                             "projectName",
+                                                                                                             "newProjectName2"));
         assertThat(modifiedWorkflow3).contains("projectName=\"newProjectName2\"");
 
-        String modifiedWorkflow4 = new String(workflowXmlManipulator.replaceOrAddOrRemoveProjectNameOnJobLevel(simpleWorkflowWithGenericInfo,
-                                                                                                               "   "));
+        String modifiedWorkflow4 = new String(workflowXmlManipulator.replaceOrAddOrRemoveAttributeOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                             "projectName",
+                                                                                                             "   "));
         assertThat(modifiedWorkflow4).doesNotContain("projectName");
+
+    }
+
+    @Test
+    public void testThatWorkflowHasTagsReplaced() {
+        String modifiedWorkflow1 = new String(workflowXmlManipulator.replaceOrAddOrRemoveAttributeOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                             "tags",
+                                                                                                             "newTag"));
+        assertThat(modifiedWorkflow1).contains("tags=\"newTag\"");
+
+        String modifiedWorkflow2 = new String(workflowXmlManipulator.replaceOrAddOrRemoveAttributeOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                             "tags",
+                                                                                                             ""));
+        assertThat(modifiedWorkflow2).doesNotContain("tags");
+
+        String modifiedWorkflow3 = new String(workflowXmlManipulator.replaceOrAddOrRemoveAttributeOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                             "tags",
+                                                                                                             "newTag2"));
+        assertThat(modifiedWorkflow3).contains("tags=\"newTag2\"");
+
+        String modifiedWorkflow4 = new String(workflowXmlManipulator.replaceOrAddOrRemoveAttributeOnJobLevel(simpleWorkflowWithGenericInfo,
+                                                                                                             "tags",
+                                                                                                             "   "));
+        assertThat(modifiedWorkflow4).doesNotContain("tags");
 
     }
 

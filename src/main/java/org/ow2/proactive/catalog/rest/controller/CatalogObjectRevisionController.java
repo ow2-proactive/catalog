@@ -113,6 +113,7 @@ public class CatalogObjectRevisionController {
             @PathVariable String bucketName, @PathVariable String name,
             @ApiParam(value = "The commit message of the CatalogRawObject Revision", required = true) @RequestParam String commitMessage,
             @ApiParam(value = "Project of the object") @RequestParam(value = "projectName", required = false, defaultValue = "") Optional<String> projectName,
+            @ApiParam(value = "Tags of the object") @RequestParam(value = "tags", required = false, defaultValue = "") Optional<String> tags,
             @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
@@ -133,6 +134,7 @@ public class CatalogObjectRevisionController {
         CatalogObjectMetadata catalogObjectRevision = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                                        name,
                                                                                                        projectName.orElse(""),
+                                                                                                       tags.orElse(""),
                                                                                                        commitMessage,
                                                                                                        user.getName(),
                                                                                                        file.getBytes());
@@ -259,6 +261,7 @@ public class CatalogObjectRevisionController {
 
     @ApiOperation(value = "Restore a catalog object revision")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
+                            @ApiResponse(code = 422, message = "Invalid catalog object JSON content supplied"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(value = "/{commitTimeRaw}", method = PUT)

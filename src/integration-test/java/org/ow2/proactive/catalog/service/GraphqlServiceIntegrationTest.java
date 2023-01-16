@@ -87,6 +87,8 @@ public class GraphqlServiceIntegrationTest {
 
     private static final String PROJECT_NAME = "projectName";
 
+    private static final String TAGS = "tag1,tag2";
+
     @Before
     public void setup() throws IOException, NotAuthenticatedException, AccessDeniedException, InterruptedException {
         doReturn("link").when(catalogObjectMapper).generatLink(anyString(), anyString());
@@ -99,6 +101,7 @@ public class GraphqlServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog1",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "object",
                                                  "commit message",
                                                  "username",
@@ -111,6 +114,7 @@ public class GraphqlServiceIntegrationTest {
         catalogObjectService.createCatalogObjectRevision(bucket.getName(),
                                                          "catalog1",
                                                          PROJECT_NAME,
+                                                         TAGS,
                                                          "commit message 2",
                                                          "username",
                                                          keyValues,
@@ -119,6 +123,7 @@ public class GraphqlServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog2",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "object",
                                                  "commit message",
                                                  "username",
@@ -132,6 +137,7 @@ public class GraphqlServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog3",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "workflow",
                                                  "commit message",
                                                  "username",
@@ -143,6 +149,7 @@ public class GraphqlServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog4",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "workflow",
                                                  "commit message",
                                                  "username",
@@ -153,6 +160,7 @@ public class GraphqlServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog5",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "nodesource",
                                                  "commit message",
                                                  "username",
@@ -164,6 +172,7 @@ public class GraphqlServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog6",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "script",
                                                  "commit message",
                                                  "username",
@@ -175,6 +184,7 @@ public class GraphqlServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog7",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "script",
                                                  "commit message",
                                                  "username",
@@ -560,6 +570,7 @@ public class GraphqlServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucket2.getName(),
                                                  "catalog1",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "object",
                                                  "commit message",
                                                  "username",

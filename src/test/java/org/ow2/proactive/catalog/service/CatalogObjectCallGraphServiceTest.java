@@ -245,6 +245,7 @@ public class CatalogObjectCallGraphServiceTest {
         CatalogObjectMetadata catalogObjectMetadata = new CatalogObjectMetadata(bucketName,
                                                                                 name,
                                                                                 "projectName",
+                                                                                "tag1,tag2",
                                                                                 "kind",
                                                                                 "contentType",
                                                                                 System.currentTimeMillis(),

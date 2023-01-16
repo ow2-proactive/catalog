@@ -48,6 +48,7 @@ import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
 import org.ow2.proactive.catalog.util.name.validator.ObjectNameValidator;
+import org.ow2.proactive.catalog.util.name.validator.TagsValidator;
 import org.ow2.proactive.catalog.util.parser.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -254,8 +255,13 @@ public class IntegrationTestConfig {
     }
 
     @Bean
-    public KindAndContentTypeValidator kindNameValidator() {
+    public KindAndContentTypeValidator kindAndContentTypeValidator() {
         return new KindAndContentTypeValidator();
+    }
+
+    @Bean
+    public TagsValidator tagsValidator() {
+        return new TagsValidator();
     }
 
     @Bean

@@ -73,7 +73,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     public static final String OBJECT_TAG_LABEL = "object_tag";
 
-    private static final String JOB_AND_PROJECT_LABEL = "job_information";
+    public static final String JOB_INFORMATION_LABEL = "job_information";
 
     public static final String ATTRIBUTE_GENERIC_INFORMATION_LABEL = "generic_information";
 
@@ -147,14 +147,14 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         if (checkIfNotNull(projectName) && checkIfNotEmpty(projectName)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(PROJECT_NAME_KEY,
                                                                    projectName,
-                                                                   JOB_AND_PROJECT_LABEL));
+                                                                   JOB_INFORMATION_LABEL));
         }
     }
 
     private void addJobNameIfNotNull(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
         String name = job.getName();
         if (checkIfNotNull(name)) {
-            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY, name, JOB_AND_PROJECT_LABEL));
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY, name, JOB_INFORMATION_LABEL));
         }
     }
 
@@ -351,7 +351,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         if (checkIfNotNull(vizualisation) && checkIfNotEmpty(vizualisation)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_VISUALIZATION_KEY,
                                                                    vizualisation,
-                                                                   JOB_AND_PROJECT_LABEL));
+                                                                   JOB_INFORMATION_LABEL));
         }
     }
 

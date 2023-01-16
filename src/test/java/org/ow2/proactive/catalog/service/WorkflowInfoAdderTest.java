@@ -67,12 +67,15 @@ public class WorkflowInfoAdderTest {
 
     @Test
     public void testThatWorkflowParserKindTriggersXmlManipulation2() {
-        genericInformationAdder.addProjectNameToRawObjectIfWorkflow(new byte[] {},
-                                                                    SupportedParserKinds.WORKFLOW.toString() +
-                                                                                   "specific-workflow-kind",
-                                                                    "");
+        genericInformationAdder.addAttributeToRawObjectIfWorkflow(new byte[] {},
+                                                                  SupportedParserKinds.WORKFLOW.toString() +
+                                                                                 "specific-workflow-kind",
+                                                                  "attr",
+                                                                  "val");
 
-        verify(workflowXmlManipulator).replaceOrAddOrRemoveProjectNameOnJobLevel(Mockito.any(), Mockito.any());
+        verify(workflowXmlManipulator).replaceOrAddOrRemoveAttributeOnJobLevel(Mockito.any(),
+                                                                               Mockito.any(),
+                                                                               Mockito.any());
     }
 
     @Test
@@ -90,12 +93,14 @@ public class WorkflowInfoAdderTest {
 
     @Test
     public void testThatOtherKindNotTriggersXmlManipulation2() {
-        genericInformationAdder.addProjectNameToRawObjectIfWorkflow(new byte[] {},
-                                                                    SupportedParserKinds.PCW_RULE.toString(),
-                                                                    "");
+        genericInformationAdder.addAttributeToRawObjectIfWorkflow(new byte[] {},
+                                                                  SupportedParserKinds.PCW_RULE.toString(),
+                                                                  "",
+                                                                  "");
 
-        verify(workflowXmlManipulator, times(0)).replaceOrAddOrRemoveProjectNameOnJobLevel(Mockito.any(),
-                                                                                           Mockito.any());
+        verify(workflowXmlManipulator, times(0)).replaceOrAddOrRemoveAttributeOnJobLevel(Mockito.any(),
+                                                                                         Mockito.any(),
+                                                                                         Mockito.any());
     }
 
 }
