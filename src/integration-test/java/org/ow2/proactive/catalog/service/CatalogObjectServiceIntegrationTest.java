@@ -566,13 +566,12 @@ public class CatalogObjectServiceIntegrationTest {
 
         List<Metadata> metadataList = catalogObjectMetadata.getMetadataList();
 
-        assertThat(String.join(",",
-                               metadataList.stream()
-                                           .filter(metadata -> metadata.getLabel().equals("object_tag"))
-                                           .collect(Collectors.toList())
-                                           .stream()
-                                           .map(Metadata::getKey)
-                                           .collect(Collectors.toList()))).isEqualTo(TAGS);
+        assertThat(metadataList.stream()
+                               .filter(metadata -> metadata.getLabel().equals("object_tag"))
+                               .collect(Collectors.toList())
+                               .stream()
+                               .map(Metadata::getKey)
+                               .collect(Collectors.joining(","))).isEqualTo(TAGS);
 
         catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
                                                                           workflowName,
@@ -585,10 +584,7 @@ public class CatalogObjectServiceIntegrationTest {
 
         assertThat(catalogObjectMetadata.getTags()).isEqualTo(emptyString);
 
-        assertThat(metadataList.stream()
-                               .filter(metadata -> metadata.getLabel().equals("object_tag"))
-                               .findAny()
-                               .isPresent()).isFalse();
+        assertThat(metadataList.stream().anyMatch(metadata -> metadata.getLabel().equals("object_tag"))).isFalse();
 
     }
 

@@ -31,6 +31,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.util.KeyValueEntityToDtoTransformer;
@@ -140,12 +141,12 @@ public class CatalogObjectMetadata extends ResourceSupport implements Comparable
             this.metadataList = metadataList;
             this.variablesOrder = setVariablesOrder(metadataList);
         }
-        if (projectName != null && !projectName.isEmpty()) {
+        if (!StringUtils.isBlank(projectName)) {
             this.projectName = projectName;
         } else {
             this.projectName = getMetadataValueIfExistsOrEmptyString("project_name");
         }
-        if (tags != null && !tags.isEmpty()) {
+        if (!StringUtils.isBlank(tags)) {
             this.tags = tags;
         } else {
             this.tags = getMetadataValueIfExistsOrEmptyString("tags");
@@ -154,10 +155,12 @@ public class CatalogObjectMetadata extends ResourceSupport implements Comparable
     }
 
     private String getMetadataValueIfExistsOrEmptyString(String metadataKey) {
-        Optional<Metadata> metadataIfExists = metadataList.stream()
-                                                          .filter(property -> property.getKey().equals(metadataKey))
-                                                          .findAny();
-        return metadataIfExists.map(value -> value.getValue() == null ? "" : value.getValue()).orElse("");
+        return metadataList.stream()
+                           .filter(property -> property.getKey().equals(metadataKey) &&
+                                               !StringUtils.isBlank(property.getValue()))
+                           .findFirst()
+                           .map(Metadata::getValue)
+                           .orElse("");
     }
 
     private LinkedHashMap<String, LinkedHashMap<String, JobVariable>> setVariablesOrder(List<Metadata> metadataList) {

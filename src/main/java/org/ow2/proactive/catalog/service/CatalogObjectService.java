@@ -36,6 +36,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
@@ -703,22 +704,21 @@ public class CatalogObjectService {
     }
 
     protected String getTagsValueIfExistsOrEmptyString(List<Metadata> metadataListParsed, String metadataLabel) {
-        List<String> tagsValueIfExists = metadataListParsed.stream()
-                                                           .filter(property -> property.getLabel()
-                                                                                       .equals(metadataLabel))
-                                                           .collect(Collectors.toList())
-                                                           .stream()
-                                                           .map(Metadata::getKey)
-                                                           .collect(Collectors.toList());
-        return (tagsValueIfExists.isEmpty() ? "" : String.join(",", tagsValueIfExists));
+        return metadataListParsed.stream()
+                                 .filter(property -> property.getLabel().equals(metadataLabel))
+                                 .collect(Collectors.toList())
+                                 .stream()
+                                 .map(Metadata::getKey)
+                                 .collect(Collectors.joining(","));
     }
 
     protected String getProjectNameIfExistsOrEmptyString(List<Metadata> metadataListParsed, String projectNameKey) {
-        Optional<Metadata> metadataIfExists = metadataListParsed.stream()
-                                                                .filter(property -> property.getKey()
-                                                                                            .equals(projectNameKey))
-                                                                .findAny();
-        return metadataIfExists.map(value -> value.getValue() == null ? "" : value.getValue()).orElse("");
+        return metadataListParsed.stream()
+                                 .filter(property -> property.getKey().equals(projectNameKey) &&
+                                                     !StringUtils.isBlank(property.getValue()))
+                                 .findFirst()
+                                 .map(Metadata::getValue)
+                                 .orElse("");
     }
 
     public CatalogObjectMetadata createCatalogObjectRevision(CatalogObjectRevisionEntity catalogObjectRevision,
