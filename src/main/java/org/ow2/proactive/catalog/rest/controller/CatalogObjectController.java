@@ -121,6 +121,7 @@ public class CatalogObjectController {
             @PathVariable String bucketName,
             @ApiParam(value = "Name of the object or empty when a ZIP archive is uploaded (All objects inside the archive are stored inside the catalog).") @RequestParam(required = false) Optional<String> name,
             @ApiParam(value = "Project of the object") @RequestParam(value = "projectName", required = false, defaultValue = "") Optional<String> projectName,
+            @ApiParam(value = "List of comma separated tags of the object") @RequestParam(value = "tags", required = false, defaultValue = "") Optional<String> tags,
             @ApiParam(value = "Kind of the new object", required = true) @RequestParam String kind,
             @ApiParam(value = "Commit message", required = true) @RequestParam String commitMessage,
             @ApiParam(value = "The Content-Type of CatalogRawObject - MIME type", required = true) @RequestParam String objectContentType,
@@ -148,6 +149,7 @@ public class CatalogObjectController {
             CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketName,
                                                                                            name.get(),
                                                                                            projectName.orElse(""),
+                                                                                           tags.orElse(""),
                                                                                            kind,
                                                                                            commitMessage,
                                                                                            userName,
@@ -162,6 +164,7 @@ public class CatalogObjectController {
         } else {
             List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketName,
                                                                                                    projectName.orElse(""),
+                                                                                                   tags.orElse(""),
                                                                                                    kind,
                                                                                                    commitMessage,
                                                                                                    userName,
@@ -222,9 +225,10 @@ public class CatalogObjectController {
     public CatalogObjectMetadata updateObjectMetadata(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String name,
-            @ApiParam(value = "The new kind of an object", required = false) @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "The new Content-Type of an object - MIME type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType,
-            @ApiParam(value = "The new project name of an object", required = false) @RequestParam(value = "projectName", required = false) Optional<String> projectName)
+            @ApiParam(value = "The new kind of an object") @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @ApiParam(value = "The new Content-Type of an object - MIME type") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
+            @ApiParam(value = "The new project name of an object") @RequestParam(value = "projectName", required = false) Optional<String> projectName,
+            @ApiParam(value = "List of comma separated tags of the object") @RequestParam(value = "tags", required = false) Optional<String> tags)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
         if (sessionIdRequired) {
@@ -241,7 +245,7 @@ public class CatalogObjectController {
 
         }
 
-        return catalogObjectService.updateObjectMetadata(bucketName, name, kind, contentType, projectName);
+        return catalogObjectService.updateObjectMetadata(bucketName, name, kind, contentType, projectName, tags);
     }
 
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")

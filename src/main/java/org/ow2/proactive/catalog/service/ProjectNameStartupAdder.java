@@ -25,6 +25,8 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import static org.ow2.proactive.catalog.service.CatalogObjectService.PROJECT_NAME;
+
 import java.util.List;
 
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
@@ -53,7 +55,8 @@ public class ProjectNameStartupAdder {
         if (!catalogObjectRevisionEntityList.isEmpty()) {
             log.info("Resynchronization of project name ...");
             for (CatalogObjectRevisionEntity objectRevisionEntity : catalogObjectRevisionEntityList) {
-                String projectName = catalogObjectService.getProjectNameIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(objectRevisionEntity.getKeyValueMetadataList()));
+                String projectName = catalogObjectService.getProjectNameIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(objectRevisionEntity.getKeyValueMetadataList()),
+                                                                                              PROJECT_NAME);
 
                 objectRevisionEntity.setProjectName(projectName);
                 catalogObjectRevisionRepository.save(objectRevisionEntity);

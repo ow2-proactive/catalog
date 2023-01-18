@@ -47,6 +47,8 @@ public class RawObjectResponseCreatorTest {
 
     private static final String PROJECT_NAME = "projectName";
 
+    private static final String TAGS = "tag1,tag2";
+
     @Test
     public void testCreateRawObjectResponseGeneralKindRightContentType() {
         String objectName = "object name";
@@ -55,6 +57,7 @@ public class RawObjectResponseCreatorTest {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
                                                           PROJECT_NAME,
+                                                          TAGS,
                                                           "object",
                                                           "application/xml",
                                                           1400343L,
@@ -82,6 +85,7 @@ public class RawObjectResponseCreatorTest {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
                                                           PROJECT_NAME,
+                                                          TAGS,
                                                           "workflow",
                                                           "application/xml",
                                                           1400343L,
@@ -109,6 +113,7 @@ public class RawObjectResponseCreatorTest {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
                                                           PROJECT_NAME,
+                                                          TAGS,
                                                           "workflow/specific-workflow-kind",
                                                           "application/xml",
                                                           1400343L,
@@ -134,6 +139,7 @@ public class RawObjectResponseCreatorTest {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
                                                           PROJECT_NAME,
+                                                          TAGS,
                                                           "workflow/specific-workflow-kind",
                                                           "application/xml",
                                                           1400343L,
@@ -159,6 +165,7 @@ public class RawObjectResponseCreatorTest {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           objectName,
                                                           PROJECT_NAME,
+                                                          TAGS,
                                                           "workflow/specific-workflow-kind",
                                                           "application/xml",
                                                           1400343L,
@@ -181,6 +188,7 @@ public class RawObjectResponseCreatorTest {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           "name",
                                                           PROJECT_NAME,
+                                                          TAGS,
                                                           "object",
                                                           "testContentType",
                                                           1400343L,

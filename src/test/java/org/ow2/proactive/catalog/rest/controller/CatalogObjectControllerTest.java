@@ -91,6 +91,8 @@ public class CatalogObjectControllerTest {
 
     private static final String PROJECT_NAME = "projectName";
 
+    private static final String TAGS = "tag1,tag2";
+
     @Mock
     private BucketGrantService bucketGrantService;
 
@@ -194,6 +196,7 @@ public class CatalogObjectControllerTest {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           "name",
                                                           PROJECT_NAME,
+                                                          TAGS,
                                                           "object",
                                                           "application/xml",
                                                           1400343L,
@@ -220,6 +223,7 @@ public class CatalogObjectControllerTest {
         CatalogObjectMetadata mock = new CatalogObjectMetadata("bucket-name",
                                                                "name",
                                                                PROJECT_NAME,
+                                                               TAGS,
                                                                "object",
                                                                "application/xml",
                                                                1400343L,

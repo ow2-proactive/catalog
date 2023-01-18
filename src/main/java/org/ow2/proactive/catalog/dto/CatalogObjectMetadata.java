@@ -31,11 +31,9 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import javax.persistence.Column;
-
+import org.apache.commons.lang3.StringUtils;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
-import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.util.KeyValueEntityToDtoTransformer;
 import org.ow2.proactive.scheduler.common.job.JobVariable;
 import org.springframework.hateoas.ResourceSupport;
@@ -43,7 +41,6 @@ import org.springframework.hateoas.ResourceSupport;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -69,6 +66,9 @@ public class CatalogObjectMetadata extends ResourceSupport implements Comparable
 
     @JsonProperty("project_name")
     protected final String projectName;
+
+    @JsonProperty("tags")
+    protected final String tags;
 
     @JsonProperty
     protected final String extension;
@@ -99,6 +99,7 @@ public class CatalogObjectMetadata extends ResourceSupport implements Comparable
         this(catalogObject.getBucket().getBucketName(),
              catalogObject.getId().getName(),
              catalogObject.getRevisions().first().getProjectName(),
+             catalogObject.getRevisions().first().getTags(),
              catalogObject.getKind(),
              catalogObject.getContentType(),
              catalogObject.getRevisions().first().getCommitTime(),
@@ -112,6 +113,7 @@ public class CatalogObjectMetadata extends ResourceSupport implements Comparable
         this(catalogObject.getCatalogObject().getBucket().getBucketName(),
              catalogObject.getCatalogObject().getId().getName(),
              catalogObject.getProjectName(),
+             catalogObject.getTags(),
              catalogObject.getCatalogObject().getKind(),
              catalogObject.getCatalogObject().getContentType(),
              catalogObject.getCommitTime(),
@@ -121,8 +123,9 @@ public class CatalogObjectMetadata extends ResourceSupport implements Comparable
              catalogObject.getCatalogObject().getExtension());
     }
 
-    public CatalogObjectMetadata(String bucketName, String name, String projectName, String kind, String contentType,
-            long commitTime, String commitMessage, String username, List<Metadata> metadataList, String extension) {
+    public CatalogObjectMetadata(String bucketName, String name, String projectName, String tags, String kind,
+            String contentType, long commitTime, String commitMessage, String username, List<Metadata> metadataList,
+            String extension) {
         this.bucketName = bucketName;
         this.name = name;
         this.kind = kind;
@@ -138,20 +141,26 @@ public class CatalogObjectMetadata extends ResourceSupport implements Comparable
             this.metadataList = metadataList;
             this.variablesOrder = setVariablesOrder(metadataList);
         }
-        if (projectName != null && !projectName.isEmpty()) {
+        if (!StringUtils.isBlank(projectName)) {
             this.projectName = projectName;
         } else {
-            this.projectName = getProjectNameIfExistsOrEmptyString();
+            this.projectName = getMetadataValueIfExistsOrEmptyString("project_name");
+        }
+        if (!StringUtils.isBlank(tags)) {
+            this.tags = tags;
+        } else {
+            this.tags = getMetadataValueIfExistsOrEmptyString("tags");
         }
         this.extension = extension;
     }
 
-    private String getProjectNameIfExistsOrEmptyString() {
-        Optional<Metadata> projectNameIfExists = metadataList.stream()
-                                                             .filter(property -> property.getKey()
-                                                                                         .equals("project_name"))
-                                                             .findAny();
-        return projectNameIfExists.map(value -> value.getValue() == null ? "" : value.getValue()).orElse("");
+    private String getMetadataValueIfExistsOrEmptyString(String metadataKey) {
+        return metadataList.stream()
+                           .filter(property -> property.getKey().equals(metadataKey) &&
+                                               !StringUtils.isBlank(property.getValue()))
+                           .findFirst()
+                           .map(Metadata::getValue)
+                           .orElse("");
     }
 
     private LinkedHashMap<String, LinkedHashMap<String, JobVariable>> setVariablesOrder(List<Metadata> metadataList) {

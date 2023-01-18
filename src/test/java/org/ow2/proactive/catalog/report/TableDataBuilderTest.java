@@ -80,6 +80,7 @@ public class TableDataBuilderTest {
         final String kind = "kind";
         final String contentType = "contentType";
         final String projectName = "projectName";
+        final String tags = "tag1,tag2";
         final String description = "objectDescription";
         final String variable1Key = "var1Key";
         final String variable1Value = "var1Value";
@@ -116,6 +117,7 @@ public class TableDataBuilderTest {
         catalogObjectMetadataSet.add(new CatalogObjectMetadata(bucketName,
                                                                objectName,
                                                                projectName,
+                                                               tags,
                                                                kind,
                                                                contentType,
                                                                1400343L,

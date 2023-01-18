@@ -163,7 +163,7 @@ public class ProActiveCatalogObjectParserTest {
 
     @Test
     public void testParseWorkflowContainingNoProjectName() throws Exception {
-        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-project-name.xml");
+        List<KeyValueLabelMetadataEntity> result = parseWorkflow("workflow-no-project-name-and-tags.xml");
 
         assertThat(result).hasSize(11);
 

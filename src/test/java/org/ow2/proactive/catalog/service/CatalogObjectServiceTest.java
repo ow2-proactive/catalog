@@ -58,6 +58,7 @@ import org.ow2.proactive.catalog.service.exception.*;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
 import org.ow2.proactive.catalog.util.name.validator.ObjectNameValidator;
+import org.ow2.proactive.catalog.util.name.validator.TagsValidator;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 
 import com.google.common.collect.ImmutableList;
@@ -85,6 +86,8 @@ public class CatalogObjectServiceTest {
 
     public static final String PROJECT_NAME = "projectName";
 
+    public static final String TAGS = "tag1,tag2";
+
     @InjectMocks
     private CatalogObjectService catalogObjectService;
 
@@ -107,6 +110,9 @@ public class CatalogObjectServiceTest {
     private KindAndContentTypeValidator kindAndContentTypeValidator;
 
     @Mock
+    private TagsValidator tagsValidator;
+
+    @Mock
     private ObjectNameValidator objectNameValidator;
 
     @Mock
@@ -116,10 +122,12 @@ public class CatalogObjectServiceTest {
     public void testCreateCatalogObjectWithInvalidBucket() {
         when(objectNameValidator.isValid(anyString())).thenReturn(true);
         when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
+        when(tagsValidator.isValid(anyString())).thenReturn(true);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
         catalogObjectService.createCatalogObject("bucket",
                                                  NAME,
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  OBJECT,
                                                  COMMIT_MESSAGE,
                                                  USERNAME,
@@ -177,6 +185,7 @@ public class CatalogObjectServiceTest {
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         when(objectNameValidator.isValid(anyString())).thenReturn(true);
         when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
+        when(tagsValidator.isValid(anyString())).thenReturn(true);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity,
                                                                                          System.currentTimeMillis());
@@ -185,12 +194,13 @@ public class CatalogObjectServiceTest {
                                                                                  any(),
                                                                                  any(),
                                                                                  any())).thenReturn(new byte[] {});
-        when(workflowInfoAdder.addProjectNameToRawObjectIfWorkflow(any(), any(), any())).thenReturn(new byte[] {});
+        when(workflowInfoAdder.addAttributeToRawObjectIfWorkflow(any(), any(), any(), any())).thenReturn(new byte[] {});
         List<Metadata> keyValues = ImmutableList.of(new Metadata("key", "value", null));
 
         CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject("bucket",
                                                                                        NAME,
                                                                                        PROJECT_NAME,
+                                                                                       TAGS,
                                                                                        OBJECT,
                                                                                        COMMIT_MESSAGE,
                                                                                        USERNAME,
@@ -223,6 +233,7 @@ public class CatalogObjectServiceTest {
                                                   NAME,
                                                   Optional.empty(),
                                                   Optional.empty(),
+                                                  Optional.empty(),
                                                   Optional.empty());
     }
 
@@ -234,6 +245,7 @@ public class CatalogObjectServiceTest {
         CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject("bucket",
                                                                                        "bad/name",
                                                                                        PROJECT_NAME,
+                                                                                       TAGS,
                                                                                        OBJECT,
                                                                                        COMMIT_MESSAGE,
                                                                                        USERNAME,
@@ -251,7 +263,8 @@ public class CatalogObjectServiceTest {
                                                   NAME,
                                                   Optional.of("some-kind"),
                                                   Optional.of("some-contentType"),
-                                                  Optional.of("some-projectName"));
+                                                  Optional.of("some-projectName"),
+                                                  Optional.of("some-tags"));
     }
 
     @Test(expected = CatalogObjectNotFoundException.class)
@@ -264,7 +277,8 @@ public class CatalogObjectServiceTest {
                                                   "wrong-name",
                                                   Optional.of("some-kind"),
                                                   Optional.of("some-contentType"),
-                                                  Optional.of("some-projectName"));
+                                                  Optional.of("some-projectName"),
+                                                  Optional.of("some-tags"));
     }
 
     @Test(expected = KindOrContentTypeIsNotValidException.class)
@@ -281,7 +295,8 @@ public class CatalogObjectServiceTest {
                                                                                         NAME,
                                                                                         Optional.of("some-kind//fgf' g"),
                                                                                         Optional.of("updated-contentType"),
-                                                                                        Optional.of("some-projectName"));
+                                                                                        Optional.of("some-projectName"),
+                                                                                        Optional.of("some-tags"));
     }
 
     @Test(expected = BucketNotFoundException.class)
@@ -299,12 +314,14 @@ public class CatalogObjectServiceTest {
         when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(catalogObjectEntity);
         when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
+        when(tagsValidator.isValid(anyString())).thenReturn(true);
 
         CatalogObjectMetadata catalogObject = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                                                         NAME,
                                                                                         Optional.of("updated-kind"),
                                                                                         Optional.of("updated-contentType"),
-                                                                                        Optional.of("updated-projectName"));
+                                                                                        Optional.of("updated-projectName"),
+                                                                                        Optional.of("updated-tags"));
 
         assertThat(catalogObject).isNotNull();
         assertThat(catalogObject.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
@@ -313,28 +330,32 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObject.getContentType()).isEqualTo("updated-contentType");
         assertThat(catalogObject.getKind()).isEqualTo("updated-kind");
         assertThat(catalogObject.getProjectName()).isEqualTo("updated-projectName");
+        assertThat(catalogObject.getTags()).isEqualTo("updated-tags");
         assertThat(catalogObject.getName()).isEqualTo(NAME);
         assertThat(catalogObject.getMetadataList()).isNotEmpty();
-        assertThat(catalogObject.getMetadataList()).hasSize(1);
+        assertThat(catalogObject.getMetadataList()).hasSize(2);
         assertThat(catalogObject.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
     }
 
     @Test
     public void testUpdateObjectMetadataOnlyKindOrOnlyContentTypeOrOnlyProjectName() {
         long now = System.currentTimeMillis();
-        BucketEntity bucketEntity = new BucketEntity("cket", "toto");
+        BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
+        System.out.println(catalogObjectEntity);
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
         when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(catalogObjectEntity);
         when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
+        when(tagsValidator.isValid(anyString())).thenReturn(true);
 
-        // only kind should be updated without changing contentType and ProjectName
+        // only kind should be updated without changing contentType, projectName and tags
         CatalogObjectMetadata catalogObjectUpdatedKind = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                                                                    NAME,
                                                                                                    Optional.of("updated-kind"),
                                                                                                    Optional.empty(),
-                                                                                                   Optional.empty());
+                                                                                                   Optional.of(PROJECT_NAME),
+                                                                                                   Optional.of(TAGS));
 
         assertThat(catalogObjectUpdatedKind).isNotNull();
         assertThat(catalogObjectUpdatedKind.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
@@ -342,17 +363,20 @@ public class CatalogObjectServiceTest {
 
         assertThat(catalogObjectUpdatedKind.getContentType()).isEqualTo(APPLICATION_XML);
         assertThat(catalogObjectUpdatedKind.getKind()).isEqualTo("updated-kind");
+        assertThat(catalogObjectUpdatedKind.getProjectName()).isEqualTo(PROJECT_NAME);
+        assertThat(catalogObjectUpdatedKind.getTags()).isEqualTo(TAGS);
         assertThat(catalogObjectUpdatedKind.getName()).isEqualTo(NAME);
         assertThat(catalogObjectUpdatedKind.getMetadataList()).isNotEmpty();
-        assertThat(catalogObjectUpdatedKind.getMetadataList()).hasSize(1);
+        assertThat(catalogObjectUpdatedKind.getMetadataList()).hasSize(3);
         assertThat(catalogObjectUpdatedKind.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
 
-        // only contentType should be updated without changing kind and projectName
+        // only contentType should be updated without changing kind, projectName and tags
         CatalogObjectMetadata catalogObjectUpdatedContentType = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                                                                           NAME,
                                                                                                           Optional.empty(),
                                                                                                           Optional.of("updated-contentType"),
-                                                                                                          Optional.empty());
+                                                                                                          Optional.of(PROJECT_NAME),
+                                                                                                          Optional.of(TAGS));
 
         assertThat(catalogObjectUpdatedContentType).isNotNull();
         assertThat(catalogObjectUpdatedContentType.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
@@ -360,17 +384,20 @@ public class CatalogObjectServiceTest {
 
         assertThat(catalogObjectUpdatedContentType.getContentType()).isEqualTo("updated-contentType");
         assertThat(catalogObjectUpdatedContentType.getKind()).isEqualTo("updated-kind");
+        assertThat(catalogObjectUpdatedContentType.getProjectName()).isEqualTo(PROJECT_NAME);
+        assertThat(catalogObjectUpdatedContentType.getTags()).isEqualTo(TAGS);
         assertThat(catalogObjectUpdatedContentType.getName()).isEqualTo(NAME);
         assertThat(catalogObjectUpdatedContentType.getMetadataList()).isNotEmpty();
-        assertThat(catalogObjectUpdatedContentType.getMetadataList()).hasSize(1);
+        assertThat(catalogObjectUpdatedContentType.getMetadataList()).hasSize(3);
         assertThat(catalogObjectUpdatedContentType.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
 
-        // only projectName should be updated without changing kind and contentType
+        // only projectName should be updated without changing kind, contentType and tags
         CatalogObjectMetadata catalogObjectUpdatedProjectName = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                                                                           NAME,
-                                                                                                          Optional.empty(),
-                                                                                                          Optional.empty(),
-                                                                                                          Optional.of("updated-projectName"));
+                                                                                                          Optional.of("updated-kind"),
+                                                                                                          Optional.of("updated-contentType"),
+                                                                                                          Optional.of("updated-projectName"),
+                                                                                                          Optional.of(TAGS));
 
         assertThat(catalogObjectUpdatedProjectName).isNotNull();
         assertThat(catalogObjectUpdatedProjectName.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
@@ -379,10 +406,32 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedProjectName.getContentType()).isEqualTo("updated-contentType");
         assertThat(catalogObjectUpdatedProjectName.getKind()).isEqualTo("updated-kind");
         assertThat(catalogObjectUpdatedProjectName.getProjectName()).isEqualTo("updated-projectName");
+        assertThat(catalogObjectUpdatedProjectName.getTags()).isEqualTo(TAGS);
         assertThat(catalogObjectUpdatedProjectName.getName()).isEqualTo(NAME);
         assertThat(catalogObjectUpdatedProjectName.getMetadataList()).isNotEmpty();
-        assertThat(catalogObjectUpdatedProjectName.getMetadataList()).hasSize(1);
+        assertThat(catalogObjectUpdatedProjectName.getMetadataList()).hasSize(3);
         assertThat(catalogObjectUpdatedProjectName.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
+
+        // only tags should be updated without changing kind and contentType and projectName
+        CatalogObjectMetadata catalogObjectUpdatedTags = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
+                                                                                                   NAME,
+                                                                                                   Optional.of("updated-kind"),
+                                                                                                   Optional.of("updated-contentType"),
+                                                                                                   Optional.of("updated-projectName"),
+                                                                                                   Optional.of("updated-tags"));
+
+        assertThat(catalogObjectUpdatedTags).isNotNull();
+        assertThat(catalogObjectUpdatedTags.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
+        assertThat(catalogObjectUpdatedTags.getUsername()).isEqualTo(USERNAME);
+
+        assertThat(catalogObjectUpdatedTags.getContentType()).isEqualTo("updated-contentType");
+        assertThat(catalogObjectUpdatedTags.getKind()).isEqualTo("updated-kind");
+        assertThat(catalogObjectUpdatedTags.getProjectName()).isEqualTo("updated-projectName");
+        assertThat(catalogObjectUpdatedTags.getTags()).isEqualTo("updated-tags");
+        assertThat(catalogObjectUpdatedTags.getName()).isEqualTo(NAME);
+        assertThat(catalogObjectUpdatedTags.getMetadataList()).isNotEmpty();
+        assertThat(catalogObjectUpdatedTags.getMetadataList()).hasSize(2);
+        assertThat(catalogObjectUpdatedTags.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
     }
 
     @Test(expected = CatalogObjectNotFoundException.class)
@@ -526,6 +575,7 @@ public class CatalogObjectServiceTest {
                                                                                                        null));
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = CatalogObjectRevisionEntity.builder()
                                                                                              .projectName(PROJECT_NAME)
+                                                                                             .tags(TAGS)
                                                                                              .commitMessage(COMMIT_MESSAGE)
                                                                                              .commitTime(now)
                                                                                              .username(USERNAME)
@@ -549,7 +599,13 @@ public class CatalogObjectServiceTest {
         List<KeyValueLabelMetadataEntity> keyvalues = ImmutableList.of(new KeyValueLabelMetadataEntity("key",
                                                                                                        "value",
                                                                                                        null));
-        catalogObjectService.createCatalogObjectRevision("bucket", NAME, PROJECT_NAME, COMMIT_MESSAGE, USERNAME, null);
+        catalogObjectService.createCatalogObjectRevision("bucket",
+                                                         NAME,
+                                                         PROJECT_NAME,
+                                                         TAGS,
+                                                         COMMIT_MESSAGE,
+                                                         USERNAME,
+                                                         null);
     }
 
     @Test
@@ -567,12 +623,14 @@ public class CatalogObjectServiceTest {
         CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObjectRevision("bucket",
                                                                                                NAME,
                                                                                                PROJECT_NAME,
+                                                                                               TAGS,
                                                                                                COMMIT_MESSAGE,
                                                                                                USERNAME,
                                                                                                keyvalues,
                                                                                                null);
         assertThat(catalogObject).isNotNull();
         assertThat(catalogObject.getProjectName()).isEqualTo(PROJECT_NAME);
+        assertThat(catalogObject.getTags()).isEqualTo(TAGS);
         assertThat(catalogObject.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
         assertThat(catalogObject.getUsername()).isEqualTo(USERNAME);
         assertThat(catalogObject.getContentType()).isEqualTo(APPLICATION_XML);
@@ -608,6 +666,7 @@ public class CatalogObjectServiceTest {
 
         assertThat(catalogObjectRevisionEntity).isNotNull();
         assertThat(catalogObjectRevisionEntity.getProjectName()).isEqualTo(PROJECT_NAME);
+        assertThat(catalogObjectRevisionEntity.getTags()).isEqualTo(TAGS);
         assertThat(catalogObjectRevisionEntity.getCommitMessage()).isEqualTo(COMMIT_MESSAGE);
         assertThat(catalogObjectRevisionEntity.getCatalogObject().getContentType()).isEqualTo(APPLICATION_XML);
         assertThat(catalogObjectRevisionEntity.getCatalogObject().getKind()).isEqualTo(OBJECT);
