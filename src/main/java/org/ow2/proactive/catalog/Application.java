@@ -167,7 +167,8 @@ public class Application extends WebMvcConfigurerAdapter {
                                                                                   typeResolver.resolve(MultipartFile.class)))
                                                       .select()
                                                       .paths(allowedPaths())
-                                                      .build();
+                                                      .build()
+                                                      .forCodeGeneration(true);
     }
 
     private ApiInfo apiInfo() {
