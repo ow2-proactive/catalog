@@ -537,7 +537,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                                           Optional.empty(),
                                                                           Optional.empty(),
                                                                           Optional.of(emptyString),
-                                                                          Optional.of(emptyString));
+                                                                          Optional.of(emptyString),
+                                                                          "username");
 
         assertThat(catalogObjectMetadata.getProjectName()).isEqualTo(emptyString);
 
@@ -573,18 +574,57 @@ public class CatalogObjectServiceIntegrationTest {
                                .map(Metadata::getKey)
                                .collect(Collectors.joining(","))).isEqualTo(TAGS);
 
+        //First update
         catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
                                                                           workflowName,
                                                                           Optional.empty(),
                                                                           Optional.empty(),
                                                                           Optional.of(emptyString),
-                                                                          Optional.of(emptyString));
+                                                                          Optional.of(emptyString),
+                                                                          "username");
 
         metadataList = catalogObjectMetadata.getMetadataList();
 
         assertThat(catalogObjectMetadata.getTags()).isEqualTo(emptyString);
 
         assertThat(metadataList.stream().anyMatch(metadata -> metadata.getLabel().equals("object_tag"))).isFalse();
+
+        catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucketName, workflowName);
+
+        metadataList = catalogObjectMetadata.getMetadataList();
+
+        assertThat(catalogObjectMetadata.getTags()).isEqualTo(emptyString);
+
+        assertThat(metadataList.stream().anyMatch(metadata -> metadata.getLabel().equals("object_tag"))).isFalse();
+
+        //Second update
+        catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
+                                                                          workflowName,
+                                                                          Optional.empty(),
+                                                                          Optional.empty(),
+                                                                          Optional.of(emptyString),
+                                                                          Optional.of("tag1,tag2,tag3"),
+                                                                          "username");
+
+        metadataList = catalogObjectMetadata.getMetadataList();
+
+        assertThat(catalogObjectMetadata.getTags()).isEqualTo("tag1,tag2,tag3");
+
+        assertThat(metadataList.stream()
+                               .filter(metadata -> metadata.getLabel().equals("object_tag"))
+                               .collect((Collectors.toList()))
+                               .size()).isEqualTo(3);
+
+        catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucketName, workflowName);
+
+        metadataList = catalogObjectMetadata.getMetadataList();
+
+        assertThat(catalogObjectMetadata.getTags()).isEqualTo("tag1,tag2,tag3");
+
+        assertThat(metadataList.stream()
+                               .filter(metadata -> metadata.getLabel().equals("object_tag"))
+                               .collect((Collectors.toList()))
+                               .size()).isEqualTo(3);
 
     }
 
@@ -622,7 +662,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                                           Optional.empty(),
                                                                           Optional.empty(),
                                                                           Optional.of(emptyString),
-                                                                          Optional.empty());
+                                                                          Optional.empty(),
+                                                                          "username");
 
         metadataList = catalogObjectMetadata.getMetadataList();
 
@@ -695,7 +736,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                                           Optional.empty(),
                                                                           Optional.empty(),
                                                                           Optional.empty(),
-                                                                          Optional.of(updatedTags4));
+                                                                          Optional.of(updatedTags4),
+                                                                          "username");
 
         assertThat(catalogObjectMetadata.getTags()).isEqualTo("updated_tags_4");
 
@@ -786,7 +828,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                                           Optional.empty(),
                                                                           Optional.empty(),
                                                                           Optional.of(updatedProjectName3),
-                                                                          Optional.empty());
+                                                                          Optional.empty(),
+                                                                          "username");
 
         assertThat(catalogObjectMetadata.getProjectName()).isEqualTo("updated_project_3");
 
@@ -1264,8 +1307,9 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                 Optional.of("updated-kind"),
                                                                                                 Optional.of("updated-contentType"),
                                                                                                 Optional.of("updated-projectName"),
-                                                                                                Optional.of("tag1,tag2,tag3"));
-        assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("commit message 2");
+                                                                                                Optional.of("tag1,tag2,tag3"),
+                                                                                                "username");
+        assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("The project name or/and tags metadata are updated");
         assertThat(catalogObjectMetadata.getUsername()).isEqualTo("username");
         assertThat(catalogObjectMetadata.getMetadataList()).hasSize(6);
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("updated-contentType");
@@ -1281,7 +1325,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                   Optional.of("updated-kind//a asdf"),
                                                   Optional.of("updated-contentType"),
                                                   Optional.of("updated-projectName"),
-                                                  Optional.of("tag1,tag2,tag3"));
+                                                  Optional.of("tag1,tag2,tag3"),
+                                                  "username");
     }
 
     @Test(expected = KindOrContentTypeIsNotValidException.class)

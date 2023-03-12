@@ -75,7 +75,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
@@ -259,10 +258,11 @@ public class CatalogObjectService {
     }
 
     public CatalogObjectMetadata updateObjectMetadata(String bucketName, String name, Optional<String> kind,
-            Optional<String> contentType, Optional<String> projectName, Optional<String> tags) {
+            Optional<String> contentType, Optional<String> projectName, Optional<String> tags, String username) {
         findBucketByNameAndCheck(bucketName);
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName,
                                                                                                            name);
+        CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
 
         if (!kind.isPresent() && !contentType.isPresent() && !projectName.isPresent() && !tags.isPresent()) {
             throw new WrongParametersException("at least one parameter should be present");
@@ -277,31 +277,16 @@ public class CatalogObjectService {
             throw new TagsIsNotValidException(tags.get(), "tags");
         }
 
-        //synchronize project name values
-        for (KeyValueLabelMetadataEntity metadata : catalogObjectRevisionEntity.getKeyValueMetadataList()) {
-            if (metadata.getKey().equals(PROJECT_NAME)) {
-                metadata.setValue(projectName.orElse(""));
-            }
+        if (!catalogObjectRevisionEntity.getProjectName().equals(projectName.orElse("")) ||
+            !catalogObjectRevisionEntity.getTags().equals(tags.orElse(""))) {
+            catalogObjectRevisionEntity = buildCatalogObjectRevisionEntity("The project name or/and tags metadata are updated",
+                                                                           username,
+                                                                           projectName.orElse(""),
+                                                                           tags.orElse(""),
+                                                                           catalogObjectRevisionEntity.getRawObject(),
+                                                                           catalogObjectEntity,
+                                                                           KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevisionEntity.getKeyValueMetadataList()));
         }
-        //synchronize tags values
-        catalogObjectRevisionEntity.setKeyValueMetadataList(synchronizeTagsInMetadataEntityList(catalogObjectRevisionEntity.getKeyValueMetadataList(),
-                                                                                                tags.orElse("")));
-
-        byte[] workflowWithSynchronizedProjectName = workflowInfoAdder.addAttributeToRawObjectIfWorkflow(catalogObjectRevisionEntity.getRawObject(),
-                                                                                                         kind.orElse(""),
-                                                                                                         "projectName",
-                                                                                                         projectName.orElse(""));
-
-        byte[] workflowWithSynchronizedProjectNameAndTags = workflowInfoAdder.addAttributeToRawObjectIfWorkflow(workflowWithSynchronizedProjectName,
-                                                                                                                kind.orElse(""),
-                                                                                                                "tags",
-                                                                                                                tags.orElse(""));
-
-        catalogObjectRevisionEntity.setProjectName(projectName.orElse(""));
-        catalogObjectRevisionEntity.setTags(tags.orElse(""));
-        catalogObjectRevisionEntity.setRawObject(workflowWithSynchronizedProjectNameAndTags);
-        catalogObjectRevisionRepository.save(catalogObjectRevisionEntity);
-        CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
         kind.ifPresent(catalogObjectEntity::setKind);
         kind.ifPresent(catalogObjectEntity::setKindLower);
         catalogObjectEntity.setNameLower(name);
@@ -422,7 +407,6 @@ public class CatalogObjectService {
         if (keyValueMetadataEntities == null) {
             throw new NullPointerException("Cannot build catalog object!");
         }
-
         List<KeyValueLabelMetadataEntity> catalogObjectMetadataEntities = new ArrayList<>();
         if (rawObject != null) {
             catalogObjectMetadataEntities = keyValueLabelMetadataHelper.extractKeyValuesFromRaw(catalogObjectEntity.getKind(),
@@ -441,12 +425,11 @@ public class CatalogObjectService {
         List<KeyValueLabelMetadataEntity> genericInformationWithBucketDataList = keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(keyValues,
                                                                                                                                                             genericInfoBucketData);
 
-        String metadataProjectName = getProjectNameIfExistsOrEmptyString(metadataList, PROJECT_NAME);
-        String metadataTags = getTagsValueIfExistsOrEmptyString(metadataList, OBJECT_TAG_LABEL);
-        String workflowXmlProjectName = getProjectNameIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectMetadataEntities),
-                                                                            PROJECT_NAME);
-        String workflowXmlTags = getTagsValueIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectMetadataEntities),
-                                                                   OBJECT_TAG_LABEL);
+        String metadataProjectName = getMetadataValueIfExistsOrEmptyString(metadataList, PROJECT_NAME);
+        String metadataTags = getTagsValueIfExistsOrEmptyString(metadataList);
+        String workflowXmlProjectName = getMetadataValueIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectMetadataEntities),
+                                                                              PROJECT_NAME);
+        String workflowXmlTags = getTagsValueIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectMetadataEntities));
 
         //the project name is synchronized in the following order projectName > metadataProjectName > workflowXmlProjectName
         String synchronizedProjectName = synchronizeMetadataValue(projectName,
@@ -456,6 +439,11 @@ public class CatalogObjectService {
         //the tag comma separated string is synchronized in the following order tags > metadataTags > workflowXmlTags
         String synchronizedTags = synchronizeMetadataValue(tags, metadataTags, workflowXmlTags);
 
+        if (commitMessage.equals("The project name or/and tags metadata are updated")) {
+            synchronizedProjectName = projectName;
+            synchronizedTags = tags;
+
+        }
         //synchronize project name values
         for (KeyValueLabelMetadataEntity metadata : genericInformationWithBucketDataList) {
             if (metadata.getKey().equals(PROJECT_NAME)) {
@@ -519,7 +507,7 @@ public class CatalogObjectService {
         }
         //First remove all existing tags
         List<KeyValueLabelMetadataEntity> synchronizedKeyValueMetadataEntityList = new ArrayList<>();
-        if (keyValueMetadataEntityList != null && !keyValueMetadataEntityList.isEmpty()) {
+        if (!CollectionUtils.isEmpty(keyValueMetadataEntityList)) {
             synchronizedKeyValueMetadataEntityList = keyValueMetadataEntityList.stream()
                                                                                .filter(metadataEntity -> metadataEntity.getLabel() == null ||
                                                                                                          !metadataEntity.getLabel()
@@ -703,18 +691,18 @@ public class CatalogObjectService {
         return new CatalogObjectMetadata(revisionEntity);
     }
 
-    protected String getTagsValueIfExistsOrEmptyString(List<Metadata> metadataListParsed, String metadataLabel) {
+    protected String getTagsValueIfExistsOrEmptyString(List<Metadata> metadataListParsed) {
         return metadataListParsed.stream()
-                                 .filter(property -> property.getLabel().equals(metadataLabel))
+                                 .filter(property -> property.getLabel().equals(OBJECT_TAG_LABEL))
                                  .collect(Collectors.toList())
                                  .stream()
                                  .map(Metadata::getKey)
                                  .collect(Collectors.joining(","));
     }
 
-    protected String getProjectNameIfExistsOrEmptyString(List<Metadata> metadataListParsed, String projectNameKey) {
+    protected String getMetadataValueIfExistsOrEmptyString(List<Metadata> metadataListParsed, String metadataKey) {
         return metadataListParsed.stream()
-                                 .filter(property -> property.getKey().equals(projectNameKey) &&
+                                 .filter(property -> property.getKey().equals(metadataKey) &&
                                                      !StringUtils.isBlank(property.getValue()))
                                  .findFirst()
                                  .map(Metadata::getValue)

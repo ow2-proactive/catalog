@@ -215,7 +215,7 @@ public class CatalogObjectController {
                                                                                                  contentType);
     }
 
-    @ApiOperation(value = "Update a catalog object metadata, like kind, Content-Type and project name")
+    @ApiOperation(value = "Update a catalog object metadata, like kind, Content-Type, project name and tags")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"),
@@ -231,6 +231,7 @@ public class CatalogObjectController {
             @ApiParam(value = "List of comma separated tags of the object") @RequestParam(value = "tags", required = false) Optional<String> tags)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
+        AuthenticatedUser user;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -238,14 +239,22 @@ public class CatalogObjectController {
             }
 
             // Check Grants
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), write)) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
 
+        } else {
+            user = AuthenticatedUser.EMPTY;
         }
 
-        return catalogObjectService.updateObjectMetadata(bucketName, name, kind, contentType, projectName, tags);
+        return catalogObjectService.updateObjectMetadata(bucketName,
+                                                         name,
+                                                         kind,
+                                                         contentType,
+                                                         projectName,
+                                                         tags,
+                                                         user.getName());
     }
 
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")

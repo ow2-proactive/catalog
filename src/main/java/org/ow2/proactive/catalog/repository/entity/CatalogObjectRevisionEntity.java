@@ -81,7 +81,7 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
                    @JoinColumn(name = "NAME", referencedColumnName = "NAME") })
     private CatalogObjectEntity catalogObject;
 
-    @OneToMany(mappedBy = "catalogObjectRevision", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "catalogObjectRevision", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @Fetch(FetchMode.SELECT)
     @OrderBy("id ASC")
     @BatchSize(size = 10)
