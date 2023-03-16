@@ -114,16 +114,6 @@ public class Application extends WebMvcConfigurerAdapter {
     }
 
     @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurerAdapter() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**").allowedOrigins("*");
-            }
-        };
-    }
-
-    @Bean
     @Profile("test")
     public DataSource testDataSource() {
         return createDataSource();
