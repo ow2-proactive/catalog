@@ -72,6 +72,8 @@ public class CatalogObjectServiceTest {
 
     public static final String COMMIT_MESSAGE = "commit message";
 
+    public static final String UPDATE_COMMIT_MESSAGE = "The project name or/and tags metadata are updated";
+
     public static final String USERNAME = "username";
 
     public static final String APPLICATION_XML = "application/xml";
@@ -331,7 +333,7 @@ public class CatalogObjectServiceTest {
                                                                                         USERNAME);
 
         assertThat(catalogObject).isNotNull();
-        assertThat(catalogObject.getCommitMessage()).isEqualTo("The project name or/and tags metadata are updated");
+        assertThat(catalogObject.getCommitMessage()).isEqualTo(UPDATE_COMMIT_MESSAGE);
         assertThat(catalogObject.getUsername()).isEqualTo(USERNAME);
 
         assertThat(catalogObject.getContentType()).isEqualTo("updated-contentType");
@@ -410,7 +412,7 @@ public class CatalogObjectServiceTest {
                                                                                                           USERNAME);
 
         assertThat(catalogObjectUpdatedProjectName).isNotNull();
-        assertThat(catalogObjectUpdatedProjectName.getCommitMessage()).isEqualTo("The project name or/and tags metadata are updated");
+        assertThat(catalogObjectUpdatedProjectName.getCommitMessage()).isEqualTo(UPDATE_COMMIT_MESSAGE);
         assertThat(catalogObjectUpdatedProjectName.getUsername()).isEqualTo(USERNAME);
 
         assertThat(catalogObjectUpdatedProjectName.getContentType()).isEqualTo("updated-contentType");
@@ -432,7 +434,7 @@ public class CatalogObjectServiceTest {
                                                                                                    USERNAME);
 
         assertThat(catalogObjectUpdatedTags).isNotNull();
-        assertThat(catalogObjectUpdatedTags.getCommitMessage()).isEqualTo("The project name or/and tags metadata are updated");
+        assertThat(catalogObjectUpdatedTags.getCommitMessage()).isEqualTo(UPDATE_COMMIT_MESSAGE);
         assertThat(catalogObjectUpdatedTags.getUsername()).isEqualTo(USERNAME);
 
         assertThat(catalogObjectUpdatedTags.getContentType()).isEqualTo("updated-contentType");

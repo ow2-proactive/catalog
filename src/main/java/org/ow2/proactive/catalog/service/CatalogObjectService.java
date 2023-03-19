@@ -239,7 +239,8 @@ public class CatalogObjectService {
                                                                               tags,
                                                                               rawObject,
                                                                               catalogObjectEntity,
-                                                                              metadataList);
+                                                                              metadataList,
+                                                                              false);
         return new CatalogObjectMetadata(result);
     }
 
@@ -279,13 +280,14 @@ public class CatalogObjectService {
 
         if (!catalogObjectRevisionEntity.getProjectName().equals(projectName.orElse("")) ||
             !catalogObjectRevisionEntity.getTags().equals(tags.orElse(""))) {
-            catalogObjectRevisionEntity = buildCatalogObjectRevisionEntity("The project name or/and tags metadata are updated",
-                                                                           username,
-                                                                           projectName.orElse(""),
-                                                                           tags.orElse(""),
-                                                                           catalogObjectRevisionEntity.getRawObject(),
-                                                                           catalogObjectEntity,
-                                                                           KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevisionEntity.getKeyValueMetadataList()));
+            buildCatalogObjectRevisionEntity("The project name or/and tags metadata are updated",
+                                             username,
+                                             projectName.orElse(""),
+                                             tags.orElse(""),
+                                             catalogObjectRevisionEntity.getRawObject(),
+                                             catalogObjectEntity,
+                                             KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevisionEntity.getKeyValueMetadataList()),
+                                             true);
         }
         kind.ifPresent(catalogObjectEntity::setKind);
         kind.ifPresent(catalogObjectEntity::setKindLower);
@@ -402,7 +404,7 @@ public class CatalogObjectService {
 
     private CatalogObjectRevisionEntity buildCatalogObjectRevisionEntity(final String commitMessage,
             final String username, final String projectName, final String tags, final byte[] rawObject,
-            final CatalogObjectEntity catalogObjectEntity, final List<Metadata> metadataList) {
+            final CatalogObjectEntity catalogObjectEntity, final List<Metadata> metadataList, boolean isUpdate) {
         List<KeyValueLabelMetadataEntity> keyValueMetadataEntities = KeyValueLabelMetadataHelper.convertToEntity(metadataList);
         if (keyValueMetadataEntities == null) {
             throw new NullPointerException("Cannot build catalog object!");
@@ -439,7 +441,7 @@ public class CatalogObjectService {
         //the tag comma separated string is synchronized in the following order tags > metadataTags > workflowXmlTags
         String synchronizedTags = synchronizeMetadataValue(tags, metadataTags, workflowXmlTags);
 
-        if (commitMessage.equals("The project name or/and tags metadata are updated")) {
+        if (isUpdate) {
             synchronizedProjectName = projectName;
             synchronizedTags = tags;
 
@@ -686,7 +688,8 @@ public class CatalogObjectService {
                                                                                       tags,
                                                                                       rawObject,
                                                                                       catalogObject,
-                                                                                      metadataListParsed);
+                                                                                      metadataListParsed,
+                                                                                      false);
 
         return new CatalogObjectMetadata(revisionEntity);
     }
@@ -768,7 +771,8 @@ public class CatalogObjectService {
                                                                                         catalogObjectRevision.getTags(),
                                                                                         catalogObjectRevision.getRawObject(),
                                                                                         catalogObjectRevision.getCatalogObject(),
-                                                                                        metadataList);
+                                                                                        metadataList,
+                                                                                        false);
 
         return new CatalogObjectMetadata(restoredRevision);
     }
