@@ -116,6 +116,11 @@ public class IntegrationTestConfig {
     }
 
     @Bean
+    public GrantRightsService grantRightsService() {
+        return new GrantRightsService();
+    }
+
+    @Bean
     public BucketService bucketService() {
         return new BucketService();
     }
