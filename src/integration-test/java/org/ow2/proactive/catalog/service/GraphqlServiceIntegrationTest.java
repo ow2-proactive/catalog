@@ -91,7 +91,7 @@ public class GraphqlServiceIntegrationTest {
 
     @Before
     public void setup() throws IOException, NotAuthenticatedException, AccessDeniedException, InterruptedException {
-        doReturn("link").when(catalogObjectMapper).generatLink(anyString(), anyString());
+        doReturn("link").when(catalogObjectMapper).generateLink(anyString(), anyString());
 
         bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
         keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
@@ -208,7 +208,7 @@ public class GraphqlServiceIntegrationTest {
                        "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
                        "    totalCount\n" + "  }  \n" + "}\n";
 
-        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -232,7 +232,7 @@ public class GraphqlServiceIntegrationTest {
                        "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                        "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
-        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -255,7 +255,7 @@ public class GraphqlServiceIntegrationTest {
                        "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                        "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
-        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -274,7 +274,7 @@ public class GraphqlServiceIntegrationTest {
                 "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
                 "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
-        map = graphqlService.executeQuery(query, null, null, null);
+        map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -297,7 +297,7 @@ public class GraphqlServiceIntegrationTest {
                        "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
                        "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
-        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -313,7 +313,7 @@ public class GraphqlServiceIntegrationTest {
                 "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                 "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
-        map = graphqlService.executeQuery(query, null, null, null);
+        map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -333,7 +333,7 @@ public class GraphqlServiceIntegrationTest {
                        "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
                        "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
-        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -353,7 +353,7 @@ public class GraphqlServiceIntegrationTest {
                        "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
                        "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
-        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -373,7 +373,7 @@ public class GraphqlServiceIntegrationTest {
                 "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                 "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
-        map = graphqlService.executeQuery(query, null, null, null);
+        map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -391,7 +391,7 @@ public class GraphqlServiceIntegrationTest {
                 "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
                 "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
-        map = graphqlService.executeQuery(query, null, null, null);
+        map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -413,7 +413,7 @@ public class GraphqlServiceIntegrationTest {
                        "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                        "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
-        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -430,7 +430,7 @@ public class GraphqlServiceIntegrationTest {
                 "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
                 "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
-        map = graphqlService.executeQuery(query, null, null, null);
+        map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -449,7 +449,7 @@ public class GraphqlServiceIntegrationTest {
                 "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" +
                 "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}";
 
-        map = graphqlService.executeQuery(query, null, null, null);
+        map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -473,7 +473,7 @@ public class GraphqlServiceIntegrationTest {
                        "    link}\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
                        "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
 
-        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -493,7 +493,7 @@ public class GraphqlServiceIntegrationTest {
                        "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
                        "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
 
-        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -509,7 +509,7 @@ public class GraphqlServiceIntegrationTest {
                 "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                 "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
 
-        map = graphqlService.executeQuery(query, null, null, null);
+        map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -527,7 +527,7 @@ public class GraphqlServiceIntegrationTest {
                 "      commitMessage\n" + "      commitDateTime\n" + "    }\n" + "    page\n" + "    size\n" +
                 "    totalPage\n" + "    totalCount\n" + "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
 
-        map = graphqlService.executeQuery(query, null, null, null);
+        map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -550,7 +550,7 @@ public class GraphqlServiceIntegrationTest {
                        "    link}\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
                        "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
 
-        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -587,7 +587,7 @@ public class GraphqlServiceIntegrationTest {
                        "    }\n" + "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" +
                        "    hasNext\n" + "    hasPrevious\n" + "  }  \n" + "}\n";
 
-        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null);
+        Map<String, Object> map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();
@@ -606,7 +606,7 @@ public class GraphqlServiceIntegrationTest {
                 "    page\n" + "    size\n" + "    totalPage\n" + "    totalCount\n" + "    hasNext\n" +
                 "    hasPrevious\n" + "  }  \n" + "}\n";
 
-        map = graphqlService.executeQuery(query, null, null, null);
+        map = graphqlService.executeQuery(query, null, null, null, null);
 
         assertThat(map.get("errors")).isNull();
         assertThat(map.get("data")).isNotNull();

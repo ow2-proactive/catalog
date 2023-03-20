@@ -170,12 +170,12 @@ public class CatalogObjectFetcher implements DataFetcher<CatalogObjectConnection
         public Stream<CatalogObject> apply(Stream<CatalogObjectRevisionEntity> catalogObjectEntityStream) {
             return catalogObjectEntityStream.map(entity -> {
                 CatalogObject object = new CatalogObject(entity);
-                object.setLink(generatLink(object.getBucketName(), object.getName()));
+                object.setLink(generateLink(object.getBucketName(), object.getName()));
                 return object;
             });
         }
 
-        public String generatLink(String bucketName, String name) {
+        public String generateLink(String bucketName, String name) {
             try {
                 ControllerLinkBuilder controllerLinkBuilder = linkTo(methodOn(CatalogObjectController.class).getRaw("dummy",
                                                                                                                     bucketName,

@@ -27,17 +27,23 @@ package org.ow2.proactive.catalog.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import org.ow2.proactive.catalog.util.AccessType;
+import org.ow2.proactive.catalog.util.AccessTypeHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;
 
+import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.schema.DataFetcher;
@@ -64,6 +70,9 @@ public class GraphqlService {
     @Autowired
     private DataFetcher catalogObjectFetcher;
 
+    @Autowired
+    private GrantRightsService grantRightsService;
+
     @PostConstruct
     public void init() throws IOException {
         SchemaParser schemaParser = new SchemaParser();
@@ -86,13 +95,18 @@ public class GraphqlService {
     }
 
     public Map<String, Object> executeQuery(String query, String operationName, Object graphqlContext,
-            Map<String, Object> variables) {
+            Map<String, Object> variables, AuthenticatedUser user) {
 
         if (variables == null) {
             variables = ImmutableMap.of();
         }
 
-        ExecutionResult executionResult = graphql.execute(query, operationName, graphqlContext, variables);
+        ExecutionResult executionResult = graphql.execute(ExecutionInput.newExecutionInput()
+                                                                        .query(query)
+                                                                        .operationName(operationName)
+                                                                        .context(graphqlContext)
+                                                                        .variables(variables)
+                                                                        .build());
 
         Map<String, Object> result = new LinkedHashMap<>();
 
@@ -100,8 +114,29 @@ public class GraphqlService {
             result.put("errors", executionResult.getErrors());
             log.error("Errors: {}", executionResult.getErrors());
         }
+        Object data = executionResult.getData();
 
-        result.put("data", executionResult.getData());
+        // the following block is used to remove buckets and objects for which the current user does not have read access
+        if (data != null && user != null) {
+            try {
+                Map<String, Object> allCatalogObjects = (Map<String, Object>) ((Map<String, Object>) data).get("allCatalogObjects");
+                List<Map<String, Object>> edges = (List<Map<String, Object>>) allCatalogObjects.get("edges");
+                for (Iterator<Map<String, Object>> it = edges.iterator(); it.hasNext();) {
+                    Map<String, Object> edge = it.next();
+                    String bucketName = (String) edge.get("bucketName");
+                    String objectName = (String) edge.get("name");
+                    if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user,
+                                                                                            bucketName,
+                                                                                            objectName),
+                                                  AccessType.read)) {
+                        it.remove();
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Unexpected exception when parsing graphql result: {}", e);
+            }
+        }
+        result.put("data", data);
 
         return result;
     }
