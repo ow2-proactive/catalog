@@ -6,6 +6,7 @@ type Query {
     allCatalogObjects(where: CatalogObjectWhereArgs, orderBy: OrderByEnum, pageInfo: PageInfo): CatalogObjectConnection
 }
 
+"Order the returned catalog object list. Currently not supported."
 enum OrderByEnum {
     catalogObjectKey_ASC
     catalogObjectKey_DESC
@@ -53,16 +54,46 @@ input CatalogObjectNameWhereArgs{
     ne: String
 }
 
+"""
+Filter catalog objects according to one or more rules
+AND, OR allow to filter across several criteria.
+"""
 input CatalogObjectWhereArgs {
+   """
+   Allows to filter across several criteria using conjunction.
+   Example:
+    allCatalogObjects(where: {AND: [{bucketNameArg: {eq: "basic-examples"}}, {metadataArg: {key: "project_name" value: {like: "%Advanced Workflows"}}}] })
+   """
    AND: [CatalogObjectWhereArgs!]
+
+   """
+   Allows to filter across several criteria using disjunction.
+   Example:
+    allCatalogObjects(where: {OR: [{bucketNameArg: {eq: "basic-examples"}}, {bucketNameArg: {eq: "scripts"}}] })
+   """
    OR: [CatalogObjectWhereArgs!]
+
+   "Filters objects whose bucketName matches the specification"
    bucketNameArg: CatalogObjectBucketNameWhereArgs
+
+   "Filters objects whose name matches the specification"
    nameArg: CatalogObjectNameWhereArgs
+
+   "Filters objects whose kind matches the specification"
    kindArg: CatalogObjectKindWhereArgs
-   contentTypeArg: CatalogObjectKindWhereArgs
+
+   "Filters objects whose content-type matches the specification"
+   contentTypeArg: CatalogObjectContentTypeWhereArgs
+
+   """
+   Filters objects according to their list of metadata. One element in the list must match the specification
+   Example:
+    allCatalogObjects(where: {metadataArg: {key: "project_name" value: {like: "%Advanced Workflows"}}})
+   """
    metadataArg: CatalogObjectMetadataWhereArgs
 }
 
+"A connection to a list of catalog objects."
 type CatalogObjectConnection {
     edges: [CatalogObject!]
     page: Int
@@ -79,18 +110,30 @@ input PageInfo {
 }
 
 type Metadata {
+    "Metadata key, unique in the metadata list."
     key: String!
+    "Metadata value"
     value: String!
+    "Metadata label, used to group metadata in categories."
     label: String
 }
 
+"An edge in a connection."
 type CatalogObject {
+    "Epoch time of the latest commit associated with this catalog object in milliseconds."
     commitDateTime: String!
+    "Commit message of the latest commit associated with this catalog object."
     commitMessage: String
+    "MIME content type of this catalog object."
     contentType: String
+    "List of metadata associated with this catalog object."
     metadata: [Metadata!]
+    "Kind of this catalog object."
     kind: String!
+    "Absolute url of this catalog object."
     link: String
+    "Name of the bucket containing this catalog object."
     bucketName: String!
+    "Name of this catalog object."
     name: String!
 }
