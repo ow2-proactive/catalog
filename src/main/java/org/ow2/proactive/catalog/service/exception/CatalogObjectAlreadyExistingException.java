@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author ActiveEon Team
  */
-@ResponseStatus(value = HttpStatus.CONFLICT)
+@ResponseStatus(value = HttpStatus.CONFLICT, reason = "Catalog Object already exists")
 public class CatalogObjectAlreadyExistingException extends DataIntegrityViolationException {
 
     public CatalogObjectAlreadyExistingException(String message) {
