@@ -55,8 +55,8 @@ public class ProjectNameStartupAdder {
         if (!catalogObjectRevisionEntityList.isEmpty()) {
             log.info("Resynchronization of project name ...");
             for (CatalogObjectRevisionEntity objectRevisionEntity : catalogObjectRevisionEntityList) {
-                String projectName = catalogObjectService.getProjectNameIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(objectRevisionEntity.getKeyValueMetadataList()),
-                                                                                              PROJECT_NAME);
+                String projectName = catalogObjectService.getMetadataValueIfExistsOrEmptyString(KeyValueLabelMetadataHelper.convertFromEntity(objectRevisionEntity.getKeyValueMetadataList()),
+                                                                                                PROJECT_NAME);
 
                 objectRevisionEntity.setProjectName(projectName);
                 catalogObjectRevisionRepository.save(objectRevisionEntity);
