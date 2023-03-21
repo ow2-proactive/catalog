@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.service;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.ow2.proactive.catalog.service.CatalogObjectService.UPDATE_COMMIT_MESSAGE;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -91,8 +92,6 @@ public class CatalogObjectServiceIntegrationTest {
     private long firstCommitTime;
 
     private static final String PROJECT_NAME = "projectName";
-
-    public static final String UPDATE_COMMIT_MESSAGE = "The project name or/and tags metadata are updated";
 
     private static final String TAGS = "tag1,tag2";
 
