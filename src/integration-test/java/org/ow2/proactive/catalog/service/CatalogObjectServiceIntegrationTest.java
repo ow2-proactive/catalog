@@ -92,6 +92,8 @@ public class CatalogObjectServiceIntegrationTest {
 
     private static final String PROJECT_NAME = "projectName";
 
+    public static final String UPDATE_COMMIT_MESSAGE = "The project name or/and tags metadata are updated";
+
     private static final String TAGS = "tag1,tag2";
 
     static final String OBJECT_TAG_LABEL = "object_tag";
@@ -1309,7 +1311,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                 Optional.of("updated-projectName"),
                                                                                                 Optional.of("tag1,tag2,tag3"),
                                                                                                 "username");
-        assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("The project name or/and tags metadata are updated");
+        assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo(UPDATE_COMMIT_MESSAGE);
         assertThat(catalogObjectMetadata.getUsername()).isEqualTo("username");
         assertThat(catalogObjectMetadata.getMetadataList()).hasSize(6);
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("updated-contentType");

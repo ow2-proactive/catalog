@@ -91,6 +91,8 @@ public class CatalogObjectService {
 
     public static int ORACLEDB_MAX_IN_PARAMS = 1000;
 
+    public static final String UPDATE_COMMIT_MESSAGE = "The project name or/and tags metadata are updated";
+
     @Autowired
     private CatalogObjectRepository catalogObjectRepository;
 
@@ -278,12 +280,14 @@ public class CatalogObjectService {
             throw new TagsIsNotValidException(tags.get(), "tags");
         }
 
+        String previousProjectName = catalogObjectRevisionEntity.getProjectName();
+        String previousTags = catalogObjectRevisionEntity.getTags();
         if (!catalogObjectRevisionEntity.getProjectName().equals(projectName.orElse("")) ||
             !catalogObjectRevisionEntity.getTags().equals(tags.orElse(""))) {
-            buildCatalogObjectRevisionEntity("The project name or/and tags metadata are updated",
+            buildCatalogObjectRevisionEntity(UPDATE_COMMIT_MESSAGE,
                                              username,
-                                             projectName.orElse(""),
-                                             tags.orElse(""),
+                                             projectName.orElse(previousProjectName),
+                                             tags.orElse(previousTags),
                                              catalogObjectRevisionEntity.getRawObject(),
                                              catalogObjectEntity,
                                              KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevisionEntity.getKeyValueMetadataList()),
