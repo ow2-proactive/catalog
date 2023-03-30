@@ -68,4 +68,12 @@ public class TagsValidatorTest {
         assertThat(tagsValidator.isValid("tag,t")).isFalse();
     }
 
+    @Test
+    public void testCheckTagsWithWhiteSpace() {
+        assertThat(tagsValidator.isValid("t a g")).isTrue();
+        assertThat(tagsValidator.isValid("tag,big data")).isTrue();
+        assertThat(tagsValidator.isValid("tag, big  data,")).isFalse();
+    }
+
+
 }
