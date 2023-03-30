@@ -75,5 +75,4 @@ public class TagsValidatorTest {
         assertThat(tagsValidator.isValid("tag, big  data,")).isFalse();
     }
 
-
 }
