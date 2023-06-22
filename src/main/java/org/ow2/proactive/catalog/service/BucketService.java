@@ -270,6 +270,13 @@ public class BucketService {
         log.debug("bucket list timer : filter tags time: " + (System.currentTimeMillis() - startTime) + " ms");
     }
 
+    public List<String> getAllEmptyBuckets() {
+        return bucketRepository.findEmptyBucketsForUpdate()
+                               .stream()
+                               .map(entity -> entity.getBucketName())
+                               .collect(Collectors.toList());
+    }
+
     public void cleanAllEmptyBuckets() {
         List<BucketEntity> emptyBucketsForUpdate = bucketRepository.findEmptyBucketsForUpdate();
         bucketRepository.deleteInBatch(emptyBucketsForUpdate);

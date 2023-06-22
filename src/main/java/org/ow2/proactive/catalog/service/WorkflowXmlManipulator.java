@@ -82,7 +82,7 @@ public class WorkflowXmlManipulator {
             ByteArrayOutputStream answer = transform(doc);
             return answer.toByteArray();
         } catch (Exception e) {
-            throw new ParsingObjectException(e);
+            throw new ParsingObjectException(e.getMessage(), e);
         }
     }
 
@@ -118,7 +118,7 @@ public class WorkflowXmlManipulator {
             ByteArrayOutputStream answer = transform(doc);
             return answer.toByteArray();
         } catch (Exception e) {
-            throw new ParsingObjectException(e);
+            throw new ParsingObjectException(e.getMessage(), e);
         }
     }
 
@@ -181,7 +181,7 @@ public class WorkflowXmlManipulator {
         String model = element.getAttribute("model");
         if ("PA:HIDDEN".equalsIgnoreCase(model)) {
             String value = element.getAttribute("value");
-            if (!value.startsWith("ENC(")) {
+            if (!value.startsWith(PropertyDecrypter.ENCRYPTION_PREFIX)) {
                 return true;
             }
         }

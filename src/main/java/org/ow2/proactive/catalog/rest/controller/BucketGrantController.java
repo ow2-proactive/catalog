@@ -62,6 +62,14 @@ import lombok.extern.log4j.Log4j2;
 @RequestMapping(value = "/buckets")
 public class BucketGrantController {
 
+    private static final String ANONYMOUS = "anonymous";
+
+    private static final String ACTION = "[Action] ";
+
+    public static final String PUBLIC_NO_GRANTS_ARE_ASSIGNED = " is public. No grants are assigned to it or to its objects";
+
+    public static final String PUBLIC_CANNOT_ASSIGN_A_GRANT = " is public. You can not assign a grant to it or to any of its object";
+
     @Autowired
     private BucketGrantService bucketGrantService;
 
@@ -88,20 +96,11 @@ public class BucketGrantController {
             @ApiParam(value = "The new type of the access grant. It can be either noAccess, read, write or admin.", required = true, defaultValue = "") @RequestParam(value = "accessType", required = true, defaultValue = "") String accessType)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
-            // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check Grants
-            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -117,6 +116,8 @@ public class BucketGrantController {
                 }
             }
         }
+        log.info(ACTION + initiator + " changed grant access for user " + username + " on bucket " + bucketName +
+                 " to " + accessType);
         return updatedUserGrant;
     }
 
@@ -136,20 +137,12 @@ public class BucketGrantController {
                               "Priorities are used to compute the final access rights of a user belonging to multiple groups. Group grants with the same priority will resolve with the default accessType order (admin > write > read > noAccess).\n" + "Finally, please note that a user grant has always more priority than a group grant.", required = true) @RequestParam(value = "priority", required = true) int priority)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check Grants
-            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -169,6 +162,8 @@ public class BucketGrantController {
                 }
             }
         }
+        log.info(ACTION + initiator + " changed grant access for group " + userGroup + " on bucket " + bucketName +
+                 " to " + accessType);
         return updatedUserGroupGrant;
     }
 
@@ -185,20 +180,12 @@ public class BucketGrantController {
             @ApiParam(value = "The name of the user that is benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check if user is admin or has admin Grants over the bucket
-            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -211,6 +198,7 @@ public class BucketGrantController {
                 }
             }
         }
+        log.info(ACTION + initiator + " deleted grant access for user " + username + " on bucket " + bucketName);
         return deletedUSerGrant;
     }
 
@@ -227,20 +215,12 @@ public class BucketGrantController {
             @ApiParam(value = "The name of the group of users that are benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check if user is admin or has admin Grants over the bucket
-            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -256,6 +236,7 @@ public class BucketGrantController {
                 }
             }
         }
+        log.info(ACTION + initiator + " deleted grant access for group " + userGroup + " on bucket " + bucketName);
         return deletedBucketGrantForUserGroup;
     }
 
@@ -271,17 +252,7 @@ public class BucketGrantController {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check if user is admin or has admin Grants over the bucket
-            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
         }
         return bucketGrantService.getAllBucketGrantsForABucket(bucketName);
     }
@@ -300,20 +271,12 @@ public class BucketGrantController {
             @ApiParam(value = "The name of the user that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. You can not assign a grant to it or to any of its object");
-            }
-            // Check if user is admin or has admin Grants over the bucket
-            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_CANNOT_ASSIGN_A_GRANT);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -329,6 +292,8 @@ public class BucketGrantController {
                 }
             }
         }
+        log.info(ACTION + initiator + " created " + accessType + " grant access for user " + username + " on bucket " +
+                 bucketName);
         return updatedUserGrant;
     }
 
@@ -349,20 +314,12 @@ public class BucketGrantController {
             @ApiParam(value = "The name of the group of users that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. You can not assign a grant to it or to any of its object");
-            }
-            // Check if user is admin or has admin Grants over the bucket
-            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_CANNOT_ASSIGN_A_GRANT);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -380,6 +337,8 @@ public class BucketGrantController {
                 }
             }
         }
+        log.info(ACTION + initiator + " created " + accessType + " grant access for group " + userGroup +
+                 " on bucket " + bucketName);
         return newBucketGrantForUserGroup;
     }
 
@@ -393,22 +352,16 @@ public class BucketGrantController {
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName)
             throws NotAuthenticatedException, AccessDeniedException {
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check if user is admin or has admin Grants over the bucket
-            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            initiator = user.getName();
         }
-        return bucketGrantService.deleteAllGrantsAssignedToABucket(bucketName);
+        List<BucketGrantMetadata> bucketGrantMetadataList = bucketGrantService.deleteAllGrantsAssignedToABucket(bucketName);
+        log.info(ACTION + initiator + " deleted all grant accesses associated with bucket " + bucketName);
+        return bucketGrantMetadataList;
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -423,17 +376,7 @@ public class BucketGrantController {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check if user is admin or has admin Grants over the bucket
-            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
         }
         return bucketGrantService.getAllBucketAndObjectGrants(bucketName);
     }
@@ -449,20 +392,12 @@ public class BucketGrantController {
             @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName) {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check if user is admin or has admin Grants over the bucket
-            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -473,6 +408,23 @@ public class BucketGrantController {
                                                          bucketName + ", you will lose your admin rights over it");
             }
         }
+        log.info(ACTION + initiator + " deleted all grant accesses associated with bucket " + bucketName +
+                 " and all its objects");
         return deletedGrantsForTheBucketAndItsObjects;
+    }
+
+    private void checkAccess(String sessionId, AuthenticatedUser user, String bucketName,
+            String publicBucketExceptionMessage) {
+        // Check session validation
+        if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
+            throw new AccessDeniedException("Session id is not active. Please login.");
+        }
+        if (restApiAccessService.isAPublicBucket(bucketName)) {
+            throw new PublicBucketGrantAccessException("Bucket: " + bucketName + publicBucketExceptionMessage);
+        }
+        // Check Grants
+        if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
+            throw new BucketGrantAccessException(bucketName);
+        }
     }
 }

@@ -75,6 +75,10 @@ import lombok.extern.log4j.Log4j2;
 @RequestMapping(value = "/buckets")
 public class BucketController {
 
+    private static final String ANONYMOUS = "anonymous";
+
+    private static final String ACTION = "[Action] ";
+
     @Autowired
     private BucketService bucketService;
 
@@ -106,11 +110,15 @@ public class BucketController {
                               "A bucket's name must start with a lowercase letter and cannot terminate with a dash") @RequestParam(value = "name", required = true) String bucketName,
             @ApiParam(value = "The name of the user that will own the Bucket", defaultValue = BucketService.DEFAULT_BUCKET_OWNER) @RequestParam(value = "owner", required = false, defaultValue = BucketService.DEFAULT_BUCKET_OWNER) String ownerName)
             throws NotAuthenticatedException, AccessDeniedException {
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId, ownerName);
+            initiator = restApiAccessService.getUserFromSessionId(sessionId).getName();
         }
         try {
-            return bucketService.createBucket(bucketName, ownerName);
+            BucketMetadata bucketMetadata = bucketService.createBucket(bucketName, ownerName);
+            log.info(ACTION + initiator + " created new bucket " + bucketName + " with owner " + ownerName);
+            return bucketMetadata;
         } catch (DataIntegrityViolationException exception) {
             throw new BucketAlreadyExistingException(bucketName, ownerName);
         }
@@ -127,6 +135,7 @@ public class BucketController {
             @ApiParam(value = "The name of the existing Bucket ", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The new name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String newOwnerName)
             throws NotAuthenticatedException, AccessDeniedException {
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -138,9 +147,12 @@ public class BucketController {
             if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), admin)) {
                 throw new BucketGrantAccessException(bucketName);
             }
+            initiator = user.getName();
         }
         try {
-            return bucketService.updateOwnerByBucketName(bucketName, newOwnerName);
+            BucketMetadata bucketMetadata = bucketService.updateOwnerByBucketName(bucketName, newOwnerName);
+            log.info(ACTION + initiator + " changed bucket " + bucketName + " ownership to " + newOwnerName);
+            return bucketMetadata;
         } catch (DataIntegrityViolationException exception) {
             throw new BucketAlreadyExistingException(bucketName, newOwnerName);
         }
@@ -257,9 +269,32 @@ public class BucketController {
 
     @ApiOperation(value = "Delete the empty buckets")
     @RequestMapping(method = DELETE)
+    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied"), })
     @ResponseStatus(HttpStatus.OK)
-    public void cleanEmpty() {
-        bucketService.cleanAllEmptyBuckets();
+    public void cleanEmpty(
+            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId) {
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+
+            // Check Grants
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            List<String> emptyBucketNames = bucketService.getAllEmptyBuckets();
+            for (String bucketName : emptyBucketNames) {
+                if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), admin)) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
+            }
+            bucketService.cleanAllEmptyBuckets();
+            log.info(ACTION + user.getName() + " deleted the following empty buckets " + emptyBucketNames);
+        } else {
+            List<String> emptyBucketNames = bucketService.getAllEmptyBuckets();
+            bucketService.cleanAllEmptyBuckets();
+            log.info("Deleted empty buckets " + emptyBucketNames + " initiated by " + ANONYMOUS);
+        }
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -272,6 +307,7 @@ public class BucketController {
     public BucketMetadata delete(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
+        String initiator = ANONYMOUS;
         // Check session validation
         if (sessionIdRequired) {
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -283,7 +319,10 @@ public class BucketController {
             if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
+            initiator = user.getName();
         }
-        return bucketService.deleteEmptyBucket(bucketName);
+        BucketMetadata bucketMetadata = bucketService.deleteEmptyBucket(bucketName);
+        log.info(ACTION + initiator + " deleted empty bucket " + bucketName);
+        return bucketMetadata;
     }
 }

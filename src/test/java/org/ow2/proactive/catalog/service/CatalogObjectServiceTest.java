@@ -312,7 +312,7 @@ public class CatalogObjectServiceTest {
     }
 
     @Test
-    public void testUpdateObjectMetadata() {
+    public void testUpdateObjectMetadata() throws InterruptedException {
         long now = System.currentTimeMillis();
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
@@ -323,6 +323,8 @@ public class CatalogObjectServiceTest {
                                                                                         any())).thenReturn(Collections.emptyList());
         when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
         when(tagsValidator.isValid(anyString())).thenReturn(true);
+
+        tinyWait();
 
         CatalogObjectMetadata catalogObject = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                                                         NAME,
@@ -346,8 +348,13 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObject.getCommitTimeRaw()).isNotEqualTo(String.valueOf(now));
     }
 
+    private void tinyWait() throws InterruptedException {
+        // a necessary sleep to avoid that the new revision share the same commit time (and thus is discarded)
+        Thread.sleep(2);
+    }
+
     @Test
-    public void testUpdateObjectMetadataOnlyKindOrOnlyContentTypeOrOnlyProjectNameOrTags() {
+    public void testUpdateObjectMetadataOnlyKindOrOnlyContentTypeOrOnlyProjectNameOrTags() throws InterruptedException {
         long now = System.currentTimeMillis();
         BucketEntity bucketEntity = new BucketEntity("bucket", "toto");
         CatalogObjectRevisionEntity catalogObjectEntity = newCatalogObjectRevisionEntity(bucketEntity, now);
@@ -358,6 +365,8 @@ public class CatalogObjectServiceTest {
                                                                                         any())).thenReturn(Collections.emptyList());
         when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
         when(tagsValidator.isValid(anyString())).thenReturn(true);
+
+        tinyWait();
 
         // only kind should be updated without changing contentType, projectName and tags
         CatalogObjectMetadata catalogObjectUpdatedKind = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
@@ -379,6 +388,8 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedKind.getMetadataList()).isNotEmpty();
         assertThat(catalogObjectUpdatedKind.getMetadataList()).hasSize(1);
         assertThat(catalogObjectUpdatedKind.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
+
+        tinyWait();
 
         // only contentType should be updated without changing kind, projectName and tags
         CatalogObjectMetadata catalogObjectUpdatedContentType = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
@@ -402,6 +413,8 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedContentType.getMetadataList()).hasSize(1);
         assertThat(catalogObjectUpdatedContentType.getCommitTimeRaw()).isEqualTo(String.valueOf(now));
 
+        tinyWait();
+
         // only projectName should be updated without changing kind, contentType and tags
         CatalogObjectMetadata catalogObjectUpdatedProjectName = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                                                                           NAME,
@@ -423,6 +436,8 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedProjectName.getMetadataList()).isNotEmpty();
         assertThat(catalogObjectUpdatedProjectName.getMetadataList()).hasSize(2);
         assertThat(catalogObjectUpdatedProjectName.getCommitTimeRaw()).isNotEqualTo(String.valueOf(now));
+
+        tinyWait();
 
         // only tags should be updated without changing kind and contentType and projectName
         CatalogObjectMetadata catalogObjectUpdatedTags = catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),

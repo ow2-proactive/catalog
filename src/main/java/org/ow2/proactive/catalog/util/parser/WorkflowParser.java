@@ -118,26 +118,33 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         try {
             job = (TaskFlowJob) JobFactory.getFactory(false).createJob(inputStream);
         } catch (JobCreationException e) {
+            log.error("Error when parsing workflow", e);
             throw new ParsingObjectException(e.getMessage(), e);
         }
         Set keyValueMapBuilder = new LinkedHashSet();
 
-        addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
-        addJobNameIfNotNull(keyValueMapBuilder, job);
-        addJobObjectTagsIfNotNullAndNotEmpty(keyValueMapBuilder, job);
-        addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
-        job.getUnresolvedVariables()
-           .values()
-           .forEach(jobVariable -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
-        job.getUnresolvedGenericInformation()
-           .forEach((name, value) -> addGenericInformationIfNotNull(keyValueMapBuilder, name, value));
-        job.getTasks()
-           .forEach(task -> task.getVariables()
-                                .values()
-                                .forEach(taskVariable -> addDependsOnIfCatalogObjectModelExistOnTaskVariable(keyValueMapBuilder,
-                                                                                                             taskVariable)));
-        job.getTasks().forEach(task -> addDependsOnIfScriptUrlExistInEachTaskScripts(keyValueMapBuilder, task));
-        addJobVizualisationIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+        try {
+
+            addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+            addJobNameIfNotNull(keyValueMapBuilder, job);
+            addJobObjectTagsIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+            addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+            job.getUnresolvedVariables()
+               .values()
+               .forEach(jobVariable -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
+            job.getUnresolvedGenericInformation()
+               .forEach((name, value) -> addGenericInformationIfNotNull(keyValueMapBuilder, name, value));
+            job.getTasks()
+               .forEach(task -> task.getVariables()
+                                    .values()
+                                    .forEach(taskVariable -> addDependsOnIfCatalogObjectModelExistOnTaskVariable(keyValueMapBuilder,
+                                                                                                                 taskVariable)));
+            job.getTasks().forEach(task -> addDependsOnIfScriptUrlExistInEachTaskScripts(keyValueMapBuilder, task));
+            addJobVizualisationIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+        } catch (Exception e) {
+            log.error("Error when editing parsed workflow", e);
+            throw e;
+        }
 
         return new ArrayList<>(keyValueMapBuilder);
     }
@@ -175,7 +182,8 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         boolean advanced = jobVariable.isAdvanced();
         boolean hidden = jobVariable.isHidden();
         if (checkIfNotNull(model) && "PA:HIDDEN".equalsIgnoreCase(model)) {
-            if (checkIfNotNull(value) && checkIfNotEmpty(value) && !value.startsWith("ENC(")) {
+            if (checkIfNotNull(value) && checkIfNotEmpty(value) &&
+                !value.startsWith(PropertyDecrypter.ENCRYPTION_PREFIX)) {
                 try {
                     value = PropertyDecrypter.encryptData(value);
                 } catch (Exception e) {

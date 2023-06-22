@@ -83,6 +83,10 @@ public class CatalogObjectController {
 
     private static final String REQUEST_API_QUERY = "/{bucketName}/resources";
 
+    private static final String ANONYMOUS = "anonymous";
+
+    private static final String ACTION = "[Action] ";
+
     @Autowired
     private GrantRightsService grantRightsService;
 
@@ -130,6 +134,7 @@ public class CatalogObjectController {
 
         // Check Grants
         AuthenticatedUser user = null;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -144,7 +149,9 @@ public class CatalogObjectController {
         String userName = "";
         if (user != null) {
             userName = user.getName();
+            initiator = userName;
         }
+        CatalogObjectMetadataList catalogObjectMetadataList;
         if (name.isPresent()) {
             CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketName,
                                                                                            name.get(),
@@ -160,7 +167,8 @@ public class CatalogObjectController {
             catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
             catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
 
-            return new CatalogObjectMetadataList(catalogObject);
+            catalogObjectMetadataList = new CatalogObjectMetadataList(catalogObject);
+
         } else {
             List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketName,
                                                                                                    projectName.orElse(""),
@@ -175,8 +183,15 @@ public class CatalogObjectController {
                 catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
             }
 
-            return new CatalogObjectMetadataList(catalogObjects);
+            catalogObjectMetadataList = new CatalogObjectMetadataList(catalogObjects);
         }
+        if (name.isPresent()) {
+            log.info(ACTION + initiator + " created a new catalog object " + name.get() + " inside bucket " +
+                     bucketName);
+        } else {
+            log.info(ACTION + initiator + " created new catalog objects from archive inside bucket " + bucketName);
+        }
+        return catalogObjectMetadataList;
     }
 
     @ApiOperation(value = "Lists all kinds for all objects")
@@ -232,6 +247,7 @@ public class CatalogObjectController {
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -243,18 +259,23 @@ public class CatalogObjectController {
             if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), write)) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
+            initiator = user.getName();
 
         } else {
             user = AuthenticatedUser.EMPTY;
         }
 
-        return catalogObjectService.updateObjectMetadata(bucketName,
-                                                         name,
-                                                         kind,
-                                                         contentType,
-                                                         projectName,
-                                                         tags,
-                                                         user.getName());
+        log.info(ACTION + initiator + " updated the metadata of catalog object " + name + " inside bucket " +
+                 bucketName);
+
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
+                                                                                                name,
+                                                                                                kind,
+                                                                                                contentType,
+                                                                                                projectName,
+                                                                                                tags,
+                                                                                                user.getName());
+        return catalogObjectMetadata;
     }
 
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
@@ -450,6 +471,7 @@ public class CatalogObjectController {
             @PathVariable String bucketName, @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -461,9 +483,12 @@ public class CatalogObjectController {
             if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), write)) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
+            initiator = user.getName();
 
         }
-        return catalogObjectService.delete(bucketName, name);
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.delete(bucketName, name);
+        log.info(ACTION + initiator + " deleted the catalog object " + name + " inside bucket " + bucketName);
+        return catalogObjectMetadata;
     }
 
     private ResponseEntity<List<CatalogObjectMetadata>> getResponseAsArchive(ZipArchiveContent zipArchiveContent,
