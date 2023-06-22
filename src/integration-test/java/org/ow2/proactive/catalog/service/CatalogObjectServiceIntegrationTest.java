@@ -127,7 +127,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                        null);
         firstCommitTime = catalogObject.getCommitDateTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-        Thread.sleep(1); // to be sure that a new revision time will be different from previous revision time
+        tinyWait();
         catalogObject = catalogObjectService.createCatalogObjectRevision(bucket.getName(),
                                                                          "object-name-1",
                                                                          PROJECT_NAME,
@@ -190,7 +190,7 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
-    public void testValueLabelEmptyMetadata() {
+    public void testValueLabelEmptyMetadata() throws InterruptedException {
         CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
                                                                                                     "object-name-3");
         List<Metadata> metadataList = catalogObjectMetadata.getMetadataList();
@@ -198,6 +198,8 @@ public class CatalogObjectServiceIntegrationTest {
 
         Metadata nullValueMetadata = new Metadata("test-key", null, null);
         metadataList.add(nullValueMetadata);
+
+        tinyWait();
 
         CatalogObjectMetadata catalogObjectMetadataNewKeyValue = catalogObjectService.createCatalogObjectRevision(bucket.getName(),
                                                                                                                   "object-name-3",
@@ -221,7 +223,7 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
-    public void testUpdateBucketOwnerForObjects() {
+    public void testUpdateBucketOwnerForObjects() throws InterruptedException {
         CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
                                                                                                     "object-name-3");
 
@@ -234,6 +236,8 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(catalogObjectMetadata.getMetadataList()).contains(new Metadata(KeyValueLabelMetadataHelper.GROUP_KEY,
                                                                                   bucket.getOwner(),
                                                                                   WorkflowParser.ATTRIBUTE_GENERIC_INFORMATION_LABEL));
+
+        tinyWait();
 
         String newOwner = "newOwner";
         bucketService.updateOwnerByBucketName(bucket.getName(), newOwner);
@@ -472,9 +476,9 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml"),
                                                                                                null);
 
-        Thread.sleep(1); // to be sure that a new revision time will be different from previous revision time
-
         Long commitTimeRaw = Long.parseLong(catalogObjectMetadata.getCommitTimeRaw());
+
+        tinyWait();
 
         // Update projectName
         catalogObjectMetadata = catalogObjectService.createCatalogObjectRevision(bucketName,
@@ -491,6 +495,8 @@ public class CatalogObjectServiceIntegrationTest {
         catalogObjectMetadata = catalogObjectService.restoreCatalogObject(bucketName, workflowName, commitTimeRaw);
 
         assertThat(catalogObjectMetadata.getProjectName()).isEqualTo(PROJECT_NAME);
+
+        tinyWait();
 
         // Update tags
         catalogObjectMetadata = catalogObjectService.createCatalogObjectRevision(bucketName,
@@ -510,8 +516,12 @@ public class CatalogObjectServiceIntegrationTest {
 
     }
 
+    private void tinyWait() throws InterruptedException {
+        Thread.sleep(4); // to be sure that a new revision time will be different from previous revision time
+    }
+
     @Test
-    public void testEditProjectNameToEmptyString() throws IOException {
+    public void testEditProjectNameToEmptyString() throws IOException, InterruptedException {
         String scriptName = "propagate_error";
         String extension = ".groovy";
         String bucketName = bucket.getName();
@@ -533,6 +543,8 @@ public class CatalogObjectServiceIntegrationTest {
 
         assertThat(catalogObjectMetadata.getProjectName()).isEqualTo(PROJECT_NAME);
 
+        tinyWait();
+
         catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
                                                                           scriptName,
                                                                           Optional.empty(),
@@ -546,7 +558,7 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
-    public void testTagsSynchronization() throws IOException {
+    public void testTagsSynchronization() throws IOException, InterruptedException {
         String workflowName = "workflow";
         String bucketName = bucket.getName();
         String emptyString = "";
@@ -575,6 +587,8 @@ public class CatalogObjectServiceIntegrationTest {
                                .map(Metadata::getKey)
                                .collect(Collectors.joining(","))).isEqualTo(TAGS);
 
+        tinyWait();
+
         //First update
         catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
                                                                           workflowName,
@@ -597,6 +611,8 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(catalogObjectMetadata.getTags()).isEqualTo(emptyString);
 
         assertThat(metadataList.stream().anyMatch(metadata -> metadata.getLabel().equals("object_tag"))).isFalse();
+
+        tinyWait();
 
         //Second update
         catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
@@ -630,7 +646,7 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
-    public void testProjectNameSynchronization() throws IOException {
+    public void testProjectNameSynchronization() throws IOException, InterruptedException {
         String workflowName = "workflow";
         String bucketName = bucket.getName();
         String emptyString = "";
@@ -657,6 +673,8 @@ public class CatalogObjectServiceIntegrationTest {
                                .findAny()
                                .get()
                                .getValue()).isEqualTo(PROJECT_NAME);
+
+        tinyWait();
 
         catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
                                                                           workflowName,
@@ -705,7 +723,7 @@ public class CatalogObjectServiceIntegrationTest {
 
         assertThat(catalogObjectMetadata.getTags()).isEqualTo(TAGS);
 
-        Thread.sleep(1); // to be sure that a new revision time will be different from previous revision time
+        tinyWait();
 
         //1. First update
         catalogObjectMetadata = catalogObjectService.createCatalogObjectRevision(bucketName,
@@ -719,6 +737,8 @@ public class CatalogObjectServiceIntegrationTest {
 
         assertThat(catalogObjectMetadata.getTags()).isEqualTo("updated_tags_1");
 
+        tinyWait();
+
         //2. Second update
         catalogObjectMetadata = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                  workflowName,
@@ -731,6 +751,8 @@ public class CatalogObjectServiceIntegrationTest {
 
         assertThat(catalogObjectMetadata.getTags()).isEqualTo("updated_tags_2,updated_tags_3");
 
+        tinyWait();
+
         //3. Third update
         catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
                                                                           workflowName,
@@ -741,6 +763,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                                           "username");
 
         assertThat(catalogObjectMetadata.getTags()).isEqualTo("updated_tags_4");
+
+        tinyWait();
 
         //4. Fourth update
         catalogObjectMetadata = catalogObjectService.createCatalogObjectRevision(bucketName,
@@ -758,6 +782,8 @@ public class CatalogObjectServiceIntegrationTest {
                                         .stream()
                                         .filter(metadataEntity -> metadataEntity.getLabel().equals(OBJECT_TAG_LABEL))
                                         .collect(Collectors.toList())).hasSize(2);
+
+        tinyWait();
         // 5. Fifth update
         catalogObjectMetadata = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                  workflowName,
@@ -797,7 +823,7 @@ public class CatalogObjectServiceIntegrationTest {
 
         assertThat(catalogObjectMetadata.getProjectName()).isEqualTo(PROJECT_NAME);
 
-        Thread.sleep(1); // to be sure that a new revision time will be different from previous revision time
+        tinyWait();
 
         //1. First update
         catalogObjectMetadata = catalogObjectService.createCatalogObjectRevision(bucketName,
@@ -811,6 +837,8 @@ public class CatalogObjectServiceIntegrationTest {
 
         assertThat(catalogObjectMetadata.getProjectName()).isEqualTo("updated_project_1");
 
+        tinyWait();
+
         //2. Second update
         catalogObjectMetadata = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                  workflowName,
@@ -823,6 +851,8 @@ public class CatalogObjectServiceIntegrationTest {
 
         assertThat(catalogObjectMetadata.getProjectName()).isEqualTo("updated_project_2");
 
+        tinyWait();
+
         //3. Third update
         catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
                                                                           workflowName,
@@ -833,6 +863,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                                           "username");
 
         assertThat(catalogObjectMetadata.getProjectName()).isEqualTo("updated_project_3");
+
+        tinyWait();
 
         //4. Fourth update
         catalogObjectMetadata = catalogObjectService.createCatalogObjectRevision(bucketName,
@@ -845,6 +877,8 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                  IntegrationTestUtil.getWorkflowAsByteArray("workflow-with-project-name-and-tags.xml"));
 
         assertThat(catalogObjectMetadata.getProjectName()).isEqualTo("1. Test Project");
+
+        tinyWait();
 
         // 5. Fifth update
         catalogObjectMetadata = catalogObjectService.createCatalogObjectRevision(bucketName,
@@ -861,7 +895,7 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
-    public void testWorkflowCatalogObjectWithDependsOnModel() throws IOException {
+    public void testWorkflowCatalogObjectWithDependsOnModel() throws IOException, InterruptedException {
         String aObject = "A_Object";
         String bObject = "B_Object";
         String bucketName = bucket.getName();
@@ -919,6 +953,8 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(bucketAndObjectNameDependsOnListOfAObjectFromDBFirstCommit).contains("deep-learning-workflows/Custom_Sentiment_Analysis_In_Bing_News");
         assertThat(catalogObjectDependencyListOfAObjectFirstCommit.getCalledByList()).hasSize(0);
 
+        tinyWait();
+
         // Second commit of the bucket/A_Object to the catalog which has the dependency bucket/A_Object' depends on bucket/B_Object
         catalogObjectService.createCatalogObjectRevision(bucketName,
                                                          aObject,
@@ -972,7 +1008,7 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
-    public void testConsistencyOfDependsOnAndCalledBy() throws IOException {
+    public void testConsistencyOfDependsOnAndCalledBy() throws IOException, InterruptedException {
         String bucketName = bucket.getName();
         String aObject = "A_Object";
         String bObject = "B_Object";
@@ -1073,6 +1109,8 @@ public class CatalogObjectServiceIntegrationTest {
 
         /************ SECOND TEST ****************/
 
+        tinyWait();
+
         //Second commit of the bucket/A_Object workflow to the catalog which depends on bucket/D_Object and bucket/E_Object (different from the first commit bucket/A_Object' and bucket/B_Object)
         CatalogObjectMetadata catalogObjectMetadataOfSecondVersionOfAObject = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                                                                aObject,
@@ -1137,6 +1175,8 @@ public class CatalogObjectServiceIntegrationTest {
         /************ FOURTH TEST ****************/
 
         //First, commit a third version of bucket/A_Object which contains a single dependency depends on bucket/D_Object/1551960076669
+
+        tinyWait();
 
         CatalogObjectMetadata catalogObjectMetadataOfThirdVersionOfAObject = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                                                               aObject,
@@ -1302,7 +1342,8 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test
-    public void testUpdateObjectMetadata() {
+    public void testUpdateObjectMetadata() throws InterruptedException {
+        tinyWait();
         CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucket.getName(),
                                                                                                 "object-name-1",
                                                                                                 Optional.of("updated-kind"),
@@ -1320,7 +1361,8 @@ public class CatalogObjectServiceIntegrationTest {
     }
 
     @Test(expected = KindOrContentTypeIsNotValidException.class)
-    public void testUpdateObjectMetadataWrongKind() {
+    public void testUpdateObjectMetadataWrongKind() throws InterruptedException {
+        tinyWait();
         catalogObjectService.updateObjectMetadata(bucket.getName(),
                                                   "object-name-1",
                                                   Optional.of("updated-kind//a asdf"),
