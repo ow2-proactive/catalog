@@ -25,11 +25,16 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import static org.ow2.proactive.catalog.dto.AssociationStatus.UNPLANNED;
+
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.ow2.proactive.catalog.dto.AssociatedObjectsByBucket;
+import org.ow2.proactive.catalog.dto.AssociationStatus;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
 import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
@@ -40,7 +45,6 @@ import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
-import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -81,6 +85,9 @@ public class BucketService {
 
     @Autowired
     CatalogObjectService catalogObjectService;
+
+    @Autowired
+    JobPlannerService jobPlannerService;
 
     @Autowired
     private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
@@ -127,7 +134,7 @@ public class BucketService {
     }
 
     public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName, Optional<String> tag) {
+            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus, String sessionId) {
         if (owners == null) {
             return Collections.emptyList();
         }
@@ -135,8 +142,14 @@ public class BucketService {
         List<BucketMetadata> entities = getBucketEntities(owners, kind, contentType, objectName);
 
         // Consider now objectTag filter
-        if (tag.isPresent()) {
-            filterTag(entities, convertKindFilterToList(kind), contentType, objectName, tag);
+        if (tag.isPresent() || associationStatus.isPresent()) {
+            filterByTagOrAssociationStatus(entities,
+                                           convertKindFilterToList(kind),
+                                           contentType,
+                                           objectName,
+                                           tag,
+                                           associationStatus,
+                                           sessionId);
         }
 
         log.info("Buckets count {}", entities.size());
@@ -201,11 +214,11 @@ public class BucketService {
     }
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType) {
-        return listBuckets(ownerName, kind, contentType, Optional.empty(), Optional.empty());
+        return listBuckets(ownerName, kind, contentType, Optional.empty(), Optional.empty(), Optional.empty(), null);
     }
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName, Optional<String> tag) {
+            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus, String sessionId) {
         List<BucketMetadata> entities;
         List<String> kindList = convertKindFilterToList(kind);
         List<String> owners = Collections.singletonList(ownerName);
@@ -228,22 +241,30 @@ public class BucketService {
         }
 
         // Consider now objectTag filter
-        if (tag.isPresent()) {
-            filterTag(entities, kindList, contentType, objectName, tag);
+        if (tag.isPresent() || associationStatus.isPresent()) {
+            filterByTagOrAssociationStatus(entities,
+                                           kindList,
+                                           contentType,
+                                           objectName,
+                                           tag,
+                                           associationStatus,
+                                           sessionId);
         }
 
         return entities;
     }
 
-    private void filterTag(List<BucketMetadata> entities, List<String> kindList, Optional<String> contentType,
-            Optional<String> objectName, Optional<String> tag) {
+    private void filterByTagOrAssociationStatus(List<BucketMetadata> entities, List<String> kindList,
+            Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
+            Optional<String> associationStatus, String sessionId) {
         long startTime = System.currentTimeMillis();
         String tagFilter = tag.orElse(null);
-        if (Strings.isNullOrEmpty(tagFilter)) {
+        String associationStatusFilter = associationStatus.orElse(null);
+        if (Strings.isNullOrEmpty(tagFilter) && Strings.isNullOrEmpty(associationStatusFilter)) {
             return;
         }
         List<String> bucketNames = entities.stream().map(BucketMetadata::getName).collect(Collectors.toList());
-        // request from DB the latest revision of catalog objects which matching the other filters except tag
+        // search in the DB the latest revision of catalog objects which matching the other filters including the tag
         List<CatalogObjectRevisionEntity> objectList;
         objectList = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(bucketNames,
                                                                                                                                   kindList,
@@ -252,8 +273,25 @@ public class BucketService {
                                                                                                                                   tagFilter,
                                                                                                                                   0,
                                                                                                                                   Integer.MAX_VALUE);
+        // filter by association status if requested
 
-        // filtering the catalog objects by the tag filter
+        if (sessionId != null && associationStatus.isPresent()) {
+            List<AssociatedObjectsByBucket> associatedObjectsByBucketList = jobPlannerService.getAssociatedObjects(sessionId);
+            Map<String, AssociatedObjectsByBucket> associatedObjectsByBucketMap = associatedObjectsByBucketList.stream()
+                                                                                                               .collect(Collectors.toMap(AssociatedObjectsByBucket::getBucketName,
+                                                                                                                                         Function.identity()));
+            AssociationStatus associationStatusObject = UNPLANNED.equalsIgnoreCase(associationStatusFilter) ? null
+                                                                                                            : AssociationStatus.convert(associationStatusFilter);
+            objectList = objectList.stream()
+                                   .filter(entity -> isObjectMatchingJobPlannerAssociationStatus(entity,
+                                                                                                 associatedObjectsByBucketMap.get(entity.getCatalogObject()
+                                                                                                                                        .getBucket()
+                                                                                                                                        .getBucketName()),
+                                                                                                 associationStatusObject))
+                                   .collect(Collectors.toList());
+        }
+
+        // group entities per bucket
         Map<String, List<CatalogObjectRevisionEntity>> objectsPerBucket = objectList.stream()
                                                                                     .collect(Collectors.groupingBy(obj -> obj.getCatalogObject()
                                                                                                                              .getBucket()
@@ -268,6 +306,29 @@ public class BucketService {
             bucket.setObjectCount(objectsCount);
         }
         log.debug("bucket list timer : filter tags time: " + (System.currentTimeMillis() - startTime) + " ms");
+    }
+
+    private boolean isObjectMatchingJobPlannerAssociationStatus(CatalogObjectRevisionEntity entity,
+            AssociatedObjectsByBucket associatedObjectsByBucket, AssociationStatus associationStatus) {
+        if (associatedObjectsByBucket == null) {
+            // if no objects are associated in the bucket, then we return true only when searching for UNPLANNED jobs
+            return associationStatus == null;
+        }
+        if (associationStatus == null) {
+            // object must not have a job-planner association
+            return associatedObjectsByBucket.getObjects()
+                                            .stream()
+                                            .noneMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                           .equalsIgnoreCase(entity.getCatalogObject()
+                                                                                                                   .getNameLower()));
+        }
+        return associatedObjectsByBucket.getObjects()
+                                        .stream()
+                                        .anyMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                      .equalsIgnoreCase(entity.getCatalogObject()
+                                                                                                              .getNameLower()) &&
+                                                                      associatedObject.getStatuses()
+                                                                                      .contains(associationStatus));
     }
 
     public List<String> getAllEmptyBuckets() {
@@ -323,11 +384,14 @@ public class BucketService {
                                   contentType,
                                   Optional.empty(),
                                   Optional.empty(),
+                                  Optional.empty(),
+                                  null,
                                   authenticatedUserGroupsSupplier);
     }
 
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
+            Optional<String> associationStatus, String sessionId,
             Supplier<List<String>> authenticatedUserGroupsSupplier)
             throws NotAuthenticatedException, AccessDeniedException {
         List<String> groups;
@@ -340,7 +404,13 @@ public class BucketService {
             groups = Collections.singletonList(ownerName);
         }
 
-        List<BucketMetadata> bucketsByGroups = listBuckets(groups, kind, contentType, objectName, tag);
+        List<BucketMetadata> bucketsByGroups = listBuckets(groups,
+                                                           kind,
+                                                           contentType,
+                                                           objectName,
+                                                           tag,
+                                                           associationStatus,
+                                                           sessionId);
         log.debug("bucket list timer : get buckets by groups : " + (System.currentTimeMillis() - startTime) + " ms");
         return bucketsByGroups;
     }

@@ -86,7 +86,9 @@ public class BucketServiceIntegrationTest {
                                                      Optional.empty(),
                                                      Optional.empty(),
                                                      Optional.empty(),
-                                                     Optional.empty());
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     (String) null);
         assertThat(emptyResult).isEmpty();
     }
 

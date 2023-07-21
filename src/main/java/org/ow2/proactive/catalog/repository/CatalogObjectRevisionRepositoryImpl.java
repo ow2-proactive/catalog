@@ -93,8 +93,10 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
 
         List<Predicate> allPredicates = getCommonPredicates(kindList, cb, root, contentType, objectName, bucketNames);
 
-        allPredicates.add(cb.equal(metadata.get("label"), WorkflowParser.OBJECT_TAG_LABEL));
-        allPredicates.add(cb.like(cb.lower(metadata.get("key")), toBothSidesPredicatePattern(tag)));
+        if (tag != null) {
+            allPredicates.add(cb.equal(metadata.get("label"), WorkflowParser.OBJECT_TAG_LABEL));
+            allPredicates.add(cb.like(cb.lower(metadata.get("key")), toBothSidesPredicatePattern(tag)));
+        }
 
         cq.where(allPredicates.toArray(new Predicate[0]));
 
