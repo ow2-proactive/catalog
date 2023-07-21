@@ -38,4 +38,6 @@ public enum AssociationStatus {
     }
 
     public static final String UNPLANNED = "UNPLANNED";
+
+    public static final String ALL = "ALL";
 }
