@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import static org.ow2.proactive.catalog.dto.AssociationStatus.ALL;
 import static org.ow2.proactive.catalog.dto.AssociationStatus.UNPLANNED;
 
 import java.util.*;
@@ -280,14 +281,12 @@ public class BucketService {
             Map<String, AssociatedObjectsByBucket> associatedObjectsByBucketMap = associatedObjectsByBucketList.stream()
                                                                                                                .collect(Collectors.toMap(AssociatedObjectsByBucket::getBucketName,
                                                                                                                                          Function.identity()));
-            AssociationStatus associationStatusObject = UNPLANNED.equalsIgnoreCase(associationStatusFilter) ? null
-                                                                                                            : AssociationStatus.convert(associationStatusFilter);
             objectList = objectList.stream()
                                    .filter(entity -> isObjectMatchingJobPlannerAssociationStatus(entity,
                                                                                                  associatedObjectsByBucketMap.get(entity.getCatalogObject()
                                                                                                                                         .getBucket()
                                                                                                                                         .getBucketName()),
-                                                                                                 associationStatusObject))
+                                                                                                 associationStatusFilter))
                                    .collect(Collectors.toList());
         }
 
@@ -309,26 +308,36 @@ public class BucketService {
     }
 
     private boolean isObjectMatchingJobPlannerAssociationStatus(CatalogObjectRevisionEntity entity,
-            AssociatedObjectsByBucket associatedObjectsByBucket, AssociationStatus associationStatus) {
+            AssociatedObjectsByBucket associatedObjectsByBucket, String expectedStatus) {
         if (associatedObjectsByBucket == null) {
-            // if no objects are associated in the bucket, then we return true only when searching for UNPLANNED jobs
-            return associationStatus == null;
+            return UNPLANNED.equalsIgnoreCase(expectedStatus);
         }
-        if (associationStatus == null) {
-            // object must not have a job-planner association
-            return associatedObjectsByBucket.getObjects()
-                                            .stream()
-                                            .noneMatch(associatedObject -> associatedObject.getObjectName()
-                                                                                           .equalsIgnoreCase(entity.getCatalogObject()
-                                                                                                                   .getNameLower()));
+        switch (expectedStatus) {
+            case ALL:
+                return associatedObjectsByBucket.getObjects()
+                                                .stream()
+                                                .anyMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                              .equalsIgnoreCase(entity.getCatalogObject()
+                                                                                                                      .getNameLower()) &&
+                                                                              !associatedObject.getStatuses()
+                                                                                               .isEmpty());
+            case UNPLANNED:
+                // object must not have a job-planner association
+                return associatedObjectsByBucket.getObjects()
+                                                .stream()
+                                                .noneMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                               .equalsIgnoreCase(entity.getCatalogObject()
+                                                                                                                       .getNameLower()));
+            default:
+                AssociationStatus associationStatus = AssociationStatus.convert(expectedStatus);
+                return associatedObjectsByBucket.getObjects()
+                                                .stream()
+                                                .anyMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                              .equalsIgnoreCase(entity.getCatalogObject()
+                                                                                                                      .getNameLower()) &&
+                                                                              associatedObject.getStatuses()
+                                                                                              .contains(associationStatus));
         }
-        return associatedObjectsByBucket.getObjects()
-                                        .stream()
-                                        .anyMatch(associatedObject -> associatedObject.getObjectName()
-                                                                                      .equalsIgnoreCase(entity.getCatalogObject()
-                                                                                                              .getNameLower()) &&
-                                                                      associatedObject.getStatuses()
-                                                                                      .contains(associationStatus));
     }
 
     public List<String> getAllEmptyBuckets() {

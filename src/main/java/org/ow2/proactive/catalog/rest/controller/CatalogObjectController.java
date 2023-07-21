@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static org.ow2.proactive.catalog.dto.AssociationStatus.ALL;
 import static org.ow2.proactive.catalog.dto.AssociationStatus.UNPLANNED;
 import static org.ow2.proactive.catalog.util.AccessType.*;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -397,7 +398,7 @@ public class CatalogObjectController {
             @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
             @ApiParam(value = "Filter according to Object Name.") @RequestParam(value = "objectName", required = false) Optional<String> objectNameFilter,
             @ApiParam(value = "Filter according to Object Tag.") @RequestParam(value = "objectTag", required = false) Optional<String> objectTagFilter,
-            @ApiParam(value = "Filter according to Job-Planner association status. If enabled, only objects for which a job-planner association exists with the provided status will be returned. Can be PLANNED, DEACTIVATED, FAILED or UNPLANNED") @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatusFilter,
+            @ApiParam(value = "Filter according to Job-Planner association status. If enabled, only objects for which a job-planner association exists with the provided status will be returned. ALL, PLANNED, DEACTIVATED, FAILED or UNPLANNED. ALL will filter objects which have an association with any status. UNPLANNED will filter objects without any association.") @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatusFilter,
             @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
             @ApiParam(value = "Page number", required = false) @RequestParam(defaultValue = "0", value = "pageNo") int pageNo,
             @ApiParam(value = "Page size", required = false) @RequestParam(defaultValue = MAXVALUE +
@@ -518,21 +519,29 @@ public class CatalogObjectController {
 
     private boolean isAssociatedInJobPlanner(CatalogObjectMetadata objectMetadata, String expectedStatus,
             AssociatedObjectsByBucket associatedObjectsByBucket) {
-        AssociationStatus associationStatus = UNPLANNED.equalsIgnoreCase(expectedStatus) ? null
-                                                                                         : AssociationStatus.convert(expectedStatus);
-        if (associationStatus == null) {
-            // object must not have a job-planner association
-            return associatedObjectsByBucket.getObjects()
-                                            .stream()
-                                            .noneMatch(associatedObject -> associatedObject.getObjectName()
-                                                                                           .equals(objectMetadata.getName()));
+        switch (expectedStatus) {
+            case ALL:
+                return associatedObjectsByBucket.getObjects()
+                                                .stream()
+                                                .anyMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                              .equals(objectMetadata.getName()) &&
+                                                                              !associatedObject.getStatuses()
+                                                                                               .isEmpty());
+            case UNPLANNED:
+                // object must not have a job-planner association
+                return associatedObjectsByBucket.getObjects()
+                                                .stream()
+                                                .noneMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                               .equals(objectMetadata.getName()));
+            default:
+                AssociationStatus associationStatus = AssociationStatus.convert(expectedStatus);
+                return associatedObjectsByBucket.getObjects()
+                                                .stream()
+                                                .anyMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                              .equals(objectMetadata.getName()) &&
+                                                                              associatedObject.getStatuses()
+                                                                                              .contains(associationStatus));
         }
-        return associatedObjectsByBucket.getObjects()
-                                        .stream()
-                                        .anyMatch(associatedObject -> associatedObject.getObjectName()
-                                                                                      .equals(objectMetadata.getName()) &&
-                                                                      associatedObject.getStatuses()
-                                                                                      .contains(associationStatus));
     }
 
     @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogObject's metadata.")

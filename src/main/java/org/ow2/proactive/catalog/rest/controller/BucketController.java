@@ -202,7 +202,7 @@ public class BucketController {
             @ApiParam(value = "The kind(s) of objects that buckets must contain. Multiple kinds can be specified using comma separators") @RequestParam(value = "kind", required = false) Optional<String> kind,
             @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
             @ApiParam(value = "The tag of objects that buckets must contain") @RequestParam(value = "objectTag", required = false) Optional<String> tag,
-            @ApiParam(value = "The buckets must contain objects which have the given job-planner association status. Can be PLANNED, DEACTIVATED, FAILED or UNPLANNED") @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatus,
+            @ApiParam(value = "The buckets must contain objects which have the given job-planner association status. Can be ALL, PLANNED, DEACTIVATED, FAILED or UNPLANNED. ALL will filter objects which have an association with any status. UNPLANNED will filter objects without any association.") @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatus,
             @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
             @ApiParam(value = "The bucket name contains the value of this parameter (case insensitive)")
             @RequestParam(value = "bucketName", required = false)
