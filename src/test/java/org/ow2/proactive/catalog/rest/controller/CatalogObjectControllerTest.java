@@ -126,6 +126,7 @@ public class CatalogObjectControllerTest {
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
+                                     Optional.empty(),
                                      Optional.of(nameList),
                                      0,
                                      Integer.MAX_VALUE,
@@ -157,6 +158,7 @@ public class CatalogObjectControllerTest {
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
+                                     Optional.empty(),
                                      Optional.of(nameList),
                                      0,
                                      Integer.MAX_VALUE,
@@ -174,6 +176,7 @@ public class CatalogObjectControllerTest {
         when(bucketRepository.findOneByBucketName("bucket-name")).thenReturn(bucket);
         catalogObjectController.list("",
                                      "bucket-name",
+                                     Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),

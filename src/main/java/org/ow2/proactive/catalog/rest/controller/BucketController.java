@@ -94,6 +94,9 @@ public class BucketController {
     @Autowired
     private CatalogObjectGrantService catalogObjectGrantService;
 
+    @Autowired
+    private JobPlannerService jobPlannerService;
+
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
@@ -199,6 +202,7 @@ public class BucketController {
             @ApiParam(value = "The kind(s) of objects that buckets must contain. Multiple kinds can be specified using comma separators") @RequestParam(value = "kind", required = false) Optional<String> kind,
             @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
             @ApiParam(value = "The tag of objects that buckets must contain") @RequestParam(value = "objectTag", required = false) Optional<String> tag,
+            @ApiParam(value = "The buckets must contain objects which have the given job-planner association status. Can be PLANNED, DEACTIVATED, FAILED or UNPLANNED") @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatus,
             @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
             @ApiParam(value = "The bucket name contains the value of this parameter (case insensitive)")
             @RequestParam(value = "bucketName", required = false)
@@ -213,6 +217,7 @@ public class BucketController {
         contentType = contentType.filter(s -> !s.isEmpty());
         objectName = objectName.filter(s -> !s.isEmpty());
         tag = tag.filter(s -> !s.isEmpty());
+        associationStatus = associationStatus.filter(s -> !s.isEmpty());
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
                                                                                                                   ownerName)
@@ -223,6 +228,8 @@ public class BucketController {
                                                           contentType,
                                                           objectName,
                                                           tag,
+                                                          associationStatus,
+                                                          sessionId,
                                                           user::getGroups);
             listBucket.addAll(grantRightsService.getBucketsByPrioritiedGrants(user));
             listBucket = GrantHelper.removeDuplicate(listBucket);
@@ -250,7 +257,13 @@ public class BucketController {
                 }
             }
         } else {
-            listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName, tag);
+            listBucket = bucketService.listBuckets(ownerName,
+                                                   kind,
+                                                   contentType,
+                                                   objectName,
+                                                   tag,
+                                                   associationStatus,
+                                                   sessionId);
         }
         // Filter by bucket name
         if (!Strings.isNullOrEmpty(bucketName.orElse(""))) {

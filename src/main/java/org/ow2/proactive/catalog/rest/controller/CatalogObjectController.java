@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static org.ow2.proactive.catalog.dto.AssociationStatus.UNPLANNED;
 import static org.ow2.proactive.catalog.util.AccessType.*;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -87,6 +89,10 @@ public class CatalogObjectController {
 
     private static final String ACTION = "[Action] ";
 
+    public static final String JOB_PLANNER_LABEL = "job_planner";
+
+    public static final String JOB_PLANNER_ASSOCIATION_STATUS_KEY = "association_status";
+
     @Autowired
     private GrantRightsService grantRightsService;
 
@@ -107,6 +113,9 @@ public class CatalogObjectController {
 
     @Autowired
     private RawObjectResponseCreator rawObjectResponseCreator;
+
+    @Autowired
+    private JobPlannerService jobPlannerService;
 
     private static final String ZIP_CONTENT_TYPE = "application/zip";
 
@@ -309,6 +318,10 @@ public class CatalogObjectController {
         }
         metadata.add(LinkUtil.createLink(bucketName, metadata.getName()));
         metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName()));
+        if (sessionIdRequired) {
+            AssociatedObject associatedObject = jobPlannerService.getAssociatedObject(sessionId, bucketName, name);
+            addAssociationStatus(metadata, associatedObject);
+        }
         return metadata;
     }
 
@@ -384,6 +397,7 @@ public class CatalogObjectController {
             @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
             @ApiParam(value = "Filter according to Object Name.") @RequestParam(value = "objectName", required = false) Optional<String> objectNameFilter,
             @ApiParam(value = "Filter according to Object Tag.") @RequestParam(value = "objectTag", required = false) Optional<String> objectTagFilter,
+            @ApiParam(value = "Filter according to Job-Planner association status. If enabled, only objects for which a job-planner association exists with the provided status will be returned. Can be PLANNED, DEACTIVATED, FAILED or UNPLANNED") @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatusFilter,
             @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
             @ApiParam(value = "Page number", required = false) @RequestParam(defaultValue = "0", value = "pageNo") int pageNo,
             @ApiParam(value = "Page size", required = false) @RequestParam(defaultValue = MAXVALUE +
@@ -456,9 +470,69 @@ public class CatalogObjectController {
                                                                                       objectsGrants));
                 }
             }
+            Optional<AssociatedObjectsByBucket> associatedObjectsByBucketOptional = Optional.empty();
+            if (sessionIdRequired) {
+                List<AssociatedObjectsByBucket> associatedObjectsByBucketList = jobPlannerService.getAssociatedObjects(sessionId);
+                associatedObjectsByBucketOptional = associatedObjectsByBucketList.stream()
+                                                                                 .filter(object -> bucketName.equals(object.getBucketName()))
+                                                                                 .findFirst();
+                if (associatedObjectsByBucketOptional.isPresent()) {
+                    AssociatedObjectsByBucket associatedObjects = associatedObjectsByBucketOptional.get();
+                    for (CatalogObjectMetadata catalogObject : metadataList) {
+                        AssociatedObject associatedObject = associatedObjects.findAssociatedObject(catalogObject.getName());
+                        addAssociationStatus(catalogObject, associatedObject);
+                    }
+                }
+            }
+            if (sessionIdRequired && associationStatusFilter.isPresent()) {
+                if (!associatedObjectsByBucketOptional.isPresent()) {
+                    if (!UNPLANNED.equalsIgnoreCase(associationStatusFilter.get())) {
+                        return ResponseEntity.ok(Collections.emptyList());
+                    }
+                    // if UNPLANNED and no objects are associated, we return the full list
+                } else {
+                    AssociatedObjectsByBucket associatedObjectsByBucket = associatedObjectsByBucketOptional.get();
+
+                    metadataList = metadataList.stream()
+                                               .filter(metadata -> isAssociatedInJobPlanner(metadata,
+                                                                                            associationStatusFilter.get(),
+                                                                                            associatedObjectsByBucket))
+                                               .collect(Collectors.toList());
+                }
+            }
             Collections.sort(metadataList);
             return ResponseEntity.ok(metadataList);
         }
+    }
+
+    private void addAssociationStatus(CatalogObjectMetadata catalogObject, AssociatedObject associatedObject) {
+        catalogObject.getMetadataList()
+                     .add(new Metadata(JOB_PLANNER_ASSOCIATION_STATUS_KEY,
+                                       associatedObject.getStatuses().isEmpty() ? UNPLANNED
+                                                                                : associatedObject.getStatuses()
+                                                                                                  .stream()
+                                                                                                  .map(status -> status.name())
+                                                                                                  .collect(Collectors.joining(",")),
+                                       JOB_PLANNER_LABEL));
+    }
+
+    private boolean isAssociatedInJobPlanner(CatalogObjectMetadata objectMetadata, String expectedStatus,
+            AssociatedObjectsByBucket associatedObjectsByBucket) {
+        AssociationStatus associationStatus = UNPLANNED.equalsIgnoreCase(expectedStatus) ? null
+                                                                                         : AssociationStatus.convert(expectedStatus);
+        if (associationStatus == null) {
+            // object must not have a job-planner association
+            return associatedObjectsByBucket.getObjects()
+                                            .stream()
+                                            .noneMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                           .equals(objectMetadata.getName()));
+        }
+        return associatedObjectsByBucket.getObjects()
+                                        .stream()
+                                        .anyMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                      .equals(objectMetadata.getName()) &&
+                                                                      associatedObject.getStatuses()
+                                                                                      .contains(associationStatus));
     }
 
     @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogObject's metadata.")

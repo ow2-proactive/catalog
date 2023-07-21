@@ -88,7 +88,7 @@ public class BucketServiceTest {
 
     @Test
     public void testThatEmptyListIsReturnedIfListAndKindAreNull() {
-        assertThat(bucketService.listBuckets((List<String>) null, null, null, null, null)).isEmpty();
+        assertThat(bucketService.listBuckets((List<String>) null, null, null, null, null, null, null)).isEmpty();
         verify(bucketRepository, times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(any(),
                                                                                                           any(),
                                                                                                           any(),
@@ -104,7 +104,9 @@ public class BucketServiceTest {
                                              kind,
                                              Optional.empty(),
                                              Optional.empty(),
-                                             Optional.empty())).isEmpty();
+                                             Optional.empty(),
+                                             Optional.empty(),
+                                             (String) null)).isEmpty();
         verify(bucketRepository, times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(any(),
                                                                                                           any(),
                                                                                                           any(),

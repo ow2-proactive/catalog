@@ -89,8 +89,15 @@ public class BucketControllerTest {
                               type,
                               Optional.ofNullable(null),
                               Optional.ofNullable(null),
+                              Optional.ofNullable(null),
                               Optional.ofNullable(null));
-        verify(bucketService, times(1)).listBuckets((String) null, kind, type, Optional.empty(), Optional.empty());
+        verify(bucketService, times(1)).listBuckets((String) null,
+                                                    kind,
+                                                    type,
+                                                    Optional.empty(),
+                                                    Optional.empty(),
+                                                    Optional.empty(),
+                                                    null);
     }
 
     @Test
@@ -100,12 +107,15 @@ public class BucketControllerTest {
         Optional name = Optional.ofNullable("");
         Optional bucket = Optional.ofNullable("");
         Optional tag = Optional.ofNullable("");
-        bucketController.list(null, null, kind, type, name, bucket, tag);
+        Optional associationStatus = Optional.ofNullable("");
+        bucketController.list(null, null, kind, type, name, bucket, tag, associationStatus);
         verify(bucketService, times(1)).listBuckets((String) null,
                                                     Optional.empty(),
                                                     Optional.empty(),
                                                     Optional.empty(),
-                                                    Optional.empty());
+                                                    Optional.empty(),
+                                                    Optional.empty(),
+                                                    null);
     }
 
     @Test
