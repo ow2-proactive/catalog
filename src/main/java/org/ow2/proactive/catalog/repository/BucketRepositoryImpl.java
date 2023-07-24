@@ -80,7 +80,8 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
         if (kindList.size() > 0) {
             List<Predicate> kindPredicatesList = new ArrayList<>();
             for (String kind : kindList) {
-                kindPredicatesList.add(cb.like(catalogObjectsJoin.get("kindLower"), kind.toLowerCase() + "%"));
+                kindPredicatesList.add(cb.like(catalogObjectsJoin.get("kindLower"),
+                                               toRightSidePredicatePattern(kind.toLowerCase())));
             }
             Predicate kindPredicate;
             if (kindList.size() == 1) {
@@ -93,13 +94,13 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
 
         if (contentType != null) {
             Predicate contentTypePredicate = cb.like(catalogObjectsJoin.get("contentTypeLower"),
-                                                     contentType.toLowerCase() + "%");
+                                                     toRightSidePredicatePattern(contentType.toLowerCase()));
             allPredicates.add(contentTypePredicate);
         }
 
         if (objectName != null) {
             Predicate objectNamePredicate = cb.like(catalogObjectsJoin.get("nameLower"),
-                                                    "%" + objectName.toLowerCase() + "%");
+                                                    toBothSidesPredicatePattern(objectName.toLowerCase()));
             allPredicates.add(objectNamePredicate);
         }
 
@@ -123,5 +124,13 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
                        bucketEntityRoot.get("id"))
           .groupBy(bucketEntityRoot.get("bucketName"), bucketEntityRoot.get("owner"), bucketEntityRoot.get("id"));
         return cq;
+    }
+
+    private String toBothSidesPredicatePattern(String pattern) {
+        return pattern.contains("%") ? pattern.toLowerCase() : "%" + pattern.toLowerCase() + "%";
+    }
+
+    private String toRightSidePredicatePattern(String pattern) {
+        return pattern.contains("%") ? pattern.toLowerCase() : pattern.toLowerCase() + "%";
     }
 }
