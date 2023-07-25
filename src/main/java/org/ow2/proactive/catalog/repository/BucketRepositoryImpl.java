@@ -25,6 +25,8 @@
  */
 package org.ow2.proactive.catalog.repository;
 
+import static org.ow2.proactive.catalog.service.BucketService.DEFAULT_BUCKET_OWNER;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +37,8 @@ import javax.persistence.criteria.*;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.springframework.stereotype.Repository;
+
+import com.google.common.base.Strings;
 
 
 @Repository
@@ -77,7 +81,7 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
                                                                                            JoinType.LEFT);
         List<Predicate> allPredicates = new ArrayList<>();
 
-        if (kindList.size() > 0) {
+        if (kindList != null && !kindList.isEmpty()) {
             List<Predicate> kindPredicatesList = new ArrayList<>();
             for (String kind : kindList) {
                 kindPredicatesList.add(cb.like(catalogObjectsJoin.get("kindLower"),
@@ -92,19 +96,19 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
             allPredicates.add(kindPredicate);
         }
 
-        if (contentType != null) {
+        if (!Strings.isNullOrEmpty(contentType)) {
             Predicate contentTypePredicate = cb.like(catalogObjectsJoin.get("contentTypeLower"),
                                                      toRightSidePredicatePattern(contentType.toLowerCase()));
             allPredicates.add(contentTypePredicate);
         }
 
-        if (objectName != null) {
+        if (!Strings.isNullOrEmpty(objectName)) {
             Predicate objectNamePredicate = cb.like(catalogObjectsJoin.get("nameLower"),
                                                     toBothSidesPredicatePattern(objectName.toLowerCase()));
             allPredicates.add(objectNamePredicate);
         }
 
-        if (owners != null) {
+        if (owners != null && !owners.isEmpty()) {
             Predicate ownerPredicate = cb.in(bucketEntityRoot.get("owner")).value(owners);
             allPredicates.add(ownerPredicate);
         }

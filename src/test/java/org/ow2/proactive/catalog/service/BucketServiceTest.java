@@ -88,7 +88,7 @@ public class BucketServiceTest {
 
     @Test
     public void testThatEmptyListIsReturnedIfListAndKindAreNull() {
-        assertThat(bucketService.listBuckets((List<String>) null, null, null, null, null, null, null)).isEmpty();
+        assertThat(bucketService.listBuckets((List<String>) null, null, null, null, null, null, null, false)).isEmpty();
         verify(bucketRepository, times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(any(),
                                                                                                           any(),
                                                                                                           any(),
@@ -106,12 +106,12 @@ public class BucketServiceTest {
                                              Optional.empty(),
                                              Optional.empty(),
                                              Optional.empty(),
-                                             (String) null)).isEmpty();
-        verify(bucketRepository, times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(any(),
-                                                                                                          any(),
+                                             (String) null,
+                                             false)).isEmpty();
+        verify(bucketRepository, times(1)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(anyList(),
+                                                                                                          anyList(),
                                                                                                           any(),
                                                                                                           any());
-        verify(bucketRepository, times(1)).findBucketByOwnerContainingKindList(any(List.class), any(List.class));
     }
 
     @Test
@@ -239,19 +239,10 @@ public class BucketServiceTest {
     private void listBucket(String owner, Optional<String> kind, Optional<String> contentType) {
         when(bucketRepository.findAll()).thenReturn(Collections.emptyList());
         bucketService.listBuckets(owner, (kind), (contentType));
-        if (!StringUtils.isEmpty(owner)) {
-            verify(bucketRepository, times(1)).findByOwnerIn(anyList(), any(Sort.class));
-        } else if (kind.isPresent()) {
-            if (contentType.isPresent()) {
-                verify(bucketRepository, times(1)).findBucketContainingKindListAndContentTypeAndObjectName(anyList(),
-                                                                                                           anyString(),
-                                                                                                           anyString());
-            } else {
-                verify(bucketRepository, times(1)).findBucketContainingKindList(anyList());
-            }
-        } else {
-            verify(bucketRepository, times(1)).findAll(any(Sort.class));
-        }
+        verify(bucketRepository, times(1)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(anyList(),
+                                                                                                          anyList(),
+                                                                                                          anyString(),
+                                                                                                          anyString());
     }
 
     private BucketEntity newMockedBucket(Long id, String name, LocalDateTime createdAt) {
