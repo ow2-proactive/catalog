@@ -135,12 +135,13 @@ public class BucketService {
     }
 
     public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus, String sessionId) {
+            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus, String sessionId,
+            boolean allBuckets) {
         if (owners == null) {
             return Collections.emptyList();
         }
 
-        List<BucketMetadata> entities = getBucketEntities(owners, kind, contentType, objectName);
+        List<BucketMetadata> entities = getBucketEntities(owners, kind, contentType, objectName, allBuckets);
 
         // Consider now objectTag filter
         if (tag.isPresent() || associationStatus.isPresent()) {
@@ -150,7 +151,8 @@ public class BucketService {
                                            objectName,
                                            tag,
                                            associationStatus,
-                                           sessionId);
+                                           sessionId,
+                                           allBuckets);
         }
 
         log.info("Buckets count {}", entities.size());
@@ -158,35 +160,40 @@ public class BucketService {
     }
 
     private List<BucketMetadata> getBucketEntities(List<String> owners, Optional<String> kind,
-            Optional<String> contentType, Optional<String> objectName) {
-        List<BucketMetadata> entities;
+            Optional<String> contentType, Optional<String> objectName, boolean allBuckets) {
         List<String> kindList = convertKindFilterToList(kind);
         long startTime = System.currentTimeMillis();
-        if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
-            List<Object[]> bucketsFromDB;
-            if (contentType.isPresent() || objectName.isPresent()) {
-                bucketsFromDB = bucketRepository.findBucketByOwnerContainingKindListAndContentTypeAndObjectName(owners,
-                                                                                                                kindList,
-                                                                                                                contentType.orElse(""),
-                                                                                                                objectName.orElse(""));
-                log.debug("bucket list timer : get buckets : DB request with filtering all parameters" +
-                          (System.currentTimeMillis() - startTime) + " ms");
-            } else { // only kind.isPresent()
-                bucketsFromDB = bucketRepository.findBucketByOwnerContainingKindList(owners, kindList);
-                log.debug("bucket list timer : get buckets : DB request with filtering only KIND parameter" +
-                          (System.currentTimeMillis() - startTime) + " ms");
-            }
-            entities = generateBucketMetadataListFromObject(bucketsFromDB);
+        List<Object[]> filteredBucketsFromDB = bucketRepository.findBucketByOwnerContainingKindListAndContentTypeAndObjectName(owners,
+                                                                                                                               kindList,
+                                                                                                                               contentType.orElse(""),
+                                                                                                                               objectName.orElse(""));
 
-        } else {
-            List<BucketEntity> bucketsFromDB = bucketRepository.findByOwnerIn(owners, sortById);
-            log.debug("bucket list timer : get buckets : DB request without filtering " +
-                      (System.currentTimeMillis() - startTime) + " ms");
-            entities = generateBucketMetadataList(bucketsFromDB);
+        List<BucketEntity> allBucketsFromDB = allBuckets ? bucketRepository.findAll() : null;
+        log.debug("bucket list timer : get buckets : DB request with filtering {} ms",
+                  (System.currentTimeMillis() - startTime));
+        List<BucketMetadata> filteredEntities = generateBucketMetadataListFromObject(filteredBucketsFromDB);
+        List<BucketMetadata> allEntities = allBuckets ? generateBucketMetadataList(allBucketsFromDB) : null;
+
+        List<BucketMetadata> answer = mergeEntities(filteredEntities, allEntities);
+        log.debug("bucket list timer : get buckets : total method time {} ms",
+                  (System.currentTimeMillis() - startTime));
+
+        return answer;
+    }
+
+    private List<BucketMetadata> mergeEntities(List<BucketMetadata> filteredEntities,
+            List<BucketMetadata> allEntities) {
+        if (allEntities == null) {
+            return filteredEntities;
         }
-        log.debug("bucket list timer : get buckets : total method time " + (System.currentTimeMillis() - startTime) +
-                  " ms");
-        return entities;
+        allEntities.stream().forEach(bucketMetadata -> bucketMetadata.setObjectCount(0));
+        return allEntities.stream()
+                          .map(bucketMetadata -> filteredEntities.stream()
+                                                                 .filter(filteredBucketMetadata -> filteredBucketMetadata.getName()
+                                                                                                                         .equals(bucketMetadata.getName()))
+                                                                 .findFirst()
+                                                                 .orElse(bucketMetadata))
+                          .collect(Collectors.toList());
     }
 
     private List<String> convertKindFilterToList(Optional<String> kindFilter) {
@@ -220,44 +227,22 @@ public class BucketService {
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
             Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus, String sessionId) {
-        List<BucketMetadata> entities;
-        List<String> kindList = convertKindFilterToList(kind);
-        List<String> owners = Collections.singletonList(ownerName);
 
-        if (!StringUtils.isEmpty(ownerName)) {
-            entities = getBucketEntities(owners, kind, contentType, objectName);
-        } else if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
-            List<Object[]> bucketsFromDB;
-            if (contentType.isPresent() || objectName.isPresent()) {
-                bucketsFromDB = bucketRepository.findBucketContainingKindListAndContentTypeAndObjectName(kindList,
-                                                                                                         contentType.orElse(null),
-                                                                                                         objectName.orElse(null));
-            } else { // only kind.isPresent()
-                bucketsFromDB = bucketRepository.findBucketContainingKindList(kindList);
-            }
-            entities = generateBucketMetadataListFromObject(bucketsFromDB);
+        return listBuckets(ownerName, kind, contentType, objectName, tag, associationStatus, sessionId, false);
+    }
 
-        } else {
-            entities = generateBucketMetadataList(bucketRepository.findAll(sortById));
-        }
+    public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
+            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus, String sessionId,
+            boolean allBuckets) {
+        List<String> owners = StringUtils.isEmpty(ownerName) ? Collections.emptyList()
+                                                             : Collections.singletonList(ownerName);
 
-        // Consider now objectTag filter
-        if (tag.isPresent() || associationStatus.isPresent()) {
-            filterByTagOrAssociationStatus(entities,
-                                           kindList,
-                                           contentType,
-                                           objectName,
-                                           tag,
-                                           associationStatus,
-                                           sessionId);
-        }
-
-        return entities;
+        return listBuckets(owners, kind, contentType, objectName, tag, associationStatus, sessionId, allBuckets);
     }
 
     private void filterByTagOrAssociationStatus(List<BucketMetadata> entities, List<String> kindList,
             Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
-            Optional<String> associationStatus, String sessionId) {
+            Optional<String> associationStatus, String sessionId, boolean allBuckets) {
         long startTime = System.currentTimeMillis();
         String tagFilter = tag.orElse(null);
         String associationStatusFilter = associationStatus.orElse(null);
@@ -297,12 +282,17 @@ public class BucketService {
                                                                                                                              .getBucketName()));
 
         // updating the object counts based on the objects which satisfying also the tag filter
-        for (BucketMetadata bucket : entities) {
+        for (Iterator<BucketMetadata> it = entities.iterator(); it.hasNext();) {
+            BucketMetadata bucket = it.next();
             int objectsCount = 0;
             if (objectsPerBucket.containsKey(bucket.getName())) {
                 objectsCount = objectsPerBucket.get(bucket.getName()).size();
             }
-            bucket.setObjectCount(objectsCount);
+            if (objectsCount == 0 && !allBuckets) {
+                it.remove();
+            } else {
+                bucket.setObjectCount(objectsCount);
+            }
         }
         log.debug("bucket list timer : filter tags time: " + (System.currentTimeMillis() - startTime) + " ms");
     }
@@ -395,12 +385,13 @@ public class BucketService {
                                   Optional.empty(),
                                   Optional.empty(),
                                   null,
+                                  false,
                                   authenticatedUserGroupsSupplier);
     }
 
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
-            Optional<String> associationStatus, String sessionId,
+            Optional<String> associationStatus, String sessionId, boolean allBuckets,
             Supplier<List<String>> authenticatedUserGroupsSupplier)
             throws NotAuthenticatedException, AccessDeniedException {
         List<String> groups;
@@ -419,7 +410,8 @@ public class BucketService {
                                                            objectName,
                                                            tag,
                                                            associationStatus,
-                                                           sessionId);
+                                                           sessionId,
+                                                           allBuckets);
         log.debug("bucket list timer : get buckets by groups : " + (System.currentTimeMillis() - startTime) + " ms");
         return bucketsByGroups;
     }

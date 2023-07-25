@@ -30,6 +30,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -379,6 +380,21 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
                .assertThat()
                .statusCode(HttpStatus.SC_OK)
                .body("", hasSize(0));
+
+        // list buckets by kind list and allBuckets -> should return all buckets with empty count
+        List<HashMap<String, Object>> bucketEntityWithContentCountList1 = given().param("kind",
+                                                                                        "workflow/pca,SCRIPT+s,rules")
+                                                                                 .param("allBuckets", "true")
+                                                                                 .get(BUCKETS_RESOURCE)
+                                                                                 .then()
+                                                                                 .assertThat()
+                                                                                 .statusCode(HttpStatus.SC_OK)
+                                                                                 .extract()
+                                                                                 .path("");
+
+        assertThat(bucketEntityWithContentCountList1, hasSize(3));
+
+        assertEquals(0, sumContentCount(bucketEntityWithContentCountList1));
 
     }
 

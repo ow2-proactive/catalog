@@ -51,6 +51,8 @@ import org.ow2.proactive.scheduler.common.task.TaskVariable;
 import org.ow2.proactive.scheduler.core.properties.PASchedulerProperties;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.Strings;
+
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -92,6 +94,8 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     public static final String ATTRIBUTE_DEPENDS_ON_LABEL = "depends_on";
 
     private static final String CATALOG_OBJECT_MODEL = "PA:CATALOG_OBJECT";
+
+    private static final String OPTIONAL_MODEL = "?";
 
     public static final String LATEST_VERSION = "latest";
 
@@ -312,7 +316,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     }
 
     private void addDependsOn(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, String value, String model) {
-        if (model.toUpperCase().startsWith(CATALOG_OBJECT_MODEL)) {
+        if (model.toUpperCase().startsWith(CATALOG_OBJECT_MODEL) && !Strings.isNullOrEmpty(value)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependsOn(value),
                                                                    getRevisionFromDependsOn(value).orElse(LATEST_VERSION),
                                                                    ATTRIBUTE_DEPENDS_ON_LABEL));
