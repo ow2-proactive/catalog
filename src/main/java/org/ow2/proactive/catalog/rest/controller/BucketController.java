@@ -271,16 +271,26 @@ public class BucketController {
         // Filter by bucket name
         if (!Strings.isNullOrEmpty(bucketName.orElse(""))) {
             listBucket = listBucket.stream()
-                                   .filter(bucketMetadata -> bucketMetadata.getName()
-                                                                           .toLowerCase()
-                                                                           .contains(bucketName.orElse("")
-                                                                                               .toLowerCase()))
+                                   .filter(bucketMetadata -> bucketNameMatches(bucketMetadata.getName(),
+                                                                               bucketName.orElse("")))
                                    .collect(Collectors.toList());
         }
         Collections.sort(listBucket);
         log.debug("bucket list timer : total : " + (System.currentTimeMillis() - startTime) + " ms");
         log.debug("====== Get buckets list request finished ========");
         return listBucket;
+    }
+
+    private boolean bucketNameMatches(String bucketName, String bucketNameFilter) {
+        if (bucketNameFilter.isEmpty()) {
+            return true;
+        }
+        if (bucketNameFilter.contains("%")) {
+            String bucketNameFilterUpdated = bucketNameFilter.toLowerCase().replace("%", ".*");
+            return bucketName.toLowerCase().matches(bucketNameFilterUpdated);
+        } else {
+            return bucketName.toLowerCase().contains(bucketNameFilter.toLowerCase());
+        }
     }
 
     @ApiOperation(value = "Delete the empty buckets")
