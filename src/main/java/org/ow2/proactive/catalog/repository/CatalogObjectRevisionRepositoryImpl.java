@@ -36,7 +36,10 @@ import javax.persistence.criteria.*;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+
+import com.google.common.collect.Lists;
 
 
 @Repository
@@ -44,6 +47,9 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
 
     @PersistenceContext
     EntityManager em;
+
+    @Value("${pa.catalog.db.items.max.size}")
+    private Integer dbItemsMaxSize;
 
     @Override
     public List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(
@@ -61,18 +67,45 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     @Override
     public List<CatalogObjectRevisionEntity>
             findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(List<String> bucketNames,
-                    List<String> kindList, String contentType, String objectName, String tag, int pageNo,
-                    int pageSize) {
+                    List<String> objectNames, List<String> kindList, String contentType, String objectName, String tag,
+                    int pageNo, int pageSize) {
         if (pageSize < 0) {
             throw new IllegalArgumentException("pageSize cannot be negative");
         }
-        return em.createQuery(buildCriteriaQuery(bucketNames, kindList, contentType, objectName, tag))
-                 .setMaxResults(pageSize)
-                 .setFirstResult(pageNo * pageSize)
-                 .getResultList()
-                 .stream()
-                 .distinct()
-                 .collect(Collectors.toList());
+        if (bucketNames != null && bucketNames.size() > dbItemsMaxSize) {
+            // if the number of buckets to filter is greater than the configurable max items, we consider not to filter by bucket names.
+            // doing otherwise would be very complex
+            bucketNames = null;
+        }
+        if (objectNames != null && objectNames.size() > dbItemsMaxSize) {
+            // we create a split partition for a big size of object name list
+            List<CatalogObjectRevisionEntity> answer = new ArrayList<>();
+            List<List<String>> partition = Lists.partition(objectNames, dbItemsMaxSize);
+            for (List<String> objectNamesSubList : partition) {
+                List<CatalogObjectRevisionEntity> subAnswer = em.createQuery(buildCriteriaQuery(bucketNames,
+                                                                                                objectNamesSubList,
+                                                                                                kindList,
+                                                                                                contentType,
+                                                                                                objectName,
+                                                                                                tag))
+                                                                .setMaxResults(pageSize)
+                                                                .setFirstResult(pageNo * pageSize)
+                                                                .getResultList()
+                                                                .stream()
+                                                                .distinct()
+                                                                .collect(Collectors.toList());
+                answer.addAll(subAnswer);
+            }
+            return answer;
+        } else {
+            return em.createQuery(buildCriteriaQuery(bucketNames, objectNames, kindList, contentType, objectName, tag))
+                     .setMaxResults(pageSize)
+                     .setFirstResult(pageNo * pageSize)
+                     .getResultList()
+                     .stream()
+                     .distinct()
+                     .collect(Collectors.toList());
+        }
     }
 
     private String toRightSidePredicatePattern(String pattern) {
@@ -84,14 +117,24 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     }
 
     private CriteriaQuery<CatalogObjectRevisionEntity> buildCriteriaQuery(List<String> bucketNames,
-            List<String> kindList, String contentType, String objectName, String tag) {
+            List<String> objectNames, List<String> kindList, String contentType, String objectName, String tag) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<CatalogObjectRevisionEntity> cq = cb.createQuery(CatalogObjectRevisionEntity.class);
         Root<CatalogObjectRevisionEntity> root = cq.from(CatalogObjectRevisionEntity.class);
 
-        ListJoin<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadata = root.joinList("keyValueMetadataList");
+        ListJoin<CatalogObjectRevisionEntity, KeyValueLabelMetadataEntity> metadata = null;
 
-        List<Predicate> allPredicates = getCommonPredicates(kindList, cb, root, contentType, objectName, bucketNames);
+        if (tag != null) {
+            metadata = root.joinList("keyValueMetadataList");
+        }
+
+        List<Predicate> allPredicates = getCommonPredicates(kindList,
+                                                            cb,
+                                                            root,
+                                                            contentType,
+                                                            objectName,
+                                                            bucketNames,
+                                                            objectNames);
 
         if (tag != null) {
             allPredicates.add(cb.equal(metadata.get("label"), WorkflowParser.OBJECT_TAG_LABEL));
@@ -109,7 +152,8 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     }
 
     private List<Predicate> getCommonPredicates(List<String> kindList, CriteriaBuilder cb,
-            Root<CatalogObjectRevisionEntity> root, String contentType, String objectName, List<String> bucketNames) {
+            Root<CatalogObjectRevisionEntity> root, String contentType, String objectName, List<String> bucketNames,
+            List<String> objectNames) {
         List<Predicate> allPredicates = new ArrayList<>();
         if (!kindList.isEmpty()) {
             List<Predicate> kindPredicates = new ArrayList<>();
@@ -132,10 +176,16 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
             allPredicates.add(objectNamePredicate);
         }
 
-        if (bucketNames != null) {
+        if (bucketNames != null && bucketNames.size() <= dbItemsMaxSize) {
             Predicate bucketNamesPredicate = cb.in(root.get("catalogObject").get("bucket").get("bucketName"))
                                                .value(bucketNames);
             allPredicates.add(bucketNamesPredicate);
+
+        }
+
+        if (objectNames != null && objectNames.size() <= dbItemsMaxSize) {
+            Predicate objectNamesPredicate = cb.in(root.get("catalogObject").get("nameLower")).value(objectNames);
+            allPredicates.add(objectNamesPredicate);
 
         }
 
@@ -151,7 +201,13 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
         CriteriaQuery<CatalogObjectRevisionEntity> cq = cb.createQuery(CatalogObjectRevisionEntity.class);
         Root<CatalogObjectRevisionEntity> root = cq.from(CatalogObjectRevisionEntity.class);
 
-        List<Predicate> allPredicates = getCommonPredicates(kindList, cb, root, contentType, objectName, bucketNames);
+        List<Predicate> allPredicates = getCommonPredicates(kindList,
+                                                            cb,
+                                                            root,
+                                                            contentType,
+                                                            objectName,
+                                                            bucketNames,
+                                                            null);
 
         cq.where(allPredicates.toArray(new Predicate[0]));
 
