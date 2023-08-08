@@ -604,6 +604,7 @@ public class CatalogObjectService {
                                                                                                                                 pageSize);
         } else {
             objectList = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(bucketNames,
+                                                                                                                                      null,
                                                                                                                                       kindList,
                                                                                                                                       contentType,
                                                                                                                                       objectName,

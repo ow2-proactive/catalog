@@ -54,6 +54,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -250,9 +251,22 @@ public class BucketService {
             return;
         }
         List<String> bucketNames = entities.stream().map(BucketMetadata::getName).collect(Collectors.toList());
+        List<String> objectNames = null;
         // search in the DB the latest revision of catalog objects which matching the other filters including the tag
         List<CatalogObjectRevisionEntity> objectList;
+        List<AssociatedObjectsByBucket> associatedObjectsByBucketList = null;
+
+        if (sessionId != null && associationStatus.isPresent()) {
+            associatedObjectsByBucketList = jobPlannerService.getAssociatedObjects(sessionId);
+            if (isFilteringEnabledAssociations(associationStatusFilter)) {
+                bucketNames = new ArrayList<>(Sets.intersection(findAllBucketNamesContainingAssociations(associatedObjectsByBucketList),
+                                                                new HashSet<>(bucketNames)));
+                objectNames = new ArrayList<>(findAllObjectNamesWithAssociations(associatedObjectsByBucketList));
+            }
+        }
+
         objectList = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(bucketNames,
+                                                                                                                                  objectNames,
                                                                                                                                   kindList,
                                                                                                                                   contentType.orElse(null),
                                                                                                                                   objectName.orElse(null),
@@ -262,7 +276,6 @@ public class BucketService {
         // filter by association status if requested
 
         if (sessionId != null && associationStatus.isPresent()) {
-            List<AssociatedObjectsByBucket> associatedObjectsByBucketList = jobPlannerService.getAssociatedObjects(sessionId);
             Map<String, AssociatedObjectsByBucket> associatedObjectsByBucketMap = associatedObjectsByBucketList.stream()
                                                                                                                .collect(Collectors.toMap(AssociatedObjectsByBucket::getBucketName,
                                                                                                                                          Function.identity()));
@@ -295,6 +308,24 @@ public class BucketService {
             }
         }
         log.debug("bucket list timer : filter tags time: " + (System.currentTimeMillis() - startTime) + " ms");
+    }
+
+    private boolean isFilteringEnabledAssociations(String associationFilter) {
+        return !UNPLANNED.equalsIgnoreCase(associationFilter);
+    }
+
+    private Set<String>
+            findAllBucketNamesContainingAssociations(List<AssociatedObjectsByBucket> associatedObjectsByBucketList) {
+        return associatedObjectsByBucketList.stream().map(object -> object.getBucketName()).collect(Collectors.toSet());
+    }
+
+    private Set<String>
+            findAllObjectNamesWithAssociations(List<AssociatedObjectsByBucket> associatedObjectsByBucketList) {
+        return associatedObjectsByBucketList.stream()
+                                            .map(objectsbyBucket -> objectsbyBucket.getObjects())
+                                            .flatMap(List::stream)
+                                            .map(object -> object.getObjectName().toLowerCase())
+                                            .collect(Collectors.toSet());
     }
 
     private boolean isObjectMatchingJobPlannerAssociationStatus(CatalogObjectRevisionEntity entity,

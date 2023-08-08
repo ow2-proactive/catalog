@@ -40,7 +40,7 @@ public interface CatalogObjectRevisionCustom {
             int pageSize);
 
     List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(
-            List<String> bucketNames, List<String> kindList, String contentType, String objectName, String tag,
-            int pageNo, int pageSize);
+            List<String> bucketNames, List<String> objectNames, List<String> kindList, String contentType,
+            String objectName, String tag, int pageNo, int pageSize);
 
 }
