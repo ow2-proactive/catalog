@@ -58,10 +58,14 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
         if (pageSize < 0) {
             throw new IllegalArgumentException("pageSize cannot be negative");
         }
-        return em.createQuery(buildCriteriaQuery(bucketNames, kindList, contentType, objectName))
-                 .setMaxResults(pageSize)
-                 .setFirstResult(pageNo * pageSize)
-                 .getResultList();
+        return bucketNames != null && bucketNames.isEmpty() ? new ArrayList<>()
+                                                            : em.createQuery(buildCriteriaQuery(bucketNames,
+                                                                                                kindList,
+                                                                                                contentType,
+                                                                                                objectName))
+                                                                .setMaxResults(pageSize)
+                                                                .setFirstResult(pageNo * pageSize)
+                                                                .getResultList();
     }
 
     @Override
@@ -72,12 +76,18 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
         if (pageSize < 0) {
             throw new IllegalArgumentException("pageSize cannot be negative");
         }
-        if (bucketNames != null && bucketNames.size() > dbItemsMaxSize) {
-            // if the number of buckets to filter is greater than the configurable max items, we consider not to filter by bucket names.
-            // doing otherwise would be very complex
-            bucketNames = null;
+        if (bucketNames != null) {
+            if (bucketNames.isEmpty()) {
+                return new ArrayList<>();
+            } else if (bucketNames.size() > dbItemsMaxSize) {
+                // if the number of buckets to filter is greater than the configurable max items, we consider not to filter by bucket names.
+                // doing otherwise would be very complex
+                bucketNames = null;
+            }
         }
-        if (objectNames != null && objectNames.size() > dbItemsMaxSize) {
+        if (objectNames != null && objectNames.isEmpty()) {
+            return new ArrayList<>();
+        } else if (objectNames != null && objectNames.size() > dbItemsMaxSize) {
             // we create a split partition for a big size of object name list
             List<CatalogObjectRevisionEntity> answer = new ArrayList<>();
             List<List<String>> partition = Lists.partition(objectNames, dbItemsMaxSize);
