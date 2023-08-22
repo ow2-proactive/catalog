@@ -236,7 +236,7 @@ dependencies {
     compile 'com.github.ben-manes.caffeine:caffeine'
 
     // library to build pdf reports
-    compile 'com.github.dhorions:boxable'
+    compile 'com.github.dhorions:boxable:1.7.0'
 
     compile "org.ow2.proactive:microservices-common:$version"
 
