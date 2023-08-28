@@ -235,6 +235,8 @@ dependencies {
 
     compile 'com.github.ben-manes.caffeine:caffeine'
 
+    compile 'org.jsoup:jsoup:1.15.4'
+
     // library to build pdf reports
     compile 'com.github.dhorions:boxable:1.7.0'
 
