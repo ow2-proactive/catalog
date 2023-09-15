@@ -33,6 +33,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
@@ -53,8 +54,8 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
 
     @Override
     public List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(
-            List<String> bucketNames, List<String> kindList, String contentType, String objectName, int pageNo,
-            int pageSize) {
+            List<String> bucketNames, List<String> kindList, String contentType, String objectName, String projectName,
+            int pageNo, int pageSize) {
         if (pageSize < 0) {
             throw new IllegalArgumentException("pageSize cannot be negative");
         }
@@ -62,7 +63,8 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                                                             : em.createQuery(buildCriteriaQuery(bucketNames,
                                                                                                 kindList,
                                                                                                 contentType,
-                                                                                                objectName))
+                                                                                                objectName,
+                                                                                                projectName))
                                                                 .setMaxResults(pageSize)
                                                                 .setFirstResult(pageNo * pageSize)
                                                                 .getResultList();
@@ -71,8 +73,8 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     @Override
     public List<CatalogObjectRevisionEntity>
             findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(List<String> bucketNames,
-                    List<String> objectNames, List<String> kindList, String contentType, String objectName, String tag,
-                    int pageNo, int pageSize) {
+                    List<String> objectNames, List<String> kindList, String contentType, String objectName,
+                    String projectName, String tag, int pageNo, int pageSize) {
         if (pageSize < 0) {
             throw new IllegalArgumentException("pageSize cannot be negative");
         }
@@ -97,6 +99,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                                                                                                 kindList,
                                                                                                 contentType,
                                                                                                 objectName,
+                                                                                                projectName,
                                                                                                 tag))
                                                                 .setMaxResults(pageSize)
                                                                 .setFirstResult(pageNo * pageSize)
@@ -108,7 +111,13 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
             }
             return answer;
         } else {
-            return em.createQuery(buildCriteriaQuery(bucketNames, objectNames, kindList, contentType, objectName, tag))
+            return em.createQuery(buildCriteriaQuery(bucketNames,
+                                                     objectNames,
+                                                     kindList,
+                                                     contentType,
+                                                     objectName,
+                                                     projectName,
+                                                     tag))
                      .setMaxResults(pageSize)
                      .setFirstResult(pageNo * pageSize)
                      .getResultList()
@@ -127,7 +136,8 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     }
 
     private CriteriaQuery<CatalogObjectRevisionEntity> buildCriteriaQuery(List<String> bucketNames,
-            List<String> objectNames, List<String> kindList, String contentType, String objectName, String tag) {
+            List<String> objectNames, List<String> kindList, String contentType, String objectName, String projectName,
+            String tag) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<CatalogObjectRevisionEntity> cq = cb.createQuery(CatalogObjectRevisionEntity.class);
         Root<CatalogObjectRevisionEntity> root = cq.from(CatalogObjectRevisionEntity.class);
@@ -143,6 +153,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                                                             root,
                                                             contentType,
                                                             objectName,
+                                                            projectName,
                                                             bucketNames,
                                                             objectNames);
 
@@ -162,8 +173,8 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     }
 
     private List<Predicate> getCommonPredicates(List<String> kindList, CriteriaBuilder cb,
-            Root<CatalogObjectRevisionEntity> root, String contentType, String objectName, List<String> bucketNames,
-            List<String> objectNames) {
+            Root<CatalogObjectRevisionEntity> root, String contentType, String objectName, String projectName,
+            List<String> bucketNames, List<String> objectNames) {
         List<Predicate> allPredicates = new ArrayList<>();
         if (!kindList.isEmpty()) {
             List<Predicate> kindPredicates = new ArrayList<>();
@@ -186,6 +197,11 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
             allPredicates.add(objectNamePredicate);
         }
 
+        if (!StringUtils.isBlank(projectName)) {
+            Predicate projectNamePredicate = cb.equal(root.get("projectName"), projectName);
+            allPredicates.add(projectNamePredicate);
+        }
+
         if (bucketNames != null && bucketNames.size() <= dbItemsMaxSize) {
             Predicate bucketNamesPredicate = cb.in(root.get("catalogObject").get("bucket").get("bucketName"))
                                                .value(bucketNames);
@@ -206,7 +222,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     }
 
     private CriteriaQuery<CatalogObjectRevisionEntity> buildCriteriaQuery(List<String> bucketNames,
-            List<String> kindList, String contentType, String objectName) {
+            List<String> kindList, String contentType, String objectName, String projectName) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<CatalogObjectRevisionEntity> cq = cb.createQuery(CatalogObjectRevisionEntity.class);
         Root<CatalogObjectRevisionEntity> root = cq.from(CatalogObjectRevisionEntity.class);
@@ -216,6 +232,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                                                             root,
                                                             contentType,
                                                             objectName,
+                                                            projectName,
                                                             bucketNames,
                                                             null);
 

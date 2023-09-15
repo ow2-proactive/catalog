@@ -85,6 +85,7 @@ public class CatalogObjectReportControllerIntegrationTest extends AbstractRestAs
                .queryParam("name", bucketObjectName)
                .queryParam("commitMessage", "commit message")
                .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .queryParam("projectName", MediaType.APPLICATION_XML.toString())
                .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
                .when()
                .post(CATALOG_OBJECTS_RESOURCE)

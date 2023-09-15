@@ -1394,6 +1394,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                                               "",
                                                                                                                                               "",
                                                                                                                                               "",
+                                                                                                                                              "",
                                                                                                                                               0,
                                                                                                                                               Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(2);
@@ -1415,12 +1416,14 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
                                                                                                                   0,
                                                                                                                   Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(1);
 
         catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(Arrays.asList(bucket.getName()),
                                                                                                                   "WORKFLOW",
+                                                                                                                  "",
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
@@ -1445,6 +1448,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
                                                                                                                   0,
                                                                                                                   Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(3);
@@ -1454,6 +1458,7 @@ public class CatalogObjectServiceIntegrationTest {
     public void testListCatalogObjectsByObjectTag() {
         List<CatalogObjectMetadata> catalogWorkflowsWithTag = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(Arrays.asList(bucket.getName()),
                                                                                                                                                        "workflow",
+                                                                                                                                                       "",
                                                                                                                                                        "",
                                                                                                                                                        "",
                                                                                                                                                        "",
@@ -1467,12 +1472,14 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                                                                 "",
                                                                                                                                                                 "",
                                                                                                                                                                 "",
+                                                                                                                                                                "",
                                                                                                                                                                 0,
                                                                                                                                                                 Integer.MAX_VALUE);
         assertThat(catalogWorkflowsWithOrWithoutTag).hasSize(1);
 
         List<CatalogObjectMetadata> catalogWorkflowsWithOrWithNonExistingTag = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(Arrays.asList(bucket.getName()),
                                                                                                                                                                         "workflow",
+                                                                                                                                                                        "",
                                                                                                                                                                         "",
                                                                                                                                                                         "",
                                                                                                                                                                         "XXX",
@@ -1494,6 +1501,7 @@ public class CatalogObjectServiceIntegrationTest {
     @Test(expected = InvalidDataAccessApiUsageException.class)
     public void testPageableCatalogObjectsByFiltersInBucketWrongParameters() {
         catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(Arrays.asList(bucket.getName()),
+                                                                                                 "",
                                                                                                  "",
                                                                                                  "",
                                                                                                  "",
@@ -1545,6 +1553,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                                               "",
                                                                                                                                               "",
                                                                                                                                               "",
+                                                                                                                                              "",
                                                                                                                                               1,
                                                                                                                                               2);
 
@@ -1591,10 +1600,12 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
                                                                                                                   2,
                                                                                                                   3);
         assertThat(catalogObjects).hasSize(0);
         catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(Arrays.asList(bucket.getName()),
+                                                                                                                  "",
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
@@ -1609,6 +1620,7 @@ public class CatalogObjectServiceIntegrationTest {
     public void testPageableCatalogObjectsInBucketByKindListAndContentType() {
         List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(Arrays.asList(bucket.getName()),
                                                                                                                                               "object",
+                                                                                                                                              "",
                                                                                                                                               "",
                                                                                                                                               "",
                                                                                                                                               "",
@@ -1657,6 +1669,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
                                                                                                                   1,
                                                                                                                   3);
         assertThat(catalogObjects).hasSize(1);
@@ -1702,6 +1715,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "text",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
                                                                                                                   1,
                                                                                                                   2);
         assertThat(catalogObjects).hasSize(1);
@@ -1711,12 +1725,14 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "text",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
                                                                                                                   0,
                                                                                                                   Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(3);
 
         catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(Arrays.asList(bucket.getName()),
                                                                                                                   "Script,object",
+                                                                                                                  "",
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
@@ -1790,6 +1806,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                  null);
 
         List<CatalogObjectMetadata> catalogObjects = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(Arrays.asList(bucket.getName()),
+                                                                                                                                              "",
                                                                                                                                               "",
                                                                                                                                               "",
                                                                                                                                               "",

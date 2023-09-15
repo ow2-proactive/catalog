@@ -136,8 +136,8 @@ public class BucketService {
     }
 
     public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus, String sessionId,
-            boolean allBuckets) {
+            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
+            Optional<String> projectName, String sessionId, boolean allBuckets) {
         if (owners == null) {
             return Collections.emptyList();
         }
@@ -145,15 +145,16 @@ public class BucketService {
         List<BucketMetadata> entities = getBucketEntities(owners, kind, contentType, objectName, allBuckets);
 
         // Consider now objectTag filter
-        if (tag.isPresent() || associationStatus.isPresent()) {
-            filterByTagOrAssociationStatus(entities,
-                                           convertKindFilterToList(kind),
-                                           contentType,
-                                           objectName,
-                                           tag,
-                                           associationStatus,
-                                           sessionId,
-                                           allBuckets);
+        if (tag.isPresent() || associationStatus.isPresent() || projectName.isPresent()) {
+            filterByTagOrAssociationStatusOrProjectName(entities,
+                                                        convertKindFilterToList(kind),
+                                                        contentType,
+                                                        objectName,
+                                                        tag,
+                                                        associationStatus,
+                                                        projectName,
+                                                        sessionId,
+                                                        allBuckets);
         }
 
         log.info("Buckets count {}", entities.size());
@@ -223,31 +224,57 @@ public class BucketService {
     }
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType) {
-        return listBuckets(ownerName, kind, contentType, Optional.empty(), Optional.empty(), Optional.empty(), null);
+        return listBuckets(ownerName,
+                           kind,
+                           contentType,
+                           Optional.empty(),
+                           Optional.empty(),
+                           Optional.empty(),
+                           Optional.empty(),
+                           null);
     }
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus, String sessionId) {
+            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
+            Optional<String> projectName, String sessionId) {
 
-        return listBuckets(ownerName, kind, contentType, objectName, tag, associationStatus, sessionId, false);
+        return listBuckets(ownerName,
+                           kind,
+                           contentType,
+                           objectName,
+                           tag,
+                           associationStatus,
+                           projectName,
+                           sessionId,
+                           false);
     }
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus, String sessionId,
-            boolean allBuckets) {
+            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
+            Optional<String> projectName, String sessionId, boolean allBuckets) {
         List<String> owners = StringUtils.isEmpty(ownerName) ? Collections.emptyList()
                                                              : Collections.singletonList(ownerName);
 
-        return listBuckets(owners, kind, contentType, objectName, tag, associationStatus, sessionId, allBuckets);
+        return listBuckets(owners,
+                           kind,
+                           contentType,
+                           objectName,
+                           tag,
+                           associationStatus,
+                           projectName,
+                           sessionId,
+                           allBuckets);
     }
 
-    private void filterByTagOrAssociationStatus(List<BucketMetadata> entities, List<String> kindList,
+    private void filterByTagOrAssociationStatusOrProjectName(List<BucketMetadata> entities, List<String> kindList,
             Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
-            Optional<String> associationStatus, String sessionId, boolean allBuckets) {
+            Optional<String> associationStatus, Optional<String> projectName, String sessionId, boolean allBuckets) {
         long startTime = System.currentTimeMillis();
         String tagFilter = tag.orElse(null);
         String associationStatusFilter = associationStatus.orElse(null);
-        if (Strings.isNullOrEmpty(tagFilter) && Strings.isNullOrEmpty(associationStatusFilter)) {
+        String projectNameFilter = projectName.orElse(null);
+        if (Strings.isNullOrEmpty(tagFilter) && Strings.isNullOrEmpty(associationStatusFilter) &&
+            Strings.isNullOrEmpty(projectNameFilter)) {
             return;
         }
         List<String> bucketNames = entities.stream().map(BucketMetadata::getName).collect(Collectors.toList());
@@ -270,6 +297,7 @@ public class BucketService {
                                                                                                                                   kindList,
                                                                                                                                   contentType.orElse(null),
                                                                                                                                   objectName.orElse(null),
+                                                                                                                                  projectName.orElse(null),
                                                                                                                                   tagFilter,
                                                                                                                                   0,
                                                                                                                                   Integer.MAX_VALUE);
@@ -415,6 +443,7 @@ public class BucketService {
                                   Optional.empty(),
                                   Optional.empty(),
                                   Optional.empty(),
+                                  Optional.empty(),
                                   null,
                                   false,
                                   authenticatedUserGroupsSupplier);
@@ -422,7 +451,7 @@ public class BucketService {
 
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
-            Optional<String> associationStatus, String sessionId, boolean allBuckets,
+            Optional<String> associationStatus, Optional<String> projectName, String sessionId, boolean allBuckets,
             Supplier<List<String>> authenticatedUserGroupsSupplier)
             throws NotAuthenticatedException, AccessDeniedException {
         List<String> groups;
@@ -441,6 +470,7 @@ public class BucketService {
                                                            objectName,
                                                            tag,
                                                            associationStatus,
+                                                           projectName,
                                                            sessionId,
                                                            allBuckets);
         log.debug("bucket list timer : get buckets by groups : " + (System.currentTimeMillis() - startTime) + " ms");

@@ -399,6 +399,7 @@ public class CatalogObjectController {
             @ApiParam(value = "Filter according to Object Name.") @RequestParam(value = "objectName", required = false) Optional<String> objectNameFilter,
             @ApiParam(value = "Filter according to Object Tag.") @RequestParam(value = "objectTag", required = false) Optional<String> objectTagFilter,
             @ApiParam(value = "Filter according to Job-Planner association status. If enabled, only objects for which a job-planner association exists with the provided status will be returned. ALL, PLANNED, DEACTIVATED, FAILED or UNPLANNED. ALL will filter objects which have an association with any status. UNPLANNED will filter objects without any association.") @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatusFilter,
+            @ApiParam(value = "Filter according to Project Name.") @RequestParam(value = "projectName", required = false) Optional<String> projectNameFilter,
             @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
             @ApiParam(value = "Page number", required = false) @RequestParam(defaultValue = "0", value = "pageNo") int pageNo,
             @ApiParam(value = "Page size", required = false) @RequestParam(defaultValue = MAXVALUE +
@@ -440,6 +441,7 @@ public class CatalogObjectController {
         contentType = contentType.filter(s -> !s.isEmpty());
         objectNameFilter = objectNameFilter.filter(s -> !s.isEmpty());
         objectTagFilter = objectTagFilter.filter(s -> !s.isEmpty());
+        projectNameFilter = projectNameFilter.filter(s -> !s.isEmpty());
         if (names.isPresent()) {
             ZipArchiveContent content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, names.get());
             return getResponseAsArchive(content, response);
@@ -449,6 +451,7 @@ public class CatalogObjectController {
                                                                                                contentType,
                                                                                                objectNameFilter,
                                                                                                objectTagFilter,
+                                                                                               projectNameFilter,
                                                                                                pageNo,
                                                                                                pageSize);
 
