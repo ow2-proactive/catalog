@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.repository;
 
 import java.util.List;
+
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 
 
