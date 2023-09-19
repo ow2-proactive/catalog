@@ -26,7 +26,6 @@
 package org.ow2.proactive.catalog.repository;
 
 import java.util.List;
-
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 
 
@@ -37,10 +36,10 @@ public interface CatalogObjectRevisionCustom {
 
     List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(
             List<String> bucketNames, List<String> kindList, String contentType, String objectName, String projectName,
-            int pageNo, int pageSize);
+            String lastCommittedBy, int pageNo, int pageSize);
 
     List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(
             List<String> bucketNames, List<String> objectNames, List<String> kindList, String contentType,
-            String objectName, String projectName, String tag, int pageNo, int pageSize);
+            String objectName, String projectName, String lastCommittedBy, String tag, int pageNo, int pageSize);
 
 }

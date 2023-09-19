@@ -27,9 +27,7 @@ package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,7 +42,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -96,11 +93,17 @@ public class BucketServiceTest {
                                              null,
                                              null,
                                              null,
+                                             null,
+                                             null,
+                                             null,
                                              false)).isEmpty();
-        verify(bucketRepository, times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(any(),
-                                                                                                          any(),
-                                                                                                          any(),
-                                                                                                          any());
+        verify(bucketRepository,
+               times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(any(),
+                                                                                                                    any(),
+                                                                                                                    any(),
+                                                                                                                    any(),
+                                                                                                                    any(),
+                                                                                                                    any());
         verify(bucketRepository, times(0)).findByOwnerIn(any(), any(Sort.class));
     }
 
@@ -115,12 +118,18 @@ public class BucketServiceTest {
                                              Optional.empty(),
                                              Optional.empty(),
                                              Optional.empty(),
+                                             Optional.empty(),
+                                             Optional.empty(),
+                                             Optional.empty(),
                                              (String) null,
                                              false)).isEmpty();
-        verify(bucketRepository, times(1)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(anyList(),
-                                                                                                          anyList(),
-                                                                                                          any(),
-                                                                                                          any());
+        verify(bucketRepository,
+               times(1)).findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(anyList(),
+                                                                                                                    anyList(),
+                                                                                                                    any(),
+                                                                                                                    any(),
+                                                                                                                    any(),
+                                                                                                                    any());
     }
 
     @Test
@@ -248,10 +257,13 @@ public class BucketServiceTest {
     private void listBucket(String owner, Optional<String> kind, Optional<String> contentType) {
         when(bucketRepository.findAll()).thenReturn(Collections.emptyList());
         bucketService.listBuckets(owner, (kind), (contentType));
-        verify(bucketRepository, times(1)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(anyList(),
-                                                                                                          anyList(),
-                                                                                                          anyString(),
-                                                                                                          anyString());
+        verify(bucketRepository,
+               times(1)).findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(anyList(),
+                                                                                                                    anyList(),
+                                                                                                                    anyString(),
+                                                                                                                    anyString(),
+                                                                                                                    anyLong(),
+                                                                                                                    anyLong());
     }
 
     private BucketEntity newMockedBucket(Long id, String name, LocalDateTime createdAt) {

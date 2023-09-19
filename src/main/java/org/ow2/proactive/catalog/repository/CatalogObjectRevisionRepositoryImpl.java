@@ -40,6 +40,7 @@ import org.ow2.proactive.catalog.util.parser.WorkflowParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 
@@ -55,7 +56,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     @Override
     public List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(
             List<String> bucketNames, List<String> kindList, String contentType, String objectName, String projectName,
-            int pageNo, int pageSize) {
+            String lastCommittedBy, int pageNo, int pageSize) {
         if (pageSize < 0) {
             throw new IllegalArgumentException("pageSize cannot be negative");
         }
@@ -64,7 +65,8 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                                                                                                 kindList,
                                                                                                 contentType,
                                                                                                 objectName,
-                                                                                                projectName))
+                                                                                                projectName,
+                                                                                                lastCommittedBy))
                                                                 .setMaxResults(pageSize)
                                                                 .setFirstResult(pageNo * pageSize)
                                                                 .getResultList();
@@ -74,7 +76,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     public List<CatalogObjectRevisionEntity>
             findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(List<String> bucketNames,
                     List<String> objectNames, List<String> kindList, String contentType, String objectName,
-                    String projectName, String tag, int pageNo, int pageSize) {
+                    String projectName, String lastCommittedBy, String tag, int pageNo, int pageSize) {
         if (pageSize < 0) {
             throw new IllegalArgumentException("pageSize cannot be negative");
         }
@@ -100,6 +102,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                                                                                                 contentType,
                                                                                                 objectName,
                                                                                                 projectName,
+                                                                                                lastCommittedBy,
                                                                                                 tag))
                                                                 .setMaxResults(pageSize)
                                                                 .setFirstResult(pageNo * pageSize)
@@ -117,6 +120,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                                                      contentType,
                                                      objectName,
                                                      projectName,
+                                                     lastCommittedBy,
                                                      tag))
                      .setMaxResults(pageSize)
                      .setFirstResult(pageNo * pageSize)
@@ -137,7 +141,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
 
     private CriteriaQuery<CatalogObjectRevisionEntity> buildCriteriaQuery(List<String> bucketNames,
             List<String> objectNames, List<String> kindList, String contentType, String objectName, String projectName,
-            String tag) {
+            String lastCommittedBy, String tag) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<CatalogObjectRevisionEntity> cq = cb.createQuery(CatalogObjectRevisionEntity.class);
         Root<CatalogObjectRevisionEntity> root = cq.from(CatalogObjectRevisionEntity.class);
@@ -154,6 +158,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                                                             contentType,
                                                             objectName,
                                                             projectName,
+                                                            lastCommittedBy,
                                                             bucketNames,
                                                             objectNames);
 
@@ -174,7 +179,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
 
     private List<Predicate> getCommonPredicates(List<String> kindList, CriteriaBuilder cb,
             Root<CatalogObjectRevisionEntity> root, String contentType, String objectName, String projectName,
-            List<String> bucketNames, List<String> objectNames) {
+            String lastCommittedBy, List<String> bucketNames, List<String> objectNames) {
         List<Predicate> allPredicates = new ArrayList<>();
         if (!kindList.isEmpty()) {
             List<Predicate> kindPredicates = new ArrayList<>();
@@ -197,8 +202,14 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
             allPredicates.add(objectNamePredicate);
         }
 
-        if (!StringUtils.isBlank(projectName)) {
-            Predicate projectNamePredicate = cb.equal(root.get("projectName"), projectName);
+        if (!Strings.isNullOrEmpty(projectName)) {
+            Predicate projectNamePredicate = cb.like(cb.lower(root.get("projectName")),
+                                                     toBothSidesPredicatePattern(projectName));
+            allPredicates.add(projectNamePredicate);
+        }
+
+        if (!Strings.isNullOrEmpty(lastCommittedBy)) {
+            Predicate projectNamePredicate = cb.equal(root.get("username"), lastCommittedBy);
             allPredicates.add(projectNamePredicate);
         }
 
@@ -222,7 +233,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     }
 
     private CriteriaQuery<CatalogObjectRevisionEntity> buildCriteriaQuery(List<String> bucketNames,
-            List<String> kindList, String contentType, String objectName, String projectName) {
+            List<String> kindList, String contentType, String objectName, String projectName, String lastCommittedBy) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<CatalogObjectRevisionEntity> cq = cb.createQuery(CatalogObjectRevisionEntity.class);
         Root<CatalogObjectRevisionEntity> root = cq.from(CatalogObjectRevisionEntity.class);
@@ -233,13 +244,13 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                                                             contentType,
                                                             objectName,
                                                             projectName,
+                                                            lastCommittedBy,
                                                             bucketNames,
                                                             null);
 
         cq.where(allPredicates.toArray(new Predicate[0]));
 
         cq.orderBy(cb.asc(root.get("projectName")));
-
         cq.select(root);
         return cq;
     }
