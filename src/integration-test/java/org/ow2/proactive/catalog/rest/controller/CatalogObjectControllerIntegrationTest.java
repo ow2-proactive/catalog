@@ -38,6 +38,7 @@ import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_E
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -108,7 +109,6 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .post(CATALOG_OBJECTS_RESOURCE)
                .then()
                .statusCode(HttpStatus.SC_CREATED);
-
     }
 
     @After
@@ -708,6 +708,131 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
     }
 
     @Test
+    public void testGetCatalogObjectsByProjectNameAndLastCommitTime() throws InterruptedException {
+        // Tiny wait to ensure that the catalog object created in @Before has a different commit time than the following one
+        long testStartTimeMilli = tinyWait();
+
+        String pcaKind = "pca";
+        String scriptTaskKind = "Script/task";
+        String groovyContentType = "text/x-groovy";
+        String projectName = "projectName";
+
+        // Add an object in project projectName
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", pcaKind)
+               .queryParam("name", "pca-WorkflowName")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("projectName", projectName)
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        long pcaOtherObjectNameCreationTime = tinyWait();
+
+        // Add an object not part of project projectName
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", pcaKind)
+               .queryParam("name", "pca-other-object-name")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("projectName", "another project")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        // Add a second object not part of project projectName
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", scriptTaskKind)
+               .queryParam("name", "pca-other-object-name-2")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", groovyContentType)
+               .queryParam("projectName", "another project")
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        //check that total with no project name filter, all objects are returned
+        given().pathParam("bucketName", bucket.getName())
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(4));
+
+        //check that project name filter returns only catalog object in the project
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("projectName", projectName)
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+        //check that list object created before the start of the test = 1 (= object created in @Before)
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("lastCommitTimeLessThan", testStartTimeMilli)
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+
+        // Test before second object creation time.
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("lastCommitTimeLessThan", pcaOtherObjectNameCreationTime)
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(2));
+
+        // Test after creation of first catalog object
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("lastCommitTimeGreater", testStartTimeMilli)
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(3));
+
+        // Test after creation of second catalog object
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("lastCommitTimeGreater", pcaOtherObjectNameCreationTime)
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(2));
+
+        // Test time between first and second object creation
+        given().pathParam("bucketName", bucket.getName())
+               .queryParam("lastCommitTimeLessThan", pcaOtherObjectNameCreationTime)
+               .queryParam("lastCommitTimeGreater", testStartTimeMilli)
+               .when()
+               .get(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("results.size()", equalTo(1));
+    }
+
+    @Test
     public void testGetCatalogObjectsNameReferenceByKindAndContentType() {
         String workflowKind = "workflow";
         String pcaKind = "pca";
@@ -1215,4 +1340,8 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                "      xmlns=\"http://www.w3.org/1999/xhtml\" fill=\"#666\" stroke=\"none\" style=\"\"></circle></svg></div></div></body></html>";
     }
 
+    private long tinyWait() throws InterruptedException {
+        Thread.sleep(4); // to be sure that a new revision time will be different from previous revision time
+        return Instant.now().toEpochMilli();
+    }
 }

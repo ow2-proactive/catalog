@@ -207,7 +207,7 @@ public class BucketController {
             @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
             @ApiParam(value = "The bucket name contains the value of this parameter (case insensitive)")
             @RequestParam(value = "bucketName", required = false)
-            final Optional<String> bucketName, @ApiParam(value = "The project name equals this parameter (case insensitive)") @RequestParam(value = "projectName", required = false) Optional<String> projectName, @ApiParam(value = "The user who last committed changes in the buckets") @RequestParam(value = "username", required = false) Optional<String> lastCommittedBy, @ApiParam(value = "The time after the last commit took place in the buckets in ms") @RequestParam(value = "committedTimeGreater", required = false, defaultValue = "0") Optional<Long> committedTimeGreater, @ApiParam(value = "The time before the last commit took place in the buckets in ms") @RequestParam(value = "committedTimeLessThan", required = false, defaultValue = "0") Optional<Long> committedTimeLessThan, @ApiParam(value = "If true, buckets without objects matching the filters will be returned with objectCount=0. Default is false") @RequestParam(value = "allBuckets", required = false, defaultValue = "false") String allBuckets) throws NotAuthenticatedException, AccessDeniedException {
+            final Optional<String> bucketName, @ApiParam(value = "Filters only buckets and object counts based on project names that contain the provided project name (case-insensitive).") @RequestParam(value = "projectName", required = false) Optional<String> projectName, @ApiParam(value = "The user who last committed changes in the buckets") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy, @ApiParam(value = "Filters only buckets and object counts corresponding to commits which occurred after the given EPOCH time.") @RequestParam(value = "lastCommitTimeGreater", required = false, defaultValue = "0") Optional<Long> lastCommitTimeGreater, @ApiParam(value = "Filters only buckets and object counts corresponding to commits which occurred before the given EPOCH time.") @RequestParam(value = "lastCommitTimeLessThan", required = false, defaultValue = "0") Optional<Long> lastCommitTimeLessThan, @ApiParam(value = "If true, buckets without objects matching the filters will be returned with objectCount=0. Default is false") @RequestParam(value = "allBuckets", required = false, defaultValue = "false") String allBuckets) throws NotAuthenticatedException, AccessDeniedException {
 
         List<BucketMetadata> listBucket;
         log.debug("====== Get buckets list request started ======== ");
@@ -220,7 +220,7 @@ public class BucketController {
         tag = tag.filter(s -> !s.isEmpty());
         associationStatus = associationStatus.filter(s -> !s.isEmpty());
         projectName = projectName.filter(s -> !s.isEmpty());
-        lastCommittedBy = lastCommittedBy.filter(s -> !s.isEmpty());
+        lastCommitBy = lastCommitBy.filter(s -> !s.isEmpty());
         boolean allBucketsEnabled = Boolean.parseBoolean(allBuckets);
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
@@ -234,9 +234,9 @@ public class BucketController {
                                                           tag,
                                                           associationStatus,
                                                           projectName,
-                                                          lastCommittedBy,
-                                                          committedTimeGreater,
-                                                          committedTimeLessThan,
+                                                          lastCommitBy,
+                                                          lastCommitTimeGreater,
+                                                          lastCommitTimeLessThan,
                                                           sessionId,
                                                           allBucketsEnabled,
                                                           user::getGroups);
@@ -273,9 +273,9 @@ public class BucketController {
                                                    tag,
                                                    associationStatus,
                                                    projectName,
-                                                   lastCommittedBy,
-                                                   committedTimeGreater,
-                                                   committedTimeLessThan,
+                                                   lastCommitBy,
+                                                   lastCommitTimeGreater,
+                                                   lastCommitTimeLessThan,
                                                    sessionId,
                                                    allBucketsEnabled);
         }

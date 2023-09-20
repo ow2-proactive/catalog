@@ -137,8 +137,8 @@ public class BucketService {
 
     public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
             Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
-            Optional<String> projectName, Optional<String> lastCommittedBy, Optional<Long> committedTimeGreater,
-            Optional<Long> committedTimeLessThan, String sessionId, boolean allBuckets) {
+            Optional<String> projectName, Optional<String> lastCommitBy, Optional<Long> lastCommitTimeGreater,
+            Optional<Long> lastCommitTimeLessThan, String sessionId, boolean allBuckets) {
         if (owners == null) {
             return Collections.emptyList();
         }
@@ -147,23 +147,25 @@ public class BucketService {
                                                           kind,
                                                           contentType,
                                                           objectName,
-                                                          committedTimeGreater,
-                                                          committedTimeLessThan,
+                                                          lastCommitTimeGreater,
+                                                          lastCommitTimeLessThan,
                                                           allBuckets);
 
-        // Consider now objectTag filter
-        if (tag.isPresent() || associationStatus.isPresent() || projectName.isPresent() ||
-            lastCommittedBy.isPresent()) {
-            filterByTagOrAssociationStatusOrProjectName(entities,
-                                                        convertKindFilterToList(kind),
-                                                        contentType,
-                                                        objectName,
-                                                        tag,
-                                                        associationStatus,
-                                                        projectName,
-                                                        lastCommittedBy,
-                                                        sessionId,
-                                                        allBuckets);
+        // Consider now objectTag, association status, project name, last committed by, commit time range filters
+        if (tag.isPresent() || associationStatus.isPresent() || projectName.isPresent() || lastCommitBy.isPresent() ||
+            lastCommitTimeGreater.isPresent() || lastCommitTimeLessThan.isPresent()) {
+            filterByTagOrAssociationStatusOrProjectNameOrLastCommittedBy(entities,
+                                                                         convertKindFilterToList(kind),
+                                                                         contentType,
+                                                                         objectName,
+                                                                         tag,
+                                                                         associationStatus,
+                                                                         projectName,
+                                                                         lastCommitBy,
+                                                                         Optional.of(0L),
+                                                                         Optional.of(0L),
+                                                                         sessionId,
+                                                                         allBuckets);
         }
 
         log.info("Buckets count {}", entities.size());
@@ -171,16 +173,16 @@ public class BucketService {
     }
 
     private List<BucketMetadata> getBucketEntities(List<String> owners, Optional<String> kind,
-            Optional<String> contentType, Optional<String> objectName, Optional<Long> committedTimeGreater,
-            Optional<Long> committedTimeLessThan, boolean allBuckets) {
+            Optional<String> contentType, Optional<String> objectName, Optional<Long> lastCommitTimeGreater,
+            Optional<Long> lastCcommitTimeLessThan, boolean allBuckets) {
         List<String> kindList = convertKindFilterToList(kind);
         long startTime = System.currentTimeMillis();
         List<Object[]> filteredBucketsFromDB = bucketRepository.findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(owners,
                                                                                                                                                            kindList,
                                                                                                                                                            contentType.orElse(""),
                                                                                                                                                            objectName.orElse(""),
-                                                                                                                                                           committedTimeGreater.orElse(0L),
-                                                                                                                                                           committedTimeLessThan.orElse(0L));
+                                                                                                                                                           lastCommitTimeGreater.orElse(0L),
+                                                                                                                                                           lastCcommitTimeLessThan.orElse(0L));
 
         List<BucketEntity> allBucketsFromDB = allBuckets ? bucketRepository.findAll() : null;
         log.debug("bucket list timer : get buckets : DB request with filtering {} ms",
@@ -251,8 +253,8 @@ public class BucketService {
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
             Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
-            Optional<String> projectName, Optional<String> lastCommittedBy, Optional<Long> committedTimeGreater,
-            Optional<Long> committedTimeLessThan, String sessionId) {
+            Optional<String> projectName, Optional<String> lastCommitBy, Optional<Long> lastCommitTimeGreater,
+            Optional<Long> lastCommitTimeLessThan, String sessionId) {
 
         return listBuckets(ownerName,
                            kind,
@@ -261,17 +263,17 @@ public class BucketService {
                            tag,
                            associationStatus,
                            projectName,
-                           lastCommittedBy,
-                           committedTimeGreater,
-                           committedTimeLessThan,
+                           lastCommitBy,
+                           lastCommitTimeGreater,
+                           lastCommitTimeLessThan,
                            sessionId,
                            false);
     }
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
             Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
-            Optional<String> projectName, Optional<String> lastCommittedBy, Optional<Long> committedTimeGreater,
-            Optional<Long> committedTimeLessThan, String sessionId, boolean allBuckets) {
+            Optional<String> projectName, Optional<String> lastCommitBy, Optional<Long> lastCommitTimeGreater,
+            Optional<Long> lastCommitTimeLessThan, String sessionId, boolean allBuckets) {
         List<String> owners = StringUtils.isEmpty(ownerName) ? Collections.emptyList()
                                                              : Collections.singletonList(ownerName);
 
@@ -282,24 +284,27 @@ public class BucketService {
                            tag,
                            associationStatus,
                            projectName,
-                           lastCommittedBy,
-                           committedTimeGreater,
-                           committedTimeLessThan,
+                           lastCommitBy,
+                           lastCommitTimeGreater,
+                           lastCommitTimeLessThan,
                            sessionId,
                            allBuckets);
     }
 
-    private void filterByTagOrAssociationStatusOrProjectName(List<BucketMetadata> entities, List<String> kindList,
-            Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
-            Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommittedBy,
-            String sessionId, boolean allBuckets) {
+    private void filterByTagOrAssociationStatusOrProjectNameOrLastCommittedBy(List<BucketMetadata> entities,
+            List<String> kindList, Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
+            Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
+            Optional<Long> lastCommitTimeGreater, Optional<Long> lastCommitTimeLessThan, String sessionId,
+            boolean allBuckets) {
         long startTime = System.currentTimeMillis();
         String tagFilter = tag.orElse(null);
         String associationStatusFilter = associationStatus.orElse(null);
         String projectNameFilter = projectName.orElse(null);
-        String lastCommittedByFilter = lastCommittedBy.orElse(null);
+        String lastCommitByFilter = lastCommitBy.orElse(null);
+        Long lastCommitTimeGreaterFilter = lastCommitTimeGreater.orElse(0L);
+        Long lastCommitTimeLessThanFilter = lastCommitTimeLessThan.orElse(0L);
         if (Strings.isNullOrEmpty(tagFilter) && Strings.isNullOrEmpty(associationStatusFilter) &&
-            Strings.isNullOrEmpty(projectNameFilter) && Strings.isNullOrEmpty(lastCommittedByFilter)) {
+            Strings.isNullOrEmpty(projectNameFilter) && Strings.isNullOrEmpty(lastCommitByFilter)) {
             return;
         }
         List<String> bucketNames = entities.stream().map(BucketMetadata::getName).collect(Collectors.toList());
@@ -323,8 +328,10 @@ public class BucketService {
                                                                                                                                   contentType.orElse(null),
                                                                                                                                   objectName.orElse(null),
                                                                                                                                   projectNameFilter,
-                                                                                                                                  lastCommittedByFilter,
+                                                                                                                                  lastCommitByFilter,
                                                                                                                                   tagFilter,
+                                                                                                                                  lastCommitTimeGreaterFilter,
+                                                                                                                                  lastCommitTimeLessThanFilter,
                                                                                                                                   0,
                                                                                                                                   Integer.MAX_VALUE);
         // filter by association status if requested
@@ -480,8 +487,8 @@ public class BucketService {
 
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
-            Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommittedBy,
-            Optional<Long> committedTimeGreater, Optional<Long> committedTimeLessThan, String sessionId,
+            Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
+            Optional<Long> lastCommitTimeGreater, Optional<Long> lastCommitTimeLessThan, String sessionId,
             boolean allBuckets, Supplier<List<String>> authenticatedUserGroupsSupplier)
             throws NotAuthenticatedException, AccessDeniedException {
         List<String> groups;
@@ -501,9 +508,9 @@ public class BucketService {
                                                            tag,
                                                            associationStatus,
                                                            projectName,
-                                                           lastCommittedBy,
-                                                           committedTimeGreater,
-                                                           committedTimeLessThan,
+                                                           lastCommitBy,
+                                                           lastCommitTimeGreater,
+                                                           lastCommitTimeLessThan,
                                                            sessionId,
                                                            allBuckets);
         log.debug("bucket list timer : get buckets by groups : " + (System.currentTimeMillis() - startTime) + " ms");

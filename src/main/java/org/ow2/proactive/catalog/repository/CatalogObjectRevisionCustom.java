@@ -37,10 +37,11 @@ public interface CatalogObjectRevisionCustom {
 
     List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(
             List<String> bucketNames, List<String> kindList, String contentType, String objectName, String projectName,
-            String lastCommittedBy, int pageNo, int pageSize);
+            String lastCommitBy, Long lastCommitTimeGreater, Long lastCommitTimeLessThan, int pageNo, int pageSize);
 
     List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(
             List<String> bucketNames, List<String> objectNames, List<String> kindList, String contentType,
-            String objectName, String projectName, String lastCommittedBy, String tag, int pageNo, int pageSize);
+            String objectName, String projectName, String lastCommitBy, String tag, Long lastCommitTimeGreater,
+            Long lastCommitTimeLessThan, int pageNo, int pageSize);
 
 }
