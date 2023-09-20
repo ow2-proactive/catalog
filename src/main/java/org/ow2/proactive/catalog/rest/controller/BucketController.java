@@ -31,6 +31,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -206,7 +207,7 @@ public class BucketController {
             @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
             @ApiParam(value = "The bucket name contains the value of this parameter (case insensitive)")
             @RequestParam(value = "bucketName", required = false)
-            final Optional<String> bucketName, @ApiParam(value = "If true, buckets without objects matching the filters will be returned with objectCount=0. Default is false") @RequestParam(value = "allBuckets", required = false, defaultValue = "false") String allBuckets) throws NotAuthenticatedException, AccessDeniedException {
+            final Optional<String> bucketName, @ApiParam(value = "Include only objects whose project name contains the given string.") @RequestParam(value = "projectName", required = false) Optional<String> projectName, @ApiParam(value = "Include only objects whose last commit belong to the given user.") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy, @ApiParam(value = "Include only objects whose last commit time is greater than the given EPOCH time.") @RequestParam(value = "lastCommitTimeGreater", required = false, defaultValue = "0") Optional<Long> lastCommitTimeGreater, @ApiParam(value = "Include only objects whose last commit time is less than the given EPOCH time.") @RequestParam(value = "lastCommitTimeLessThan", required = false, defaultValue = "0") Optional<Long> lastCommitTimeLessThan, @ApiParam(value = "If true, buckets without objects matching the filters will be returned with objectCount=0. Default is false") @RequestParam(value = "allBuckets", required = false, defaultValue = "false") String allBuckets) throws NotAuthenticatedException, AccessDeniedException {
 
         List<BucketMetadata> listBucket;
         log.debug("====== Get buckets list request started ======== ");
@@ -218,6 +219,8 @@ public class BucketController {
         objectName = objectName.filter(s -> !s.isEmpty());
         tag = tag.filter(s -> !s.isEmpty());
         associationStatus = associationStatus.filter(s -> !s.isEmpty());
+        projectName = projectName.filter(s -> !s.isEmpty());
+        lastCommitBy = lastCommitBy.filter(s -> !s.isEmpty());
         boolean allBucketsEnabled = Boolean.parseBoolean(allBuckets);
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
@@ -230,6 +233,10 @@ public class BucketController {
                                                           objectName,
                                                           tag,
                                                           associationStatus,
+                                                          projectName,
+                                                          lastCommitBy,
+                                                          lastCommitTimeGreater,
+                                                          lastCommitTimeLessThan,
                                                           sessionId,
                                                           allBucketsEnabled,
                                                           user::getGroups);
@@ -265,6 +272,10 @@ public class BucketController {
                                                    objectName,
                                                    tag,
                                                    associationStatus,
+                                                   projectName,
+                                                   lastCommitBy,
+                                                   lastCommitTimeGreater,
+                                                   lastCommitTimeLessThan,
                                                    sessionId,
                                                    allBucketsEnabled);
         }

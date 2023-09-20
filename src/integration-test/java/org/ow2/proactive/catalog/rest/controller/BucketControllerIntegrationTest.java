@@ -58,6 +58,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.response.Response;
+import com.jayway.restassured.response.ValidatableResponse;
 
 
 /**
@@ -737,6 +738,53 @@ public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
         // list buckets by specific kind, specified Content-Type and Object name-> should return one specified bucket
         given().param("kind", "other-kind")
                .param("objectName", "object")
+               .get(BUCKETS_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_OK)
+               .body("", hasSize(1));
+    }
+
+    @Test
+    public void testListBucketsWithContainingProjectName() throws UnsupportedEncodingException {
+        final String BucketAdminOwnerWorkflowKind = "bucket-admin-owner-workflow-kind";
+        final String BucketAdminOwnerEmptyBucket = "bucket-admin-owner-empty-bucket";
+        final String BucketAdminOwnerOtherKind = "bucket-admin-owner-other-kind";
+        final String testedBucketContainsProjectName = "bucket-with-project-name-test";
+
+        final String adminOwner = "admin";
+        final String userOwner = "user";
+        final String projectName = "tested project name";
+
+        String bucketAdminOwnerWorkflowKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerWorkflowKind,
+                                                                                 adminOwner);
+        IntegrationTestUtil.createBucket(BucketAdminOwnerEmptyBucket, adminOwner);
+        String BucketAdminOwnerOtherKindId = IntegrationTestUtil.createBucket(BucketAdminOwnerOtherKind, adminOwner);
+        String testedBucketContainsProjectNameId = IntegrationTestUtil.createBucket(testedBucketContainsProjectName,
+                                                                                    userOwner);
+
+        IntegrationTestUtil.postDefaultWorkflowToBucket(bucketAdminOwnerWorkflowKindId);
+        IntegrationTestUtil.postObjectToBucket(BucketAdminOwnerOtherKindId,
+                                               "my workflow",
+                                               "",
+                                               "other-kind",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        IntegrationTestUtil.postObjectToBucket(testedBucketContainsProjectNameId,
+                                               "other object",
+                                               projectName,
+                                               "other-kind",
+                                               MediaType.APPLICATION_ATOM_XML_VALUE,
+                                               "first commit",
+                                               IntegrationTestUtil.getWorkflowFile("workflow.xml"));
+
+        // Check that all buckets are returned when no filters
+        given().get(BUCKETS_RESOURCE).then().assertThat().statusCode(HttpStatus.SC_OK).body("", hasSize(4));
+
+        // list bucket that contains a project name
+        given().param("projectName", projectName)
                .get(BUCKETS_RESOURCE)
                .then()
                .assertThat()

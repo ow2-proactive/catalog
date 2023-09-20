@@ -51,28 +51,35 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
     public List<Object[]> findBucketContainingKindListAndContentTypeAndObjectName(List<String> kindList,
             String contentType, String objectName) {
 
-        return em.createQuery(buildCriteriaQuery(null, kindList, contentType, objectName)).getResultList();
+        return em.createQuery(buildCriteriaQuery(null, kindList, contentType, objectName, null, null)).getResultList();
     }
 
     @Override
-    public List<Object[]> findBucketByOwnerContainingKindListAndContentTypeAndObjectName(List<String> owners,
-            List<String> kindList, String contentType, String objectName) {
+    public List<Object[]> findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(
+            List<String> owners, List<String> kindList, String contentType, String objectName,
+            Long committedTimeGreater, Long committedTimeLessThan) {
 
-        return em.createQuery(buildCriteriaQuery(owners, kindList, contentType, objectName)).getResultList();
+        return em.createQuery(buildCriteriaQuery(owners,
+                                                 kindList,
+                                                 contentType,
+                                                 objectName,
+                                                 committedTimeGreater,
+                                                 committedTimeLessThan))
+                 .getResultList();
     }
 
     @Override
     public List<Object[]> findBucketByOwnerContainingKindList(List<String> owners, List<String> kindList) {
-        return em.createQuery(buildCriteriaQuery(owners, kindList, null, null)).getResultList();
+        return em.createQuery(buildCriteriaQuery(owners, kindList, null, null, null, null)).getResultList();
     }
 
     @Override
     public List<Object[]> findBucketContainingKindList(List<String> kindList) {
-        return em.createQuery(buildCriteriaQuery(null, kindList, null, null)).getResultList();
+        return em.createQuery(buildCriteriaQuery(null, kindList, null, null, null, null)).getResultList();
     }
 
     private CriteriaQuery<Object[]> buildCriteriaQuery(List<String> owners, List<String> kindList, String contentType,
-            String objectName) {
+            String objectName, Long committedTimeGreater, Long committedTimeLessThan) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
         Root<BucketEntity> bucketEntityRoot = cq.from(BucketEntity.class);
@@ -112,6 +119,14 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
             Predicate ownerPredicate = cb.in(bucketEntityRoot.get("owner")).value(owners);
             allPredicates.add(ownerPredicate);
         }
+
+        if (committedTimeGreater > 0) {
+            allPredicates.add(cb.ge(catalogObjectsJoin.get("lastCommitTime"), committedTimeGreater));
+        }
+        if (committedTimeLessThan > 0) {
+            allPredicates.add(cb.lessThan(catalogObjectsJoin.get("lastCommitTime"), committedTimeLessThan));
+        }
+
         if (allPredicates.size() > 0) {
             Predicate finalPredicate;
             if (allPredicates.size() == 1) {

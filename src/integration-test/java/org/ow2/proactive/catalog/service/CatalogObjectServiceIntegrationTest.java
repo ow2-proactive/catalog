@@ -1394,6 +1394,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                                               "",
                                                                                                                                               "",
                                                                                                                                               "",
+                                                                                                                                              "",
+                                                                                                                                              "",
+                                                                                                                                              0L,
+                                                                                                                                              0L,
                                                                                                                                               0,
                                                                                                                                               Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(2);
@@ -1415,6 +1419,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
+                                                                                                                  "",
+                                                                                                                  0L,
+                                                                                                                  0L,
                                                                                                                   0,
                                                                                                                   Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(1);
@@ -1424,6 +1432,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
+                                                                                                                  "",
+                                                                                                                  0L,
+                                                                                                                  0L,
                                                                                                                   0,
                                                                                                                   Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(2);
@@ -1445,6 +1457,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
+                                                                                                                  "",
+                                                                                                                  0L,
+                                                                                                                  0L,
                                                                                                                   0,
                                                                                                                   Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(3);
@@ -1457,6 +1473,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                                                        "",
                                                                                                                                                        "",
                                                                                                                                                        "",
+                                                                                                                                                       "",
+                                                                                                                                                       "",
+                                                                                                                                                       0L,
+                                                                                                                                                       0L,
                                                                                                                                                        0,
                                                                                                                                                        Integer.MAX_VALUE);
 
@@ -1467,6 +1487,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                                                                 "",
                                                                                                                                                                 "",
                                                                                                                                                                 "",
+                                                                                                                                                                "",
+                                                                                                                                                                "",
+                                                                                                                                                                0L,
+                                                                                                                                                                0L,
                                                                                                                                                                 0,
                                                                                                                                                                 Integer.MAX_VALUE);
         assertThat(catalogWorkflowsWithOrWithoutTag).hasSize(1);
@@ -1476,9 +1500,77 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                                                                         "",
                                                                                                                                                                         "",
                                                                                                                                                                         "XXX",
+                                                                                                                                                                        "",
+                                                                                                                                                                        "",
+                                                                                                                                                                        0L,
+                                                                                                                                                                        0L,
                                                                                                                                                                         0,
                                                                                                                                                                         Integer.MAX_VALUE);
         assertThat(catalogWorkflowsWithOrWithNonExistingTag).hasSize(0);
+    }
+
+    @Test
+    public void testListCatalogObjectsByProjectName() {
+
+        List<CatalogObjectMetadata> catalogWorkflowsWithExistingProjectName = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(Arrays.asList(bucket.getName()),
+                                                                                                                                                                       "workflow",
+                                                                                                                                                                       "",
+                                                                                                                                                                       "",
+                                                                                                                                                                       "",
+                                                                                                                                                                       PROJECT_NAME,
+                                                                                                                                                                       "",
+                                                                                                                                                                       0L,
+                                                                                                                                                                       0L,
+                                                                                                                                                                       0,
+                                                                                                                                                                       Integer.MAX_VALUE);
+
+        assertThat(catalogWorkflowsWithExistingProjectName).hasSize(1);
+
+        List<CatalogObjectMetadata> catalogWorkflowsWithNotExistingProjectName = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(Arrays.asList(bucket.getName()),
+                                                                                                                                                                          "workflow",
+                                                                                                                                                                          "",
+                                                                                                                                                                          "",
+                                                                                                                                                                          "",
+                                                                                                                                                                          "notExistsProject",
+                                                                                                                                                                          "",
+                                                                                                                                                                          0L,
+                                                                                                                                                                          0L,
+                                                                                                                                                                          0,
+                                                                                                                                                                          Integer.MAX_VALUE);
+
+        assertThat(catalogWorkflowsWithNotExistingProjectName).hasSize(0);
+    }
+
+    @Test
+    public void testListCatalogObjectsByLastCommit() {
+
+        List<CatalogObjectMetadata> catalogWorkflowRandomUserCommited = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(Arrays.asList(bucket.getName()),
+                                                                                                                                                                 "workflow",
+                                                                                                                                                                 "",
+                                                                                                                                                                 "",
+                                                                                                                                                                 "",
+                                                                                                                                                                 PROJECT_NAME,
+                                                                                                                                                                 "randomStr",
+                                                                                                                                                                 0L,
+                                                                                                                                                                 0L,
+                                                                                                                                                                 0,
+                                                                                                                                                                 Integer.MAX_VALUE);
+
+        assertThat(catalogWorkflowRandomUserCommited).hasSize(0);
+
+        List<CatalogObjectMetadata> catalogWorkflowsWithUserLastCommitted = catalogObjectService.listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(Arrays.asList(bucket.getName()),
+                                                                                                                                                                     "workflow",
+                                                                                                                                                                     "",
+                                                                                                                                                                     "",
+                                                                                                                                                                     "",
+                                                                                                                                                                     "",
+                                                                                                                                                                     "username",
+                                                                                                                                                                     0L,
+                                                                                                                                                                     0L,
+                                                                                                                                                                     0,
+                                                                                                                                                                     Integer.MAX_VALUE);
+
+        assertThat(catalogWorkflowsWithUserLastCommitted).hasSize(1);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -1498,6 +1590,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                  "",
                                                                                                  "",
                                                                                                  "",
+                                                                                                 "",
+                                                                                                 "",
+                                                                                                 0L,
+                                                                                                 0L,
                                                                                                  0,
                                                                                                  -1);
     }
@@ -1545,6 +1641,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                                               "",
                                                                                                                                               "",
                                                                                                                                               "",
+                                                                                                                                              "",
+                                                                                                                                              "",
+                                                                                                                                              0L,
+                                                                                                                                              0L,
                                                                                                                                               1,
                                                                                                                                               2);
 
@@ -1591,6 +1691,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
+                                                                                                                  "",
+                                                                                                                  0L,
+                                                                                                                  0L,
                                                                                                                   2,
                                                                                                                   3);
         assertThat(catalogObjects).hasSize(0);
@@ -1599,6 +1703,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
+                                                                                                                  "",
+                                                                                                                  0L,
+                                                                                                                  0L,
                                                                                                                   2,
                                                                                                                   2);
         assertThat(catalogObjects).hasSize(2);
@@ -1612,6 +1720,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                                               "",
                                                                                                                                               "",
                                                                                                                                               "",
+                                                                                                                                              "",
+                                                                                                                                              "",
+                                                                                                                                              0L,
+                                                                                                                                              0L,
                                                                                                                                               0,
                                                                                                                                               3);
         assertThat(catalogObjects).hasSize(2);
@@ -1657,6 +1769,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
+                                                                                                                  "",
+                                                                                                                  0L,
+                                                                                                                  0L,
                                                                                                                   1,
                                                                                                                   3);
         assertThat(catalogObjects).hasSize(1);
@@ -1702,6 +1818,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "text",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
+                                                                                                                  "",
+                                                                                                                  0L,
+                                                                                                                  0L,
                                                                                                                   1,
                                                                                                                   2);
         assertThat(catalogObjects).hasSize(1);
@@ -1711,6 +1831,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "text",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
+                                                                                                                  "",
+                                                                                                                  0L,
+                                                                                                                  0L,
                                                                                                                   0,
                                                                                                                   Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(3);
@@ -1720,6 +1844,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   "",
                                                                                                                   "",
                                                                                                                   "",
+                                                                                                                  "",
+                                                                                                                  "",
+                                                                                                                  0L,
+                                                                                                                  0L,
                                                                                                                   0,
                                                                                                                   Integer.MAX_VALUE);
         assertThat(catalogObjects).hasSize(5);
@@ -1794,6 +1922,10 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                                               "",
                                                                                                                                               "",
                                                                                                                                               "",
+                                                                                                                                              "",
+                                                                                                                                              "",
+                                                                                                                                              0L,
+                                                                                                                                              0L,
                                                                                                                                               0,
                                                                                                                                               Integer.MAX_VALUE);
 

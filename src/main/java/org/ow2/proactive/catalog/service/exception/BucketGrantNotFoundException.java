@@ -23,24 +23,17 @@
  * If needed, contact us to obtain a release under GPL Version 2 or 3
  * or a different license than the AGPL.
  */
-package org.ow2.proactive.catalog.repository;
+package org.ow2.proactive.catalog.service.exception;
 
-import java.util.List;
+import org.ow2.proactive.microservices.common.exception.ClientException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 
-/**
- * @author ActiveEon Team
- */
-public interface BucketRepositoryCustom {
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class BucketGrantNotFoundException extends ClientException {
 
-    List<Object[]> findBucketContainingKindListAndContentTypeAndObjectName(List<String> kindList, String contentType,
-            String objectName);
-
-    List<Object[]> findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(
-            List<String> owners, List<String> kindList, String contentType, String objectName,
-            Long committedTimeGreater, Long committedTimeLessThan);
-
-    List<Object[]> findBucketByOwnerContainingKindList(List<String> owners, List<String> kindList);
-
-    List<Object[]> findBucketContainingKindList(List<String> kindList);
+    public BucketGrantNotFoundException(String bucketName) {
+        super("Grant for bucket " + bucketName + " was not found");
+    }
 }

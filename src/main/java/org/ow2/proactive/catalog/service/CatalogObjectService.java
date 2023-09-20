@@ -556,21 +556,31 @@ public class CatalogObjectService {
                                   contentType,
                                   Optional.empty(),
                                   Optional.empty(),
+                                  Optional.empty(),
+                                  Optional.empty(),
+                                  Optional.empty(),
+                                  Optional.empty(),
                                   0,
                                   Integer.MAX_VALUE);
     }
 
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectNameFilter, Optional<String> objectTagFilter,
-            int pageNo, int pageSize) {
+            Optional<String> projectNameFilter, Optional<String> lastCommitByFilter,
+            Optional<Long> lastCommitTimeGreater, Optional<Long> lastCommitTimeLessThan, int pageNo, int pageSize) {
         List<CatalogObjectMetadata> metadataList;
         if (kind.isPresent() || contentType.isPresent() || objectNameFilter.isPresent() ||
-            objectTagFilter.isPresent()) {
+            objectTagFilter.isPresent() || projectNameFilter.isPresent() || lastCommitByFilter.isPresent() ||
+            lastCommitTimeGreater.isPresent() || lastCommitTimeLessThan.isPresent()) {
             metadataList = listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(bucketsNames,
                                                                                                kind.orElse(""),
                                                                                                contentType.orElse(""),
                                                                                                objectNameFilter.orElse(""),
                                                                                                objectTagFilter.orElse(""),
+                                                                                               projectNameFilter.orElse(""),
+                                                                                               lastCommitByFilter.orElse(""),
+                                                                                               lastCommitTimeGreater.orElse(0L),
+                                                                                               lastCommitTimeLessThan.orElse(0L),
                                                                                                pageNo,
                                                                                                pageSize);
         } else {
@@ -585,8 +595,9 @@ public class CatalogObjectService {
 
     // find pageable catalog objects by kind(s) and Content-Type and objectName and objectTag
     public List<CatalogObjectMetadata> listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(
-            List<String> bucketNames, String kind, String contentType, String objectName, String objectTag, int pageNo,
-            int pageSize) {
+            List<String> bucketNames, String kind, String contentType, String objectName, String objectTag,
+            String projectName, String lastCommitBy, Long lastCommitTimeGreater, Long lastCommitTimeLessThan,
+            int pageNo, int pageSize) {
         bucketNames.forEach(this::findBucketByNameAndCheck);
         List<String> kindList = new ArrayList<>();
         if (!kind.isEmpty()) {
@@ -600,6 +611,10 @@ public class CatalogObjectService {
                                                                                                                                 kindList,
                                                                                                                                 contentType,
                                                                                                                                 objectName,
+                                                                                                                                projectName,
+                                                                                                                                lastCommitBy,
+                                                                                                                                lastCommitTimeGreater,
+                                                                                                                                lastCommitTimeLessThan,
                                                                                                                                 pageNo,
                                                                                                                                 pageSize);
         } else {
@@ -608,7 +623,11 @@ public class CatalogObjectService {
                                                                                                                                       kindList,
                                                                                                                                       contentType,
                                                                                                                                       objectName,
+                                                                                                                                      projectName,
+                                                                                                                                      lastCommitBy,
                                                                                                                                       objectTag,
+                                                                                                                                      lastCommitTimeGreater,
+                                                                                                                                      lastCommitTimeLessThan,
                                                                                                                                       pageNo,
                                                                                                                                       pageSize);
         }

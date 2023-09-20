@@ -91,10 +91,18 @@ public class BucketControllerTest {
                               Optional.ofNullable(null),
                               Optional.ofNullable(null),
                               Optional.ofNullable(null),
+                              Optional.ofNullable(null),
+                              Optional.ofNullable(null),
+                              Optional.ofNullable(null),
+                              Optional.ofNullable(null),
                               "false");
         verify(bucketService, times(1)).listBuckets((String) null,
                                                     kind,
                                                     type,
+                                                    Optional.empty(),
+                                                    Optional.empty(),
+                                                    Optional.empty(),
+                                                    Optional.empty(),
                                                     Optional.empty(),
                                                     Optional.empty(),
                                                     Optional.empty(),
@@ -110,13 +118,33 @@ public class BucketControllerTest {
         Optional bucket = Optional.ofNullable("");
         Optional tag = Optional.ofNullable("");
         Optional associationStatus = Optional.ofNullable("");
-        bucketController.list(null, null, kind, type, name, bucket, tag, associationStatus, "false");
+        Optional projectName = Optional.ofNullable("");
+        Optional lastCommittedBy = Optional.ofNullable("");
+        Optional committedTimeGreater = Optional.ofNullable(0L);
+        Optional committedTimeLessThan = Optional.ofNullable(0L);
+        bucketController.list(null,
+                              null,
+                              kind,
+                              type,
+                              name,
+                              bucket,
+                              tag,
+                              associationStatus,
+                              projectName,
+                              lastCommittedBy,
+                              committedTimeGreater,
+                              committedTimeLessThan,
+                              "false");
         verify(bucketService, times(1)).listBuckets((String) null,
                                                     Optional.empty(),
                                                     Optional.empty(),
                                                     Optional.empty(),
                                                     Optional.empty(),
                                                     Optional.empty(),
+                                                    Optional.empty(),
+                                                    Optional.empty(),
+                                                    Optional.ofNullable(0L),
+                                                    Optional.ofNullable(0L),
                                                     null,
                                                     false);
     }
