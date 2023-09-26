@@ -64,6 +64,8 @@ public class BucketServiceIntegrationTest {
 
     private static final String PROJECT_NAME = "projectName";
 
+    private static final String TAGS = "tag1,tag2";
+
     @Before
     public void createBucket() {
         bucket = bucketService.createBucket("bucket", "BucketServiceIntegrationTest");
@@ -79,12 +81,20 @@ public class BucketServiceIntegrationTest {
     }
 
     @Test
-    public void testThatEmptyOwnerListReturnsAndEmptyListAndDoesNotReturnAnException() {
+    public void testThatEmptyOwnerListReturnsABucketListAndDoesNotReturnAnException() {
         List emptyResult = bucketService.listBuckets(Collections.emptyList(),
                                                      Optional.empty(),
                                                      Optional.empty(),
-                                                     Optional.empty());
-        assertThat(emptyResult).isEmpty();
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     (String) null,
+                                                     false);
+        assertThat(emptyResult).hasSize(1);
     }
 
     @Test
@@ -93,6 +103,7 @@ public class BucketServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "object",
                                                  "commit message",
                                                  "username",
@@ -151,6 +162,7 @@ public class BucketServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "WORKFLOW",
                                                  "commit message",
                                                  "username",
@@ -182,6 +194,7 @@ public class BucketServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "Workflow",
                                                  "commit message",
                                                  "username",
@@ -195,6 +208,7 @@ public class BucketServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucketWfStandard.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "WorkFlow/Standard",
                                                  "commit message",
                                                  "username",
@@ -208,6 +222,7 @@ public class BucketServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucketWfPCA.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "workflow/PCA",
                                                  "commit message",
                                                  "username",
@@ -221,6 +236,7 @@ public class BucketServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucketNotWf.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "not-workflow",
                                                  "commit message",
                                                  "username",
@@ -283,6 +299,7 @@ public class BucketServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "Workflow",
                                                  "commit message",
                                                  "username",
@@ -296,6 +313,7 @@ public class BucketServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucketWfStandard.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "rule",
                                                  "commit message",
                                                  "username",
@@ -309,6 +327,7 @@ public class BucketServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucketWfPCA.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "workflow/PCA",
                                                  "commit message",
                                                  "username",
@@ -322,6 +341,7 @@ public class BucketServiceIntegrationTest {
         catalogObjectService.createCatalogObject(bucketNotWf.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
+                                                 TAGS,
                                                  "script",
                                                  "commit message",
                                                  "username",

@@ -80,6 +80,10 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class CatalogObjectRevisionController {
 
+    private static final String ANONYMOUS = "anonymous";
+
+    private static final String ACTION = "[Action] ";
+
     @Autowired
     private CatalogObjectService catalogObjectService;
 
@@ -113,9 +117,11 @@ public class CatalogObjectRevisionController {
             @PathVariable String bucketName, @PathVariable String name,
             @ApiParam(value = "The commit message of the CatalogRawObject Revision", required = true) @RequestParam String commitMessage,
             @ApiParam(value = "Project of the object") @RequestParam(value = "projectName", required = false, defaultValue = "") Optional<String> projectName,
+            @ApiParam(value = "Tags of the object") @RequestParam(value = "tags", required = false, defaultValue = "") Optional<String> tags,
             @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -127,12 +133,14 @@ public class CatalogObjectRevisionController {
             if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), write)) {
                 throw new BucketGrantAccessException(bucketName);
             }
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
         CatalogObjectMetadata catalogObjectRevision = catalogObjectService.createCatalogObjectRevision(bucketName,
                                                                                                        name,
                                                                                                        projectName.orElse(""),
+                                                                                                       tags.orElse(""),
                                                                                                        commitMessage,
                                                                                                        user.getName(),
                                                                                                        file.getBytes());
@@ -145,6 +153,8 @@ public class CatalogObjectRevisionController {
         catalogObjectRevision.add(LinkUtil.createRelativeLink(bucketName,
                                                               catalogObjectRevision.getName(),
                                                               catalogObjectRevision.getCommitDateTime()));
+        log.info(ACTION + initiator + " created a new revision with message '" +
+                 catalogObjectRevision.getCommitMessage() + "' on object " + name + " in bucket " + bucketName);
         return catalogObjectRevision;
     }
 
@@ -259,6 +269,7 @@ public class CatalogObjectRevisionController {
 
     @ApiOperation(value = "Restore a catalog object revision")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
+                            @ApiResponse(code = 422, message = "Invalid catalog object JSON content supplied"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied") })
     @RequestMapping(value = "/{commitTimeRaw}", method = PUT)
@@ -267,6 +278,7 @@ public class CatalogObjectRevisionController {
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String name, @PathVariable Long commitTimeRaw)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -278,8 +290,15 @@ public class CatalogObjectRevisionController {
             if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), write)) {
                 throw new BucketGrantAccessException(bucketName);
             }
+            initiator = user.getName();
         }
-        return catalogObjectService.restoreCatalogObject(bucketName, name, commitTimeRaw);
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.restoreCatalogObject(bucketName,
+                                                                                                name,
+                                                                                                commitTimeRaw);
+        log.info(ACTION + initiator + " restored revision " + catalogObjectMetadata.getCommitTimeRaw() +
+                 " with message '" + catalogObjectMetadata.getCommitMessage() + "' on object " + name + " in bucket " +
+                 bucketName);
+        return catalogObjectMetadata;
     }
 
 }

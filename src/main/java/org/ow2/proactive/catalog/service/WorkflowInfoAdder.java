@@ -56,16 +56,17 @@ public class WorkflowInfoAdder {
         return workflowWithReplacedGenericInfoJobName;
     }
 
-    public byte[] addProjectNameToRawObjectIfWorkflow(final byte[] rawObject, final String catalogObjectEntityKind,
-            final String projectName) {
-        byte[] workflowWithReplacedProjectName = rawObject;
+    public byte[] addAttributeToRawObjectIfWorkflow(final byte[] rawObject, final String catalogObjectEntityKind,
+            final String attributeName, final String attributeValue) {
+        byte[] workflowWithReplacedAttribute = rawObject;
 
         if (catalogObjectEntityKind != null &&
             catalogObjectEntityKind.toLowerCase().startsWith(SupportedParserKinds.WORKFLOW.toString().toLowerCase())) {
-            workflowWithReplacedProjectName = workflowXmlManipulator.replaceOrAddOrRemoveProjectNameOnJobLevel(rawObject,
-                                                                                                               projectName);
+            workflowWithReplacedAttribute = workflowXmlManipulator.replaceOrAddOrRemoveAttributeOnJobLevel(rawObject,
+                                                                                                           attributeName,
+                                                                                                           attributeValue);
         }
-        return workflowWithReplacedProjectName;
+        return workflowWithReplacedAttribute;
     }
 
 }

@@ -91,6 +91,8 @@ public class CatalogObjectControllerTest {
 
     private static final String PROJECT_NAME = "projectName";
 
+    private static final String TAGS = "tag1,tag2";
+
     @Mock
     private BucketGrantService bucketGrantService;
 
@@ -120,6 +122,11 @@ public class CatalogObjectControllerTest {
         when(catalogObjectService.getCatalogObjectsAsZipArchive("bucket-name", nameList)).thenReturn(content);
         catalogObjectController.list("",
                                      "bucket-name",
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
@@ -155,6 +162,11 @@ public class CatalogObjectControllerTest {
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
                                      Optional.of(nameList),
                                      0,
                                      Integer.MAX_VALUE,
@@ -177,10 +189,19 @@ public class CatalogObjectControllerTest {
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
+                                     Optional.empty(),
                                      0,
                                      Integer.MAX_VALUE,
                                      response);
         verify(catalogObjectService, times(1)).listCatalogObjects(anyList(),
+                                                                  any(Optional.class),
+                                                                  any(Optional.class),
+                                                                  any(Optional.class),
+                                                                  any(Optional.class),
                                                                   any(Optional.class),
                                                                   any(Optional.class),
                                                                   any(Optional.class),
@@ -194,6 +215,7 @@ public class CatalogObjectControllerTest {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           "name",
                                                           PROJECT_NAME,
+                                                          TAGS,
                                                           "object",
                                                           "application/xml",
                                                           1400343L,
@@ -220,6 +242,7 @@ public class CatalogObjectControllerTest {
         CatalogObjectMetadata mock = new CatalogObjectMetadata("bucket-name",
                                                                "name",
                                                                PROJECT_NAME,
+                                                               TAGS,
                                                                "object",
                                                                "application/xml",
                                                                1400343L,

@@ -41,6 +41,7 @@ import org.ow2.proactive.catalog.mocks.CatalogObjectGrantServiceMock;
 import org.ow2.proactive.catalog.mocks.RestApiAccessServiceMock;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.*;
+import org.ow2.proactive.catalog.service.helper.CommonRestTemplate;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
@@ -48,6 +49,7 @@ import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
 import org.ow2.proactive.catalog.util.name.validator.ObjectNameValidator;
+import org.ow2.proactive.catalog.util.name.validator.TagsValidator;
 import org.ow2.proactive.catalog.util.parser.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -116,6 +118,11 @@ public class IntegrationTestConfig {
     }
 
     @Bean
+    public GrantRightsService grantRightsService() {
+        return new GrantRightsService();
+    }
+
+    @Bean
     public BucketService bucketService() {
         return new BucketService();
     }
@@ -128,6 +135,11 @@ public class IntegrationTestConfig {
     @Bean
     public GraphqlService graphqlService() {
         return new GraphqlService();
+    }
+
+    @Bean
+    public JobPlannerService jobPlannerService() {
+        return new JobPlannerService();
     }
 
     @Bean
@@ -254,8 +266,13 @@ public class IntegrationTestConfig {
     }
 
     @Bean
-    public KindAndContentTypeValidator kindNameValidator() {
+    public KindAndContentTypeValidator kindAndContentTypeValidator() {
         return new KindAndContentTypeValidator();
+    }
+
+    @Bean
+    public TagsValidator tagsValidator() {
+        return new TagsValidator();
     }
 
     @Bean

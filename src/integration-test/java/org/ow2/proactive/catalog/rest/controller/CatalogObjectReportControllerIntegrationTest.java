@@ -61,6 +61,8 @@ public class CatalogObjectReportControllerIntegrationTest extends AbstractRestAs
 
     private String bucketObjectName = "workflowname";
 
+    private String projectName = "projectName";
+
     @Before
     public void setup() throws IOException {
 

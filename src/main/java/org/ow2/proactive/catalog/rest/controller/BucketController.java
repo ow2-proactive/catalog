@@ -31,6 +31,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -75,6 +76,10 @@ import lombok.extern.log4j.Log4j2;
 @RequestMapping(value = "/buckets")
 public class BucketController {
 
+    private static final String ANONYMOUS = "anonymous";
+
+    private static final String ACTION = "[Action] ";
+
     @Autowired
     private BucketService bucketService;
 
@@ -89,6 +94,9 @@ public class BucketController {
 
     @Autowired
     private CatalogObjectGrantService catalogObjectGrantService;
+
+    @Autowired
+    private JobPlannerService jobPlannerService;
 
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
@@ -106,11 +114,15 @@ public class BucketController {
                               "A bucket's name must start with a lowercase letter and cannot terminate with a dash") @RequestParam(value = "name", required = true) String bucketName,
             @ApiParam(value = "The name of the user that will own the Bucket", defaultValue = BucketService.DEFAULT_BUCKET_OWNER) @RequestParam(value = "owner", required = false, defaultValue = BucketService.DEFAULT_BUCKET_OWNER) String ownerName)
             throws NotAuthenticatedException, AccessDeniedException {
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId, ownerName);
+            initiator = restApiAccessService.getUserFromSessionId(sessionId).getName();
         }
         try {
-            return bucketService.createBucket(bucketName, ownerName);
+            BucketMetadata bucketMetadata = bucketService.createBucket(bucketName, ownerName);
+            log.info(ACTION + initiator + " created new bucket " + bucketName + " with owner " + ownerName);
+            return bucketMetadata;
         } catch (DataIntegrityViolationException exception) {
             throw new BucketAlreadyExistingException(bucketName, ownerName);
         }
@@ -127,6 +139,7 @@ public class BucketController {
             @ApiParam(value = "The name of the existing Bucket ", required = true) @PathVariable String bucketName,
             @ApiParam(value = "The new name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String newOwnerName)
             throws NotAuthenticatedException, AccessDeniedException {
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -138,9 +151,12 @@ public class BucketController {
             if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), admin)) {
                 throw new BucketGrantAccessException(bucketName);
             }
+            initiator = user.getName();
         }
         try {
-            return bucketService.updateOwnerByBucketName(bucketName, newOwnerName);
+            BucketMetadata bucketMetadata = bucketService.updateOwnerByBucketName(bucketName, newOwnerName);
+            log.info(ACTION + initiator + " changed bucket " + bucketName + " ownership to " + newOwnerName);
+            return bucketMetadata;
         } catch (DataIntegrityViolationException exception) {
             throw new BucketAlreadyExistingException(bucketName, newOwnerName);
         }
@@ -186,10 +202,12 @@ public class BucketController {
             @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @ApiParam(value = "The kind(s) of objects that buckets must contain. Multiple kinds can be specified using comma separators") @RequestParam(value = "kind", required = false) Optional<String> kind,
             @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
+            @ApiParam(value = "The tag of objects that buckets must contain") @RequestParam(value = "objectTag", required = false) Optional<String> tag,
+            @ApiParam(value = "The buckets must contain objects which have the given job-planner association status. Can be ALL, PLANNED, DEACTIVATED, FAILED or UNPLANNED. ALL will filter objects which have an association with any status. UNPLANNED will filter objects without any association.") @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatus,
             @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
             @ApiParam(value = "The bucket name contains the value of this parameter (case insensitive)")
             @RequestParam(value = "bucketName", required = false)
-            final Optional<String> bucketName) throws NotAuthenticatedException, AccessDeniedException {
+            final Optional<String> bucketName, @ApiParam(value = "Include only objects whose project name contains the given string.") @RequestParam(value = "projectName", required = false) Optional<String> projectName, @ApiParam(value = "Include only objects whose last commit belong to the given user.") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy, @ApiParam(value = "Include only objects whose last commit time is greater than the given EPOCH time.") @RequestParam(value = "lastCommitTimeGreater", required = false, defaultValue = "0") Optional<Long> lastCommitTimeGreater, @ApiParam(value = "Include only objects whose last commit time is less than the given EPOCH time.") @RequestParam(value = "lastCommitTimeLessThan", required = false, defaultValue = "0") Optional<Long> lastCommitTimeLessThan, @ApiParam(value = "If true, buckets without objects matching the filters will be returned with objectCount=0. Default is false") @RequestParam(value = "allBuckets", required = false, defaultValue = "false") String allBuckets) throws NotAuthenticatedException, AccessDeniedException {
 
         List<BucketMetadata> listBucket;
         log.debug("====== Get buckets list request started ======== ");
@@ -199,12 +217,29 @@ public class BucketController {
         kind = kind.filter(s -> !s.isEmpty());
         contentType = contentType.filter(s -> !s.isEmpty());
         objectName = objectName.filter(s -> !s.isEmpty());
+        tag = tag.filter(s -> !s.isEmpty());
+        associationStatus = associationStatus.filter(s -> !s.isEmpty());
+        projectName = projectName.filter(s -> !s.isEmpty());
+        lastCommitBy = lastCommitBy.filter(s -> !s.isEmpty());
+        boolean allBucketsEnabled = Boolean.parseBoolean(allBuckets);
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
                                                                                                                   ownerName)
                                                          .getAuthenticatedUser();
             log.debug("bucket list timer : validate session : " + (System.currentTimeMillis() - startTime) + " ms");
-            listBucket = bucketService.getBucketsByGroups(ownerName, kind, contentType, objectName, user::getGroups);
+            listBucket = bucketService.getBucketsByGroups(ownerName,
+                                                          kind,
+                                                          contentType,
+                                                          objectName,
+                                                          tag,
+                                                          associationStatus,
+                                                          projectName,
+                                                          lastCommitBy,
+                                                          lastCommitTimeGreater,
+                                                          lastCommitTimeLessThan,
+                                                          sessionId,
+                                                          allBucketsEnabled,
+                                                          user::getGroups);
             listBucket.addAll(grantRightsService.getBucketsByPrioritiedGrants(user));
             listBucket = GrantHelper.removeDuplicate(listBucket);
 
@@ -231,15 +266,24 @@ public class BucketController {
                 }
             }
         } else {
-            listBucket = bucketService.listBuckets(ownerName, kind, contentType, objectName);
+            listBucket = bucketService.listBuckets(ownerName,
+                                                   kind,
+                                                   contentType,
+                                                   objectName,
+                                                   tag,
+                                                   associationStatus,
+                                                   projectName,
+                                                   lastCommitBy,
+                                                   lastCommitTimeGreater,
+                                                   lastCommitTimeLessThan,
+                                                   sessionId,
+                                                   allBucketsEnabled);
         }
         // Filter by bucket name
         if (!Strings.isNullOrEmpty(bucketName.orElse(""))) {
             listBucket = listBucket.stream()
-                                   .filter(bucketMetadata -> bucketMetadata.getName()
-                                                                           .toLowerCase()
-                                                                           .contains(bucketName.orElse("")
-                                                                                               .toLowerCase()))
+                                   .filter(bucketMetadata -> bucketNameMatches(bucketMetadata.getName(),
+                                                                               bucketName.orElse("")))
                                    .collect(Collectors.toList());
         }
         Collections.sort(listBucket);
@@ -248,11 +292,46 @@ public class BucketController {
         return listBucket;
     }
 
+    private boolean bucketNameMatches(String bucketName, String bucketNameFilter) {
+        if (bucketNameFilter.isEmpty()) {
+            return true;
+        }
+        if (bucketNameFilter.contains("%")) {
+            String bucketNameFilterUpdated = bucketNameFilter.toLowerCase().replace("%", ".*");
+            return bucketName.toLowerCase().matches(bucketNameFilterUpdated);
+        } else {
+            return bucketName.toLowerCase().contains(bucketNameFilter.toLowerCase());
+        }
+    }
+
     @ApiOperation(value = "Delete the empty buckets")
     @RequestMapping(method = DELETE)
+    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
+                            @ApiResponse(code = 403, message = "Permission denied"), })
     @ResponseStatus(HttpStatus.OK)
-    public void cleanEmpty() {
-        bucketService.cleanAllEmptyBuckets();
+    public void cleanEmpty(
+            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId) {
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+
+            // Check Grants
+            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            List<String> emptyBucketNames = bucketService.getAllEmptyBuckets();
+            for (String bucketName : emptyBucketNames) {
+                if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), admin)) {
+                    throw new BucketGrantAccessException(bucketName);
+                }
+            }
+            bucketService.cleanAllEmptyBuckets();
+            log.info(ACTION + user.getName() + " deleted the following empty buckets " + emptyBucketNames);
+        } else {
+            List<String> emptyBucketNames = bucketService.getAllEmptyBuckets();
+            bucketService.cleanAllEmptyBuckets();
+            log.info("Deleted empty buckets " + emptyBucketNames + " initiated by " + ANONYMOUS);
+        }
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -265,6 +344,7 @@ public class BucketController {
     public BucketMetadata delete(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
+        String initiator = ANONYMOUS;
         // Check session validation
         if (sessionIdRequired) {
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -276,7 +356,10 @@ public class BucketController {
             if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
                 throw new BucketGrantAccessException(bucketName);
             }
+            initiator = user.getName();
         }
-        return bucketService.deleteEmptyBucket(bucketName);
+        BucketMetadata bucketMetadata = bucketService.deleteEmptyBucket(bucketName);
+        log.info(ACTION + initiator + " deleted empty bucket " + bucketName);
+        return bucketMetadata;
     }
 }

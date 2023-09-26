@@ -35,6 +35,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.Strings;
+
 import lombok.extern.log4j.Log4j2;
 
 
@@ -86,7 +88,7 @@ public class RawObjectResponseCreator {
      */
     public String getNameWithFileExtension(String name, String fileExtension, String kind) {
 
-        if (fileExtension != null && !fileExtension.isEmpty()) {
+        if (!Strings.isNullOrEmpty(fileExtension)) {
             name += "." + fileExtension;
         }
         //add the .xml extension to contentDispositionFileName for workflow if the extension was not yet in name

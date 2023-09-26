@@ -64,6 +64,9 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
     @Column(name = "PROJECT_NAME")
     private String projectName;
 
+    @Column(name = "TAGS")
+    private String tags;
+
     @Column(name = "COMMIT_MESSAGE")
     private String commitMessage;
 
@@ -78,7 +81,7 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
                    @JoinColumn(name = "NAME", referencedColumnName = "NAME") })
     private CatalogObjectEntity catalogObject;
 
-    @OneToMany(mappedBy = "catalogObjectRevision", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "catalogObjectRevision", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @Fetch(FetchMode.SELECT)
     @OrderBy("id ASC")
     @BatchSize(size = 10)
@@ -92,10 +95,6 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
     @Override
     public int compareTo(Object o) {
         return Long.valueOf(((CatalogObjectRevisionEntity) o).commitTime).compareTo(Long.valueOf(commitTime));
-    }
-
-    public CatalogObjectEntity getCatalogObjectEntity() {
-        return this.catalogObject;
     }
 
     public CatalogObjectRevisionEntity() {
@@ -113,6 +112,10 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
 
     public String getProjectName() {
         return this.projectName == null ? "" : this.projectName;
+    }
+
+    public String getTags() {
+        return this.tags == null ? "" : this.tags;
     }
 
     public String getCommitMessage() {
@@ -144,6 +147,6 @@ public class CatalogObjectRevisionEntity implements Comparable, Serializable {
     public String toString() {
         return "CatalogObjectRevisionRepository{" + "commitMessage='" + commitMessage + '\'' + ", username='" +
                username + '\'' + ", commitTime='" + commitTime + '\'' + ", projectName='" + projectName + '\'' +
-               ", metadataList=" + keyValueMetadataList + '}';
+               ", tags='" + tags + '\'' + ", metadataList=" + keyValueMetadataList + '}';
     }
 }

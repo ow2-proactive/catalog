@@ -25,6 +25,8 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static org.ow2.proactive.catalog.dto.AssociationStatus.ALL;
+import static org.ow2.proactive.catalog.dto.AssociationStatus.UNPLANNED;
 import static org.ow2.proactive.catalog.util.AccessType.*;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -35,6 +37,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -83,6 +86,14 @@ public class CatalogObjectController {
 
     private static final String REQUEST_API_QUERY = "/{bucketName}/resources";
 
+    private static final String ANONYMOUS = "anonymous";
+
+    private static final String ACTION = "[Action] ";
+
+    public static final String JOB_PLANNER_LABEL = "job_planner";
+
+    public static final String JOB_PLANNER_ASSOCIATION_STATUS_KEY = "association_status";
+
     @Autowired
     private GrantRightsService grantRightsService;
 
@@ -104,6 +115,9 @@ public class CatalogObjectController {
     @Autowired
     private RawObjectResponseCreator rawObjectResponseCreator;
 
+    @Autowired
+    private JobPlannerService jobPlannerService;
+
     private static final String ZIP_CONTENT_TYPE = "application/zip";
 
     private static final long MAXVALUE = Integer.MAX_VALUE;
@@ -121,6 +135,7 @@ public class CatalogObjectController {
             @PathVariable String bucketName,
             @ApiParam(value = "Name of the object or empty when a ZIP archive is uploaded (All objects inside the archive are stored inside the catalog).") @RequestParam(required = false) Optional<String> name,
             @ApiParam(value = "Project of the object") @RequestParam(value = "projectName", required = false, defaultValue = "") Optional<String> projectName,
+            @ApiParam(value = "List of comma separated tags of the object") @RequestParam(value = "tags", required = false, defaultValue = "") Optional<String> tags,
             @ApiParam(value = "Kind of the new object", required = true) @RequestParam String kind,
             @ApiParam(value = "Commit message", required = true) @RequestParam String commitMessage,
             @ApiParam(value = "The Content-Type of CatalogRawObject - MIME type", required = true) @RequestParam String objectContentType,
@@ -129,6 +144,7 @@ public class CatalogObjectController {
 
         // Check Grants
         AuthenticatedUser user = null;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -143,11 +159,14 @@ public class CatalogObjectController {
         String userName = "";
         if (user != null) {
             userName = user.getName();
+            initiator = userName;
         }
+        CatalogObjectMetadataList catalogObjectMetadataList;
         if (name.isPresent()) {
             CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketName,
                                                                                            name.get(),
                                                                                            projectName.orElse(""),
+                                                                                           tags.orElse(""),
                                                                                            kind,
                                                                                            commitMessage,
                                                                                            userName,
@@ -158,10 +177,12 @@ public class CatalogObjectController {
             catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
             catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
 
-            return new CatalogObjectMetadataList(catalogObject);
+            catalogObjectMetadataList = new CatalogObjectMetadataList(catalogObject);
+
         } else {
             List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketName,
                                                                                                    projectName.orElse(""),
+                                                                                                   tags.orElse(""),
                                                                                                    kind,
                                                                                                    commitMessage,
                                                                                                    userName,
@@ -172,8 +193,15 @@ public class CatalogObjectController {
                 catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
             }
 
-            return new CatalogObjectMetadataList(catalogObjects);
+            catalogObjectMetadataList = new CatalogObjectMetadataList(catalogObjects);
         }
+        if (name.isPresent()) {
+            log.info(ACTION + initiator + " created a new catalog object " + name.get() + " inside bucket " +
+                     bucketName);
+        } else {
+            log.info(ACTION + initiator + " created new catalog objects from archive inside bucket " + bucketName);
+        }
+        return catalogObjectMetadataList;
     }
 
     @ApiOperation(value = "Lists all kinds for all objects")
@@ -212,7 +240,7 @@ public class CatalogObjectController {
                                                                                                  contentType);
     }
 
-    @ApiOperation(value = "Update a catalog object metadata, like kind, Content-Type and project name")
+    @ApiOperation(value = "Update a catalog object metadata, like kind, Content-Type, project name and tags")
     @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
                             @ApiResponse(code = 401, message = "User not authenticated"),
                             @ApiResponse(code = 403, message = "Permission denied"),
@@ -222,11 +250,14 @@ public class CatalogObjectController {
     public CatalogObjectMetadata updateObjectMetadata(
             @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @PathVariable String bucketName, @PathVariable String name,
-            @ApiParam(value = "The new kind of an object", required = false) @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "The new Content-Type of an object - MIME type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType,
-            @ApiParam(value = "The new project name of an object", required = false) @RequestParam(value = "projectName", required = false) Optional<String> projectName)
+            @ApiParam(value = "The new kind of an object") @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @ApiParam(value = "The new Content-Type of an object - MIME type") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
+            @ApiParam(value = "The new project name of an object") @RequestParam(value = "projectName", required = false) Optional<String> projectName,
+            @ApiParam(value = "List of comma separated tags of the object") @RequestParam(value = "tags", required = false) Optional<String> tags)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
+        AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -234,14 +265,27 @@ public class CatalogObjectController {
             }
 
             // Check Grants
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), write)) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
+            initiator = user.getName();
 
+        } else {
+            user = AuthenticatedUser.EMPTY;
         }
 
-        return catalogObjectService.updateObjectMetadata(bucketName, name, kind, contentType, projectName);
+        log.info(ACTION + initiator + " updated the metadata of catalog object " + name + " inside bucket " +
+                 bucketName);
+
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.updateObjectMetadata(bucketName,
+                                                                                                name,
+                                                                                                kind,
+                                                                                                contentType,
+                                                                                                projectName,
+                                                                                                tags,
+                                                                                                user.getName());
+        return catalogObjectMetadata;
     }
 
     @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
@@ -275,6 +319,10 @@ public class CatalogObjectController {
         }
         metadata.add(LinkUtil.createLink(bucketName, metadata.getName()));
         metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName()));
+        if (sessionIdRequired) {
+            AssociatedObject associatedObject = jobPlannerService.getAssociatedObject(sessionId, bucketName, name);
+            addAssociationStatus(metadata, associatedObject);
+        }
         return metadata;
     }
 
@@ -350,6 +398,11 @@ public class CatalogObjectController {
             @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
             @ApiParam(value = "Filter according to Object Name.") @RequestParam(value = "objectName", required = false) Optional<String> objectNameFilter,
             @ApiParam(value = "Filter according to Object Tag.") @RequestParam(value = "objectTag", required = false) Optional<String> objectTagFilter,
+            @ApiParam(value = "Filter according to Job-Planner association status. If enabled, only objects for which a job-planner association exists with the provided status will be returned. ALL, PLANNED, DEACTIVATED, FAILED or UNPLANNED. ALL will filter objects which have an association with any status. UNPLANNED will filter objects without any association.") @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatusFilter,
+            @ApiParam(value = "Include only objects whose project name contains the given string.") @RequestParam(value = "projectName", required = false) Optional<String> projectNameFilter,
+            @ApiParam(value = "Include only objects whose last commit belong to the given user.") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy,
+            @ApiParam(value = "Include only objects whose last commit time is greater than the given EPOCH time.") @RequestParam(value = "lastCommitTimeGreater", required = false) Optional<Long> lastCommitTimeGreater,
+            @ApiParam(value = "Include only objects whose last commit time is less than the given EPOCH time.") @RequestParam(value = "lastCommitTimeLessThan", required = false) Optional<Long> lastCommitTimeLessThan,
             @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
             @ApiParam(value = "Page number", required = false) @RequestParam(defaultValue = "0", value = "pageNo") int pageNo,
             @ApiParam(value = "Page size", required = false) @RequestParam(defaultValue = MAXVALUE +
@@ -363,7 +416,6 @@ public class CatalogObjectController {
         List<CatalogObjectGrantMetadata> catalogObjectsGrants = new LinkedList<>(); // the user's all grants for the catalog objects in the bucket
         List<BucketGrantMetadata> bucketGrants = new LinkedList<>(); // the user's all grants for the bucket
         String bucketRights = "";
-
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -391,6 +443,8 @@ public class CatalogObjectController {
         contentType = contentType.filter(s -> !s.isEmpty());
         objectNameFilter = objectNameFilter.filter(s -> !s.isEmpty());
         objectTagFilter = objectTagFilter.filter(s -> !s.isEmpty());
+        projectNameFilter = projectNameFilter.filter(s -> !s.isEmpty());
+        lastCommitBy = lastCommitBy.filter(s -> !s.isEmpty());
         if (names.isPresent()) {
             ZipArchiveContent content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, names.get());
             return getResponseAsArchive(content, response);
@@ -400,6 +454,10 @@ public class CatalogObjectController {
                                                                                                contentType,
                                                                                                objectNameFilter,
                                                                                                objectTagFilter,
+                                                                                               projectNameFilter,
+                                                                                               lastCommitBy,
+                                                                                               lastCommitTimeGreater,
+                                                                                               lastCommitTimeLessThan,
                                                                                                pageNo,
                                                                                                pageSize);
 
@@ -422,8 +480,76 @@ public class CatalogObjectController {
                                                                                       objectsGrants));
                 }
             }
+            Optional<AssociatedObjectsByBucket> associatedObjectsByBucketOptional = Optional.empty();
+            if (sessionIdRequired) {
+                List<AssociatedObjectsByBucket> associatedObjectsByBucketList = jobPlannerService.getAssociatedObjects(sessionId);
+                associatedObjectsByBucketOptional = associatedObjectsByBucketList.stream()
+                                                                                 .filter(object -> bucketName.equals(object.getBucketName()))
+                                                                                 .findFirst();
+                if (associatedObjectsByBucketOptional.isPresent()) {
+                    AssociatedObjectsByBucket associatedObjects = associatedObjectsByBucketOptional.get();
+                    for (CatalogObjectMetadata catalogObject : metadataList) {
+                        AssociatedObject associatedObject = associatedObjects.findAssociatedObject(catalogObject.getName());
+                        addAssociationStatus(catalogObject, associatedObject);
+                    }
+                }
+            }
+            if (sessionIdRequired && associationStatusFilter.isPresent()) {
+                if (!associatedObjectsByBucketOptional.isPresent()) {
+                    if (!UNPLANNED.equalsIgnoreCase(associationStatusFilter.get())) {
+                        return ResponseEntity.ok(Collections.emptyList());
+                    }
+                    // if UNPLANNED and no objects are associated, we return the full list
+                } else {
+                    AssociatedObjectsByBucket associatedObjectsByBucket = associatedObjectsByBucketOptional.get();
+
+                    metadataList = metadataList.stream()
+                                               .filter(metadata -> isAssociatedInJobPlanner(metadata,
+                                                                                            associationStatusFilter.get(),
+                                                                                            associatedObjectsByBucket))
+                                               .collect(Collectors.toList());
+                }
+            }
             Collections.sort(metadataList);
             return ResponseEntity.ok(metadataList);
+        }
+    }
+
+    private void addAssociationStatus(CatalogObjectMetadata catalogObject, AssociatedObject associatedObject) {
+        catalogObject.getMetadataList()
+                     .add(new Metadata(JOB_PLANNER_ASSOCIATION_STATUS_KEY,
+                                       associatedObject.getStatuses().isEmpty() ? UNPLANNED
+                                                                                : associatedObject.getStatuses()
+                                                                                                  .stream()
+                                                                                                  .map(status -> status.name())
+                                                                                                  .collect(Collectors.joining(",")),
+                                       JOB_PLANNER_LABEL));
+    }
+
+    private boolean isAssociatedInJobPlanner(CatalogObjectMetadata objectMetadata, String expectedStatus,
+            AssociatedObjectsByBucket associatedObjectsByBucket) {
+        switch (expectedStatus) {
+            case ALL:
+                return associatedObjectsByBucket.getObjects()
+                                                .stream()
+                                                .anyMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                              .equals(objectMetadata.getName()) &&
+                                                                              !associatedObject.getStatuses()
+                                                                                               .isEmpty());
+            case UNPLANNED:
+                // object must not have a job-planner association
+                return associatedObjectsByBucket.getObjects()
+                                                .stream()
+                                                .noneMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                               .equals(objectMetadata.getName()));
+            default:
+                AssociationStatus associationStatus = AssociationStatus.convert(expectedStatus);
+                return associatedObjectsByBucket.getObjects()
+                                                .stream()
+                                                .anyMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                              .equals(objectMetadata.getName()) &&
+                                                                              associatedObject.getStatuses()
+                                                                                              .contains(associationStatus));
         }
     }
 
@@ -437,6 +563,7 @@ public class CatalogObjectController {
             @PathVariable String bucketName, @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -448,9 +575,12 @@ public class CatalogObjectController {
             if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), write)) {
                 throw new CatalogObjectGrantAccessException(bucketName, name);
             }
+            initiator = user.getName();
 
         }
-        return catalogObjectService.delete(bucketName, name);
+        CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.delete(bucketName, name);
+        log.info(ACTION + initiator + " deleted the catalog object " + name + " inside bucket " + bucketName);
+        return catalogObjectMetadata;
     }
 
     private ResponseEntity<List<CatalogObjectMetadata>> getResponseAsArchive(ZipArchiveContent zipArchiveContent,

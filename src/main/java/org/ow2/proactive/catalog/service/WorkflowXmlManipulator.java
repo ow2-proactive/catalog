@@ -82,7 +82,7 @@ public class WorkflowXmlManipulator {
             ByteArrayOutputStream answer = transform(doc);
             return answer.toByteArray();
         } catch (Exception e) {
-            throw new ParsingObjectException(e);
+            throw new ParsingObjectException(e.getMessage(), e);
         }
     }
 
@@ -100,7 +100,8 @@ public class WorkflowXmlManipulator {
         return answer;
     }
 
-    public byte[] replaceOrAddOrRemoveProjectNameOnJobLevel(final byte[] xmlWorkflow, String projectName) {
+    public byte[] replaceOrAddOrRemoveAttributeOnJobLevel(final byte[] xmlWorkflow, String attributeName,
+            String attributeValue) {
         if (xmlWorkflow == null || xmlWorkflow.length == 0) {
             return new byte[] {};
         }
@@ -109,15 +110,15 @@ public class WorkflowXmlManipulator {
             doc = parseWorkflow(xmlWorkflow);
 
             Element rootElement = doc.getDocumentElement();
-            if (projectName.trim().isEmpty()) {
-                removeProjectName(rootElement);
+            if (attributeValue.trim().isEmpty()) {
+                removeAttributeValue(rootElement, attributeName);
             } else {
-                replaceOrAddProjectName(rootElement, projectName);
+                replaceAttributeValue(rootElement, attributeName, attributeValue);
             }
             ByteArrayOutputStream answer = transform(doc);
             return answer.toByteArray();
         } catch (Exception e) {
-            throw new ParsingObjectException(e);
+            throw new ParsingObjectException(e.getMessage(), e);
         }
     }
 
@@ -180,19 +181,11 @@ public class WorkflowXmlManipulator {
         String model = element.getAttribute("model");
         if ("PA:HIDDEN".equalsIgnoreCase(model)) {
             String value = element.getAttribute("value");
-            if (!value.startsWith("ENC(")) {
+            if (!value.startsWith(PropertyDecrypter.ENCRYPTION_PREFIX)) {
                 return true;
             }
         }
         return false;
-    }
-
-    private Element replaceOrAddProjectName(Element rootElement, String projectName) {
-        return replaceAttributeValue(rootElement, "projectName", projectName);
-    }
-
-    private Element removeProjectName(Element rootElement) {
-        return removeAttributeValue(rootElement, "projectName");
     }
 
     private Element replaceAttributeValue(Element element, String attrName, String attrValue) {

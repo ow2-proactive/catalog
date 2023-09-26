@@ -27,9 +27,7 @@ package org.ow2.proactive.catalog.service;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,7 +42,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -88,24 +85,51 @@ public class BucketServiceTest {
 
     @Test
     public void testThatEmptyListIsReturnedIfListAndKindAreNull() {
-        assertThat(bucketService.listBuckets((List<String>) null, null, null, null)).isEmpty();
-        verify(bucketRepository, times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(any(),
-                                                                                                          any(),
-                                                                                                          any(),
-                                                                                                          any());
+        assertThat(bucketService.listBuckets((List<String>) null,
+                                             null,
+                                             null,
+                                             null,
+                                             null,
+                                             null,
+                                             null,
+                                             null,
+                                             null,
+                                             null,
+                                             null,
+                                             false)).isEmpty();
+        verify(bucketRepository,
+               times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(any(),
+                                                                                                                    any(),
+                                                                                                                    any(),
+                                                                                                                    any(),
+                                                                                                                    any(),
+                                                                                                                    any());
         verify(bucketRepository, times(0)).findByOwnerIn(any(), any(Sort.class));
     }
 
     @Test
     public void testListBucketsWithProvidedKindOnly() {
-        Optional kind = Optional.of("kind");
+        Optional<String> kind = Optional.of("kind");
         List<String> owners = new ArrayList<>();
-        assertThat(bucketService.listBuckets(owners, kind, Optional.empty(), Optional.empty())).isEmpty();
-        verify(bucketRepository, times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectName(any(),
-                                                                                                          any(),
-                                                                                                          any(),
-                                                                                                          any());
-        verify(bucketRepository, times(1)).findBucketByOwnerContainingKindList(any(List.class), any(List.class));
+        assertThat(bucketService.listBuckets(owners,
+                                             kind,
+                                             Optional.empty(),
+                                             Optional.empty(),
+                                             Optional.empty(),
+                                             Optional.empty(),
+                                             Optional.empty(),
+                                             Optional.empty(),
+                                             Optional.empty(),
+                                             Optional.empty(),
+                                             (String) null,
+                                             false)).isEmpty();
+        verify(bucketRepository,
+               times(1)).findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(anyList(),
+                                                                                                                    anyList(),
+                                                                                                                    any(),
+                                                                                                                    any(),
+                                                                                                                    any(),
+                                                                                                                    any());
     }
 
     @Test
@@ -233,19 +257,13 @@ public class BucketServiceTest {
     private void listBucket(String owner, Optional<String> kind, Optional<String> contentType) {
         when(bucketRepository.findAll()).thenReturn(Collections.emptyList());
         bucketService.listBuckets(owner, (kind), (contentType));
-        if (!StringUtils.isEmpty(owner)) {
-            verify(bucketRepository, times(1)).findByOwnerIn(anyList(), any(Sort.class));
-        } else if (kind.isPresent()) {
-            if (contentType.isPresent()) {
-                verify(bucketRepository, times(1)).findBucketContainingKindListAndContentTypeAndObjectName(anyList(),
-                                                                                                           anyString(),
-                                                                                                           anyString());
-            } else {
-                verify(bucketRepository, times(1)).findBucketContainingKindList(anyList());
-            }
-        } else {
-            verify(bucketRepository, times(1)).findAll(any(Sort.class));
-        }
+        verify(bucketRepository,
+               times(1)).findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(anyList(),
+                                                                                                                    anyList(),
+                                                                                                                    anyString(),
+                                                                                                                    anyString(),
+                                                                                                                    anyLong(),
+                                                                                                                    anyLong());
     }
 
     private BucketEntity newMockedBucket(Long id, String name, LocalDateTime createdAt) {

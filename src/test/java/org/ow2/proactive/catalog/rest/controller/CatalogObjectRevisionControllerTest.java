@@ -79,6 +79,7 @@ public class CatalogObjectRevisionControllerTest {
         CatalogRawObject rawObject = new CatalogRawObject("bucket-name",
                                                           "name",
                                                           "projectName",
+                                                          "tag",
                                                           "object",
                                                           "application/xml",
                                                           1400343L,

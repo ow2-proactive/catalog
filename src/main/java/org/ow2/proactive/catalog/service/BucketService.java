@@ -25,13 +25,20 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import static org.ow2.proactive.catalog.dto.AssociationStatus.ALL;
+import static org.ow2.proactive.catalog.dto.AssociationStatus.UNPLANNED;
+
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.ow2.proactive.catalog.dto.AssociatedObjectsByBucket;
+import org.ow2.proactive.catalog.dto.AssociationStatus;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.repository.BucketRepository;
+import org.ow2.proactive.catalog.repository.CatalogObjectRevisionRepository;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
@@ -45,6 +52,9 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -77,6 +87,12 @@ public class BucketService {
 
     @Autowired
     CatalogObjectService catalogObjectService;
+
+    @Autowired
+    JobPlannerService jobPlannerService;
+
+    @Autowired
+    private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
 
     public BucketMetadata createBucket(String name) {
         return createBucket(name, DEFAULT_BUCKET_OWNER);
@@ -120,52 +136,88 @@ public class BucketService {
     }
 
     public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName) {
+            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
+            Optional<String> projectName, Optional<String> lastCommitBy, Optional<Long> lastCommitTimeGreater,
+            Optional<Long> lastCommitTimeLessThan, String sessionId, boolean allBuckets) {
         if (owners == null) {
             return Collections.emptyList();
         }
 
-        List<BucketMetadata> entities = getBucketEntities(owners, kind, contentType, objectName);
+        List<BucketMetadata> entities = getBucketEntities(owners,
+                                                          kind,
+                                                          contentType,
+                                                          objectName,
+                                                          lastCommitTimeGreater,
+                                                          lastCommitTimeLessThan,
+                                                          allBuckets);
+
+        // Consider now objectTag, association status, project name, last committed by, commit time range filters
+        if (tag.isPresent() || associationStatus.isPresent() || projectName.isPresent() || lastCommitBy.isPresent() ||
+            lastCommitTimeGreater.isPresent() || lastCommitTimeLessThan.isPresent()) {
+            filterByTagOrAssociationStatusOrProjectNameOrLastCommittedBy(entities,
+                                                                         convertKindFilterToList(kind),
+                                                                         contentType,
+                                                                         objectName,
+                                                                         tag,
+                                                                         associationStatus,
+                                                                         projectName,
+                                                                         lastCommitBy,
+                                                                         Optional.of(0L),
+                                                                         Optional.of(0L),
+                                                                         sessionId,
+                                                                         allBuckets);
+        }
 
         log.info("Buckets count {}", entities.size());
         return entities;
     }
 
     private List<BucketMetadata> getBucketEntities(List<String> owners, Optional<String> kind,
-            Optional<String> contentType, Optional<String> objectName) {
-        List<BucketMetadata> entities;
-        List<String> kindList = new ArrayList<>();
-        if (kind.isPresent()) {
-            kindList = Arrays.asList(kind.get().toLowerCase().split(","));
-        } else {
-            kindList.add("");
-        }
+            Optional<String> contentType, Optional<String> objectName, Optional<Long> lastCommitTimeGreater,
+            Optional<Long> lastCcommitTimeLessThan, boolean allBuckets) {
+        List<String> kindList = convertKindFilterToList(kind);
         long startTime = System.currentTimeMillis();
-        if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
-            List<Object[]> bucketsFromDB;
-            if (contentType.isPresent() || objectName.isPresent()) {
-                bucketsFromDB = bucketRepository.findBucketByOwnerContainingKindListAndContentTypeAndObjectName(owners,
-                                                                                                                kindList,
-                                                                                                                contentType.orElse(""),
-                                                                                                                objectName.orElse(""));
-                log.debug("bucket list timer : get buckets : DB request with filtering all parameters" +
-                          (System.currentTimeMillis() - startTime) + " ms");
-            } else { // only kind.isPresent()
-                bucketsFromDB = bucketRepository.findBucketByOwnerContainingKindList(owners, kindList);
-                log.debug("bucket list timer : get buckets : DB request with filtering only KIND parameter" +
-                          (System.currentTimeMillis() - startTime) + " ms");
-            }
-            entities = generateBucketMetadataListFromObject(bucketsFromDB);
+        List<Object[]> filteredBucketsFromDB = bucketRepository.findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(owners,
+                                                                                                                                                           kindList,
+                                                                                                                                                           contentType.orElse(""),
+                                                                                                                                                           objectName.orElse(""),
+                                                                                                                                                           lastCommitTimeGreater.orElse(0L),
+                                                                                                                                                           lastCcommitTimeLessThan.orElse(0L));
 
-        } else {
-            List<BucketEntity> bucketsFromDB = bucketRepository.findByOwnerIn(owners, sortById);
-            log.debug("bucket list timer : get buckets : DB request without filtering " +
-                      (System.currentTimeMillis() - startTime) + " ms");
-            entities = generateBucketMetadataList(bucketsFromDB);
+        List<BucketEntity> allBucketsFromDB = allBuckets ? bucketRepository.findAll() : null;
+        log.debug("bucket list timer : get buckets : DB request with filtering {} ms",
+                  (System.currentTimeMillis() - startTime));
+        List<BucketMetadata> filteredEntities = generateBucketMetadataListFromObject(filteredBucketsFromDB);
+        List<BucketMetadata> allEntities = allBuckets ? generateBucketMetadataList(allBucketsFromDB) : null;
+
+        List<BucketMetadata> answer = mergeEntities(filteredEntities, allEntities);
+        log.debug("bucket list timer : get buckets : total method time {} ms",
+                  (System.currentTimeMillis() - startTime));
+
+        return answer;
+    }
+
+    private List<BucketMetadata> mergeEntities(List<BucketMetadata> filteredEntities,
+            List<BucketMetadata> allEntities) {
+        if (allEntities == null) {
+            return filteredEntities;
         }
-        log.debug("bucket list timer : get buckets : total method time " + (System.currentTimeMillis() - startTime) +
-                  " ms");
-        return entities;
+        allEntities.stream().forEach(bucketMetadata -> bucketMetadata.setObjectCount(0));
+        return allEntities.stream()
+                          .map(bucketMetadata -> filteredEntities.stream()
+                                                                 .filter(filteredBucketMetadata -> filteredBucketMetadata.getName()
+                                                                                                                         .equals(bucketMetadata.getName()))
+                                                                 .findFirst()
+                                                                 .orElse(bucketMetadata))
+                          .collect(Collectors.toList());
+    }
+
+    private List<String> convertKindFilterToList(Optional<String> kindFilter) {
+        List<String> kindList = new ArrayList<>();
+        if (kindFilter.isPresent()) {
+            kindList = Arrays.asList(kindFilter.get().toLowerCase().split(","));
+        }
+        return kindList;
     }
 
     private List<BucketMetadata> generateBucketMetadataListFromObject(List<Object[]> bucketEntityWithContentCountList) {
@@ -186,37 +238,195 @@ public class BucketService {
     }
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType) {
-        return listBuckets(ownerName, kind, contentType, Optional.empty());
+        return listBuckets(ownerName,
+                           kind,
+                           contentType,
+                           Optional.empty(),
+                           Optional.empty(),
+                           Optional.empty(),
+                           Optional.empty(),
+                           Optional.empty(),
+                           Optional.empty(),
+                           Optional.empty(),
+                           null);
     }
 
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName) {
-        List<BucketMetadata> entities;
-        List<String> kindList = new ArrayList<>();
-        if (kind.isPresent()) {
-            kindList = Arrays.asList(kind.get().toLowerCase().split(","));
-        } else {
-            kindList.add("");
-        }
-        List<String> owners = Collections.singletonList(ownerName);
+            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
+            Optional<String> projectName, Optional<String> lastCommitBy, Optional<Long> lastCommitTimeGreater,
+            Optional<Long> lastCommitTimeLessThan, String sessionId) {
 
-        if (!StringUtils.isEmpty(ownerName)) {
-            entities = getBucketEntities(owners, kind, contentType, objectName);
-        } else if (kind.isPresent() || contentType.isPresent() || objectName.isPresent()) {
-            List<Object[]> bucketsFromDB;
-            if (contentType.isPresent() || objectName.isPresent()) {
-                bucketsFromDB = bucketRepository.findBucketContainingKindListAndContentTypeAndObjectName(kindList,
-                                                                                                         contentType.orElse(null),
-                                                                                                         objectName.orElse(null));
-            } else { // only kind.isPresent()
-                bucketsFromDB = bucketRepository.findBucketContainingKindList(kindList);
+        return listBuckets(ownerName,
+                           kind,
+                           contentType,
+                           objectName,
+                           tag,
+                           associationStatus,
+                           projectName,
+                           lastCommitBy,
+                           lastCommitTimeGreater,
+                           lastCommitTimeLessThan,
+                           sessionId,
+                           false);
+    }
+
+    public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
+            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
+            Optional<String> projectName, Optional<String> lastCommitBy, Optional<Long> lastCommitTimeGreater,
+            Optional<Long> lastCommitTimeLessThan, String sessionId, boolean allBuckets) {
+        List<String> owners = StringUtils.isEmpty(ownerName) ? Collections.emptyList()
+                                                             : Collections.singletonList(ownerName);
+
+        return listBuckets(owners,
+                           kind,
+                           contentType,
+                           objectName,
+                           tag,
+                           associationStatus,
+                           projectName,
+                           lastCommitBy,
+                           lastCommitTimeGreater,
+                           lastCommitTimeLessThan,
+                           sessionId,
+                           allBuckets);
+    }
+
+    private void filterByTagOrAssociationStatusOrProjectNameOrLastCommittedBy(List<BucketMetadata> entities,
+            List<String> kindList, Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
+            Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
+            Optional<Long> lastCommitTimeGreater, Optional<Long> lastCommitTimeLessThan, String sessionId,
+            boolean allBuckets) {
+        long startTime = System.currentTimeMillis();
+        String tagFilter = tag.orElse(null);
+        String associationStatusFilter = associationStatus.orElse(null);
+        String projectNameFilter = projectName.orElse(null);
+        String lastCommitByFilter = lastCommitBy.orElse(null);
+        Long lastCommitTimeGreaterFilter = lastCommitTimeGreater.orElse(0L);
+        Long lastCommitTimeLessThanFilter = lastCommitTimeLessThan.orElse(0L);
+        if (Strings.isNullOrEmpty(tagFilter) && Strings.isNullOrEmpty(associationStatusFilter) &&
+            Strings.isNullOrEmpty(projectNameFilter) && Strings.isNullOrEmpty(lastCommitByFilter)) {
+            return;
+        }
+        List<String> bucketNames = entities.stream().map(BucketMetadata::getName).collect(Collectors.toList());
+        List<String> objectNames = null;
+        // search in the DB the latest revision of catalog objects which matching the other filters including the tag
+        List<CatalogObjectRevisionEntity> objectList;
+        List<AssociatedObjectsByBucket> associatedObjectsByBucketList = null;
+
+        if (sessionId != null && associationStatus.isPresent()) {
+            associatedObjectsByBucketList = jobPlannerService.getAssociatedObjects(sessionId);
+            if (isFilteringEnabledAssociations(associationStatusFilter)) {
+                bucketNames = new ArrayList<>(Sets.intersection(findAllBucketNamesContainingAssociations(associatedObjectsByBucketList),
+                                                                new HashSet<>(bucketNames)));
+                objectNames = new ArrayList<>(findAllObjectNamesWithAssociations(associatedObjectsByBucketList));
             }
-            entities = generateBucketMetadataListFromObject(bucketsFromDB);
-
-        } else {
-            entities = generateBucketMetadataList(bucketRepository.findAll(sortById));
         }
-        return entities;
+
+        objectList = catalogObjectRevisionRepository.findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(bucketNames,
+                                                                                                                                  objectNames,
+                                                                                                                                  kindList,
+                                                                                                                                  contentType.orElse(null),
+                                                                                                                                  objectName.orElse(null),
+                                                                                                                                  projectNameFilter,
+                                                                                                                                  lastCommitByFilter,
+                                                                                                                                  tagFilter,
+                                                                                                                                  lastCommitTimeGreaterFilter,
+                                                                                                                                  lastCommitTimeLessThanFilter,
+                                                                                                                                  0,
+                                                                                                                                  Integer.MAX_VALUE);
+        // filter by association status if requested
+
+        if (sessionId != null && associationStatus.isPresent()) {
+            Map<String, AssociatedObjectsByBucket> associatedObjectsByBucketMap = associatedObjectsByBucketList.stream()
+                                                                                                               .collect(Collectors.toMap(AssociatedObjectsByBucket::getBucketName,
+                                                                                                                                         Function.identity()));
+            objectList = objectList.stream()
+                                   .filter(entity -> isObjectMatchingJobPlannerAssociationStatus(entity,
+                                                                                                 associatedObjectsByBucketMap.get(entity.getCatalogObject()
+                                                                                                                                        .getBucket()
+                                                                                                                                        .getBucketName()),
+                                                                                                 associationStatusFilter))
+                                   .collect(Collectors.toList());
+        }
+
+        // group entities per bucket
+        Map<String, List<CatalogObjectRevisionEntity>> objectsPerBucket = objectList.stream()
+                                                                                    .collect(Collectors.groupingBy(obj -> obj.getCatalogObject()
+                                                                                                                             .getBucket()
+                                                                                                                             .getBucketName()));
+
+        // updating the object counts based on the objects which satisfying also the tag filter
+        for (Iterator<BucketMetadata> it = entities.iterator(); it.hasNext();) {
+            BucketMetadata bucket = it.next();
+            int objectsCount = 0;
+            if (objectsPerBucket.containsKey(bucket.getName())) {
+                objectsCount = objectsPerBucket.get(bucket.getName()).size();
+            }
+            if (objectsCount == 0 && !allBuckets) {
+                it.remove();
+            } else {
+                bucket.setObjectCount(objectsCount);
+            }
+        }
+        log.debug("bucket list timer : filter tags time: " + (System.currentTimeMillis() - startTime) + " ms");
+    }
+
+    private boolean isFilteringEnabledAssociations(String associationFilter) {
+        return !UNPLANNED.equalsIgnoreCase(associationFilter);
+    }
+
+    private Set<String>
+            findAllBucketNamesContainingAssociations(List<AssociatedObjectsByBucket> associatedObjectsByBucketList) {
+        return associatedObjectsByBucketList.stream().map(object -> object.getBucketName()).collect(Collectors.toSet());
+    }
+
+    private Set<String>
+            findAllObjectNamesWithAssociations(List<AssociatedObjectsByBucket> associatedObjectsByBucketList) {
+        return associatedObjectsByBucketList.stream()
+                                            .map(objectsbyBucket -> objectsbyBucket.getObjects())
+                                            .flatMap(List::stream)
+                                            .map(object -> object.getObjectName().toLowerCase())
+                                            .collect(Collectors.toSet());
+    }
+
+    private boolean isObjectMatchingJobPlannerAssociationStatus(CatalogObjectRevisionEntity entity,
+            AssociatedObjectsByBucket associatedObjectsByBucket, String expectedStatus) {
+        if (associatedObjectsByBucket == null) {
+            return UNPLANNED.equalsIgnoreCase(expectedStatus);
+        }
+        switch (expectedStatus) {
+            case ALL:
+                return associatedObjectsByBucket.getObjects()
+                                                .stream()
+                                                .anyMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                              .equalsIgnoreCase(entity.getCatalogObject()
+                                                                                                                      .getNameLower()) &&
+                                                                              !associatedObject.getStatuses()
+                                                                                               .isEmpty());
+            case UNPLANNED:
+                // object must not have a job-planner association
+                return associatedObjectsByBucket.getObjects()
+                                                .stream()
+                                                .noneMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                               .equalsIgnoreCase(entity.getCatalogObject()
+                                                                                                                       .getNameLower()));
+            default:
+                AssociationStatus associationStatus = AssociationStatus.convert(expectedStatus);
+                return associatedObjectsByBucket.getObjects()
+                                                .stream()
+                                                .anyMatch(associatedObject -> associatedObject.getObjectName()
+                                                                                              .equalsIgnoreCase(entity.getCatalogObject()
+                                                                                                                      .getNameLower()) &&
+                                                                              associatedObject.getStatuses()
+                                                                                              .contains(associationStatus));
+        }
+    }
+
+    public List<String> getAllEmptyBuckets() {
+        return bucketRepository.findEmptyBucketsForUpdate()
+                               .stream()
+                               .map(entity -> entity.getBucketName())
+                               .collect(Collectors.toList());
     }
 
     public void cleanAllEmptyBuckets() {
@@ -260,12 +470,26 @@ public class BucketService {
 
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
             Optional<String> contentType, Supplier<List<String>> authenticatedUserGroupsSupplier) {
-        return getBucketsByGroups(ownerName, kind, contentType, Optional.empty(), authenticatedUserGroupsSupplier);
+        return getBucketsByGroups(ownerName,
+                                  kind,
+                                  contentType,
+                                  Optional.empty(),
+                                  Optional.empty(),
+                                  Optional.empty(),
+                                  Optional.empty(),
+                                  Optional.empty(),
+                                  Optional.empty(),
+                                  Optional.empty(),
+                                  null,
+                                  false,
+                                  authenticatedUserGroupsSupplier);
     }
 
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
-            Optional<String> contentType, Optional<String> objectName,
-            Supplier<List<String>> authenticatedUserGroupsSupplier)
+            Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
+            Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
+            Optional<Long> lastCommitTimeGreater, Optional<Long> lastCommitTimeLessThan, String sessionId,
+            boolean allBuckets, Supplier<List<String>> authenticatedUserGroupsSupplier)
             throws NotAuthenticatedException, AccessDeniedException {
         List<String> groups;
         long startTime = System.currentTimeMillis();
@@ -277,7 +501,18 @@ public class BucketService {
             groups = Collections.singletonList(ownerName);
         }
 
-        List<BucketMetadata> bucketsByGroups = listBuckets(groups, kind, contentType, objectName);
+        List<BucketMetadata> bucketsByGroups = listBuckets(groups,
+                                                           kind,
+                                                           contentType,
+                                                           objectName,
+                                                           tag,
+                                                           associationStatus,
+                                                           projectName,
+                                                           lastCommitBy,
+                                                           lastCommitTimeGreater,
+                                                           lastCommitTimeLessThan,
+                                                           sessionId,
+                                                           allBuckets);
         log.debug("bucket list timer : get buckets by groups : " + (System.currentTimeMillis() - startTime) + " ms");
         return bucketsByGroups;
     }

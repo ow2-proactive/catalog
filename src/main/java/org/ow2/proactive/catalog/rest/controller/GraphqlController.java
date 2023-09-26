@@ -29,7 +29,10 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.ow2.proactive.catalog.service.GraphqlService;
+import org.ow2.proactive.catalog.service.RestApiAccessService;
+import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,6 +63,12 @@ public class GraphqlController {
     @Autowired
     private GraphqlService graphqlService;
 
+    @Autowired
+    private RestApiAccessService restApiAccessService;
+
+    @Value("${pa.catalog.security.required.sessionid}")
+    private boolean sessionIdRequired;
+
     @RequestMapping(value = "/graphiql", method = RequestMethod.GET)
     public String graphiql() {
         return "/index.html";
@@ -75,13 +84,18 @@ public class GraphqlController {
 
         log.debug("sessionId={}", sessionId);
 
+        AuthenticatedUser user = null;
+        if (sessionIdRequired) {
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+        }
+
         String query = (String) body.get(DEFAULT_QUERY_KEY);
         String operationName = (String) body.get(DEFAULT_OPERATION_NAME);
         Map<String, Object> variables = (Map<String, Object>) body.get(DEFAULT_VARIABLES_KEY);
 
         log.debug("query={}, operationName={}, variables={}", query, operationName, variables);
 
-        return graphqlService.executeQuery(query, operationName, (Object) null, variables);
+        return graphqlService.executeQuery(query, operationName, (Object) null, variables, user);
     }
 
 }

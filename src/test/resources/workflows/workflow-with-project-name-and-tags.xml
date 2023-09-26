@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="urn:proactive:jobdescriptor:3.14"
+  xsi:schemaLocation="urn:proactive:jobdescriptor:3.14 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.14/schedulerjob.xsd"
+  name="workflow-with-project-name-and-tags"
+  projectName="1. Test Project"
+  tags="testTag1,testTag2"
+  priority="normal"
+  onTaskError="continueJobExecution"
+  maxNumberOfExecution="2"  >
+  <description>
+    <![CDATA[ A workflow that executes Groovy in JVM. ]]>
+  </description>
+  <taskFlow>
+    <task name="Task1"
+    fork="true">
+      <description>
+        <![CDATA[ The simplest task, ran by a Groovy engine. ]]>
+      </description>
+      <scriptExecutable>
+        <script>
+          <code language="groovy">
+            <![CDATA[
+println "Hello World from " + ("hostname".execute().text)
+]]>
+          </code>
+        </script>
+      </scriptExecutable>
+    </task>
+    <task name="Task2"
+    fork="true">
+      <depends>
+        <task ref="Task1"/>
+      </depends>
+      <scriptExecutable>
+        <script>
+          <code language="groovy">
+            <![CDATA[
+println variables.get("PA_TASK_NAME")
+]]>
+          </code>
+        </script>
+      </scriptExecutable>
+    </task>
+  </taskFlow>
+</job>

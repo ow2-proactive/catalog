@@ -51,6 +51,8 @@ import org.ow2.proactive.scheduler.common.task.TaskVariable;
 import org.ow2.proactive.scheduler.core.properties.PASchedulerProperties;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.Strings;
+
 import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -73,7 +75,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
 
     public static final String OBJECT_TAG_LABEL = "object_tag";
 
-    private static final String JOB_AND_PROJECT_LABEL = "job_information";
+    public static final String JOB_INFORMATION_LABEL = "job_information";
 
     public static final String ATTRIBUTE_GENERIC_INFORMATION_LABEL = "generic_information";
 
@@ -92,6 +94,8 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     public static final String ATTRIBUTE_DEPENDS_ON_LABEL = "depends_on";
 
     private static final String CATALOG_OBJECT_MODEL = "PA:CATALOG_OBJECT";
+
+    private static final String OPTIONAL_MODEL = "?";
 
     public static final String LATEST_VERSION = "latest";
 
@@ -118,26 +122,33 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         try {
             job = (TaskFlowJob) JobFactory.getFactory(false).createJob(inputStream);
         } catch (JobCreationException e) {
+            log.error("Error when parsing workflow", e);
             throw new ParsingObjectException(e.getMessage(), e);
         }
         Set keyValueMapBuilder = new LinkedHashSet();
 
-        addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
-        addJobNameIfNotNull(keyValueMapBuilder, job);
-        addJobObjectTagsIfNotNullAndNotEmpty(keyValueMapBuilder, job);
-        addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
-        job.getUnresolvedVariables()
-           .values()
-           .forEach(jobVariable -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
-        job.getUnresolvedGenericInformation()
-           .forEach((name, value) -> addGenericInformationIfNotNull(keyValueMapBuilder, name, value));
-        job.getTasks()
-           .forEach(task -> task.getVariables()
-                                .values()
-                                .forEach(taskVariable -> addDependsOnIfCatalogObjectModelExistOnTaskVariable(keyValueMapBuilder,
-                                                                                                             taskVariable)));
-        job.getTasks().forEach(task -> addDependsOnIfScriptUrlExistInEachTaskScripts(keyValueMapBuilder, task));
-        addJobVizualisationIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+        try {
+
+            addProjectNameIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+            addJobNameIfNotNull(keyValueMapBuilder, job);
+            addJobObjectTagsIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+            addJobDescriptionIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+            job.getUnresolvedVariables()
+               .values()
+               .forEach(jobVariable -> addVariableIfNotNullAndModelIfNotEmpty(keyValueMapBuilder, jobVariable));
+            job.getUnresolvedGenericInformation()
+               .forEach((name, value) -> addGenericInformationIfNotNull(keyValueMapBuilder, name, value));
+            job.getTasks()
+               .forEach(task -> task.getVariables()
+                                    .values()
+                                    .forEach(taskVariable -> addDependsOnIfCatalogObjectModelExistOnTaskVariable(keyValueMapBuilder,
+                                                                                                                 taskVariable)));
+            job.getTasks().forEach(task -> addDependsOnIfScriptUrlExistInEachTaskScripts(keyValueMapBuilder, task));
+            addJobVizualisationIfNotNullAndNotEmpty(keyValueMapBuilder, job);
+        } catch (Exception e) {
+            log.error("Error when editing parsed workflow", e);
+            throw e;
+        }
 
         return new ArrayList<>(keyValueMapBuilder);
     }
@@ -147,14 +158,14 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         if (checkIfNotNull(projectName) && checkIfNotEmpty(projectName)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(PROJECT_NAME_KEY,
                                                                    projectName,
-                                                                   JOB_AND_PROJECT_LABEL));
+                                                                   JOB_INFORMATION_LABEL));
         }
     }
 
     private void addJobNameIfNotNull(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, Job job) {
         String name = job.getName();
         if (checkIfNotNull(name)) {
-            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY, name, JOB_AND_PROJECT_LABEL));
+            keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_NAME_KEY, name, JOB_INFORMATION_LABEL));
         }
     }
 
@@ -175,7 +186,8 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         boolean advanced = jobVariable.isAdvanced();
         boolean hidden = jobVariable.isHidden();
         if (checkIfNotNull(model) && "PA:HIDDEN".equalsIgnoreCase(model)) {
-            if (checkIfNotNull(value) && checkIfNotEmpty(value) && !value.startsWith("ENC(")) {
+            if (checkIfNotNull(value) && checkIfNotEmpty(value) &&
+                !value.startsWith(PropertyDecrypter.ENCRYPTION_PREFIX)) {
                 try {
                     value = PropertyDecrypter.encryptData(value);
                 } catch (Exception e) {
@@ -304,7 +316,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
     }
 
     private void addDependsOn(Set<KeyValueLabelMetadataEntity> keyValueMapBuilder, String value, String model) {
-        if (model.equalsIgnoreCase(CATALOG_OBJECT_MODEL)) {
+        if (model.toUpperCase().startsWith(CATALOG_OBJECT_MODEL) && !Strings.isNullOrEmpty(value)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(getNameAndBucketFromDependsOn(value),
                                                                    getRevisionFromDependsOn(value).orElse(LATEST_VERSION),
                                                                    ATTRIBUTE_DEPENDS_ON_LABEL));
@@ -351,7 +363,7 @@ public final class WorkflowParser extends AbstractCatalogObjectParser {
         if (checkIfNotNull(vizualisation) && checkIfNotEmpty(vizualisation)) {
             keyValueMapBuilder.add(new KeyValueLabelMetadataEntity(JOB_VISUALIZATION_KEY,
                                                                    vizualisation,
-                                                                   JOB_AND_PROJECT_LABEL));
+                                                                   JOB_INFORMATION_LABEL));
         }
     }
 

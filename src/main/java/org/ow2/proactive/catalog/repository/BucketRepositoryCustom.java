@@ -36,8 +36,9 @@ public interface BucketRepositoryCustom {
     List<Object[]> findBucketContainingKindListAndContentTypeAndObjectName(List<String> kindList, String contentType,
             String objectName);
 
-    List<Object[]> findBucketByOwnerContainingKindListAndContentTypeAndObjectName(List<String> owners,
-            List<String> kindList, String contentType, String objectName);
+    List<Object[]> findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(
+            List<String> owners, List<String> kindList, String contentType, String objectName,
+            Long committedTimeGreater, Long committedTimeLessThan);
 
     List<Object[]> findBucketByOwnerContainingKindList(List<String> owners, List<String> kindList);
 

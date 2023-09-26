@@ -57,6 +57,14 @@ public class CatalogObjectGrantController {
 
     private static final String REQUEST_API_QUERY = "/resources/{catalogObjectName}/grant";
 
+    private static final String ANONYMOUS = "anonymous";
+
+    private static final String ACTION = "[Action] ";
+
+    public static final String PUBLIC_CANNOT_ASSIGN_A_GRANT = " is public. You cannot assign a grant to it or to any of its object";
+
+    public static final String PUBLIC_NO_GRANTS_ARE_ASSIGNED = " is public. No grants are assigned to it or to its objects";
+
     @Autowired
     private CatalogObjectGrantService catalogObjectGrantService;
 
@@ -84,21 +92,11 @@ public class CatalogObjectGrantController {
             @ApiParam(value = "The name of the user that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
-            // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. You can not assign a grant to it or to any of its object");
-            }
-            // Check Grants
-            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
-                                   .equals(admin.toString())) {
-                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_CANNOT_ASSIGN_A_GRANT, catalogObjectName);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -116,6 +114,10 @@ public class CatalogObjectGrantController {
                 }
             }
         }
+
+        log.info(ACTION + initiator + " created " + accessType + " grant access for user " + username + " on object " +
+                 catalogObjectName + " in bucket " + bucketName);
+
         return createdUserObjectGrant;
     }
 
@@ -137,21 +139,12 @@ public class CatalogObjectGrantController {
             @ApiParam(value = "The name of the group of users that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. You can not assign a grant to it or to any of its object");
-            }
-            // Check Grants
-            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
-                                   .equals(admin.toString())) {
-                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_CANNOT_ASSIGN_A_GRANT, catalogObjectName);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -171,6 +164,8 @@ public class CatalogObjectGrantController {
                 }
             }
         }
+        log.info(ACTION + initiator + " created " + accessType + " grant access for group " + userGroup +
+                 " on object " + catalogObjectName + " in bucket " + bucketName);
         return createdUserGroupObjectGrant;
     }
 
@@ -188,21 +183,12 @@ public class CatalogObjectGrantController {
             @ApiParam(value = "The name of the user that is benefiting of the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check Grants
-            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
-                                   .equals(admin.toString())) {
-                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED, catalogObjectName);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -218,6 +204,8 @@ public class CatalogObjectGrantController {
                 }
             }
         }
+        log.info(ACTION + initiator + " deleted grant access for user " + username + " on object " + catalogObjectName +
+                 " in bucket " + bucketName);
         return deletedUserObjectGrant;
     }
 
@@ -235,21 +223,12 @@ public class CatalogObjectGrantController {
             @ApiParam(value = "The name of the group of users that are benefiting of the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check Grants
-            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
-                                   .equals(admin.toString())) {
-                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED, catalogObjectName);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -267,6 +246,8 @@ public class CatalogObjectGrantController {
                 }
             }
         }
+        log.info(ACTION + initiator + " deleted grant access for group " + userGroup + " on object " +
+                 catalogObjectName + " in bucket " + bucketName);
         return deletedUserGroupObjectGrant;
     }
 
@@ -285,21 +266,12 @@ public class CatalogObjectGrantController {
             @ApiParam(value = "The name of the user that is benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check Grants
-            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
-                                   .equals(admin.toString())) {
-                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED, catalogObjectName);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -317,6 +289,8 @@ public class CatalogObjectGrantController {
                 }
             }
         }
+        log.info(ACTION + initiator + " updated grant access for user " + username + " on object " + catalogObjectName +
+                 " in bucket " + bucketName + " to " + accessType);
         return updatedUserObjectGrant;
     }
 
@@ -338,21 +312,12 @@ public class CatalogObjectGrantController {
             @ApiParam(value = "The name of the group of users that are benefiting of the access grant.", required = true) @RequestParam(value = "userGroup", required = true) String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check Grants
-            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
-                                   .equals(admin.toString())) {
-                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED, catalogObjectName);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -373,6 +338,8 @@ public class CatalogObjectGrantController {
                 }
             }
         }
+        log.info(ACTION + initiator + " updated grant access for group " + userGroup + " on object " +
+                 catalogObjectName + " in bucket " + bucketName + " to " + accessType);
         return updatedUserGroupObjectGrant;
     }
 
@@ -389,19 +356,7 @@ public class CatalogObjectGrantController {
             throws NotAuthenticatedException, AccessDeniedException {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check Grants
-            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
-                                   .equals(admin.toString())) {
-                throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED, catalogObjectName);
         }
         return catalogObjectGrantService.getObjectGrants(bucketName, catalogObjectName);
     }
@@ -419,21 +374,11 @@ public class CatalogObjectGrantController {
             @ApiParam(value = "The name of the object in the bucket, which is the subject of the grant.", required = true) @PathVariable String catalogObjectName)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
+        String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
-            // Check session validation
-            if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            if (restApiAccessService.isAPublicBucket(bucketName)) {
-                throw new PublicBucketGrantAccessException("Bucket: " + bucketName +
-                                                           " is public. No grants are assigned to it or to its objects");
-            }
-            // Check Grants
-            if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName)
-                                   .equals(admin.toString())) {
-                throw new BucketGrantAccessException(bucketName);
-            }
+            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED, catalogObjectName);
+            initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
         }
@@ -445,8 +390,26 @@ public class CatalogObjectGrantController {
                                                          ", you will lose your admin rights over it.");
             }
         }
-        return catalogObjectGrantService.deleteAllCatalogObjectGrantsAssignedToAnObjectInABucket(bucketName,
-                                                                                                 catalogObjectName);
+        List<CatalogObjectGrantMetadata> catalogObjectGrantMetadataList = catalogObjectGrantService.deleteAllCatalogObjectGrantsAssignedToAnObjectInABucket(bucketName,
+                                                                                                                                                            catalogObjectName);
+        log.info(ACTION + initiator + " deleted all grant accesses on object " + catalogObjectName + " in bucket " +
+                 bucketName);
+        return catalogObjectGrantMetadataList;
+    }
+
+    private void checkAccess(String sessionId, AuthenticatedUser user, String bucketName,
+            String publicGrantErrorMessage, String catalogObjectName) {
+        // Check session validation
+        if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
+            throw new AccessDeniedException("Session id is not active. Please login.");
+        }
+        if (restApiAccessService.isAPublicBucket(bucketName)) {
+            throw new PublicBucketGrantAccessException("Bucket: " + bucketName + publicGrantErrorMessage);
+        }
+        // Check Grants
+        if (!grantRightsService.getCatalogObjectRights(user, bucketName, catalogObjectName).equals(admin.toString())) {
+            throw new CatalogObjectGrantAccessException(bucketName, catalogObjectName);
+        }
     }
 
 }

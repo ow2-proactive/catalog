@@ -25,6 +25,8 @@
  */
 package org.ow2.proactive.catalog.repository;
 
+import static org.ow2.proactive.catalog.service.BucketService.DEFAULT_BUCKET_OWNER;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +37,8 @@ import javax.persistence.criteria.*;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.springframework.stereotype.Repository;
+
+import com.google.common.base.Strings;
 
 
 @Repository
@@ -47,28 +51,35 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
     public List<Object[]> findBucketContainingKindListAndContentTypeAndObjectName(List<String> kindList,
             String contentType, String objectName) {
 
-        return em.createQuery(buildCriteriaQuery(null, kindList, contentType, objectName)).getResultList();
+        return em.createQuery(buildCriteriaQuery(null, kindList, contentType, objectName, null, null)).getResultList();
     }
 
     @Override
-    public List<Object[]> findBucketByOwnerContainingKindListAndContentTypeAndObjectName(List<String> owners,
-            List<String> kindList, String contentType, String objectName) {
+    public List<Object[]> findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(
+            List<String> owners, List<String> kindList, String contentType, String objectName,
+            Long committedTimeGreater, Long committedTimeLessThan) {
 
-        return em.createQuery(buildCriteriaQuery(owners, kindList, contentType, objectName)).getResultList();
+        return em.createQuery(buildCriteriaQuery(owners,
+                                                 kindList,
+                                                 contentType,
+                                                 objectName,
+                                                 committedTimeGreater,
+                                                 committedTimeLessThan))
+                 .getResultList();
     }
 
     @Override
     public List<Object[]> findBucketByOwnerContainingKindList(List<String> owners, List<String> kindList) {
-        return em.createQuery(buildCriteriaQuery(owners, kindList, null, null)).getResultList();
+        return em.createQuery(buildCriteriaQuery(owners, kindList, null, null, null, null)).getResultList();
     }
 
     @Override
     public List<Object[]> findBucketContainingKindList(List<String> kindList) {
-        return em.createQuery(buildCriteriaQuery(null, kindList, null, null)).getResultList();
+        return em.createQuery(buildCriteriaQuery(null, kindList, null, null, null, null)).getResultList();
     }
 
     private CriteriaQuery<Object[]> buildCriteriaQuery(List<String> owners, List<String> kindList, String contentType,
-            String objectName) {
+            String objectName, Long committedTimeGreater, Long committedTimeLessThan) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
         Root<BucketEntity> bucketEntityRoot = cq.from(BucketEntity.class);
@@ -77,10 +88,11 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
                                                                                            JoinType.LEFT);
         List<Predicate> allPredicates = new ArrayList<>();
 
-        if (kindList.size() > 0) {
+        if (kindList != null && !kindList.isEmpty()) {
             List<Predicate> kindPredicatesList = new ArrayList<>();
             for (String kind : kindList) {
-                kindPredicatesList.add(cb.like(catalogObjectsJoin.get("kindLower"), kind.toLowerCase() + "%"));
+                kindPredicatesList.add(cb.like(catalogObjectsJoin.get("kindLower"),
+                                               toRightSidePredicatePattern(kind.toLowerCase())));
             }
             Predicate kindPredicate;
             if (kindList.size() == 1) {
@@ -91,22 +103,30 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
             allPredicates.add(kindPredicate);
         }
 
-        if (contentType != null) {
+        if (!Strings.isNullOrEmpty(contentType)) {
             Predicate contentTypePredicate = cb.like(catalogObjectsJoin.get("contentTypeLower"),
-                                                     contentType.toLowerCase() + "%");
+                                                     toRightSidePredicatePattern(contentType.toLowerCase()));
             allPredicates.add(contentTypePredicate);
         }
 
-        if (objectName != null) {
+        if (!Strings.isNullOrEmpty(objectName)) {
             Predicate objectNamePredicate = cb.like(catalogObjectsJoin.get("nameLower"),
-                                                    "%" + objectName.toLowerCase() + "%");
+                                                    toBothSidesPredicatePattern(objectName.toLowerCase()));
             allPredicates.add(objectNamePredicate);
         }
 
-        if (owners != null) {
+        if (owners != null && !owners.isEmpty()) {
             Predicate ownerPredicate = cb.in(bucketEntityRoot.get("owner")).value(owners);
             allPredicates.add(ownerPredicate);
         }
+
+        if (committedTimeGreater > 0) {
+            allPredicates.add(cb.ge(catalogObjectsJoin.get("lastCommitTime"), committedTimeGreater));
+        }
+        if (committedTimeLessThan > 0) {
+            allPredicates.add(cb.lessThan(catalogObjectsJoin.get("lastCommitTime"), committedTimeLessThan));
+        }
+
         if (allPredicates.size() > 0) {
             Predicate finalPredicate;
             if (allPredicates.size() == 1) {
@@ -123,5 +143,13 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
                        bucketEntityRoot.get("id"))
           .groupBy(bucketEntityRoot.get("bucketName"), bucketEntityRoot.get("owner"), bucketEntityRoot.get("id"));
         return cq;
+    }
+
+    private String toBothSidesPredicatePattern(String pattern) {
+        return pattern.contains("%") ? pattern.toLowerCase() : "%" + pattern.toLowerCase() + "%";
+    }
+
+    private String toRightSidePredicatePattern(String pattern) {
+        return pattern.contains("%") ? pattern.toLowerCase() : pattern.toLowerCase() + "%";
     }
 }
