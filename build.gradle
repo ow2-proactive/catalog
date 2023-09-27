@@ -217,7 +217,7 @@ dependencies {
 
     providedCompile 'org.springframework.boot:spring-boot-starter-tomcat'
 
-    providedRuntime 'org.hsqldb:hsqldb'
+    providedRuntime 'org.hsqldb:hsqldb:2.7.2:jdk8'
 
     compile 'io.springfox:springfox-spring-web'
     compile 'io.springfox:springfox-swagger2'
