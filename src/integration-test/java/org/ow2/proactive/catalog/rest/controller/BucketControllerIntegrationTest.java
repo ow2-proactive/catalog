@@ -31,6 +31,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -50,8 +51,7 @@ import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -66,8 +66,7 @@ import com.jayway.restassured.response.ValidatableResponse;
  */
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = { Application.class })
-@WebIntegrationTest(randomPort = true)
+@SpringBootTest(classes = { Application.class }, webEnvironment = RANDOM_PORT)
 public class BucketControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private final ObjectMapper mapper = new ObjectMapper();

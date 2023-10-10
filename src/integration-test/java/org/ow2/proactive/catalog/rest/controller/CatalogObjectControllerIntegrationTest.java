@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.is;
 import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PERCENT_20;
 import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PLUS;
 import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_EXTENSION;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpStatus;
+import org.hamcrest.core.StringStartsWith;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,8 +57,7 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.exception.*;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
 import org.ow2.proactive.catalog.util.parser.SupportedParserKinds;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -73,8 +74,7 @@ import com.jayway.restassured.response.ValidatableResponse;
  */
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = { Application.class })
-@WebIntegrationTest(randomPort = true)
+@SpringBootTest(classes = { Application.class }, webEnvironment = RANDOM_PORT)
 public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private static final String ZIP_CONTENT_TYPE = "application/zip";
@@ -400,7 +400,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                    .header(HttpHeaders.CONTENT_DISPOSITION,
                            is("attachment; filename=\"" + objectNameWithSpecificSymbols + WORKFLOW_EXTENSION + "\""));
         rawResponse.then().assertThat().header(HttpHeaders.CONTENT_TYPE,
-                                               is(MediaType.APPLICATION_XML.toString() + ";charset=UTF-8"));
+                                               is(new StringStartsWith(MediaType.APPLICATION_XML.toString())));
 
         //check get metadata of created object with specific name
         ValidatableResponse metadataResponse = given().pathParam("bucketName", bucket.getName())
@@ -456,7 +456,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
         rawResponse.then().assertThat().header(HttpHeaders.CONTENT_DISPOSITION,
                                                is("attachment; filename=\"" + ruleName + "." + fileExtension + "\""));
         rawResponse.then().assertThat().header(HttpHeaders.CONTENT_TYPE,
-                                               is(MediaType.APPLICATION_XML.toString() + ";charset=UTF-8"));
+                                               is(new StringStartsWith(MediaType.APPLICATION_XML.toString())));
     }
 
     @Test

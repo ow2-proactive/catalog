@@ -29,6 +29,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.ow2.proactive.catalog.util.GrantHelper.GROUP_GRANTEE_TYPE;
 import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import org.apache.http.HttpStatus;
 import org.junit.After;
@@ -36,8 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -49,8 +49,7 @@ import com.jayway.restassured.response.Response;
  */
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = { Application.class })
-@WebIntegrationTest(randomPort = true)
+@SpringBootTest(classes = { Application.class }, webEnvironment = RANDOM_PORT)
 public class BucketGrantControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private final String bucketName = "test";
