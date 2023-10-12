@@ -31,6 +31,7 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.ow2.proactive.catalog.util.GrantHelper.GROUP_GRANTEE_TYPE;
 import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import java.util.HashMap;
 import java.util.List;
@@ -43,8 +44,7 @@ import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -57,8 +57,7 @@ import com.jayway.restassured.response.Response;
  */
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = { Application.class })
-@WebIntegrationTest(randomPort = true)
+@SpringBootTest(classes = { Application.class }, webEnvironment = RANDOM_PORT)
 public class CatalogObjectGrantControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private final String bucketName = "test";

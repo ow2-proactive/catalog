@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -42,8 +43,7 @@ import org.junit.runner.RunWith;
 import org.ow2.proactive.catalog.Application;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.util.IntegrationTestUtil;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -53,8 +53,7 @@ import com.jayway.restassured.specification.RequestSpecification;
 
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = { Application.class })
-@WebIntegrationTest(randomPort = true)
+@SpringBootTest(classes = { Application.class }, webEnvironment = RANDOM_PORT)
 public class CatalogObjectReportControllerIntegrationTest extends AbstractRestAssuredTest {
 
     private BucketMetadata bucket;
