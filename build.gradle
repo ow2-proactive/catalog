@@ -261,6 +261,7 @@ dependencies {
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
         exclude group: 'org.slf4j', module: 'slf4j-reload4j'
         exclude group: 'log4j', module: 'log4j'
+        exclude group: 'ch.qos.reload4j', module: 'reload4j'
     }
 
     // scheduler-api for parsing workflows
@@ -268,6 +269,7 @@ dependencies {
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
         exclude group: 'org.slf4j', module: 'slf4j-reload4j'
         exclude group: 'log4j', module: 'log4j'
+        exclude group: 'ch.qos.reload4j', module: 'reload4j'
     }
 
     // custom hibernate-hikaricp version to use HikariCP 4.0
