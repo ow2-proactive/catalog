@@ -277,7 +277,7 @@ dependencies {
     testCompile 'junit:junit'
     testCompile 'nl.jqno.equalsverifier:equalsverifier'
     testCompile 'org.mockito:mockito-core'
-    testRuntime 'log4j:log4j:1.2.17'
+    testRuntime 'ch.qos.reload4j:reload4j:1.2.25'
 
     integrationTestCompile 'com.google.code.gson:gson'
     integrationTestCompile 'com.jayway.restassured:rest-assured'
@@ -288,7 +288,7 @@ dependencies {
         exclude group: 'org.javassist', module: 'javassist'
     }
 
-    integrationTestRuntime 'log4j:log4j:1.2.17'
+    integrationTestRuntime 'ch.qos.reload4j:reload4j:1.2.25'
 }
 
 test {
