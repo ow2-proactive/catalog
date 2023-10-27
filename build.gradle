@@ -259,12 +259,14 @@ dependencies {
     //  Using the Scheduler Rest client as authentication service
     compile ("org.ow2.proactive_grid_cloud_portal:rest-client:$version") {
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'org.slf4j', module: 'slf4j-reload4j'
         exclude group: 'log4j', module: 'log4j'
     }
 
     // scheduler-api for parsing workflows
     compile ("org.ow2.proactive:scheduler-api:$version") {
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'org.slf4j', module: 'slf4j-reload4j'
         exclude group: 'log4j', module: 'log4j'
     }
 
