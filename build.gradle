@@ -259,13 +259,17 @@ dependencies {
     //  Using the Scheduler Rest client as authentication service
     compile ("org.ow2.proactive_grid_cloud_portal:rest-client:$version") {
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'org.slf4j', module: 'slf4j-reload4j'
         exclude group: 'log4j', module: 'log4j'
+        exclude group: 'ch.qos.reload4j', module: 'reload4j'
     }
 
     // scheduler-api for parsing workflows
     compile ("org.ow2.proactive:scheduler-api:$version") {
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'org.slf4j', module: 'slf4j-reload4j'
         exclude group: 'log4j', module: 'log4j'
+        exclude group: 'ch.qos.reload4j', module: 'reload4j'
     }
 
     // custom hibernate-hikaricp version to use HikariCP 4.0
@@ -277,7 +281,7 @@ dependencies {
     testCompile 'junit:junit'
     testCompile 'nl.jqno.equalsverifier:equalsverifier'
     testCompile 'org.mockito:mockito-core'
-    testRuntime 'log4j:log4j:1.2.17'
+    testRuntime 'ch.qos.reload4j:reload4j:1.2.25'
 
     integrationTestCompile 'com.google.code.gson:gson'
     integrationTestCompile 'com.jayway.restassured:rest-assured'
@@ -288,7 +292,7 @@ dependencies {
         exclude group: 'org.javassist', module: 'javassist'
     }
 
-    integrationTestRuntime 'log4j:log4j:1.2.17'
+    integrationTestRuntime 'ch.qos.reload4j:reload4j:1.2.25'
 }
 
 test {
