@@ -140,6 +140,8 @@ public class CatalogObjectService {
 
     static final String PROJECT_NAME = "project_name";
 
+    static final String JOB_INFORMATION_LABEL = "job_information";
+
     static final String OBJECT_TAG_LABEL = "object_tag";
 
     private AutoDetectParser mediaTypeFileParser = new AutoDetectParser();
@@ -428,8 +430,8 @@ public class CatalogObjectService {
             throw new NullPointerException("Cannot build catalog object!");
         }
 
-        List<KeyValueLabelMetadataEntity> genericInformationWithBucketDataList = keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(keyValues,
-                                                                                                                                                            genericInfoBucketData);
+        List<KeyValueLabelMetadataEntity> genericInformationWithBucketDataList = new ArrayList<>(keyValueLabelMetadataHelper.replaceMetadataRelatedGenericInfoAndKeepOthers(keyValues,
+                                                                                                                                                                            genericInfoBucketData));
 
         String metadataProjectName = getMetadataValueIfExistsOrEmptyString(metadataList, PROJECT_NAME);
         String metadataTags = getTagsValueIfExistsOrEmptyString(metadataList);
@@ -455,6 +457,13 @@ public class CatalogObjectService {
             if (metadata.getKey().equals(PROJECT_NAME)) {
                 metadata.setValue(synchronizedProjectName);
             }
+        }
+        if (!Strings.isNullOrEmpty(synchronizedProjectName) &&
+            genericInformationWithBucketDataList.stream()
+                                                .noneMatch(metadata -> metadata.getKey().equals(PROJECT_NAME))) {
+            genericInformationWithBucketDataList.add(new KeyValueLabelMetadataEntity(PROJECT_NAME,
+                                                                                     synchronizedProjectName,
+                                                                                     JOB_INFORMATION_LABEL));
         }
 
         //synchronize tags values

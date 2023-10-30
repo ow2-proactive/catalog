@@ -173,7 +173,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                     "object-name-3");
 
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("workflow");
-        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(5);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(6);
 
         List<Metadata> genericInfo = catalogObjectMetadata.getMetadataList()
                                                           .stream()
@@ -194,7 +194,7 @@ public class CatalogObjectServiceIntegrationTest {
         CatalogObjectMetadata catalogObjectMetadata = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
                                                                                                     "object-name-3");
         List<Metadata> metadataList = catalogObjectMetadata.getMetadataList();
-        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(5);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(6);
 
         Metadata nullValueMetadata = new Metadata("test-key", null, null);
         metadataList.add(nullValueMetadata);
@@ -210,7 +210,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                                   metadataList,
                                                                                                                   workflowAsByteArrayUpdated);
 
-        assertThat(catalogObjectMetadataNewKeyValue.getMetadataList()).hasSize(6);
+        assertThat(catalogObjectMetadataNewKeyValue.getMetadataList()).hasSize(7);
 
         Optional<Metadata> emptyValueMetadata = catalogObjectMetadataNewKeyValue.getMetadataList()
                                                                                 .stream()
@@ -228,7 +228,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                     "object-name-3");
 
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("workflow");
-        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(5);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(6);
 
         assertThat(catalogObjectMetadata.getMetadataList()).contains(new Metadata(KeyValueLabelMetadataHelper.BUCKET_NAME_KEY,
                                                                                   bucket.getName(),
@@ -246,7 +246,7 @@ public class CatalogObjectServiceIntegrationTest {
         CatalogObjectMetadata catalogObjectMetadataWorkflow = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
                                                                                                             "object-name-3");
         assertThat(catalogObjectMetadataWorkflow.getKind()).isEqualTo("workflow");
-        assertThat(catalogObjectMetadataWorkflow.getMetadataList()).hasSize(5);
+        assertThat(catalogObjectMetadataWorkflow.getMetadataList()).hasSize(6);
 
         assertThat(catalogObjectMetadataWorkflow.getMetadataList()).contains(new Metadata(KeyValueLabelMetadataHelper.BUCKET_NAME_KEY,
                                                                                           bucket.getName(),
@@ -258,7 +258,7 @@ public class CatalogObjectServiceIntegrationTest {
         CatalogObjectMetadata catalogObjectMetadataSomeKind = catalogObjectService.getCatalogObjectMetadata(bucket.getName(),
                                                                                                             "object-name-1");
         assertThat(catalogObjectMetadataSomeKind.getKind()).isEqualTo("object");
-        assertThat(catalogObjectMetadataSomeKind.getMetadataList()).hasSize(5);
+        assertThat(catalogObjectMetadataSomeKind.getMetadataList()).hasSize(6);
 
         assertThat(catalogObjectMetadataSomeKind.getMetadataList()).contains(new Metadata(KeyValueLabelMetadataHelper.BUCKET_NAME_KEY,
                                                                                           bucket.getName(),
@@ -919,7 +919,7 @@ public class CatalogObjectServiceIntegrationTest {
         assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("first commit message of A_Object");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("workflow");
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("application/xml");
-        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(19);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(20);
 
         List<String> dependsOnKeys = catalogObjectMetadata.getMetadataList()
                                                           .stream()
@@ -1353,7 +1353,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                 "username");
         assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo(UPDATE_COMMIT_MESSAGE);
         assertThat(catalogObjectMetadata.getUsername()).isEqualTo("username");
-        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(6);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(7);
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("updated-contentType");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("updated-kind");
         assertThat(catalogObjectMetadata.getProjectName()).isEqualTo("updated-projectName");
@@ -1940,7 +1940,7 @@ public class CatalogObjectServiceIntegrationTest {
                                                                                                     "object-name-1");
         assertThat(catalogObjectMetadata.getCommitMessage()).isEqualTo("commit message 2");
         assertThat(catalogObjectMetadata.getKind()).isEqualTo("object");
-        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(5);
+        assertThat(catalogObjectMetadata.getMetadataList()).hasSize(6);
         assertThat(catalogObjectMetadata.getContentType()).isEqualTo("application/xml");
     }
 
