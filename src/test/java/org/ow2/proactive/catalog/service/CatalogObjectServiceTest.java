@@ -344,7 +344,7 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObject.getTags()).isEqualTo("updated-tags");
         assertThat(catalogObject.getName()).isEqualTo(NAME);
         assertThat(catalogObject.getMetadataList()).isNotEmpty();
-        assertThat(catalogObject.getMetadataList()).hasSize(1);
+        assertThat(catalogObject.getMetadataList()).hasSize(2);
         assertThat(catalogObject.getCommitTimeRaw()).isNotEqualTo(String.valueOf(now));
     }
 
@@ -434,7 +434,7 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedProjectName.getTags()).isEqualTo(TAGS);
         assertThat(catalogObjectUpdatedProjectName.getName()).isEqualTo(NAME);
         assertThat(catalogObjectUpdatedProjectName.getMetadataList()).isNotEmpty();
-        assertThat(catalogObjectUpdatedProjectName.getMetadataList()).hasSize(2);
+        assertThat(catalogObjectUpdatedProjectName.getMetadataList()).hasSize(3);
         assertThat(catalogObjectUpdatedProjectName.getCommitTimeRaw()).isNotEqualTo(String.valueOf(now));
 
         tinyWait();
@@ -458,7 +458,7 @@ public class CatalogObjectServiceTest {
         assertThat(catalogObjectUpdatedTags.getTags()).isEqualTo("updated-tags");
         assertThat(catalogObjectUpdatedTags.getName()).isEqualTo(NAME);
         assertThat(catalogObjectUpdatedTags.getMetadataList()).isNotEmpty();
-        assertThat(catalogObjectUpdatedTags.getMetadataList()).hasSize(1);
+        assertThat(catalogObjectUpdatedTags.getMetadataList()).hasSize(2);
         assertThat(catalogObjectUpdatedTags.getCommitTimeRaw()).isNotEqualTo(String.valueOf(now));
     }
 
