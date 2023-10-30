@@ -164,6 +164,9 @@ dependencyManagement {
     imports {
         mavenBom "org.ow2.proactive:parent-bom:${version}"
     }
+    resolutionStrategy {
+        cacheChangingModulesFor 0, 'seconds'
+    }
 }
 
 dependencies {
