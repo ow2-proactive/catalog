@@ -28,10 +28,7 @@ package org.ow2.proactive.catalog.rest.controller;
 import static org.ow2.proactive.catalog.dto.AssociationStatus.ALL;
 import static org.ow2.proactive.catalog.dto.AssociationStatus.UNPLANNED;
 import static org.ow2.proactive.catalog.util.AccessType.*;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -53,6 +50,10 @@ import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
 import org.ow2.proactive.catalog.util.GrantHelper;
 import org.ow2.proactive.catalog.util.LinkUtil;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
+import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
+import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
+import org.ow2.proactive.catalog.util.name.validator.ObjectNameValidator;
+import org.ow2.proactive.catalog.util.name.validator.TagsValidator;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,19 +61,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.log4j.Log4j2;
 
 
@@ -125,21 +122,21 @@ public class CatalogObjectController {
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
-    @ApiOperation(value = "Creates a new catalog object")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
-                            @ApiResponse(code = 422, message = "Invalid file content supplied") })
+    @Operation(summary = "Creates a new catalog object")
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket not found"),
+                            @ApiResponse(responseCode = "422", description = "Invalid file content supplied") })
     @RequestMapping(value = REQUEST_API_QUERY, consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public CatalogObjectMetadataList create(
-            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @PathVariable String bucketName,
-            @ApiParam(value = "Name of the object or empty when a ZIP archive is uploaded (All objects inside the archive are stored inside the catalog).") @RequestParam(required = false) Optional<String> name,
-            @ApiParam(value = "Project of the object") @RequestParam(value = "projectName", required = false, defaultValue = "") Optional<String> projectName,
-            @ApiParam(value = "List of comma separated tags of the object") @RequestParam(value = "tags", required = false, defaultValue = "") Optional<String> tags,
-            @ApiParam(value = "Kind of the new object", required = true) @RequestParam String kind,
-            @ApiParam(value = "Commit message", required = true) @RequestParam String commitMessage,
-            @ApiParam(value = "The Content-Type of CatalogRawObject - MIME type", required = true) @RequestParam String objectContentType,
-            @ApiParam(value = "The content of CatalogRawObject", required = true) @RequestPart(value = "file") MultipartFile file)
+            @Parameter(description = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
+            @Parameter(description = "Name of the object or empty when a ZIP archive is uploaded.<br />All objects inside an archive will be stored inside the catalog.", schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @RequestParam(required = false) Optional<String> name,
+            @Parameter(description = "Project of the object") @RequestParam(value = "projectName", required = false, defaultValue = "") Optional<String> projectName,
+            @Parameter(description = "List of comma separated tags of the object", schema = @Schema(pattern = TagsValidator.TAGS_PATTERN)) @RequestParam(value = "tags", required = false, defaultValue = "") Optional<String> tags,
+            @Parameter(description = "Kind of the new object", required = true, schema = @Schema(pattern = KindAndContentTypeValidator.VALID_KIND_NAME_PATTERN)) @RequestParam(value = "kind", required = true) String kind,
+            @Parameter(description = "Commit message", required = true) @RequestParam String commitMessage,
+            @Parameter(description = "The Content-Type of CatalogRawObject - MIME type", schema = @Schema(pattern = KindAndContentTypeValidator.VALID_KIND_NAME_PATTERN), required = true) @RequestParam String objectContentType,
+            @Parameter(description = "The content of CatalogRawObject", required = true) @RequestPart(value = "file") MultipartFile file)
             throws IOException, NotAuthenticatedException, AccessDeniedException {
 
         // Check Grants
@@ -204,56 +201,57 @@ public class CatalogObjectController {
         return catalogObjectMetadataList;
     }
 
-    @ApiOperation(value = "Lists all kinds for all objects")
+    @Operation(summary = "Lists all kinds for all objects")
     @RequestMapping(value = "/kinds", method = GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public Set<String> listKinds() {
         return catalogObjectService.getKinds();
     }
 
-    @ApiOperation(value = "Lists all Content-Types for all objects")
+    @Operation(summary = "Lists all Content-Types for all objects")
     @RequestMapping(value = "/content-types", method = GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public Set<String> listContentTypes() {
         return catalogObjectService.getContentTypes();
     }
 
-    @ApiOperation(value = "Lists all tags values for all objects stored in the catalog")
+    @Operation(summary = "Lists all tags values for all objects stored in the catalog")
     @RequestMapping(value = "/tags", method = GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public Set<String> listObjectTags() {
         return catalogObjectService.getObjectTags();
     }
 
-    @ApiOperation(value = "Lists catalog object name references by kind and Content-Type")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied") })
+    @Operation(summary = "Lists catalog object name references by kind and Content-Type")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied") })
     @RequestMapping(value = "/references", method = GET, produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public List<CatalogObjectNameReference> listCatalogObjectNameReference(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "Filter according to kind", required = false) @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "Filter according to Content-Type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType) {
+            @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @Parameter(description = "Filter according to kind", required = false) @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @Parameter(description = "Filter according to Content-Type", required = false) @RequestParam(value = "contentType", required = false) Optional<String> contentType) {
         return catalogObjectService.getAccessibleCatalogObjectsNameReferenceByKindAndContentType(sessionIdRequired,
                                                                                                  sessionId,
                                                                                                  kind,
                                                                                                  contentType);
     }
 
-    @ApiOperation(value = "Update a catalog object metadata, like kind, Content-Type, project name and tags")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket, object or revision not found"),
-                            @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"),
-                            @ApiResponse(code = 400, message = "Wrong specified parameters: at least one should be present") })
+    @Operation(summary = "Update a catalog object metadata, like kind, Content-Type, project name and tags")
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket, object or revision not found"),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"),
+                            @ApiResponse(responseCode = "400", description = "Wrong specified parameters: at least one should be present") })
     @RequestMapping(value = REQUEST_API_QUERY + "/{name:.+}", method = PUT)
     @ResponseStatus(HttpStatus.OK)
     public CatalogObjectMetadata updateObjectMetadata(
-            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @PathVariable String bucketName, @PathVariable String name,
-            @ApiParam(value = "The new kind of an object") @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "The new Content-Type of an object - MIME type") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
-            @ApiParam(value = "The new project name of an object") @RequestParam(value = "projectName", required = false) Optional<String> projectName,
-            @ApiParam(value = "List of comma separated tags of the object") @RequestParam(value = "tags", required = false) Optional<String> tags)
+            @Parameter(description = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
+            @Parameter(description = "The name of the existing Object", required = true, schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @PathVariable String name,
+            @Parameter(description = "The new kind of an object", schema = @Schema(pattern = KindAndContentTypeValidator.VALID_KIND_NAME_PATTERN)) @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @Parameter(description = "The new Content-Type of an object - MIME type", schema = @Schema(pattern = KindAndContentTypeValidator.VALID_KIND_NAME_PATTERN)) @RequestParam(value = "contentType", required = false) Optional<String> contentType,
+            @Parameter(description = "The new project name of an object") @RequestParam(value = "projectName", required = false) Optional<String> projectName,
+            @Parameter(description = "List of comma separated tags of the object", schema = @Schema(pattern = TagsValidator.TAGS_PATTERN)) @RequestParam(value = "tags", required = false) Optional<String> tags)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
         AuthenticatedUser user;
@@ -288,16 +286,18 @@ public class CatalogObjectController {
         return catalogObjectMetadata;
     }
 
-    @ApiOperation(value = "Gets a catalog object's metadata by IDs", notes = "Returns metadata associated to the latest revision of the catalog object.")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket or catalog object not found"),
-                            @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied") })
+    @Operation(summary = "Gets a catalog object's metadata by IDs", description = "Note: returns metadata associated to the latest revision of the catalog object.")
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket or catalog object not found"),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied") })
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = REQUEST_API_QUERY + "/{name:.+}", method = GET)
     public CatalogObjectMetadata get(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @PathVariable String bucketName, @PathVariable String name) throws MalformedURLException,
-            UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
+            @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
+            @Parameter(description = "The name of the existing Object", required = true, schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @PathVariable String name)
+            throws MalformedURLException, UnsupportedEncodingException, NotAuthenticatedException,
+            AccessDeniedException {
         String objectRights = "";
         if (sessionIdRequired) {
             // Check session validation
@@ -326,16 +326,17 @@ public class CatalogObjectController {
         return metadata;
     }
 
-    @ApiOperation(value = "Gets the raw content of the last revision of a catalog object")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Ok"),
-                            @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"),
-                            @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found") })
+    @Operation(summary = "Gets the raw content of the last revision of a catalog object")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Ok"),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"),
+                            @ApiResponse(responseCode = "404", description = "Bucket, catalog object or catalog object revision not found") })
 
     @RequestMapping(value = REQUEST_API_QUERY + "/{name:.+}/raw", method = GET, produces = MediaType.ALL_VALUE)
     public ResponseEntity<String> getRaw(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @PathVariable String bucketName, @PathVariable String name)
+            @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
+            @Parameter(description = "The name of the existing Object", required = true, schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
         if (sessionIdRequired) {
@@ -357,16 +358,17 @@ public class CatalogObjectController {
 
     }
 
-    @ApiOperation(value = "Gets dependencies (dependsOn and calledBy) of a catalog object")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Ok"),
-                            @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"),
-                            @ApiResponse(code = 404, message = "Bucket, catalog object or catalog object revision not found") })
+    @Operation(summary = "Gets dependencies (dependsOn and calledBy) of a catalog object")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Ok"),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"),
+                            @ApiResponse(responseCode = "404", description = "Bucket, catalog object or catalog object revision not found") })
 
     @RequestMapping(value = REQUEST_API_QUERY + "/{name:.+}/dependencies", method = GET, produces = "application/json")
     public CatalogObjectDependencies getDependencies(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @PathVariable String bucketName, @PathVariable String name)
+            @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
+            @Parameter(description = "The name of the existing Object", required = true, schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
         if (sessionIdRequired) {
@@ -385,28 +387,29 @@ public class CatalogObjectController {
         return catalogObjectService.getObjectDependencies(bucketName, name);
     }
 
-    @ApiOperation(value = "Lists catalog objects metadata", notes = "Returns catalog objects metadata associated to the latest revision.")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
-                            @ApiResponse(code = 206, message = "Missing object"),
-                            @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied") })
+    @Operation(summary = "Lists catalog objects metadata", description = "Note: Returns catalog objects metadata associated to the latest revision.")
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket not found"),
+                            @ApiResponse(responseCode = "206", description = "Missing object"),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied") })
     @RequestMapping(value = REQUEST_API_QUERY, method = GET)
     public ResponseEntity<List<CatalogObjectMetadata>> list(
-            @ApiParam(value = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @Parameter(description = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
-            @ApiParam(value = "Filter according to kind(s). Multiple kinds can be specified using comma separators") @RequestParam(required = false) Optional<String> kind,
-            @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
-            @ApiParam(value = "Filter according to Object Name.") @RequestParam(value = "objectName", required = false) Optional<String> objectNameFilter,
-            @ApiParam(value = "Filter according to Object Tag.") @RequestParam(value = "objectTag", required = false) Optional<String> objectTagFilter,
-            @ApiParam(value = "Filter according to Job-Planner association status. If enabled, only objects for which a job-planner association exists with the provided status will be returned. ALL, PLANNED, DEACTIVATED, FAILED or UNPLANNED. ALL will filter objects which have an association with any status. UNPLANNED will filter objects without any association.") @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatusFilter,
-            @ApiParam(value = "Include only objects whose project name contains the given string.") @RequestParam(value = "projectName", required = false) Optional<String> projectNameFilter,
-            @ApiParam(value = "Include only objects whose last commit belong to the given user.") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy,
-            @ApiParam(value = "Include only objects whose last commit time is greater than the given EPOCH time.") @RequestParam(value = "lastCommitTimeGreater", required = false) Optional<Long> lastCommitTimeGreater,
-            @ApiParam(value = "Include only objects whose last commit time is less than the given EPOCH time.") @RequestParam(value = "lastCommitTimeLessThan", required = false) Optional<Long> lastCommitTimeLessThan,
-            @ApiParam(value = "Give a list of name separated by comma to get them in an archive", allowMultiple = true, type = "string") @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
-            @ApiParam(value = "Page number", required = false) @RequestParam(defaultValue = "0", value = "pageNo") int pageNo,
-            @ApiParam(value = "Page size", required = false) @RequestParam(defaultValue = MAXVALUE +
-                                                                                          "", value = "pageSize") int pageSize,
+            @Parameter(description = "Filter according to kind(s).<br />Multiple kinds can be specified using comma separators") @RequestParam(required = false) Optional<String> kind,
+            @Parameter(description = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
+            @Parameter(description = "Filter according to Object Name.") @RequestParam(value = "objectName", required = false) Optional<String> objectNameFilter,
+            @Parameter(description = "Filter according to Object Tag.") @RequestParam(value = "objectTag", required = false) Optional<String> objectTagFilter,
+            @Parameter(description = "Filter according to Job-Planner association status.<br />If enabled, only objects for which a job-planner association exists with the provided status will be returned.<br />Parameter can be ALL, PLANNED, DEACTIVATED, FAILED or UNPLANNED.<br />ALL will filter objects which have an association with any status.<br />UNPLANNED will filter objects without any association.", schema = @Schema(type = "string", allowableValues = { "ALL",
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "PLANNED", "DEACTIVATED", "FAILED", "UNPLANNED" })) @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatusFilter,
+            @Parameter(description = "Include only objects whose project name contains the given string.") @RequestParam(value = "projectName", required = false) Optional<String> projectNameFilter,
+            @Parameter(description = "Include only objects whose last commit belong to the given user.") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy,
+            @Parameter(description = "Include only objects whose last commit time is greater than the given EPOCH time.") @RequestParam(value = "lastCommitTimeGreater", required = false) Optional<Long> lastCommitTimeGreater,
+            @Parameter(description = "Include only objects whose last commit time is less than the given EPOCH time.") @RequestParam(value = "lastCommitTimeLessThan", required = false) Optional<Long> lastCommitTimeLessThan,
+            @Parameter(description = "Give a list of name separated by comma to get them in an archive", array = @ArraySchema(schema = @Schema())) @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
+            @Parameter(description = "Page number", required = false) @RequestParam(defaultValue = "0", value = "pageNo") int pageNo,
+            @Parameter(description = "Page size", required = false) @RequestParam(defaultValue = MAXVALUE +
+                                                                                                 "", value = "pageSize") int pageSize,
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
@@ -553,14 +556,15 @@ public class CatalogObjectController {
         }
     }
 
-    @ApiOperation(value = "Delete a catalog object", notes = "Delete the entire catalog object as well as its revisions. Returns the deleted CatalogObject's metadata.")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket or object not found"),
-                            @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied") })
+    @Operation(summary = "Delete a catalog object", description = "Note: delete the entire catalog object as well as its revisions. Returns the deleted CatalogObject's metadata.")
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket or object not found"),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied") })
     @RequestMapping(value = REQUEST_API_QUERY + "/{name:.+}", method = DELETE)
     public CatalogObjectMetadata delete(
-            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @PathVariable String bucketName, @PathVariable String name)
+            @Parameter(description = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
+            @Parameter(description = "The name of the Object to delete", required = true, schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
         String initiator = ANONYMOUS;

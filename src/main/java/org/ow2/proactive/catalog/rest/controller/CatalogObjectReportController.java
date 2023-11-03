@@ -36,16 +36,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Produces;
 
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
-import org.ow2.proactive.catalog.service.BucketGrantService;
-import org.ow2.proactive.catalog.service.BucketService;
-import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
-import org.ow2.proactive.catalog.service.CatalogObjectReportService;
-import org.ow2.proactive.catalog.service.GrantRightsService;
-import org.ow2.proactive.catalog.service.RestApiAccessService;
+import org.ow2.proactive.catalog.service.*;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
@@ -54,12 +50,15 @@ import org.ow2.proactive.microservices.common.exception.NotAuthenticatedExceptio
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.log4j.Log4j2;
 
 
@@ -92,16 +91,18 @@ public class CatalogObjectReportController {
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
-    @ApiOperation(value = "Get list of catalog objects in a PDF report file")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Get list of catalog objects in a PDF report file")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE, schema = @Schema(type = "string", format = "byte"))),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+                            @ApiResponse(responseCode = "403", description = "Permission denied", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)), })
     @RequestMapping(method = GET)
     @ResponseStatus(HttpStatus.OK)
+    @Produces({ MediaType.APPLICATION_PDF_VALUE, MediaType.APPLICATION_JSON_VALUE })
     public void getReport(HttpServletResponse response,
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
-            @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
+            @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @Parameter(description = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
+            @Parameter(description = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @Parameter(description = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
             throws NotAuthenticatedException, AccessDeniedException, IOException {
 
         List<String> authorisedBucketsNames = getListOfAuthorizedBuckets(sessionId, ownerName, kind, contentType);
@@ -112,18 +113,20 @@ public class CatalogObjectReportController {
 
     }
 
-    @ApiOperation(value = "Get list of selected catalog objects in a PDF report file", consumes = "application/json")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
-                            @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied") })
+    @Operation(summary = "Get list of selected catalog objects in a PDF report file")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE, schema = @Schema(type = "string", format = "byte"))),
+                            @ApiResponse(responseCode = "404", description = "Bucket not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+                            @ApiResponse(responseCode = "403", description = "Permission denied", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)) })
     @RequestMapping(value = "/selected/{bucketName}", method = POST)
     @ResponseStatus(HttpStatus.OK)
+    @Produces({ MediaType.APPLICATION_PDF_VALUE, MediaType.APPLICATION_JSON_VALUE })
     public void getReportForSelectedObjects(HttpServletResponse response,
-            @ApiParam(value = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @Parameter(description = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
-            @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
-            @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
-            @ApiParam(value = "Give a list of name separated by comma to get them in the report") @RequestBody Optional<List<String>> catalogObjectsNames)
+            @Parameter(description = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
+            @Parameter(description = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
+            @Parameter(description = "Give a list of name separated by comma to get them in the report") @RequestBody Optional<List<String>> catalogObjectsNames)
             throws NotAuthenticatedException, AccessDeniedException, IOException {
 
         if (sessionIdRequired) {
@@ -159,6 +162,8 @@ public class CatalogObjectReportController {
     private void flushResponse(HttpServletResponse response, byte[] content) throws IOException {
         response.addHeader("Content-size", Integer.toString(content.length));
         response.setCharacterEncoding("UTF-8");
+        response.setContentType(MediaType.APPLICATION_PDF_VALUE);
+        response.setHeader("Content-Disposition", "attachment; filename=report.pdf");
 
         response.getOutputStream().write(content);
         response.getOutputStream().flush();

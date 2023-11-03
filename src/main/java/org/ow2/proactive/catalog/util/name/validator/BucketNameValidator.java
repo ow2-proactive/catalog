@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class BucketNameValidator extends NameValidator {
-    protected static final String VALID_BUCKET_NAME_PATTERN = "[a-z][a-z0-9-]{1,61}[a-z0-9]";
+    public static final String VALID_BUCKET_NAME_PATTERN = "[a-z][a-z0-9-]{1,61}[a-z0-9]";
 
     public BucketNameValidator() {
         super(VALID_BUCKET_NAME_PATTERN);

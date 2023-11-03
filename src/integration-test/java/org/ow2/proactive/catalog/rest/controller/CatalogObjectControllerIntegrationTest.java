@@ -410,11 +410,12 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                                                       .then()
                                                       .assertThat()
                                                       .statusCode(HttpStatus.SC_OK);
-        metadataResponse.body("_links.content.href",
+        metadataResponse.body("links[0].rel", is("content"))
+                        .body("links[0].href",
                               containsString("/buckets/" + bucket.getName() + "/resources/" + encodedObjectName +
                                              "/raw"))
-                        .body("_links.relative.href",
-                              is("buckets/" + bucket.getName() + "/resources/" + encodedObjectName));
+                        .body("links[1].rel", is("relative"))
+                        .body("links[1].href", is("buckets/" + bucket.getName() + "/resources/" + encodedObjectName));
     }
 
     @Test

@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ObjectNameValidator extends NameValidator {
-    protected static final String VALID_OBJECT_NAME_PATTERN = "^[^\\s\\/,]+(\\s+[^\\s\\/,]+)*$";
+    public static final String VALID_OBJECT_NAME_PATTERN = "^[^\\s\\/,]+(\\s+[^\\s\\/,]+)*$";
 
     public ObjectNameValidator() {
         super(VALID_OBJECT_NAME_PATTERN);
