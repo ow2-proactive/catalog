@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class KindAndContentTypeValidator extends NameValidator {
-    protected static final String VALID_KIND_NAME_PATTERN = "^([a-zA-Z0-9][a-zA-Z0-9_\\. ;=\\+\\-]{0,61}[a-zA-Z0-9]\\/?)+$";
+    public static final String VALID_KIND_NAME_PATTERN = "^([a-zA-Z0-9][a-zA-Z0-9_\\. ;=\\+\\-]{0,61}[a-zA-Z0-9]\\/?)+$";
 
     public KindAndContentTypeValidator() {
         super(VALID_KIND_NAME_PATTERN);

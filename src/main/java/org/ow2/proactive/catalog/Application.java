@@ -25,14 +25,11 @@
  */
 package org.ow2.proactive.catalog;
 
-import static springfox.documentation.schema.AlternateTypeRules.newRule;
-
 import java.io.File;
 
 import javax.sql.DataSource;
 
 import org.ow2.proactive.catalog.util.EntityScanRoot;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -43,32 +40,18 @@ import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import com.fasterxml.classmate.TypeResolver;
-import com.google.common.base.Predicate;
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
 
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 
 
 /**
@@ -76,7 +59,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
  */
 @SpringBootApplication(scanBasePackages = { "org.ow2.proactive.catalog" })
 @EnableAutoConfiguration(exclude = { MultipartAutoConfiguration.class })
-@EnableSwagger2
 @EnableTransactionManagement
 @EnableEncryptableProperties
 @EntityScan(basePackages = "org.ow2.proactive.catalog.repository.entity")
@@ -144,36 +126,16 @@ public class Application extends WebMvcConfigurerAdapter {
         return new CommonsMultipartResolver();
     }
 
-    @Autowired
-    private TypeResolver typeResolver;
-
     @Bean
-    public Docket workflowCatalogApi() {
-        return new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo())
-                                                      .groupName("CatalogObjectEntity Catalog")
-                                                      .ignoredParameterTypes(Pageable.class,
-                                                                             PagedResourcesAssembler.class)
-                                                      .alternateTypeRules(newRule(typeResolver.resolve(InputStreamResource.class),
-                                                                                  typeResolver.resolve(MultipartFile.class)))
-                                                      .select()
-                                                      .paths(allowedPaths())
-                                                      .build()
-                                                      .forCodeGeneration(true);
-    }
-
-    private ApiInfo apiInfo() {
-        return new ApiInfoBuilder().title("CatalogObjectEntity Catalog API")
-                                   .description("The purpose of the catalog is to store ProActive objects.\n" + "\n" +
-                                                "A catalog is subdivided into buckets.\n\n Each bucket manages zero, one or more\n" +
-                                                "versioned ProActive objects.")
-                                   .license("GNU Affero General Public License v3.0")
-                                   .licenseUrl("https://github.com/ow2-proactive/catalog/blob/master/LICENSE.txt")
-                                   .version("1.0")
-                                   .build();
-    }
-
-    private Predicate<String> allowedPaths() {
-        return PathSelectors.regex("/buckets.*");
+    public OpenAPI workflowCatalogOpenAPI() {
+        return new OpenAPI().info(new Info().title("CatalogObjectEntity Catalog API")
+                                            .description("The purpose of the catalog is to store ProActive objects.\n" +
+                                                         "\n" +
+                                                         "A catalog is subdivided into buckets.\n\n Each bucket manages zero, one or more\n" +
+                                                         "versioned ProActive objects.")
+                                            .version("1.0\"")
+                                            .license(new License().name("GNU Affero General Public License v3.0")
+                                                                  .url("https://github.com/ow2-proactive/catalog/blob/master/LICENSE.txt")));
     }
 
 }

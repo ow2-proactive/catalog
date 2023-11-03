@@ -35,16 +35,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Produces;
 
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
-import org.ow2.proactive.catalog.service.BucketGrantService;
-import org.ow2.proactive.catalog.service.BucketService;
-import org.ow2.proactive.catalog.service.CatalogObjectCallGraphService;
-import org.ow2.proactive.catalog.service.CatalogObjectGrantService;
-import org.ow2.proactive.catalog.service.GrantRightsService;
-import org.ow2.proactive.catalog.service.RestApiAccessService;
+import org.ow2.proactive.catalog.service.*;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
@@ -53,17 +49,15 @@ import org.ow2.proactive.microservices.common.exception.NotAuthenticatedExceptio
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.log4j.Log4j2;
 
 
@@ -97,16 +91,18 @@ public class CatalogObjectCallGraphController {
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
-    @ApiOperation(value = "Get the call graph of all catalog objects in a JPG image")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Get the call graph of all catalog objects in a PDF report")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE, schema = @Schema(type = "string", format = "byte"))),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+                            @ApiResponse(responseCode = "403", description = "Permission denied", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)), })
     @RequestMapping(method = GET)
     @ResponseStatus(HttpStatus.OK)
+    @Produces({ MediaType.APPLICATION_PDF_VALUE, MediaType.APPLICATION_JSON_VALUE })
     public void getCallGraph(HttpServletResponse response,
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
-            @ApiParam(value = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
+            @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @Parameter(description = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
+            @Parameter(description = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @Parameter(description = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
             throws NotAuthenticatedException, AccessDeniedException, IOException {
 
         List<String> authorisedBucketsNames = getListOfAuthorizedBuckets(sessionId, ownerName, kind, contentType);
@@ -119,20 +115,23 @@ public class CatalogObjectCallGraphController {
 
     }
 
-    @ApiOperation(value = "Get the call graph of selected catalog objects in a bucket")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
-                            @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied") })
+    @Operation(summary = "Get the call graph of selected catalog objects in a bucket")
+    @ApiResponses(value = { @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE, schema = @Schema(type = "string", format = "byte"))),
+                            @ApiResponse(responseCode = "404", description = "Bucket not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
+                            @ApiResponse(responseCode = "403", description = "Permission denied", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)) })
     @RequestMapping(value = "/selected/{bucketName}", method = GET)
     @ResponseStatus(HttpStatus.OK)
+    @Produces({ MediaType.APPLICATION_PDF_VALUE, MediaType.APPLICATION_JSON_VALUE })
     public void getCallGraphForSelectedObjects(HttpServletResponse response,
-            @ApiParam(value = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
+            @Parameter(description = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @Parameter(description = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @PathVariable String bucketName,
-            @ApiParam(value = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
-            @ApiParam(value = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
-            @ApiParam(value = "Give a list of name separated by comma to get them in the report", allowMultiple = true, type = "string") @RequestParam(value = "name", required = false) Optional<List<String>> catalogObjectsNames)
+            @Parameter(description = "Filter according to kind.") @RequestParam(required = false) Optional<String> kind,
+            @Parameter(description = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
+            @Parameter(description = "Give a list of name separated by comma to get them in the report") @RequestParam(value = "name", required = false) Optional<List<String>> catalogObjectsNames)
             throws NotAuthenticatedException, AccessDeniedException, IOException {
+        //, array = @ArraySchema(schema = @Schema())
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -161,6 +160,8 @@ public class CatalogObjectCallGraphController {
     private void flushResponse(HttpServletResponse response, byte[] content) throws IOException {
         response.addHeader("Content-size", Integer.toString(content.length));
         response.setCharacterEncoding("UTF-8");
+        response.setContentType(MediaType.APPLICATION_PDF_VALUE);
+        response.setHeader("Content-Disposition", "attachment; filename=call-graph.pdf");
 
         response.getOutputStream().write(content);
         response.getOutputStream().flush();

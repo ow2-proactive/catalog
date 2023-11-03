@@ -28,7 +28,7 @@ package org.ow2.proactive.catalog.rest.controller;
 import static org.ow2.proactive.catalog.util.AccessType.admin;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
-import java.util.*;
+import java.util.List;
 
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.service.BucketGrantService;
@@ -40,6 +40,7 @@ import org.ow2.proactive.catalog.service.exception.LostOfAdminGrantRightExceptio
 import org.ow2.proactive.catalog.service.exception.PublicBucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AllBucketGrants;
+import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,10 +48,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.log4j.Log4j2;
 
 
@@ -83,17 +85,18 @@ public class BucketGrantController {
     private boolean sessionIdRequired;
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Update the access type of an existing user bucket grant")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Update the access type of an existing user bucket grant")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/user", method = PUT)
     @ResponseStatus(HttpStatus.OK)
     @Transactional
     public BucketGrantMetadata updateBucketGrantForAUser(
-            @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable String bucketName,
-            @ApiParam(value = "The name of the user that is benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username,
-            @ApiParam(value = "The new type of the access grant. It can be either noAccess, read, write or admin.", required = true, defaultValue = "") @RequestParam(value = "accessType", required = true, defaultValue = "") String accessType)
+            @Parameter(description = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
+            @Parameter(description = "The name of the user that is benefiting from the access grant.", required = true) @RequestParam(value = "username", required = true, defaultValue = "") String username,
+            @Parameter(description = "The new type of the access grant. It can be either noAccess, read, write or admin.", schema = @Schema(type = "string", allowableValues = { "noAccess",
+                                                                                                                                                                                 "read", "write", "admin" }), required = true) @RequestParam(value = "accessType", required = true, defaultValue = "") String accessType)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
         String initiator = ANONYMOUS;
@@ -122,19 +125,21 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Update the access type of an existing group bucket grant")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Update the access type of an existing group bucket grant")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/group", method = PUT)
     @ResponseStatus(HttpStatus.OK)
     @Transactional
     public BucketGrantMetadata updateBucketGrantForAGroup(
-            @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable String bucketName,
-            @ApiParam(value = "The name of the group of users that are benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup,
-            @ApiParam(value = "The new type of the access grant. It can be either noAccess, read, write or admin.", required = true, defaultValue = "") @RequestParam(value = "accessType", required = true, defaultValue = "") String accessType,
-            @ApiParam(value = "The new priority of the access grant. It can be a value from 1 (lowest) to 10 (highest), with 5 as default.\n" +
-                              "Priorities are used to compute the final access rights of a user belonging to multiple groups. Group grants with the same priority will resolve with the default accessType order (admin > write > read > noAccess).\n" + "Finally, please note that a user grant has always more priority than a group grant.", required = true) @RequestParam(value = "priority", required = true) int priority)
+            @Parameter(description = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
+            @Parameter(description = "The name of the group of users that are benefiting from the access grant.", required = true) @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup,
+            @Parameter(description = "The new type of the access grant. It can be either noAccess, read, write or admin.", schema = @Schema(type = "string", allowableValues = { "noAccess",
+                                                                                                                                                                                 "read", "write", "admin" }), required = true) @RequestParam(value = "accessType", required = true, defaultValue = "") String accessType,
+            @Parameter(description = "The new priority of the access grant.<br />It can be a value from 1 (lowest) to 10 (highest), with 5 as default." +
+                                     "Priorities are used to compute the final access rights of a user belonging to multiple groups.<br />Group grants with the same priority will resolve with the default accessType order (admin > write > read > noAccess).<br />" +
+                                     "Finally, please note that a user grant has always more priority than a group grant.", schema = @Schema(type = "integer", minimum = "1", maximum = "10", defaultValue = "5"), required = true) @RequestParam(value = "priority", required = true) int priority)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
         String initiator = ANONYMOUS;
@@ -168,16 +173,16 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Delete a user grant access for a bucket")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Delete a user grant access for a bucket")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/user", method = DELETE)
     @ResponseStatus(HttpStatus.OK)
     @Transactional
     public BucketGrantMetadata deleteBucketGrantForAUser(
-            @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName,
-            @ApiParam(value = "The name of the user that is benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
+            @Parameter(description = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable(value = "bucketName") String bucketName,
+            @Parameter(description = "The name of the user that is benefiting from the access grant.", required = true) @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
         String initiator = ANONYMOUS;
@@ -203,16 +208,16 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Delete a group grant access for a bucket")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Delete a group grant access for a bucket")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/group", method = DELETE)
     @ResponseStatus(HttpStatus.OK)
     @Transactional
     public BucketGrantMetadata deleteBucketGrantForAGroup(
-            @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName,
-            @ApiParam(value = "The name of the group of users that are benefiting from the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
+            @Parameter(description = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable(value = "bucketName") String bucketName,
+            @Parameter(description = "The name of the group of users that are benefiting from the access grant.", required = true) @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
         String initiator = ANONYMOUS;
@@ -241,14 +246,14 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Get all grants associated with a bucket")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Get all grants associated with a bucket")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant", method = GET)
     @ResponseStatus(HttpStatus.OK)
     public List<BucketGrantMetadata> getAllGrantsForABucket(
-            @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName) {
+            @Parameter(description = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable(value = "bucketName") String bucketName) {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
@@ -258,17 +263,18 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Create a new user grant access for a bucket")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Create a new user grant access for a bucket")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/user", method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
     public BucketGrantMetadata createBucketGrantForAUser(
-            @ApiParam(value = "The the session id used to access ProActive REST server", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName,
-            @ApiParam(value = "The type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
-            @ApiParam(value = "The name of the user that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "username", required = true, defaultValue = "") String username)
+            @Parameter(description = "The the session id used to access ProActive REST server", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable(value = "bucketName") String bucketName,
+            @Parameter(description = "The type of the access grant.<br />It can be either noAccess, read, write or admin.", schema = @Schema(type = "string", allowableValues = { "noAccess",
+                                                                                                                                                                                  "read", "write", "admin" }), required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @Parameter(description = "The name of the user that will benefit of the access grant.", required = true) @RequestParam(value = "username", required = true, defaultValue = "") String username)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
         String initiator = ANONYMOUS;
@@ -298,20 +304,21 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Create a new user group grant access for a bucket")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Create a new user group grant access for a bucket")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/group", method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     @Transactional
     public BucketGrantMetadata createBucketGrantForAGroup(
-            @ApiParam(value = "The session id used to access ProActive REST server", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName,
-            @ApiParam(value = "The type of the access grant. It can be either noAccess, read, write or admin.", required = true) @RequestParam(value = "accessType", required = true) String accessType,
-            @ApiParam(value = "The new priority of the access grant. It can be a value from 1 (lowest) to 10 (highest), with 5 as default.\n" +
-                              "Priorities are used to compute the final access rights of a user belonging to multiple groups. Group grants with the same priority will resolve with the default accessType order (admin > write > read > noAccess).\n" +
-                              "Finally, please note that a user grant has always more priority than a group grant.", required = true, defaultValue = "5") @RequestParam(value = "priority", required = true, defaultValue = "5") int priority,
-            @ApiParam(value = "The name of the group of users that will benefit of the access grant.", required = true, defaultValue = "") @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
+            @Parameter(description = "The session id used to access ProActive REST server", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable(value = "bucketName") String bucketName,
+            @Parameter(description = "The type of the access grant.<br />It can be either noAccess, read, write or admin.", schema = @Schema(type = "string", allowableValues = { "noAccess",
+                                                                                                                                                                                  "read", "write", "admin" }), required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @Parameter(description = "The new priority of the access grant.<br />It can be a value from 1 (lowest) to 10 (highest), with 5 as default.\n" +
+                                     "Priorities are used to compute the final access rights of a user belonging to multiple groups.<br />Group grants with the same priority will resolve with the default accessType order (admin > write > read > noAccess).<br />" +
+                                     "Finally, please note that a user grant has always more priority than a group grant.", schema = @Schema(type = "integer", minimum = "1", maximum = "10", defaultValue = "5"), required = true) @RequestParam(value = "priority", required = true, defaultValue = "5") int priority,
+            @Parameter(description = "The name of the group of users that will benefit of the access grant.", required = true) @RequestParam(value = "userGroup", required = true, defaultValue = "") String userGroup)
             throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
         String initiator = ANONYMOUS;
@@ -343,14 +350,14 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Delete all grants assigned to a bucket")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Delete all grants assigned to a bucket")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant", method = DELETE)
     @ResponseStatus(HttpStatus.OK)
     public List<BucketGrantMetadata> deleteAllBucketGrantsAssignedToABucket(
-            @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName)
+            @Parameter(description = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable(value = "bucketName") String bucketName)
             throws NotAuthenticatedException, AccessDeniedException {
         String initiator = ANONYMOUS;
         if (sessionIdRequired) {
@@ -365,14 +372,14 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Get all grants associated with a bucket and all objects contained in this bucket")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Get all grants associated with a bucket and all objects contained in this bucket")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/all", method = GET)
     @ResponseStatus(HttpStatus.OK)
     public AllBucketGrants getAllGrantsForABucketAndItsObjects(
-            @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName) {
+            @Parameter(description = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable(value = "bucketName") String bucketName) {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
@@ -382,15 +389,15 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Delete all grants associated with a bucket and all objects contained in this bucket")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Delete all grants associated with a bucket and all objects contained in this bucket")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}/grant/all", method = DELETE)
     @ResponseStatus(HttpStatus.OK)
     @Transactional
     public AllBucketGrants deleteAllGrantsForABucketAndItsObjects(
-            @ApiParam(value = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the bucket where the catalog objects are stored.", required = true) @PathVariable(value = "bucketName") String bucketName) {
+            @Parameter(description = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable(value = "bucketName") String bucketName) {
         AuthenticatedUser user;
         String initiator = ANONYMOUS;
         if (sessionIdRequired) {

@@ -26,12 +26,8 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static org.ow2.proactive.catalog.util.AccessType.admin;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
-import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -47,24 +43,21 @@ import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.AccessTypeHelper;
 import org.ow2.proactive.catalog.util.GrantHelper;
+import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.google.common.base.Strings;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.log4j.Log4j2;
 
 
@@ -102,17 +95,18 @@ public class BucketController {
     private boolean sessionIdRequired;
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Creates a new bucket")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Creates a new bucket")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(method = POST)
     @ResponseStatus(HttpStatus.CREATED)
     public BucketMetadata create(
-            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The unique name of the Bucket. /n " +
-                              "The name of bucket can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, and dashes. /n" +
-                              "A bucket's name must start with a lowercase letter and cannot terminate with a dash") @RequestParam(value = "name", required = true) String bucketName,
-            @ApiParam(value = "The name of the user that will own the Bucket", defaultValue = BucketService.DEFAULT_BUCKET_OWNER) @RequestParam(value = "owner", required = false, defaultValue = BucketService.DEFAULT_BUCKET_OWNER) String ownerName)
+            @Parameter(description = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The unique name of the Bucket.<br />" +
+                                     "The name of bucket can be between 3 and 63 characters long, and can contain only lower-case characters, numbers, and dashes.<br />" +
+                                     "A bucket's name must start with a lowercase letter and cannot terminate with a dash", schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @RequestParam(value = "name", required = true) String bucketName,
+            @Parameter(description = "The name of the user that will own the Bucket. Defaults to " +
+                                     BucketService.DEFAULT_BUCKET_OWNER, schema = @Schema(type = "string", defaultValue = BucketService.DEFAULT_BUCKET_OWNER)) @RequestParam(value = "owner", required = false, defaultValue = BucketService.DEFAULT_BUCKET_OWNER) String ownerName)
             throws NotAuthenticatedException, AccessDeniedException {
         String initiator = ANONYMOUS;
         if (sessionIdRequired) {
@@ -129,15 +123,15 @@ public class BucketController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Update bucket owner")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Update bucket owner")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}", method = PUT)
     @ResponseStatus(HttpStatus.OK)
     public BucketMetadata updateBucketOwner(
-            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @ApiParam(value = "The name of the existing Bucket ", required = true) @PathVariable String bucketName,
-            @ApiParam(value = "The new name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String newOwnerName)
+            @Parameter(description = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
+            @Parameter(description = "The new name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String newOwnerName)
             throws NotAuthenticatedException, AccessDeniedException {
         String initiator = ANONYMOUS;
         if (sessionIdRequired) {
@@ -162,15 +156,16 @@ public class BucketController {
         }
     }
 
-    @ApiOperation(value = "Gets a bucket's metadata by ID")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
-                            @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Gets a bucket's metadata by ID")
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket not found"),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}", method = GET)
     @ResponseStatus(HttpStatus.OK)
     public BucketMetadata getMetadata(
-            @SuppressWarnings("DefaultAnnotationParam") @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
+            @SuppressWarnings("DefaultAnnotationParam") @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName)
+            throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser user;
         BucketMetadata data = bucketService.getBucketMetadata(bucketName);
 
@@ -192,22 +187,23 @@ public class BucketController {
         return data;
     }
 
-    @ApiOperation(value = "Lists the buckets")
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Lists the buckets")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(method = GET)
     @ResponseStatus(HttpStatus.OK)
     public List<BucketMetadata> list(
-            @ApiParam(value = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
-            @ApiParam(value = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
-            @ApiParam(value = "The kind(s) of objects that buckets must contain. Multiple kinds can be specified using comma separators") @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @ApiParam(value = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
-            @ApiParam(value = "The tag of objects that buckets must contain") @RequestParam(value = "objectTag", required = false) Optional<String> tag,
-            @ApiParam(value = "The buckets must contain objects which have the given job-planner association status. Can be ALL, PLANNED, DEACTIVATED, FAILED or UNPLANNED. ALL will filter objects which have an association with any status. UNPLANNED will filter objects without any association.") @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatus,
-            @ApiParam(value = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
-            @ApiParam(value = "The bucket name contains the value of this parameter (case insensitive)")
+            @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @Parameter(description = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
+            @Parameter(description = "The kind(s) of objects that buckets must contain.<br />Multiple kinds can be specified using comma separators") @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @Parameter(description = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
+            @Parameter(description = "The tag of objects that buckets must contain") @RequestParam(value = "objectTag", required = false) Optional<String> tag,
+            @Parameter(description = "The buckets must contain objects which have the given job-planner association status.<br />Can be ALL, PLANNED, DEACTIVATED, FAILED or UNPLANNED.<br />ALL will filter objects which have an association with any status.<br />UNPLANNED will filter objects without any association.", schema = @Schema(type = "string", allowableValues = { "ALL",
+                                                                                                                                                                                                                                                                                                                                                                                    "PLANNED", "DEACTIVATED", "FAILED", "UNPLANNED" })) @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatus,
+            @Parameter(description = "The name of objects that buckets must contain") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
+            @Parameter(description = "The bucket name contains the value of this parameter (case insensitive)")
             @RequestParam(value = "bucketName", required = false)
-            final Optional<String> bucketName, @ApiParam(value = "Include only objects whose project name contains the given string.") @RequestParam(value = "projectName", required = false) Optional<String> projectName, @ApiParam(value = "Include only objects whose last commit belong to the given user.") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy, @ApiParam(value = "Include only objects whose last commit time is greater than the given EPOCH time.") @RequestParam(value = "lastCommitTimeGreater", required = false, defaultValue = "0") Optional<Long> lastCommitTimeGreater, @ApiParam(value = "Include only objects whose last commit time is less than the given EPOCH time.") @RequestParam(value = "lastCommitTimeLessThan", required = false, defaultValue = "0") Optional<Long> lastCommitTimeLessThan, @ApiParam(value = "If true, buckets without objects matching the filters will be returned with objectCount=0. Default is false") @RequestParam(value = "allBuckets", required = false, defaultValue = "false") String allBuckets) throws NotAuthenticatedException, AccessDeniedException {
+            final Optional<String> bucketName, @Parameter(description = "Include only objects whose project name contains the given string.") @RequestParam(value = "projectName", required = false) Optional<String> projectName, @Parameter(description = "Include only objects whose last commit belong to the given user.") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy, @Parameter(description = "Include only objects whose last commit time is greater than the given EPOCH time.") @RequestParam(value = "lastCommitTimeGreater", required = false, defaultValue = "0") Optional<Long> lastCommitTimeGreater, @Parameter(description = "Include only objects whose last commit time is less than the given EPOCH time.") @RequestParam(value = "lastCommitTimeLessThan", required = false, defaultValue = "0") Optional<Long> lastCommitTimeLessThan, @Parameter(description = "If true, buckets without objects matching the filters will be returned with objectCount=0. Default is false") @RequestParam(value = "allBuckets", required = false, defaultValue = "false") String allBuckets) throws NotAuthenticatedException, AccessDeniedException {
 
         List<BucketMetadata> listBucket;
         log.debug("====== Get buckets list request started ======== ");
@@ -304,13 +300,13 @@ public class BucketController {
         }
     }
 
-    @ApiOperation(value = "Delete the empty buckets")
+    @Operation(summary = "Delete the empty buckets")
     @RequestMapping(method = DELETE)
-    @ApiResponses(value = { @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @ResponseStatus(HttpStatus.OK)
     public void cleanEmpty(
-            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId) {
+            @Parameter(description = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId) {
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -335,15 +331,16 @@ public class BucketController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
-    @ApiOperation(value = "Delete an empty bucket", notes = "It's forbidden to delete a non-empty bucket. You need to delete manually all workflows in the bucket before.")
-    @ApiResponses(value = { @ApiResponse(code = 404, message = "Bucket not found"),
-                            @ApiResponse(code = 401, message = "User not authenticated"),
-                            @ApiResponse(code = 403, message = "Permission denied"), })
+    @Operation(summary = "Delete an empty bucket", description = "Note: it is forbidden to delete a non-empty bucket. You need to delete manually all workflows in the bucket before.")
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket not found"),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
     @RequestMapping(value = "/{bucketName}", method = DELETE)
     @ResponseStatus(HttpStatus.OK)
     public BucketMetadata delete(
-            @ApiParam(value = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
-            @PathVariable String bucketName) throws NotAuthenticatedException, AccessDeniedException {
+            @Parameter(description = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName)
+            throws NotAuthenticatedException, AccessDeniedException {
         String initiator = ANONYMOUS;
         // Check session validation
         if (sessionIdRequired) {

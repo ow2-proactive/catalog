@@ -294,11 +294,13 @@ public class CatalogObjectRevisionControllerIntegrationTest extends AbstractCata
                            .body("object_key_values.find { it.key=='var2' }.label", is("variable"))
                            .body("object_key_values.find { it.key=='var2' }.value", is("var2ValueUpdated"))
                            //check link references
-                           .body("_links.content.href",
+                           .body("links[0].rel", is("content"))
+                           .body("links[0].href",
                                  containsString("/buckets/" + bucket.getName() + "/resources/" + encodedObjectName +
                                                 "/revisions/" + secondCatalogObjectRevision.get("commit_time_raw") +
                                                 "/raw"))
-                           .body("_links.relative.href",
+                           .body("links[1].rel", is("relative"))
+                           .body("links[1].href",
                                  is("buckets/" + bucket.getName() + "/resources/" + encodedObjectName + "/revisions/" +
                                     secondCatalogObjectRevision.get("commit_time_raw")));
     }

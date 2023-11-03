@@ -41,7 +41,6 @@ import org.ow2.proactive.catalog.mocks.CatalogObjectGrantServiceMock;
 import org.ow2.proactive.catalog.mocks.RestApiAccessServiceMock;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.service.*;
-import org.ow2.proactive.catalog.service.helper.CommonRestTemplate;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;

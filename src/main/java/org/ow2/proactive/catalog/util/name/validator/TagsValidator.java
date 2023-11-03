@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TagsValidator extends NameValidator {
-    protected static final String TAGS_PATTERN = "^([a-zA-Z][\\s0-9a-zA-Z-_.\\/]+[,]*)*(?<!,)$";
+    public static final String TAGS_PATTERN = "^([a-zA-Z][\\s0-9a-zA-Z-_.\\/]+[,]*)*(?<!,)$";
 
     public TagsValidator() {
         super(TAGS_PATTERN);
