@@ -64,7 +64,6 @@ import lombok.extern.log4j.Log4j2;
  */
 @Log4j2
 @Service
-@Transactional
 public class BucketService {
 
     public static final String DEFAULT_BUCKET_OWNER = OwnerGroupStringHelper.GROUP_PREFIX + "public-objects";
@@ -98,6 +97,7 @@ public class BucketService {
         return createBucket(name, DEFAULT_BUCKET_OWNER);
     }
 
+    @Transactional
     public BucketMetadata createBucket(String name, String owner) throws DataIntegrityViolationException {
         if (!bucketNameValidator.isValid(name)) {
             throw new BucketNameIsNotValidException(name);
@@ -109,6 +109,7 @@ public class BucketService {
         return new BucketMetadata(bucketEntity, 0);
     }
 
+    @Transactional
     public BucketMetadata updateOwnerByBucketName(String bucketName, String owner)
             throws DataIntegrityViolationException {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
@@ -130,11 +131,13 @@ public class BucketService {
         objectsList.forEach(obj -> catalogObjectService.createCatalogObjectRevision(obj, commitMessage));
     }
 
+    @Transactional(readOnly = true)
     public BucketMetadata getBucketMetadata(String bucketName) {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
         return new BucketMetadata(bucketEntity);
     }
 
+    @Transactional(readOnly = true)
     public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
             Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
             Optional<String> projectName, Optional<String> lastCommitBy, Optional<Long> lastCommitTimeGreater,
@@ -237,6 +240,7 @@ public class BucketService {
 
     }
 
+    @Transactional(readOnly = true)
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType) {
         return listBuckets(ownerName,
                            kind,
@@ -251,6 +255,7 @@ public class BucketService {
                            null);
     }
 
+    @Transactional(readOnly = true)
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
             Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
             Optional<String> projectName, Optional<String> lastCommitBy, Optional<Long> lastCommitTimeGreater,
@@ -270,6 +275,7 @@ public class BucketService {
                            false);
     }
 
+    @Transactional(readOnly = true)
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
             Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
             Optional<String> projectName, Optional<String> lastCommitBy, Optional<Long> lastCommitTimeGreater,
@@ -422,6 +428,7 @@ public class BucketService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<String> getAllEmptyBuckets() {
         return bucketRepository.findEmptyBucketsForUpdate()
                                .stream()
@@ -429,15 +436,18 @@ public class BucketService {
                                .collect(Collectors.toList());
     }
 
+    @Transactional
     public void cleanAllEmptyBuckets() {
         List<BucketEntity> emptyBucketsForUpdate = bucketRepository.findEmptyBucketsForUpdate();
         bucketRepository.deleteInBatch(emptyBucketsForUpdate);
     }
 
+    @Transactional
     public void cleanAll() {
         bucketRepository.deleteAll();
     }
 
+    @Transactional
     public BucketMetadata deleteEmptyBucket(String bucketName) {
         BucketEntity bucketEntity = bucketRepository.findBucketForUpdate(bucketName);
 
@@ -468,6 +478,7 @@ public class BucketService {
         return bucketEntity;
     }
 
+    @Transactional(readOnly = true)
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
             Optional<String> contentType, Supplier<List<String>> authenticatedUserGroupsSupplier) {
         return getBucketsByGroups(ownerName,
@@ -485,6 +496,7 @@ public class BucketService {
                                   authenticatedUserGroupsSupplier);
     }
 
+    @Transactional(readOnly = true)
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
             Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
