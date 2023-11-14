@@ -53,7 +53,6 @@ import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @Service
-@Transactional
 public class GrantRightsService {
 
     @Autowired
@@ -75,6 +74,7 @@ public class GrantRightsService {
      * @param bucketName name of the bucket where the catalog object is stored.
      * @return the resulting access right for a bucket related operation
      */
+    @Transactional(readOnly = true)
     public String getBucketRights(AuthenticatedUser user, String bucketName) {
         BucketEntity bucket = bucketRepository.findOneByBucketName(bucketName);
         if (bucket == null) {
@@ -96,7 +96,7 @@ public class GrantRightsService {
      * @param userBucketGrants the list of all grants assigned to the user targeting the bucket
      * @return bucket rights as string
      */
-    public String getBucketRights(List<BucketGrantMetadata> userBucketGrants) {
+    public static String getBucketRights(List<BucketGrantMetadata> userBucketGrants) {
         // In case when the user and user group object grants are unavailable, we check in the bucket grants for the accessType
         if (userBucketGrants.isEmpty()) {
             return noAccess.toString();
@@ -116,6 +116,7 @@ public class GrantRightsService {
      * @param catalogObjectName name of the catalog object subject of the access grant.
      * @return the resulting access rights for a catalog object related operation
      */
+    @Transactional(readOnly = true)
     public String getCatalogObjectRights(AuthenticatedUser user, String bucketName, String catalogObjectName) {
         CatalogObjectRevisionEntity object = catalogObjectGrantService.getCatalogObject(bucketName, catalogObjectName);
         if (object == null) {
@@ -144,7 +145,7 @@ public class GrantRightsService {
      * @param userObjectGrants the grants specified for this catalog object
      * @return catalog object rights as string
      */
-    public String getCatalogObjectRights(boolean isPublicBucket, String bucketRights,
+    public static String getCatalogObjectRights(boolean isPublicBucket, String bucketRights,
             Optional<String> userSpecificBucketRights, List<CatalogObjectGrantMetadata> userObjectGrants) {
         if (isPublicBucket) {
             return admin.name();
@@ -162,6 +163,7 @@ public class GrantRightsService {
      * @param user authenticated user
      * @return the list of buckets that are accessible for the user via his grants
      */
+    @Transactional(readOnly = true)
     public List<BucketMetadata> getBucketsByPrioritiedGrants(AuthenticatedUser user) {
         List<BucketGrantMetadata> bucketsGrants = bucketGrantService.getUserAccessibleBucketsGrants(user);
         List<CatalogObjectGrantMetadata> catalogObjectGrants = catalogObjectGrantService.getAccessibleObjectsGrants(user);
@@ -205,8 +207,8 @@ public class GrantRightsService {
      * @param objectsGrants list of all the user's grants on the catalog objects in the bucket
      * @return the number of accessible catalog objects in the bucket
      */
-    public int getNumberOfAccessibleObjectsInBucket(BucketMetadata bucket, List<BucketGrantMetadata> bucketGrants,
-            List<CatalogObjectGrantMetadata> objectsGrants) {
+    public static int getNumberOfAccessibleObjectsInBucket(BucketMetadata bucket,
+            List<BucketGrantMetadata> bucketGrants, List<CatalogObjectGrantMetadata> objectsGrants) {
         String bucketRights = getBucketRights(bucketGrants);
         Optional<BucketGrantMetadata> bucketUserSpecificGrant = GrantHelper.filterFirstUserSpecificGrant(bucketGrants);
         if (bucketRights.equals(noAccess.name())) {
@@ -227,7 +229,7 @@ public class GrantRightsService {
      * @param bucketGrants list of user's bucket grants
      * @param objectsGrants list of user's catalog object grants for catalog objects in the bucket
      */
-    public void removeInaccessibleObjectsInBucket(List<CatalogObjectMetadata> metadataList,
+    public static void removeInaccessibleObjectsInBucket(List<CatalogObjectMetadata> metadataList,
             List<BucketGrantMetadata> bucketGrants, List<CatalogObjectGrantMetadata> objectsGrants) {
         String bucketRights = getBucketRights(bucketGrants);
         Optional<BucketGrantMetadata> bucketUserSpecificGrant = GrantHelper.filterFirstUserSpecificGrant(bucketGrants);
@@ -251,7 +253,7 @@ public class GrantRightsService {
      * @param bucketOwner owner of bucket
      * @param userBucketGrants user's grants for this bucket
      */
-    public void addGrantsForBucketOwner(AuthenticatedUser user, String bucketName, String bucketOwner,
+    public static void addGrantsForBucketOwner(AuthenticatedUser user, String bucketName, String bucketOwner,
             List<BucketGrantMetadata> userBucketGrants) {
         if (user.getGroups().contains(GrantHelper.extractBucketOwnerGroup(bucketOwner))) {
             userBucketGrants.add(GrantHelper.ownerGroupGrant(bucketOwner, bucketName));
@@ -265,6 +267,7 @@ public class GrantRightsService {
      * @param bucket bucket metadata
      * @return true if the bucket is accessible
      */
+    @Transactional(readOnly = true)
     public boolean isBucketAccessible(AuthenticatedUser user, BucketMetadata bucket) {
         boolean isPublicBucket = GrantHelper.isPublicBucket(bucket.getOwner());
 
@@ -289,7 +292,7 @@ public class GrantRightsService {
      * @param catalogObjectsGrants list of catalog objects grants in the bucket
      * @return true if the bucket is accessible
      */
-    public boolean isBucketAccessible(String bucketRights, List<BucketGrantMetadata> bucketGrants,
+    public static boolean isBucketAccessible(String bucketRights, List<BucketGrantMetadata> bucketGrants,
             List<CatalogObjectGrantMetadata> catalogObjectsGrants) {
         List<CatalogObjectGrantMetadata> positiveObjectsGrants = GrantHelper.filterPositiveGrants(catalogObjectsGrants);
         if (AccessTypeHelper.satisfy(bucketRights, read)) {
@@ -305,7 +308,7 @@ public class GrantRightsService {
         }
     }
 
-    private Set<String> getAccessibleObjects(Optional<BucketGrantMetadata> bucketUserSpecificGrant,
+    private static Set<String> getAccessibleObjects(Optional<BucketGrantMetadata> bucketUserSpecificGrant,
             List<CatalogObjectGrantMetadata> objectsGrants) {
         List<CatalogObjectGrantMetadata> objectsPositiveGrants = GrantHelper.filterPositiveGrants(objectsGrants);
         // The catalog objects have a user-specific positive grant (the user-specific objects' grants always has the highest priority)
@@ -331,7 +334,7 @@ public class GrantRightsService {
         return accessibleObjects;
     }
 
-    private Set<String> getInaccessibleObjects(Optional<BucketGrantMetadata> bucketUserSpecificGrant,
+    private static Set<String> getInaccessibleObjects(Optional<BucketGrantMetadata> bucketUserSpecificGrant,
             List<CatalogObjectGrantMetadata> objectsGrants) {
         List<CatalogObjectGrantMetadata> objectsNoAccessGrants = GrantHelper.filterNoAccessGrants(objectsGrants);
         // user specific catalog object grants have the highest priority. The objects having a user-speicific no-access grant are always not accessible.
@@ -364,7 +367,7 @@ public class GrantRightsService {
      * @param catalogObjectGrants all the grants specified for this catalog object for this user or its groups.
      * @return the user's right for the catalog object calculated through its highest priority grant
      */
-    private String getCatalogObjectRightsFromHighestPriorityGrant(Optional<String> userSpecificBucketRights,
+    private static String getCatalogObjectRightsFromHighestPriorityGrant(Optional<String> userSpecificBucketRights,
             List<CatalogObjectGrantMetadata> catalogObjectGrants) {
         // Check for a user grant
         Optional<String> userSpecificObjectRight = GrantHelper.filterFirstUserSpecificGrant(catalogObjectGrants)
@@ -380,7 +383,7 @@ public class GrantRightsService {
         }
     }
 
-    private Optional<BucketGrantMetadata> getHighestPriorityBucketGrant(List<BucketGrantMetadata> bucketGrants) {
+    private static Optional<BucketGrantMetadata> getHighestPriorityBucketGrant(List<BucketGrantMetadata> bucketGrants) {
         Optional<BucketGrantMetadata> optUserBucketGrant = GrantHelper.filterFirstUserSpecificGrant(bucketGrants);
         if (optUserBucketGrant.isPresent()) {
             return optUserBucketGrant;
@@ -395,7 +398,7 @@ public class GrantRightsService {
      * @param grants list of grants
      * @return the group grant with the highest priority
      */
-    private <T extends GrantMetadata> Optional<T> getHighestPriorityGroupGrants(List<T> grants) {
+    private static <T extends GrantMetadata> Optional<T> getHighestPriorityGroupGrants(List<T> grants) {
         return grants.stream().filter(GrantHelper::isGroupGrant).max(groupGrantsComparator());
     }
 
@@ -406,7 +409,7 @@ public class GrantRightsService {
      *
      * @return the grant that has the highest access type value
      */
-    private Comparator<GrantMetadata> groupGrantsComparator() {
+    private static Comparator<GrantMetadata> groupGrantsComparator() {
         return Comparator.comparing(GrantMetadata::getPriority)
                          .thenComparing((g1, g2) -> AccessTypeHelper.compare(g1.getAccessType(), g2.getAccessType()));
     }

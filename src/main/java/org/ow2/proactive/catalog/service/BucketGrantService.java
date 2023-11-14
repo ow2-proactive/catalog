@@ -58,7 +58,6 @@ import lombok.extern.log4j.Log4j2;
  */
 @Log4j2
 @Service
-@Transactional
 public class BucketGrantService {
 
     @Autowired
@@ -76,6 +75,7 @@ public class BucketGrantService {
      * @param user authenticated user
      * @return the list of all the bucket grants assigned to the user and its groups
      */
+    @Transactional(readOnly = true)
     public List<BucketGrantMetadata> getUserAllBucketsGrants(AuthenticatedUser user) {
         List<BucketGrantEntity> grantEntities = bucketGrantRepository.findAllBucketsGrantsByUsername(user.getName());
         grantEntities.addAll(bucketGrantRepository.findAllBucketsGrantsByUserGroup(user.getGroups()));
@@ -89,6 +89,7 @@ public class BucketGrantService {
      * @param bucketName name of the bucket where the catalog object is stored.
      * @return return all bucket grants assigned to the given user
      */
+    @Transactional(readOnly = true)
     public List<BucketGrantMetadata> getUserBucketGrants(AuthenticatedUser user, String bucketName) {
         long bucketId = getBucketIdByName(bucketName);
         List<BucketGrantEntity> grants = bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(bucketId);
@@ -101,6 +102,7 @@ public class BucketGrantService {
      * @param user authenticated user
      * @return the list of all positive bucket grants assigned to the user and its groups
      */
+    @Transactional(readOnly = true)
     public List<BucketGrantMetadata> getUserAccessibleBucketsGrants(AuthenticatedUser user) {
         List<BucketGrantEntity> userGrants = bucketGrantRepository.findAccessibleBucketsGrantsAssignedToAUsername(user.getName());
         userGrants.addAll(bucketGrantRepository.findAccessibleBucketsGrantsAssignedToUserGroups(user.getGroups()));
@@ -111,6 +113,7 @@ public class BucketGrantService {
      * Get the list of all no-access bucket grants assigned to the user and its groups for all the buckets
      * @return list of all no-access bucket grants assigned to the user and its groups
      */
+    @Transactional(readOnly = true)
     public List<BucketGrantMetadata> getNoAccessBucketsGrants(AuthenticatedUser user) {
         List<BucketGrantEntity> result = bucketGrantRepository.findBucketsGrantsAssignedToAUsernameWithNoAccessRight(user.getName());
         result.addAll(bucketGrantRepository.findBucketsGrantsAssignedToUserGroupsWithNoAccessRight(user.getGroups()));
@@ -124,6 +127,7 @@ public class BucketGrantService {
      * @param bucketName the bucket name
      * @return the list of user-specific positive bucket grants assigned to the user (not its groups) targeting the specific bucket
      */
+    @Transactional(readOnly = true)
     public Optional<BucketGrantMetadata> getUserSpecificPostiveGrants(AuthenticatedUser user, String bucketName) {
         long bucketId = this.getBucketIdByName(bucketName);
         List<BucketGrantEntity> result = bucketGrantRepository.findAccessibleBucketsGrantsAssignedToAUsername(user.getName(),
@@ -138,6 +142,7 @@ public class BucketGrantService {
      * @param bucketName name of the bucket where the catalog object is stored.
      * @return all created bucket grants
      */
+    @Transactional(readOnly = true)
     public List<BucketGrantMetadata> getAllBucketGrantsForABucket(String bucketName) {
         long bucketId = this.getBucketIdByName(bucketName);
         return GrantHelper.mapToGrants(bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(bucketId));
@@ -148,6 +153,7 @@ public class BucketGrantService {
      * @param bucketName name of the bucket where the catalog object is stored. of the bucket where the catalog object is stored. bucket name
      * @return all bucket grants
      */
+    @Transactional(readOnly = true)
     public AllBucketGrants getAllBucketAndObjectGrants(String bucketName) {
         AllBucketGrants allBucketGrants = new AllBucketGrants();
         List<BucketGrantMetadata> bucketGrants = this.getAllBucketGrantsForABucket(bucketName);
@@ -382,6 +388,7 @@ public class BucketGrantService {
      * @param bucketId the deleted bucket name
      *
      */
+    @Transactional
     public void deleteAllGrantsAssignedToABucketAndItsObjects(long bucketId) {
         // Get existing grants
         List<BucketGrantEntity> existingBucketGrantsToDelete = bucketGrantRepository.findBucketGrantEntitiesByBucketEntityId(bucketId);
@@ -407,6 +414,7 @@ public class BucketGrantService {
      * @param bucketName of the bucket where the catalog object is stored.
      * @return the list of all deleted bucket grants
      */
+    @Transactional
     public List<BucketGrantMetadata> deleteAllGrantsAssignedToABucket(String bucketName) {
         long bucketId = this.getBucketIdByName(bucketName);
         return GrantHelper.mapToGrants(bucketGrantRepository.deleteAllByBucketEntityId(bucketId));
