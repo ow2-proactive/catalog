@@ -428,7 +428,7 @@ public class BucketService {
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<String> getAllEmptyBuckets() {
         return bucketRepository.findEmptyBucketsForUpdate()
                                .stream()
