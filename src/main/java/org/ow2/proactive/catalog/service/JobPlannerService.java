@@ -25,11 +25,10 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.Validate;
 import org.ow2.proactive.catalog.dto.AssociatedObject;
@@ -71,6 +70,12 @@ public class JobPlannerService {
 
     private Cache<String, AssociatedObject> jobPlannerAssociationCache;
 
+    private static final String ALL_ASSOCIATIONS = "ALL";
+
+    private ReentrantLock mainReentrantLock = new ReentrantLock();
+
+    private Map<String, ReentrantLock> objectLocks = new ConcurrentHashMap<>();
+
     @Autowired
     public JobPlannerService() {
         this.commonRestTemplate = new CommonRestTemplate();
@@ -79,60 +84,73 @@ public class JobPlannerService {
         jobPlannerAssociationCache = CacheBuilder.newBuilder().expireAfterWrite(timeout, TimeUnit.SECONDS).build();
     }
 
-    public synchronized List<AssociatedObjectsByBucket> getAssociatedObjects(String sessionId) {
+    public List<AssociatedObjectsByBucket> getAssociatedObjects(String sessionId) {
         Validate.notNull(sessionId, "SessionId must not be null");
-        List<AssociatedObjectsByBucket> answer = jobPlannerAllAssociationsCache.getIfPresent(sessionId);
-        if (answer == null) {
-            ResponseEntity<AssociatedObjectsByBucket[]> listResponseEntity;
-            String url = jobPlannerRestUrl + plannedObjectsPaths;
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("sessionid", sessionId);
-            headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-            HttpEntity<String> entity = new HttpEntity<String>(headers);
-            try {
-                listResponseEntity = commonRestTemplate.getRestTemplate().exchange(url,
-                                                                                   HttpMethod.GET,
-                                                                                   entity,
-                                                                                   AssociatedObjectsByBucket[].class);
-                answer = Arrays.asList(listResponseEntity.getBody());
-            } catch (HttpStatusCodeException httpException) {
-                log.error(String.format("Could not retrieve job-planner associated objects, http response is: %s",
-                                        httpException.getResponseBodyAsString()));
-                answer = Collections.emptyList();
+        List<AssociatedObjectsByBucket> answer;
+        try {
+            mainReentrantLock.lock();
+            answer = jobPlannerAllAssociationsCache.getIfPresent(ALL_ASSOCIATIONS);
+            if (answer == null) {
+                ResponseEntity<AssociatedObjectsByBucket[]> listResponseEntity;
+                String url = jobPlannerRestUrl + plannedObjectsPaths;
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("sessionid", sessionId);
+                headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+                HttpEntity<String> entity = new HttpEntity<String>(headers);
+                try {
+                    listResponseEntity = commonRestTemplate.getRestTemplate()
+                                                           .exchange(url,
+                                                                     HttpMethod.GET,
+                                                                     entity,
+                                                                     AssociatedObjectsByBucket[].class);
+                    answer = Arrays.asList(listResponseEntity.getBody());
+                } catch (HttpStatusCodeException httpException) {
+                    log.error(String.format("Could not retrieve job-planner associated objects, http response is: %s",
+                                            httpException.getResponseBodyAsString()));
+                    answer = Collections.emptyList();
+                }
+                jobPlannerAllAssociationsCache.put(ALL_ASSOCIATIONS, answer);
             }
-            jobPlannerAllAssociationsCache.put(sessionId, answer);
+        } finally {
+            mainReentrantLock.unlock();
         }
         return answer;
     }
 
-    public synchronized AssociatedObject getAssociatedObject(String sessionId, String bucketName, String objectName) {
+    public AssociatedObject getAssociatedObject(String sessionId, String bucketName, String objectName) {
         Validate.notNull(sessionId, "SessionId must not be null");
         Validate.notNull(bucketName, "bucketName must not be null");
         Validate.notNull(objectName, "objectName must not be null");
-        String key = sessionId + "_" + bucketName + "_" + objectName;
-        AssociatedObject answer = jobPlannerAssociationCache.getIfPresent(key);
-        if (answer == null) {
-            ResponseEntity<AssociatedObject> responseEntity;
-            String url = jobPlannerRestUrl + plannedObjectStatusPath;
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("sessionid", sessionId);
-            headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-            HttpEntity<String> entity = new HttpEntity<String>(headers);
-            try {
-                responseEntity = commonRestTemplate.getRestTemplate()
-                                                   .exchange(url,
-                                                             HttpMethod.GET,
-                                                             entity,
-                                                             AssociatedObject.class,
-                                                             bucketName,
-                                                             objectName);
-                answer = responseEntity.getBody();
-            } catch (HttpStatusCodeException httpException) {
-                log.error(String.format("Could not retrieve job-planner associated object, http response is: %s",
-                                        httpException.getResponseBodyAsString()));
-                answer = new AssociatedObject(objectName, new HashSet<>());
+        String key = bucketName + "_" + objectName;
+        objectLocks.putIfAbsent(key, new ReentrantLock());
+        AssociatedObject answer;
+        try {
+            objectLocks.get(key).lock();
+            answer = jobPlannerAssociationCache.getIfPresent(key);
+            if (answer == null) {
+                ResponseEntity<AssociatedObject> responseEntity;
+                String url = jobPlannerRestUrl + plannedObjectStatusPath;
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("sessionid", sessionId);
+                headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+                HttpEntity<String> entity = new HttpEntity<String>(headers);
+                try {
+                    responseEntity = commonRestTemplate.getRestTemplate().exchange(url,
+                                                                                   HttpMethod.GET,
+                                                                                   entity,
+                                                                                   AssociatedObject.class,
+                                                                                   bucketName,
+                                                                                   objectName);
+                    answer = responseEntity.getBody();
+                } catch (HttpStatusCodeException httpException) {
+                    log.error(String.format("Could not retrieve job-planner associated object, http response is: %s",
+                                            httpException.getResponseBodyAsString()));
+                    answer = new AssociatedObject(objectName, new HashSet<>());
+                }
+                jobPlannerAssociationCache.put(key, answer);
             }
-            jobPlannerAssociationCache.put(key, answer);
+        } finally {
+            objectLocks.get(key).unlock();
         }
         return answer;
     }

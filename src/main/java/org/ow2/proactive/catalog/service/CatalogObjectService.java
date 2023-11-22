@@ -86,7 +86,6 @@ import lombok.extern.log4j.Log4j2;
  */
 @Log4j2
 @Service
-@Transactional
 public class CatalogObjectService {
 
     public static int ORACLEDB_MAX_IN_PARAMS = 1000;
@@ -146,6 +145,7 @@ public class CatalogObjectService {
 
     private AutoDetectParser mediaTypeFileParser = new AutoDetectParser();
 
+    @Transactional
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String projectName, String tags,
             String kind, String commitMessage, String username, String contentType, byte[] rawObject,
             String extension) {
@@ -162,6 +162,7 @@ public class CatalogObjectService {
                                         extension);
     }
 
+    @Transactional
     public List<CatalogObjectMetadata> createCatalogObjects(String bucketName, String projectName, String tags,
             String kind, String commitMessage, String username, byte[] zipArchive) {
 
@@ -201,6 +202,7 @@ public class CatalogObjectService {
         }).collect(Collectors.toList());
     }
 
+    @Transactional
     public CatalogObjectMetadata createCatalogObject(String bucketName, String name, String projectName, String tags,
             String kind, String commitMessage, String username, String contentType, List<Metadata> metadataList,
             byte[] rawObject, String extension) {
@@ -262,6 +264,7 @@ public class CatalogObjectService {
         return mediaType.toString();
     }
 
+    @Transactional
     public CatalogObjectMetadata updateObjectMetadata(String bucketName, String name, Optional<String> kind,
             Optional<String> contentType, Optional<String> projectName, Optional<String> tags, String username) {
         findBucketByNameAndCheck(bucketName);
@@ -313,6 +316,7 @@ public class CatalogObjectService {
      * @return the dependencies (dependsOn and calledBy) of a catalog object
      */
 
+    @Transactional(readOnly = true)
     protected CatalogObjectDependencies processObjectDependencies(String bucketName, String name,
             long revisionCommitTime) {
         List<String> dependsOnCatalogObjectsList = catalogObjectRevisionRepository.findDependsOnCatalogObjectNamesFromKeyValueMetadata(bucketName,
@@ -356,6 +360,7 @@ public class CatalogObjectService {
         return new CatalogObjectDependencies(dependsOnBucketAndObjectNameList, calledByBucketAndObjectNameList);
     }
 
+    @Transactional(readOnly = true)
     public boolean isDependsOnObjectExistInCatalog(String bucketName, String name,
             String revisionCommitTimeOfDependsOnObject) {
         CatalogObjectRevisionEntity catalogObjectRevisionEntity;
@@ -379,12 +384,14 @@ public class CatalogObjectService {
      * @return  the dependencies (dependsOn and calledBy) of a catalog object
      */
 
+    @Transactional(readOnly = true)
     public CatalogObjectDependencies getObjectDependencies(String bucketName, String name, long revisionCommitTime) {
         // Check that the bucketName/name object exists in the catalog
         findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
         return processObjectDependencies(bucketName, name, revisionCommitTime);
     }
 
+    @Transactional(readOnly = true)
     public CatalogObjectDependencies getObjectDependencies(String bucketName, String name) {
         // Check that the bucketName/name object exists in the catalog and retrieve the commit time
         CatalogObjectRevisionEntity catalogObject = findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
@@ -399,6 +406,7 @@ public class CatalogObjectService {
         return bucketEntity;
     }
 
+    @Transactional(readOnly = true)
     protected CatalogObjectRevisionEntity findCatalogObjectByNameAndBucketAndCheck(String bucketName, String name) {
         CatalogObjectRevisionEntity catalogObject = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
                                                                                                                            name);
@@ -543,6 +551,7 @@ public class CatalogObjectService {
         return GenericInfoBucketData.builder().bucketName(bucket.getBucketName()).group(bucket.getOwner()).build();
     }
 
+    @Transactional(readOnly = true)
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketNames, int pageNo, int pageSize) {
         bucketNames.forEach(this::findBucketByNameAndCheck);
         List<CatalogObjectRevisionEntity> result = listCatalogObjectsEntities(bucketNames, pageNo, pageSize);
@@ -550,6 +559,7 @@ public class CatalogObjectService {
         return buildMetadataWithLink(result);
     }
 
+    @Transactional(readOnly = true)
     public List<CatalogObjectRevisionEntity> listCatalogObjectsEntities(List<String> bucketNames, int pageNo,
             int pageSize) {
         Pageable paging = new PageRequest(pageNo, pageSize);
@@ -558,6 +568,7 @@ public class CatalogObjectService {
         return result.getContent();
     }
 
+    @Transactional(readOnly = true)
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
             Optional<String> contentType) {
         return listCatalogObjects(bucketsNames,
@@ -573,6 +584,7 @@ public class CatalogObjectService {
                                   Integer.MAX_VALUE);
     }
 
+    @Transactional(readOnly = true)
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectNameFilter, Optional<String> objectTagFilter,
             Optional<String> projectNameFilter, Optional<String> lastCommitByFilter,
@@ -603,6 +615,7 @@ public class CatalogObjectService {
     }
 
     // find pageable catalog objects by kind(s) and Content-Type and objectName and objectTag
+    @Transactional(readOnly = true)
     public List<CatalogObjectMetadata> listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(
             List<String> bucketNames, String kind, String contentType, String objectName, String objectTag,
             String projectName, String lastCommitBy, Long lastCommitTimeGreater, Long lastCommitTimeLessThan,
@@ -644,11 +657,13 @@ public class CatalogObjectService {
         return buildMetadataWithLink(objectList);
     }
 
+    @Transactional(readOnly = true)
     public ZipArchiveContent getCatalogObjectsAsZipArchive(String bucketName, List<String> catalogObjectsNames) {
         List<CatalogObjectRevisionEntity> revisions = getCatalogObjects(bucketName, catalogObjectsNames);
         return archiveManager.compressZIP(catalogObjectsNames.size() != revisions.size(), revisions);
     }
 
+    @Transactional(readOnly = true)
     public List<CatalogObjectMetadata> listSelectedCatalogObjects(String bucketName, List<String> catalogObjectsNames) {
         List<CatalogObjectRevisionEntity> result = getCatalogObjects(bucketName, catalogObjectsNames);
         return buildMetadataWithLink(result);
@@ -665,6 +680,7 @@ public class CatalogObjectService {
                     .collect(Collectors.toList());
     }
 
+    @Transactional
     public CatalogObjectMetadata delete(String bucketName, String name) throws CatalogObjectNotFoundException {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
         CatalogObjectMetadata catalogObjectMetadata = getCatalogObjectMetadata(bucketName, name);
@@ -680,10 +696,12 @@ public class CatalogObjectService {
         return catalogObjectMetadata;
     }
 
+    @Transactional(readOnly = true)
     public CatalogObjectMetadata getCatalogObjectMetadata(String bucketName, String name) {
         return new CatalogObjectMetadata(findCatalogObjectByNameAndBucketAndCheck(bucketName, name));
     }
 
+    @Transactional(readOnly = true)
     public CatalogRawObject getCatalogRawObject(String bucketName, String name) {
         return new CatalogRawObject(findCatalogObjectByNameAndBucketAndCheck(bucketName, name));
     }
@@ -692,6 +710,7 @@ public class CatalogObjectService {
      * ####################  Revision Operations ###################
      **/
 
+    @Transactional
     public CatalogObjectMetadata createCatalogObjectRevision(String bucketName, String name, String projectName,
             String tags, String commitMessage, String username, byte[] rawObject) {
         return this.createCatalogObjectRevision(bucketName,
@@ -704,6 +723,7 @@ public class CatalogObjectService {
                                                 rawObject);
     }
 
+    @Transactional
     public CatalogObjectMetadata createCatalogObjectRevision(String bucketName, String name, String projectName,
             String tags, String commitMessage, String username, List<Metadata> metadataListParsed, byte[] rawObject) {
 
@@ -745,6 +765,7 @@ public class CatalogObjectService {
                                  .orElse("");
     }
 
+    @Transactional
     public CatalogObjectMetadata createCatalogObjectRevision(CatalogObjectRevisionEntity catalogObjectRevision,
             String commitMessage) {
         return createCatalogObjectRevision(catalogObjectRevision.getCatalogObject().getBucket().getBucketName(),
@@ -757,6 +778,7 @@ public class CatalogObjectService {
                                            catalogObjectRevision.getRawObject());
     }
 
+    @Transactional(readOnly = true)
     public List<CatalogObjectMetadata> listCatalogObjectRevisions(String bucketName, String name) {
         BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
         findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
@@ -766,6 +788,7 @@ public class CatalogObjectService {
         return list.getRevisions().stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public CatalogObjectMetadata getCatalogObjectRevision(String bucketName, String name, long commitTime)
             throws UnsupportedEncodingException {
         CatalogObjectRevisionEntity revisionEntity = getCatalogObjectRevisionEntityByCommitTime(bucketName,
@@ -775,6 +798,7 @@ public class CatalogObjectService {
         return new CatalogObjectMetadata(revisionEntity);
     }
 
+    @Transactional(readOnly = true)
     public CatalogRawObject getCatalogObjectRevisionRaw(String bucketName, String name, long commitTime)
             throws UnsupportedEncodingException {
         CatalogObjectRevisionEntity revisionEntity = getCatalogObjectRevisionEntityByCommitTime(bucketName,
@@ -785,6 +809,7 @@ public class CatalogObjectService {
 
     }
 
+    @Transactional
     public CatalogObjectMetadata restoreCatalogObject(String bucketName, String name, Long commitTime) {
         CatalogObjectRevisionEntity catalogObjectRevision = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(Collections.singletonList(bucketName),
                                                                                                                                   name,
@@ -817,6 +842,7 @@ public class CatalogObjectService {
      * for example kinds: a/b, a/c, d/f/g
      * should return a, a/b, a/c, d, d/f, d/f/g
      */
+    @Transactional(readOnly = true)
     public TreeSet<String> getKinds() {
         Set<String> allStoredKinds = catalogObjectRepository.findAllKinds();
         TreeSet<String> resultKinds = new TreeSet<>();
@@ -837,6 +863,7 @@ public class CatalogObjectService {
     /**
      * @return all ordered Content-Types for all objects in catalog
      */
+    @Transactional(readOnly = true)
     public TreeSet<String> getContentTypes() {
         return new TreeSet<>(catalogObjectRepository.findAllContentTypes());
     }
@@ -844,10 +871,12 @@ public class CatalogObjectService {
     /**
      * @return all ordered workflow tags for all objects in catalog
      */
+    @Transactional(readOnly = true)
     public TreeSet<String> getObjectTags() {
         return new TreeSet<>(catalogObjectRepository.findAllObjectTags());
     }
 
+    @Transactional(readOnly = true)
     public List<CatalogObjectNameReference> getAccessibleCatalogObjectsNameReferenceByKindAndContentType(
             boolean sessionIdRequired, String sessionId, Optional<String> kind, Optional<String> contentType) {
 
@@ -887,6 +916,7 @@ public class CatalogObjectService {
     }
 
     @VisibleForTesting
+    @Transactional(readOnly = true)
     protected CatalogObjectRevisionEntity getCatalogObjectRevisionEntityByCommitTime(String bucketName, String name,
             long commitTime) {
         CatalogObjectRevisionEntity revisionEntity = catalogObjectRevisionRepository.findCatalogObjectRevisionByCommitTime(Collections.singletonList(bucketName),

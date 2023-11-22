@@ -57,7 +57,6 @@ import lombok.extern.log4j.Log4j2;
  */
 @Log4j2
 @Component
-@Transactional
 public class CatalogObjectGrantService {
 
     @Autowired
@@ -75,6 +74,7 @@ public class CatalogObjectGrantService {
      * @param catalogObjectName object name
      * @return the id of an object
      */
+    @Transactional(readOnly = true)
     public CatalogObjectRevisionEntity getCatalogObject(String bucketName, String catalogObjectName) {
         // Find the catalog object id
         CatalogObjectRevisionEntity catalogObjectRevisionEntity = catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(Collections.singletonList(bucketName),
@@ -92,6 +92,7 @@ public class CatalogObjectGrantService {
      * @param user authenticated user
      * @return the list of all the catalog object grants assigned to the user and its groups
      */
+    @Transactional(readOnly = true)
     public List<CatalogObjectGrantMetadata> getObjectsGrants(AuthenticatedUser user) {
         List<CatalogObjectGrantEntity> userGrants = catalogObjectGrantRepository.findAllObjectGrantsAssignedToAUser(user.getName());
         userGrants.addAll(catalogObjectGrantRepository.findAllObjectGrantsAssignedToUserGroups(user.getGroups()));
@@ -105,6 +106,7 @@ public class CatalogObjectGrantService {
      * @param catalogObjectName object name
      * @return all grants created on a specific object in a bucket
      */
+    @Transactional(readOnly = true)
     public List<CatalogObjectGrantMetadata> getObjectGrants(String bucketName, String catalogObjectName) {
         List<String> bucketsName = new LinkedList<>();
         bucketsName.add(bucketName);
@@ -125,6 +127,7 @@ public class CatalogObjectGrantService {
      * @param catalogObjectName object name
      * @return a list of object grants without the no access grant type
      */
+    @Transactional(readOnly = true)
     public List<CatalogObjectGrantMetadata> getObjectGrants(AuthenticatedUser user, String bucketName,
             String catalogObjectName) {
         List<CatalogObjectGrantEntity> result = catalogObjectGrantRepository.findGrantsAssignedToAnObject(bucketName,
@@ -139,6 +142,7 @@ public class CatalogObjectGrantService {
      * @param bucketName name of the bucket where the catalog object is stored.
      * @return the list of all catalog object grant metadata assigned to a bucket
      */
+    @Transactional(readOnly = true)
     public List<CatalogObjectGrantMetadata> getObjectsGrantsInABucket(String bucketName) {
         long bucketId = bucketRepository.findOneByBucketName(bucketName).getId();
         return GrantHelper.mapToObjectGrants(catalogObjectGrantRepository.findCatalogObjectGrantEntitiesByBucketEntityId(bucketId));
@@ -151,6 +155,7 @@ public class CatalogObjectGrantService {
      * @param bucketName name of the specific bucket
      * @return a list of objects grants in the bucket assigned to the user and its groups.
      */
+    @Transactional(readOnly = true)
     public List<CatalogObjectGrantMetadata> getObjectsGrantsInABucket(AuthenticatedUser user, String bucketName) {
         return GrantHelper.filterGrantsAssignedToUserOrItsGroups(user, getObjectsGrantsInABucket(bucketName));
     }
@@ -160,6 +165,7 @@ public class CatalogObjectGrantService {
      * @param user authenticated user
      * @return the list of all grants with a noAccess rights assigned to a user
      */
+    @Transactional(readOnly = true)
     public List<CatalogObjectGrantMetadata> getNoAccessGrant(AuthenticatedUser user) {
         List<CatalogObjectGrantEntity> userGrants = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(user.getName());
         List<CatalogObjectGrantEntity> userGroupGrants = catalogObjectGrantRepository.findAllObjectGrantsWithNoAccessRightsAndAssignedToAUserGroup(user.getGroups());
@@ -175,6 +181,7 @@ public class CatalogObjectGrantService {
      * @param user authenticated user
      * @return the list of all the catalog object grants assigned to the user and its groups
      */
+    @Transactional(readOnly = true)
     public List<CatalogObjectGrantMetadata> getAccessibleObjectsGrants(AuthenticatedUser user) {
         List<CatalogObjectGrantEntity> userGrants = catalogObjectGrantRepository.findAllAccessibleObjectGrantsAssignedToAUser(user.getName());
         userGrants.addAll(catalogObjectGrantRepository.findAllAccessibleObjectGrantsAssignedToUserGroups(user.getGroups()));
@@ -424,6 +431,7 @@ public class CatalogObjectGrantService {
      *
      * @param bucketId bucket id
      */
+    @Transactional
     public void deleteAllCatalogObjectsGrantsAssignedToABucket(long bucketId) {
         // Get existing grants
         List<CatalogObjectGrantEntity> existingCatalogObjectsGrantsToDelete = catalogObjectGrantRepository.findCatalogObjectGrantEntitiesByBucketEntityId(bucketId);
@@ -456,6 +464,7 @@ public class CatalogObjectGrantService {
      * @param bucketName bucket name
      * @param catalogObjectName catalog object name
      */
+    @Transactional
     public void deleteAllCatalogObjectGrantsByBucketNameAndObjectName(String bucketName, String catalogObjectName) {
         // Get the catalog objects grants
         List<CatalogObjectGrantEntity> catalogObjectGrants = catalogObjectGrantRepository.findCatalogObjectGrantsByBucketNameAndCatalogObjectName(bucketName,
