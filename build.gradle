@@ -364,6 +364,33 @@ jacocoTestReport {
     }
 }
 
+task updateWar(type: Zip, dependsOn: war) {
+    def originalWar = file("build/libs/catalog-${version}.war")
+
+    archiveName = "catalog-${version}.war"
+
+    from(zipTree(originalWar)) {
+        // Remove the original graphql jar if it exists
+        exclude("**/WEB-INF/lib/graphql-java-17.6.jar")
+    }
+
+    // Include our own graphql jar
+    from("$rootDir/lib/graphql-java-17.6.jar") {
+        into('WEB-INF/lib/')
+    }
+
+    destinationDir file("${buildDir}/distributions")
+}
+
+task copyWar(type:Copy, dependsOn: updateWar) {
+    // copy back the modified war into the libs folder
+    from "${buildDir}/distributions/catalog-${version}.war"
+    into "${buildDir}/libs"
+
+}
+
+build.dependsOn copyWar
+
 clean {
     sourceSets.generated.java.srcDirs.each {
         srcDir -> delete srcDir
