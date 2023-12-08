@@ -295,7 +295,8 @@ public class CatalogObjectController {
     public CatalogObjectMetadata get(
             @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
-            @Parameter(description = "The name of the existing Object", required = true, schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @PathVariable String name)
+            @Parameter(description = "The name of the existing Object", required = true, schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @PathVariable String name,
+            @Parameter(description = "Check job planner association status", required = false) @RequestParam(value = "checkAssociationStatus", required = false, defaultValue = "false") boolean checkAssociationStatus)
             throws MalformedURLException, UnsupportedEncodingException, NotAuthenticatedException,
             AccessDeniedException {
         String objectRights = "";
@@ -319,7 +320,7 @@ public class CatalogObjectController {
         }
         metadata.add(LinkUtil.createLink(bucketName, metadata.getName()));
         metadata.add(LinkUtil.createRelativeLink(bucketName, metadata.getName()));
-        if (sessionIdRequired) {
+        if (sessionIdRequired && checkAssociationStatus) {
             AssociatedObject associatedObject = jobPlannerService.getAssociatedObject(sessionId, bucketName, name);
             addAssociationStatus(metadata, associatedObject);
         }
