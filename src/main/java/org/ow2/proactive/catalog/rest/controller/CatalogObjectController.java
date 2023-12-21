@@ -519,6 +519,74 @@ public class CatalogObjectController {
         }
     }
 
+    @Operation(summary = "Export catalog objects as a zipped package", description = "Note: Returns catalog objects metadata associated to the latest revision.")
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket not found"),
+                            @ApiResponse(responseCode = "206", description = "Missing object"),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied") })
+    @RequestMapping(value = REQUEST_API_QUERY + "/export", method = GET)
+    public ResponseEntity<List<CatalogObjectMetadata>> exportAsPackage(
+            @Parameter(description = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @PathVariable String bucketName,
+            @Parameter(description = "Give a list of name separated by comma to get them in an archive", array = @ArraySchema(schema = @Schema())) @RequestParam(value = "objectNamesList", required = false) Optional<List<String>> names,
+            HttpServletResponse response)
+            throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
+
+        // Check Grants
+        AuthenticatedUser user;
+        boolean isPublicBucket = true;
+        List<CatalogObjectGrantMetadata> catalogObjectsGrants = new LinkedList<>(); // the user's all grants for the catalog objects in the bucket
+        List<BucketGrantMetadata> bucketGrants = new LinkedList<>(); // the user's all grants for the bucket
+        String bucketRights = "";
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            BucketMetadata bucket = bucketService.getBucketMetadata(bucketName);
+            isPublicBucket = GrantHelper.isPublicBucket(bucket.getOwner());
+            if (isPublicBucket) {
+                bucketRights = admin.name();
+            } else {
+                bucketGrants = bucketGrantService.getUserBucketGrants(user, bucketName);
+                grantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
+                catalogObjectsGrants = catalogObjectGrantService.getObjectsGrantsInABucket(user, bucketName);
+                bucketRights = grantRightsService.getBucketRights(bucketGrants);
+            }
+
+            if (!grantRightsService.isBucketAccessible(bucketRights, bucketGrants, catalogObjectsGrants)) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+        }
+        ZipArchiveContent content;
+        if (names.isPresent()) {
+            content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, names.get());
+        } else {
+            List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               0,
+                                                                                               Integer.MAX_VALUE);
+
+            if (sessionIdRequired && !isPublicBucket) {
+                // remove all objects that the user shouldn't have access according to the grants specification.
+                grantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, catalogObjectsGrants);
+            }
+            List<String> objectNames = metadataList.stream()
+                                                   .map(CatalogObjectMetadata::getName)
+                                                   .collect(Collectors.toList());
+            content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, objectNames);
+        }
+        return getResponseAsArchive(content, response);
+    }
+
     private void addAssociationStatus(CatalogObjectMetadata catalogObject, AssociatedObject associatedObject) {
         catalogObject.getMetadataList()
                      .add(new Metadata(JOB_PLANNER_ASSOCIATION_STATUS_KEY,

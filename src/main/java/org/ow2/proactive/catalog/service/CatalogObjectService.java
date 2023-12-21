@@ -664,6 +664,12 @@ public class CatalogObjectService {
     }
 
     @Transactional(readOnly = true)
+    public ZipArchiveContent getCatalogObjectsAsPackageZipArchive(String bucketName, List<String> catalogObjectsNames) {
+        List<CatalogObjectRevisionEntity> revisions = getCatalogObjects(bucketName, catalogObjectsNames);
+        return archiveManager.compressPackageZIP(catalogObjectsNames.size() != revisions.size(), revisions, bucketName);
+    }
+
+    @Transactional(readOnly = true)
     public List<CatalogObjectMetadata> listSelectedCatalogObjects(String bucketName, List<String> catalogObjectsNames) {
         List<CatalogObjectRevisionEntity> result = getCatalogObjects(bucketName, catalogObjectsNames);
         return buildMetadataWithLink(result);
