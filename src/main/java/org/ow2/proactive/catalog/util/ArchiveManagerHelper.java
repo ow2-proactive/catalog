@@ -46,7 +46,10 @@ import org.zeroturnaround.zip.ByteSource;
 import org.zeroturnaround.zip.ZipEntrySource;
 import org.zeroturnaround.zip.ZipUtil;
 
+import lombok.extern.log4j.Log4j2;
 
+
+@Log4j2
 @Component
 public class ArchiveManagerHelper {
 
@@ -147,6 +150,7 @@ public class ArchiveManagerHelper {
             zipContent.setPartial(isPartial);
             return zipContent;
         } catch (IOException ioe) {
+            log.error("Could not compress catalog objects as a ZIP");
             throw new RuntimeException(ioe);
         }
 
@@ -182,6 +186,7 @@ public class ArchiveManagerHelper {
         try {
             return new ByteSource(bucketName + "/METADATA.json", writeJSONFile(packageData));
         } catch (IOException ioe) {
+            log.error("Could not create a METADATA.json file for the demanded package");
             throw new RuntimeException(ioe);
         }
     }
@@ -225,6 +230,7 @@ public class ArchiveManagerHelper {
             zipContent.setPartial(isPartial);
             return zipContent;
         } catch (IOException ioe) {
+            log.error("Could not generate a ProActive package");
             throw new RuntimeException(ioe);
         }
 

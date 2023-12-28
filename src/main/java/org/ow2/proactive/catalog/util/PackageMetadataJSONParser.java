@@ -25,18 +25,14 @@
  */
 package org.ow2.proactive.catalog.util;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.ByteStreams;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -50,11 +46,8 @@ public final class PackageMetadataJSONParser {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    public static PackageData parseJSONFile(File fobject) throws IOException {
-        FileInputStream fisobject = new FileInputStream(fobject);
-        byte[] bObject = ByteStreams.toByteArray(fisobject);
-
-        return MAPPER.readValue(bObject, PackageData.class);
+    private PackageMetadataJSONParser() {
+        throw new IllegalStateException("Utility class");
     }
 
     protected static byte[] writeJSONFile(PackageData data) throws IOException {
@@ -62,8 +55,7 @@ public final class PackageMetadataJSONParser {
     }
 
     protected static PackageData createPackageMetadata(String bucketName, String userGroup) {
-        PackageData meta = new PackageData(bucketName, userGroup);
-        return meta;
+        return new PackageData(bucketName, userGroup);
     }
 
     @Getter

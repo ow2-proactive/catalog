@@ -445,7 +445,7 @@ public class CatalogObjectController {
 
             if (sessionIdRequired && !isPublicBucket) {
                 // remove all objects that the user shouldn't have access according to the grants specification.
-                grantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, catalogObjectsGrants);
+                GrantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, catalogObjectsGrants);
             }
 
             Optional<String> userSpecificBucketRights = GrantHelper.filterFirstUserSpecificGrant(bucketGrants)
@@ -456,7 +456,7 @@ public class CatalogObjectController {
                 if (sessionIdRequired) {
                     List<CatalogObjectGrantMetadata> objectsGrants = GrantHelper.filterObjectGrants(catalogObjectsGrants,
                                                                                                     catalogObject.getName());
-                    catalogObject.setRights(grantRightsService.getCatalogObjectRights(isPublicBucket,
+                    catalogObject.setRights(GrantRightsService.getCatalogObjectRights(isPublicBucket,
                                                                                       bucketRights,
                                                                                       userSpecificBucketRights,
                                                                                       objectsGrants));
@@ -533,7 +533,7 @@ public class CatalogObjectController {
 
             if (sessionIdRequired && !isPublicBucket) {
                 // remove all objects that the user shouldn't have access according to the grants specification.
-                grantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, catalogObjectsGrants);
+                GrantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, catalogObjectsGrants);
             }
             List<String> objectNames = metadataList.stream()
                                                    .map(CatalogObjectMetadata::getName)
@@ -560,12 +560,12 @@ public class CatalogObjectController {
                 bucketRights = admin.name();
             } else {
                 bucketGrants = bucketGrantService.getUserBucketGrants(user, bucketName);
-                grantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
+                GrantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
                 catalogObjectsGrants = catalogObjectGrantService.getObjectsGrantsInABucket(user, bucketName);
-                bucketRights = grantRightsService.getBucketRights(bucketGrants);
+                bucketRights = GrantRightsService.getBucketRights(bucketGrants);
             }
 
-            if (!grantRightsService.isBucketAccessible(bucketRights, bucketGrants, catalogObjectsGrants)) {
+            if (!GrantRightsService.isBucketAccessible(bucketRights, bucketGrants, catalogObjectsGrants)) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
