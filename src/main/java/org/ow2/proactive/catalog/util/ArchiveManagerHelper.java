@@ -25,6 +25,8 @@
  */
 package org.ow2.proactive.catalog.util;
 
+import static org.ow2.proactive.catalog.util.PackageMetadataJSONParser.writeJSONFile;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,7 +46,10 @@ import org.zeroturnaround.zip.ByteSource;
 import org.zeroturnaround.zip.ZipEntrySource;
 import org.zeroturnaround.zip.ZipUtil;
 
+import lombok.extern.log4j.Log4j2;
 
+
+@Log4j2
 @Component
 public class ArchiveManagerHelper {
 
@@ -145,6 +150,87 @@ public class ArchiveManagerHelper {
             zipContent.setPartial(isPartial);
             return zipContent;
         } catch (IOException ioe) {
+            log.error("Could not compress catalog objects as a ZIP");
+            throw new RuntimeException(ioe);
+        }
+
+    }
+
+    /**
+     * Generates a METADATA.json file in order to create a ProActive Package
+     * @param catalogObjectList the list of catalogObjects to compress
+     * @return a byte array corresponding to the METADATA.json file
+     */
+    public ByteSource generateMetadataForPackage(String bucketName,
+            List<CatalogObjectRevisionEntity> catalogObjectList) {
+
+        PackageMetadataJSONParser.PackageData packageData = PackageMetadataJSONParser.createPackageMetadata(bucketName,
+                                                                                                            "");
+        for (CatalogObjectRevisionEntity catalogObjectRevision : catalogObjectList) {
+            CatalogObjectEntity catalogObjectEntity = catalogObjectRevision.getCatalogObject();
+            String fileNameWithExtension = rawObjectResponseCreator.getNameWithFileExtension(catalogObjectEntity.getId()
+                                                                                                                .getName(),
+                                                                                             catalogObjectEntity.getExtension(),
+                                                                                             catalogObjectEntity.getKind());
+            fileNameWithExtension = bucketName + "/resources/catalog/" + fileNameWithExtension;
+            PackageMetadataJSONParser.CatalogObjectData objectData = new PackageMetadataJSONParser.CatalogObjectData(catalogObjectEntity.getId()
+                                                                                                                                        .getName(),
+                                                                                                                     catalogObjectEntity.getKind(),
+                                                                                                                     catalogObjectEntity.getRevisions()
+                                                                                                                                        .last()
+                                                                                                                                        .getCommitMessage(),
+                                                                                                                     catalogObjectEntity.getContentType(),
+                                                                                                                     fileNameWithExtension);
+            packageData.getCatalog().getObjects().add(objectData);
+        }
+        try {
+            return new ByteSource(bucketName + "/METADATA.json", writeJSONFile(packageData));
+        } catch (IOException ioe) {
+            log.error("Could not create a METADATA.json file for the demanded package");
+            throw new RuntimeException(ioe);
+        }
+    }
+
+    /**
+     * Creates and compresses a ProActive Package into a ZIP archive
+     * @param catalogObjectList the list of catalogObjects to compress
+     * @return a byte array corresponding to the archive containing the files
+     */
+    public ZipArchiveContent compressPackageZIP(boolean isPartial, List<CatalogObjectRevisionEntity> catalogObjectList,
+            String bucketName) {
+
+        if (catalogObjectList == null) {
+            return null;
+        }
+
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+
+            ZipArchiveContent zipContent = new ZipArchiveContent();
+
+            Stream<ZipEntrySource> streamSources = catalogObjectList.stream()
+                                                                    .filter(Objects::nonNull)
+                                                                    .map(catalogObjectRevision -> {
+                                                                        CatalogObjectEntity catalogObjectEntity = catalogObjectRevision.getCatalogObject();
+                                                                        String fileNameWithExtension = rawObjectResponseCreator.getNameWithFileExtension(catalogObjectEntity.getId()
+                                                                                                                                                                            .getName(),
+                                                                                                                                                         catalogObjectEntity.getExtension(),
+                                                                                                                                                         catalogObjectEntity.getKind());
+                                                                        fileNameWithExtension = bucketName +
+                                                                                                "/resources/catalog/" +
+                                                                                                fileNameWithExtension;
+                                                                        return new ByteSource(fileNameWithExtension,
+                                                                                              catalogObjectRevision.getRawObject());
+                                                                    });
+
+            ByteSource metaFileSource = generateMetadataForPackage(bucketName, catalogObjectList);
+            Stream<ZipEntrySource> finalStream = Stream.concat(Stream.of(metaFileSource), streamSources);
+            ZipEntrySource[] sources = finalStream.toArray(size -> new ZipEntrySource[size]);
+            ZipUtil.pack(sources, byteArrayOutputStream);
+            zipContent.setContent(byteArrayOutputStream.toByteArray());
+            zipContent.setPartial(isPartial);
+            return zipContent;
+        } catch (IOException ioe) {
+            log.error("Could not generate a ProActive package");
             throw new RuntimeException(ioe);
         }
 

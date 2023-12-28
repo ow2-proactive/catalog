@@ -130,7 +130,7 @@ public class CatalogObjectController {
     public CatalogObjectMetadataList create(
             @Parameter(description = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
-            @Parameter(description = "Name of the object or empty when a ZIP archive is uploaded.<br />All objects inside an archive will be stored inside the catalog.", schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @RequestParam(required = false) Optional<String> name,
+            @Parameter(description = "Name of the object or empty when a ZIP archive is uploaded.<br/>All objects inside an archive will be stored inside the catalog.", schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @RequestParam(required = false) Optional<String> name,
             @Parameter(description = "Project of the object") @RequestParam(value = "projectName", required = false, defaultValue = "") Optional<String> projectName,
             @Parameter(description = "List of comma separated tags of the object", schema = @Schema(pattern = TagsValidator.TAGS_PATTERN)) @RequestParam(value = "tags", required = false, defaultValue = "") Optional<String> tags,
             @Parameter(description = "Kind of the new object", required = true, schema = @Schema(pattern = KindAndContentTypeValidator.VALID_KIND_NAME_PATTERN)) @RequestParam(value = "kind", required = true) String kind,
@@ -397,12 +397,12 @@ public class CatalogObjectController {
     public ResponseEntity<List<CatalogObjectMetadata>> list(
             @Parameter(description = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
-            @Parameter(description = "Filter according to kind(s).<br />Multiple kinds can be specified using comma separators") @RequestParam(required = false) Optional<String> kind,
+            @Parameter(description = "Filter according to kind(s).<br/>Multiple kinds can be specified using comma separators") @RequestParam(required = false) Optional<String> kind,
             @Parameter(description = "Filter according to Content-Type.") @RequestParam(required = false) Optional<String> contentType,
             @Parameter(description = "Filter according to Object Name.") @RequestParam(value = "objectName", required = false) Optional<String> objectNameFilter,
             @Parameter(description = "Filter according to Object Tag.") @RequestParam(value = "objectTag", required = false) Optional<String> objectTagFilter,
-            @Parameter(description = "Filter according to Job-Planner association status.<br />If enabled, only objects for which a job-planner association exists with the provided status will be returned.<br />Parameter can be ALL, PLANNED, DEACTIVATED, FAILED or UNPLANNED.<br />ALL will filter objects which have an association with any status.<br />UNPLANNED will filter objects without any association.", schema = @Schema(type = "string", allowableValues = { "ALL",
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "PLANNED", "DEACTIVATED", "FAILED", "UNPLANNED" })) @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatusFilter,
+            @Parameter(description = "Filter according to Job-Planner association status.<br/>If enabled, only objects for which a job-planner association exists with the provided status will be returned.<br/>Parameter can be ALL, PLANNED, DEACTIVATED, FAILED or UNPLANNED.<br/>ALL will filter objects which have an association with any status.<br/>UNPLANNED will filter objects without any association.", schema = @Schema(type = "string", allowableValues = { "ALL",
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            "PLANNED", "DEACTIVATED", "FAILED", "UNPLANNED" })) @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatusFilter,
             @Parameter(description = "Include only objects whose project name contains the given string.") @RequestParam(value = "projectName", required = false) Optional<String> projectNameFilter,
             @Parameter(description = "Include only objects whose last commit belong to the given user.") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy,
             @Parameter(description = "Include only objects whose last commit time is greater than the given EPOCH time.") @RequestParam(value = "lastCommitTimeGreater", required = false) Optional<Long> lastCommitTimeGreater,
@@ -414,33 +414,11 @@ public class CatalogObjectController {
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
-        // Check Grants
-        AuthenticatedUser user;
-        boolean isPublicBucket = true;
+        Boolean isPublicBucket = false;
+        String bucketRights = "";
         List<CatalogObjectGrantMetadata> catalogObjectsGrants = new LinkedList<>(); // the user's all grants for the catalog objects in the bucket
         List<BucketGrantMetadata> bucketGrants = new LinkedList<>(); // the user's all grants for the bucket
-        String bucketRights = "";
-        if (sessionIdRequired) {
-            // Check session validation
-            if (!restApiAccessService.isSessionActive(sessionId)) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            user = restApiAccessService.getUserFromSessionId(sessionId);
-            BucketMetadata bucket = bucketService.getBucketMetadata(bucketName);
-            isPublicBucket = GrantHelper.isPublicBucket(bucket.getOwner());
-            if (isPublicBucket) {
-                bucketRights = admin.name();
-            } else {
-                bucketGrants = bucketGrantService.getUserBucketGrants(user, bucketName);
-                grantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
-                catalogObjectsGrants = catalogObjectGrantService.getObjectsGrantsInABucket(user, bucketName);
-                bucketRights = grantRightsService.getBucketRights(bucketGrants);
-            }
-
-            if (!grantRightsService.isBucketAccessible(bucketRights, bucketGrants, catalogObjectsGrants)) {
-                throw new BucketGrantAccessException(bucketName);
-            }
-        }
+        checkBucketGrants(sessionId, bucketName, catalogObjectsGrants, bucketGrants, bucketRights, isPublicBucket);
 
         //transform empty String into an empty Optional
         kind = kind.filter(s -> !s.isEmpty());
@@ -467,7 +445,7 @@ public class CatalogObjectController {
 
             if (sessionIdRequired && !isPublicBucket) {
                 // remove all objects that the user shouldn't have access according to the grants specification.
-                grantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, catalogObjectsGrants);
+                GrantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, catalogObjectsGrants);
             }
 
             Optional<String> userSpecificBucketRights = GrantHelper.filterFirstUserSpecificGrant(bucketGrants)
@@ -478,7 +456,7 @@ public class CatalogObjectController {
                 if (sessionIdRequired) {
                     List<CatalogObjectGrantMetadata> objectsGrants = GrantHelper.filterObjectGrants(catalogObjectsGrants,
                                                                                                     catalogObject.getName());
-                    catalogObject.setRights(grantRightsService.getCatalogObjectRights(isPublicBucket,
+                    catalogObject.setRights(GrantRightsService.getCatalogObjectRights(isPublicBucket,
                                                                                       bucketRights,
                                                                                       userSpecificBucketRights,
                                                                                       objectsGrants));
@@ -516,6 +494,80 @@ public class CatalogObjectController {
             }
             Collections.sort(metadataList);
             return ResponseEntity.ok(metadataList);
+        }
+    }
+
+    @Operation(summary = "Export catalog objects as a ProActive Package", description = "Export catalog objects as a ProActive Package containing the selected objects or contents of the selected bucket along with a METADATA.json describing the exported objects. <br/> Note: Returns catalog objects metadata associated to the latest revision.")
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket not found"),
+                            @ApiResponse(responseCode = "206", description = "Missing object"),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied") })
+    @RequestMapping(value = REQUEST_API_QUERY + "/export", method = GET)
+    public ResponseEntity<List<CatalogObjectMetadata>> exportAsPackage(
+            @Parameter(description = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
+            @PathVariable String bucketName,
+            @Parameter(description = "Give a list of name separated by comma to get them in an archive", array = @ArraySchema(schema = @Schema())) @RequestParam(value = "objectNamesList", required = false) Optional<List<String>> names,
+            HttpServletResponse response) throws NotAuthenticatedException, AccessDeniedException {
+
+        Boolean isPublicBucket = true;
+        String bucketRights = "";
+        List<CatalogObjectGrantMetadata> catalogObjectsGrants = new LinkedList<>(); // the user's all grants for the catalog objects in the bucket
+        List<BucketGrantMetadata> bucketGrants = new LinkedList<>(); // the user's all grants for the bucket
+        checkBucketGrants(sessionId, bucketName, catalogObjectsGrants, bucketGrants, bucketRights, isPublicBucket);
+
+        ZipArchiveContent content;
+        if (names.isPresent()) {
+            content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, names.get());
+        } else {
+            List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               Optional.empty(),
+                                                                                               0,
+                                                                                               Integer.MAX_VALUE);
+
+            if (sessionIdRequired && !isPublicBucket) {
+                // remove all objects that the user shouldn't have access according to the grants specification.
+                GrantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, catalogObjectsGrants);
+            }
+            List<String> objectNames = metadataList.stream()
+                                                   .map(CatalogObjectMetadata::getName)
+                                                   .collect(Collectors.toList());
+            content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, objectNames);
+        }
+        return getResponseAsArchive(content, response);
+    }
+
+    private void checkBucketGrants(String sessionId, String bucketName,
+            List<CatalogObjectGrantMetadata> catalogObjectsGrants, List<BucketGrantMetadata> bucketGrants,
+            String bucketRights, Boolean isPublicBucket) {
+        // Check Grants
+        AuthenticatedUser user;
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            BucketMetadata bucket = bucketService.getBucketMetadata(bucketName);
+            isPublicBucket = GrantHelper.isPublicBucket(bucket.getOwner());
+            if (isPublicBucket) {
+                bucketRights = admin.name();
+            } else {
+                bucketGrants = bucketGrantService.getUserBucketGrants(user, bucketName);
+                GrantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
+                catalogObjectsGrants = catalogObjectGrantService.getObjectsGrantsInABucket(user, bucketName);
+                bucketRights = GrantRightsService.getBucketRights(bucketGrants);
+            }
+
+            if (!GrantRightsService.isBucketAccessible(bucketRights, bucketGrants, catalogObjectsGrants)) {
+                throw new BucketGrantAccessException(bucketName);
+            }
         }
     }
 
