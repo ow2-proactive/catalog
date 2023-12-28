@@ -416,7 +416,7 @@ public class CatalogObjectController {
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
         AtomicBoolean isPublicBucket = new AtomicBoolean(false);
-        String bucketRights = "";
+        StringBuilder bucketRights = new StringBuilder();
         List<CatalogObjectGrantMetadata> catalogObjectsGrants = new LinkedList<>(); // the user's all grants for the catalog objects in the bucket
         List<BucketGrantMetadata> bucketGrants = new LinkedList<>(); // the user's all grants for the bucket
         checkBucketGrants(sessionId, bucketName, catalogObjectsGrants, bucketGrants, bucketRights, isPublicBucket);
@@ -458,7 +458,7 @@ public class CatalogObjectController {
                     List<CatalogObjectGrantMetadata> objectsGrants = GrantHelper.filterObjectGrants(catalogObjectsGrants,
                                                                                                     catalogObject.getName());
                     catalogObject.setRights(GrantRightsService.getCatalogObjectRights(isPublicBucket.get(),
-                                                                                      bucketRights,
+                                                                                      bucketRights.toString(),
                                                                                       userSpecificBucketRights,
                                                                                       objectsGrants));
                 }
@@ -511,7 +511,7 @@ public class CatalogObjectController {
             HttpServletResponse response) throws NotAuthenticatedException, AccessDeniedException {
 
         AtomicBoolean isPublicBucket = new AtomicBoolean(true);
-        String bucketRights = "";
+        StringBuilder bucketRights = new StringBuilder();
         List<CatalogObjectGrantMetadata> catalogObjectsGrants = new LinkedList<>(); // the user's all grants for the catalog objects in the bucket
         List<BucketGrantMetadata> bucketGrants = new LinkedList<>(); // the user's all grants for the bucket
         checkBucketGrants(sessionId, bucketName, catalogObjectsGrants, bucketGrants, bucketRights, isPublicBucket);
@@ -546,7 +546,7 @@ public class CatalogObjectController {
 
     private void checkBucketGrants(String sessionId, String bucketName,
             List<CatalogObjectGrantMetadata> catalogObjectsGrants, List<BucketGrantMetadata> bucketGrants,
-            String bucketRights, AtomicBoolean isPublicBucket) {
+            StringBuilder bucketRights, AtomicBoolean isPublicBucket) {
         // Check Grants
         AuthenticatedUser user;
         if (sessionIdRequired) {
@@ -558,15 +558,15 @@ public class CatalogObjectController {
             BucketMetadata bucket = bucketService.getBucketMetadata(bucketName);
             isPublicBucket.set(GrantHelper.isPublicBucket(bucket.getOwner()));
             if (isPublicBucket.get()) {
-                bucketRights = admin.name();
+                bucketRights.append(admin.name());
             } else {
                 bucketGrants = bucketGrantService.getUserBucketGrants(user, bucketName);
                 GrantRightsService.addGrantsForBucketOwner(user, bucket.getName(), bucket.getOwner(), bucketGrants);
                 catalogObjectsGrants = catalogObjectGrantService.getObjectsGrantsInABucket(user, bucketName);
-                bucketRights = GrantRightsService.getBucketRights(bucketGrants);
+                bucketRights.append(GrantRightsService.getBucketRights(bucketGrants));
             }
 
-            if (!GrantRightsService.isBucketAccessible(bucketRights, bucketGrants, catalogObjectsGrants)) {
+            if (!GrantRightsService.isBucketAccessible(bucketRights.toString(), bucketGrants, catalogObjectsGrants)) {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
