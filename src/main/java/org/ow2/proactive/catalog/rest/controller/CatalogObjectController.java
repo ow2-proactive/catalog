@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
@@ -414,7 +415,7 @@ public class CatalogObjectController {
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
-        Boolean isPublicBucket = false;
+        AtomicBoolean isPublicBucket = new AtomicBoolean(false);
         String bucketRights = "";
         List<CatalogObjectGrantMetadata> catalogObjectsGrants = new LinkedList<>(); // the user's all grants for the catalog objects in the bucket
         List<BucketGrantMetadata> bucketGrants = new LinkedList<>(); // the user's all grants for the bucket
@@ -443,7 +444,7 @@ public class CatalogObjectController {
                                                                                                pageNo,
                                                                                                pageSize);
 
-            if (sessionIdRequired && !isPublicBucket) {
+            if (sessionIdRequired && !isPublicBucket.get()) {
                 // remove all objects that the user shouldn't have access according to the grants specification.
                 GrantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, catalogObjectsGrants);
             }
@@ -456,7 +457,7 @@ public class CatalogObjectController {
                 if (sessionIdRequired) {
                     List<CatalogObjectGrantMetadata> objectsGrants = GrantHelper.filterObjectGrants(catalogObjectsGrants,
                                                                                                     catalogObject.getName());
-                    catalogObject.setRights(GrantRightsService.getCatalogObjectRights(isPublicBucket,
+                    catalogObject.setRights(GrantRightsService.getCatalogObjectRights(isPublicBucket.get(),
                                                                                       bucketRights,
                                                                                       userSpecificBucketRights,
                                                                                       objectsGrants));
@@ -509,7 +510,7 @@ public class CatalogObjectController {
             @Parameter(description = "Give a list of name separated by comma to get them in an archive", array = @ArraySchema(schema = @Schema())) @RequestParam(value = "objectNamesList", required = false) Optional<List<String>> names,
             HttpServletResponse response) throws NotAuthenticatedException, AccessDeniedException {
 
-        Boolean isPublicBucket = true;
+        AtomicBoolean isPublicBucket = new AtomicBoolean(true);
         String bucketRights = "";
         List<CatalogObjectGrantMetadata> catalogObjectsGrants = new LinkedList<>(); // the user's all grants for the catalog objects in the bucket
         List<BucketGrantMetadata> bucketGrants = new LinkedList<>(); // the user's all grants for the bucket
@@ -531,7 +532,7 @@ public class CatalogObjectController {
                                                                                                0,
                                                                                                Integer.MAX_VALUE);
 
-            if (sessionIdRequired && !isPublicBucket) {
+            if (sessionIdRequired && !isPublicBucket.get()) {
                 // remove all objects that the user shouldn't have access according to the grants specification.
                 GrantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, catalogObjectsGrants);
             }
@@ -545,7 +546,7 @@ public class CatalogObjectController {
 
     private void checkBucketGrants(String sessionId, String bucketName,
             List<CatalogObjectGrantMetadata> catalogObjectsGrants, List<BucketGrantMetadata> bucketGrants,
-            String bucketRights, Boolean isPublicBucket) {
+            String bucketRights, AtomicBoolean isPublicBucket) {
         // Check Grants
         AuthenticatedUser user;
         if (sessionIdRequired) {
@@ -555,8 +556,8 @@ public class CatalogObjectController {
             }
             user = restApiAccessService.getUserFromSessionId(sessionId);
             BucketMetadata bucket = bucketService.getBucketMetadata(bucketName);
-            isPublicBucket = GrantHelper.isPublicBucket(bucket.getOwner());
-            if (isPublicBucket) {
+            isPublicBucket.set(GrantHelper.isPublicBucket(bucket.getOwner()));
+            if (isPublicBucket.get()) {
                 bucketRights = admin.name();
             } else {
                 bucketGrants = bucketGrantService.getUserBucketGrants(user, bucketName);
