@@ -417,7 +417,7 @@ public class CatalogObjectController {
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
-        UserGrantsHolder userGrants = checkBucketGrants(sessionId, bucketName);
+        UserBucketGrants userGrants = checkAndGetUserGrantsForBucket(sessionId, bucketName);
 
         //transform empty String into an empty Optional
         kind = kind.filter(s -> !s.isEmpty());
@@ -510,7 +510,7 @@ public class CatalogObjectController {
             @Parameter(description = "Give a list of name separated by comma to get them in an archive", array = @ArraySchema(schema = @Schema())) @RequestParam(value = "objectNamesList", required = false) Optional<List<String>> names,
             HttpServletResponse response) throws NotAuthenticatedException, AccessDeniedException {
 
-        UserGrantsHolder userGrants = checkBucketGrants(sessionId, bucketName);
+        UserBucketGrants userGrants = checkAndGetUserGrantsForBucket(sessionId, bucketName);
 
         ZipArchiveContent content;
         if (names.isPresent()) {
@@ -542,7 +542,7 @@ public class CatalogObjectController {
         return getResponseAsArchive(content, response);
     }
 
-    private UserGrantsHolder checkBucketGrants(String sessionId, String bucketName) {
+    private UserBucketGrants checkAndGetUserGrantsForBucket(String sessionId, String bucketName) {
         boolean isPublicBucket = false;
         List<BucketGrantMetadata> userBucketGrants = Collections.emptyList();
         List<CatalogObjectGrantMetadata> userCatalogGrants = Collections.emptyList();
@@ -571,7 +571,7 @@ public class CatalogObjectController {
                 throw new BucketGrantAccessException(bucketName);
             }
         }
-        return UserGrantsHolder.builder()
+        return UserBucketGrants.builder()
                                .isPublicBucket(isPublicBucket)
                                .bucketRights(bucketRights)
                                .catalogObjectsGrants(userCatalogGrants)
@@ -673,7 +673,7 @@ public class CatalogObjectController {
 
     @Getter
     @Builder
-    private static class UserGrantsHolder {
+    private static class UserBucketGrants {
         boolean isPublicBucket;
 
         String bucketRights;
