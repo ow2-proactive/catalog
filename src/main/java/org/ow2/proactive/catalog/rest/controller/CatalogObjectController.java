@@ -408,7 +408,6 @@ public class CatalogObjectController {
             @Parameter(description = "Include only objects whose last commit belong to the given user.") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy,
             @Parameter(description = "Include only objects whose last commit time is greater than the given EPOCH time.") @RequestParam(value = "lastCommitTimeGreater", required = false) Optional<Long> lastCommitTimeGreater,
             @Parameter(description = "Include only objects whose last commit time is less than the given EPOCH time.") @RequestParam(value = "lastCommitTimeLessThan", required = false) Optional<Long> lastCommitTimeLessThan,
-            @Parameter(description = "Give a list of name separated by comma to get them in an archive", array = @ArraySchema(schema = @Schema())) @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
             @Parameter(description = "Page number", required = false) @RequestParam(defaultValue = "0", value = "pageNo") int pageNo,
             @Parameter(description = "Page size", required = false) @RequestParam(defaultValue = MAXVALUE +
                                                                                                  "", value = "pageSize") int pageSize,
@@ -428,74 +427,69 @@ public class CatalogObjectController {
         objectTagFilter = objectTagFilter.filter(s -> !s.isEmpty());
         projectNameFilter = projectNameFilter.filter(s -> !s.isEmpty());
         lastCommitBy = lastCommitBy.filter(s -> !s.isEmpty());
-        if (names.isPresent()) {
-            ZipArchiveContent content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, names.get());
-            return getResponseAsArchive(content, response);
-        } else {
-            List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
-                                                                                               kind,
-                                                                                               contentType,
-                                                                                               objectNameFilter,
-                                                                                               objectTagFilter,
-                                                                                               projectNameFilter,
-                                                                                               lastCommitBy,
-                                                                                               lastCommitTimeGreater,
-                                                                                               lastCommitTimeLessThan,
-                                                                                               pageNo,
-                                                                                               pageSize);
+        List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
+                                                                                           kind,
+                                                                                           contentType,
+                                                                                           objectNameFilter,
+                                                                                           objectTagFilter,
+                                                                                           projectNameFilter,
+                                                                                           lastCommitBy,
+                                                                                           lastCommitTimeGreater,
+                                                                                           lastCommitTimeLessThan,
+                                                                                           pageNo,
+                                                                                           pageSize);
 
-            if (sessionIdRequired && !isPublicBucket.get()) {
-                // remove all objects that the user shouldn't have access according to the grants specification.
-                GrantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, catalogObjectsGrants);
-            }
-
-            Optional<String> userSpecificBucketRights = GrantHelper.filterFirstUserSpecificGrant(bucketGrants)
-                                                                   .map(BucketGrantMetadata::getAccessType);
-            for (CatalogObjectMetadata catalogObject : metadataList) {
-                catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
-                catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
-                if (sessionIdRequired) {
-                    List<CatalogObjectGrantMetadata> objectsGrants = GrantHelper.filterObjectGrants(catalogObjectsGrants,
-                                                                                                    catalogObject.getName());
-                    catalogObject.setRights(GrantRightsService.getCatalogObjectRights(isPublicBucket.get(),
-                                                                                      bucketRights.toString(),
-                                                                                      userSpecificBucketRights,
-                                                                                      objectsGrants));
-                }
-            }
-            Optional<AssociatedObjectsByBucket> associatedObjectsByBucketOptional = Optional.empty();
-            if (sessionIdRequired) {
-                List<AssociatedObjectsByBucket> associatedObjectsByBucketList = jobPlannerService.getAssociatedObjects(sessionId);
-                associatedObjectsByBucketOptional = associatedObjectsByBucketList.stream()
-                                                                                 .filter(object -> bucketName.equals(object.getBucketName()))
-                                                                                 .findFirst();
-                if (associatedObjectsByBucketOptional.isPresent()) {
-                    AssociatedObjectsByBucket associatedObjects = associatedObjectsByBucketOptional.get();
-                    for (CatalogObjectMetadata catalogObject : metadataList) {
-                        AssociatedObject associatedObject = associatedObjects.findAssociatedObject(catalogObject.getName());
-                        addAssociationStatus(catalogObject, associatedObject);
-                    }
-                }
-            }
-            if (sessionIdRequired && associationStatusFilter.isPresent()) {
-                if (!associatedObjectsByBucketOptional.isPresent()) {
-                    if (!UNPLANNED.equalsIgnoreCase(associationStatusFilter.get())) {
-                        return ResponseEntity.ok(Collections.emptyList());
-                    }
-                    // if UNPLANNED and no objects are associated, we return the full list
-                } else {
-                    AssociatedObjectsByBucket associatedObjectsByBucket = associatedObjectsByBucketOptional.get();
-
-                    metadataList = metadataList.stream()
-                                               .filter(metadata -> isAssociatedInJobPlanner(metadata,
-                                                                                            associationStatusFilter.get(),
-                                                                                            associatedObjectsByBucket))
-                                               .collect(Collectors.toList());
-                }
-            }
-            Collections.sort(metadataList);
-            return ResponseEntity.ok(metadataList);
+        if (sessionIdRequired && !isPublicBucket.get()) {
+            // remove all objects that the user shouldn't have access according to the grants specification.
+            GrantRightsService.removeInaccessibleObjectsInBucket(metadataList, bucketGrants, catalogObjectsGrants);
         }
+
+        Optional<String> userSpecificBucketRights = GrantHelper.filterFirstUserSpecificGrant(bucketGrants)
+                                                               .map(BucketGrantMetadata::getAccessType);
+        for (CatalogObjectMetadata catalogObject : metadataList) {
+            catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
+            catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
+            if (sessionIdRequired) {
+                List<CatalogObjectGrantMetadata> objectsGrants = GrantHelper.filterObjectGrants(catalogObjectsGrants,
+                                                                                                catalogObject.getName());
+                catalogObject.setRights(GrantRightsService.getCatalogObjectRights(isPublicBucket.get(),
+                                                                                  bucketRights.toString(),
+                                                                                  userSpecificBucketRights,
+                                                                                  objectsGrants));
+            }
+        }
+        Optional<AssociatedObjectsByBucket> associatedObjectsByBucketOptional = Optional.empty();
+        if (sessionIdRequired) {
+            List<AssociatedObjectsByBucket> associatedObjectsByBucketList = jobPlannerService.getAssociatedObjects(sessionId);
+            associatedObjectsByBucketOptional = associatedObjectsByBucketList.stream()
+                                                                             .filter(object -> bucketName.equals(object.getBucketName()))
+                                                                             .findFirst();
+            if (associatedObjectsByBucketOptional.isPresent()) {
+                AssociatedObjectsByBucket associatedObjects = associatedObjectsByBucketOptional.get();
+                for (CatalogObjectMetadata catalogObject : metadataList) {
+                    AssociatedObject associatedObject = associatedObjects.findAssociatedObject(catalogObject.getName());
+                    addAssociationStatus(catalogObject, associatedObject);
+                }
+            }
+        }
+        if (sessionIdRequired && associationStatusFilter.isPresent()) {
+            if (!associatedObjectsByBucketOptional.isPresent()) {
+                if (!UNPLANNED.equalsIgnoreCase(associationStatusFilter.get())) {
+                    return ResponseEntity.ok(Collections.emptyList());
+                }
+                // if UNPLANNED and no objects are associated, we return the full list
+            } else {
+                AssociatedObjectsByBucket associatedObjectsByBucket = associatedObjectsByBucketOptional.get();
+
+                metadataList = metadataList.stream()
+                                           .filter(metadata -> isAssociatedInJobPlanner(metadata,
+                                                                                        associationStatusFilter.get(),
+                                                                                        associatedObjectsByBucket))
+                                           .collect(Collectors.toList());
+            }
+        }
+        Collections.sort(metadataList);
+        return ResponseEntity.ok(metadataList);
     }
 
     @Operation(summary = "Export catalog objects as a ProActive Package", description = "Export catalog objects as a ProActive Package containing the selected objects or contents of the selected bucket along with a METADATA.json describing the exported objects. <br/> Note: Returns catalog objects metadata associated to the latest revision.")
@@ -504,9 +498,10 @@ public class CatalogObjectController {
                             @ApiResponse(responseCode = "401", description = "User not authenticated"),
                             @ApiResponse(responseCode = "403", description = "Permission denied") })
     @RequestMapping(value = REQUEST_API_QUERY + "/export", method = GET)
-    public ResponseEntity<List<CatalogObjectMetadata>> exportAsPackage(
+    public ResponseEntity<List<CatalogObjectMetadata>> exportCatalogObjects(
             @Parameter(description = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
+            @Parameter(description = "Plain zip instead of a Proactive package") @RequestParam(value = "isPlainZip", required = false, defaultValue = "false") boolean isPlainZip,
             @Parameter(description = "Give a list of name separated by comma to get them in an archive", array = @ArraySchema(schema = @Schema())) @RequestParam(value = "objectNamesList", required = false) Optional<List<String>> names,
             HttpServletResponse response) throws NotAuthenticatedException, AccessDeniedException {
 
@@ -518,7 +513,11 @@ public class CatalogObjectController {
 
         ZipArchiveContent content;
         if (names.isPresent()) {
-            content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, names.get());
+            if (isPlainZip) {
+                content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, names.get());
+            } else {
+                content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, names.get());
+            }
         } else {
             List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
                                                                                                Optional.empty(),
@@ -539,9 +538,64 @@ public class CatalogObjectController {
             List<String> objectNames = metadataList.stream()
                                                    .map(CatalogObjectMetadata::getName)
                                                    .collect(Collectors.toList());
-            content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, objectNames);
+            if (isPlainZip) {
+                content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, objectNames);
+            } else {
+                content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, objectNames);
+            }
         }
         return getResponseAsArchive(content, response);
+    }
+
+    @Operation(summary = "Import a ProActive package")
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket not found"),
+                            @ApiResponse(responseCode = "422", description = "Invalid file content supplied") })
+    @RequestMapping(value = REQUEST_API_QUERY +
+                            "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
+    @ResponseStatus(HttpStatus.CREATED)
+    public CatalogObjectMetadataList importAsPackage(
+            @Parameter(description = "sessionID", required = true) @RequestHeader(value = "sessionID") String sessionId,
+            @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
+            @Parameter(description = "Project of the package objects") @RequestParam(value = "projectName", required = false, defaultValue = "") Optional<String> projectName,
+            @Parameter(description = "List of comma separated tags of the objects", schema = @Schema(pattern = TagsValidator.TAGS_PATTERN)) @RequestParam(value = "tags", required = false, defaultValue = "") Optional<String> tags,
+            @Parameter(description = "The ProActive package zip file", required = true) @RequestPart(value = "file") MultipartFile file)
+            throws IOException, NotAuthenticatedException, AccessDeniedException {
+
+        // Check Grants
+        AuthenticatedUser user = null;
+        String initiator = ANONYMOUS;
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), write)) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+        }
+
+        String userName = "";
+        if (user != null) {
+            userName = user.getName();
+            initiator = userName;
+        }
+        CatalogObjectMetadataList catalogObjectMetadataList;
+
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjectsFromPackage(bucketName,
+                                                                                                          userName,
+                                                                                                          projectName.orElse(""),
+                                                                                                          tags.orElse(""),
+                                                                                                          file.getBytes());
+
+        for (CatalogObjectMetadata catalogObject : catalogObjects) {
+            catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
+            catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
+        }
+
+        catalogObjectMetadataList = new CatalogObjectMetadataList(catalogObjects);
+        log.info(ACTION + initiator + " created new catalog objects from archive inside bucket " + bucketName);
+        return catalogObjectMetadataList;
     }
 
     private void checkBucketGrants(String sessionId, String bucketName,

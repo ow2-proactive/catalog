@@ -149,31 +149,6 @@ public class ArchiveManagerHelperTest {
     }
 
     @Test
-    public void testCompressPackageZip() throws IOException {
-
-        assertNull(archiveManager.compressPackageZIP(false, null, "test-empty-bucket"));
-
-        byte[] workflowByteArray0 = convertFromURIToByteArray(XML_FILE_0);
-        byte[] workflowByteArray1 = convertFromURIToByteArray(XML_FILE_1);
-        List<CatalogObjectRevisionEntity> expectedFiles = new ArrayList<>();
-        expectedFiles.add(getCatalogObjectRevisionEntity("workflow_0", workflowByteArray0, "xml"));
-        expectedFiles.add(getCatalogObjectRevisionEntity("workflow_1", workflowByteArray1, "xml"));
-        when(rawObjectResponseCreator.getNameWithFileExtension("workflow_0", "xml", null)).thenReturn("workflow_0.xml");
-        when(rawObjectResponseCreator.getNameWithFileExtension("workflow_1", "xml", null)).thenReturn("workflow_1.xml");
-        //Compress
-        ZipArchiveContent archive = archiveManager.compressPackageZIP(false, expectedFiles, "test-bucket");
-        //Then extract
-        List<FileNameAndContent> actualFiles = archiveManager.extractZIP(archive.getContent());
-        assertEquals(3, actualFiles.size());
-
-        compare(workflowByteArray0, actualFiles.get(1).getContent());
-        compare(workflowByteArray1, actualFiles.get(2).getContent());
-        assertEquals("METADATA.json", actualFiles.get(0).getFileNameWithExtension());
-        assertEquals("workflow_0.xml", actualFiles.get(1).getFileNameWithExtension());
-        assertEquals("workflow_1.xml", actualFiles.get(2).getFileNameWithExtension());
-    }
-
-    @Test
     public void testExtractZip() throws IOException {
         assertTrue(archiveManager.extractZIP(null).isEmpty());
         List<FileNameAndContent> files = archiveManager.extractZIP(convertFromURIToByteArray(ZIP_FILE));
