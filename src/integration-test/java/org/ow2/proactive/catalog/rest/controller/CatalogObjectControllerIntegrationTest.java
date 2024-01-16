@@ -36,6 +36,7 @@ import static org.ow2.proactive.catalog.util.LinkUtil.SPACE_ENCODED_AS_PLUS;
 import static org.ow2.proactive.catalog.util.RawObjectResponseCreator.WORKFLOW_EXTENSION;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -65,6 +66,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.response.ValidatableResponse;
 
@@ -1329,6 +1331,50 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .then()
                .assertThat()
                .statusCode(HttpStatus.SC_UNPROCESSABLE_ENTITY);
+    }
+
+    @Test
+    public void testExportImportPackage() throws IOException {
+        String archiveCommitMessage = "Import from package";
+
+        // Add an second object of kind "workflow" into first bucket
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", "workflow")
+               .queryParam("name", "workflowname2")
+               .queryParam("commitMessage", "commit message")
+               .queryParam("objectContentType", MediaType.APPLICATION_XML.toString())
+               .multiPart(IntegrationTestUtil.getWorkflowFile("workflow.xml"))
+               .when()
+               .post(CATALOG_OBJECTS_RESOURCE)
+               .then()
+               .statusCode(HttpStatus.SC_CREATED);
+
+        byte[] fileContent = given().pathParam("bucketName", bucket.getName())
+                                    .when()
+                                    .get(CATALOG_OBJECTS_EXPORT_RESOURCE)
+                                    .then()
+                                    .assertThat()
+                                    .statusCode(HttpStatus.SC_OK)
+                                    .contentType(ZIP_CONTENT_TYPE)
+                                    .extract()
+                                    .asByteArray();
+        File zipFile = File.createTempFile("package", ".zip");
+        Files.write(fileContent, zipFile);
+        System.out.println("Package written to " + zipFile);
+
+        //Create objects from the archive
+        given().header("sessionID", "12345")
+               .pathParam("bucketName", bucket.getName())
+               .queryParam("kind", "my-kind")
+               .queryParam("commitMessage", archiveCommitMessage)
+               .multiPart(zipFile)
+               .when()
+               .post(CATALOG_OBJECTS_IMPORT_RESOURCE)
+               .then()
+               .assertThat()
+               .statusCode(HttpStatus.SC_CREATED)
+               .body("object", hasSize(2));
     }
 
     private String getJobVisualizationExpectedContent() {

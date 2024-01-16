@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static org.ow2.proactive.catalog.dto.AssociationStatus.ALL;
 import static org.ow2.proactive.catalog.dto.AssociationStatus.UNPLANNED;
+import static org.ow2.proactive.catalog.service.model.AuthenticatedUser.ANONYMOUS;
 import static org.ow2.proactive.catalog.util.AccessType.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
@@ -46,11 +47,8 @@ import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
-import org.ow2.proactive.catalog.util.AccessTypeHelper;
+import org.ow2.proactive.catalog.util.*;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
-import org.ow2.proactive.catalog.util.GrantHelper;
-import org.ow2.proactive.catalog.util.LinkUtil;
-import org.ow2.proactive.catalog.util.RawObjectResponseCreator;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
 import org.ow2.proactive.catalog.util.name.validator.ObjectNameValidator;
@@ -85,8 +83,6 @@ import lombok.extern.log4j.Log4j2;
 public class CatalogObjectController {
 
     private static final String REQUEST_API_QUERY = "/{bucketName}/resources";
-
-    private static final String ANONYMOUS = "anonymous";
 
     private static final String ACTION = "[Action] ";
 
@@ -143,24 +139,11 @@ public class CatalogObjectController {
             throws IOException, NotAuthenticatedException, AccessDeniedException {
 
         // Check Grants
-        AuthenticatedUser user = null;
-        String initiator = ANONYMOUS;
-        if (sessionIdRequired) {
-            // Check session validation
-            if (!restApiAccessService.isSessionActive(sessionId)) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-            user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), write)) {
-                throw new BucketGrantAccessException(bucketName);
-            }
-        }
+        AuthenticatedUser user = getAuthenticatedUser(sessionId, bucketName);
 
-        String userName = "";
-        if (user != null) {
-            userName = user.getName();
-            initiator = userName;
-        }
+        String userName = user.getName();
+        String initiator = userName;
+
         CatalogObjectMetadataList catalogObjectMetadataList;
         if (name.isPresent()) {
             CatalogObjectMetadata catalogObject = catalogObjectService.createCatalogObject(bucketName,
@@ -180,20 +163,13 @@ public class CatalogObjectController {
             catalogObjectMetadataList = new CatalogObjectMetadataList(catalogObject);
 
         } else {
-            List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketName,
-                                                                                                   projectName.orElse(""),
-                                                                                                   tags.orElse(""),
-                                                                                                   kind,
-                                                                                                   commitMessage,
-                                                                                                   userName,
-                                                                                                   file.getBytes());
-
-            for (CatalogObjectMetadata catalogObject : catalogObjects) {
-                catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
-                catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
-            }
-
-            catalogObjectMetadataList = new CatalogObjectMetadataList(catalogObjects);
+            catalogObjectMetadataList = createObjectsAndGetMetadataList(bucketName,
+                                                                        projectName,
+                                                                        tags,
+                                                                        kind,
+                                                                        commitMessage,
+                                                                        file,
+                                                                        userName);
         }
         if (name.isPresent()) {
             log.info(ACTION + initiator + " created a new catalog object " + name.get() + " inside bucket " +
@@ -201,6 +177,27 @@ public class CatalogObjectController {
         } else {
             log.info(ACTION + initiator + " created new catalog objects from archive inside bucket " + bucketName);
         }
+        return catalogObjectMetadataList;
+    }
+
+    private CatalogObjectMetadataList createObjectsAndGetMetadataList(String bucketName, Optional<String> projectName,
+            Optional<String> tags, String kind, String commitMessage, MultipartFile file, String userName)
+            throws IOException {
+        CatalogObjectMetadataList catalogObjectMetadataList;
+        List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketName,
+                                                                                               projectName.orElse(""),
+                                                                                               tags.orElse(""),
+                                                                                               kind,
+                                                                                               commitMessage,
+                                                                                               userName,
+                                                                                               file.getBytes());
+
+        for (CatalogObjectMetadata catalogObject : catalogObjects) {
+            catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
+            catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
+        }
+
+        catalogObjectMetadataList = new CatalogObjectMetadataList(catalogObjects);
         return catalogObjectMetadataList;
     }
 
@@ -257,24 +254,8 @@ public class CatalogObjectController {
             @Parameter(description = "List of comma separated tags of the object", schema = @Schema(pattern = TagsValidator.TAGS_PATTERN)) @RequestParam(value = "tags", required = false) Optional<String> tags)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
-        AuthenticatedUser user;
-        String initiator = ANONYMOUS;
-        if (sessionIdRequired) {
-            // Check session validation
-            if (!restApiAccessService.isSessionActive(sessionId)) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-
-            // Check Grants
-            user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), write)) {
-                throw new CatalogObjectGrantAccessException(bucketName, name);
-            }
-            initiator = user.getName();
-
-        } else {
-            user = AuthenticatedUser.EMPTY;
-        }
+        AuthenticatedUser user = getAuthenticatedUser(sessionId, bucketName, name, write);
+        String initiator = user.getName();
 
         log.info(ACTION + initiator + " updated the metadata of catalog object " + name + " inside bucket " +
                  bucketName);
@@ -287,6 +268,25 @@ public class CatalogObjectController {
                                                                                                 tags,
                                                                                                 user.getName());
         return catalogObjectMetadata;
+    }
+
+    private AuthenticatedUser getAuthenticatedUser(String sessionId, String bucketName, String name,
+            AccessType accessType) {
+        AuthenticatedUser user = AuthenticatedUser.EMPTY;
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+
+            // Check Grants
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name),
+                                          accessType)) {
+                throw new CatalogObjectGrantAccessException(bucketName, name);
+            }
+        }
+        return user;
     }
 
     @Operation(summary = "Gets a catalog object's metadata by IDs", description = "Note: returns metadata associated to the latest revision of the catalog object.")
@@ -303,13 +303,14 @@ public class CatalogObjectController {
             throws MalformedURLException, UnsupportedEncodingException, NotAuthenticatedException,
             AccessDeniedException {
         String objectRights = "";
+        AuthenticatedUser user = AuthenticatedUser.EMPTY;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
                 throw new AccessDeniedException("Session id is not active. Please login.");
             }
 
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+            user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check Grants
             objectRights = grantRightsService.getCatalogObjectRights(user, bucketName, name);
             if (!AccessTypeHelper.satisfy(objectRights, read)) {
@@ -343,19 +344,7 @@ public class CatalogObjectController {
             @Parameter(description = "The name of the existing Object", required = true, schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
-        if (sessionIdRequired) {
-            // Check session validation
-            if (!restApiAccessService.isSessionActive(sessionId)) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-
-            // Check Grants
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), read)) {
-                throw new CatalogObjectGrantAccessException(bucketName, name);
-            }
-
-        }
+        getAuthenticatedUser(sessionId, bucketName, name, read);
 
         CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucketName, name);
         return rawObjectResponseCreator.createRawObjectResponse(rawObject);
@@ -375,18 +364,7 @@ public class CatalogObjectController {
             @Parameter(description = "The name of the existing Object", required = true, schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
-        if (sessionIdRequired) {
-            // Check session validation
-            if (!restApiAccessService.isSessionActive(sessionId)) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-
-            // Check Grants
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, name), read)) {
-                throw new CatalogObjectGrantAccessException(bucketName, name);
-            }
-        }
+        getAuthenticatedUser(sessionId, bucketName, name, read);
 
         return catalogObjectService.getObjectDependencies(bucketName, name);
     }
@@ -428,7 +406,7 @@ public class CatalogObjectController {
         lastCommitBy = lastCommitBy.filter(s -> !s.isEmpty());
         if (names.isPresent()) {
             ZipArchiveContent content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, names.get());
-            return getResponseAsArchive(content, response);
+            return getResponseAsArchive(content, response, bucketName);
         } else {
             List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
                                                                                                kind,
@@ -498,15 +476,16 @@ public class CatalogObjectController {
         }
     }
 
-    @Operation(summary = "Export catalog objects as a ProActive Package", description = "Export catalog objects as a ProActive Package containing the selected objects or contents of the selected bucket along with a METADATA.json describing the exported objects. <br/> Note: Returns catalog objects metadata associated to the latest revision.")
+    @Operation(summary = "Export catalog objects as a plain zip archive or a ProActive Catalog Package", description = "Can either export catalog objects as a plain zip or as a ProActive Package containing the exported files along with a METADATA json file describing the exported objects. <br/> Note: Returns catalog objects metadata associated to the latest revision.")
     @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket not found"),
                             @ApiResponse(responseCode = "206", description = "Missing object"),
                             @ApiResponse(responseCode = "401", description = "User not authenticated"),
                             @ApiResponse(responseCode = "403", description = "Permission denied") })
     @RequestMapping(value = REQUEST_API_QUERY + "/export", method = GET)
-    public ResponseEntity<List<CatalogObjectMetadata>> exportAsPackage(
+    public ResponseEntity<List<CatalogObjectMetadata>> exportCatalogObjects(
             @Parameter(description = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
+            @Parameter(description = "Plain zip instead of a Proactive package") @RequestParam(value = "isPlainZip", required = false, defaultValue = "false") boolean isPlainZip,
             @Parameter(description = "Give a list of name separated by comma to get them in an archive", array = @ArraySchema(schema = @Schema())) @RequestParam(value = "objectNamesList", required = false) Optional<List<String>> names,
             HttpServletResponse response) throws NotAuthenticatedException, AccessDeniedException {
 
@@ -514,7 +493,11 @@ public class CatalogObjectController {
 
         ZipArchiveContent content;
         if (names.isPresent()) {
-            content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, names.get());
+            if (isPlainZip) {
+                content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, names.get());
+            } else {
+                content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, names.get());
+            }
         } else {
             List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
                                                                                                Optional.empty(),
@@ -537,9 +520,80 @@ public class CatalogObjectController {
             List<String> objectNames = metadataList.stream()
                                                    .map(CatalogObjectMetadata::getName)
                                                    .collect(Collectors.toList());
-            content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, objectNames);
+            if (isPlainZip) {
+                content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, objectNames);
+            } else {
+                content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, objectNames);
+            }
         }
-        return getResponseAsArchive(content, response);
+        return getResponseAsArchive(content, response, bucketName);
+    }
+
+    @Operation(summary = "Import an archive, either a plain zip or a ProActive Catalog package", description = "Can either import objects from a plain zip archive, in which case the objects kind, project name and tags must be specified. Alternatively, a ProActive Catalog package can be imported, the various information will be obtained from the METADATA json file present in the package.")
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket not found"),
+                            @ApiResponse(responseCode = "422", description = "Invalid file content supplied") })
+    @RequestMapping(value = REQUEST_API_QUERY +
+                            "/import", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, method = POST)
+    @ResponseStatus(HttpStatus.CREATED)
+    public CatalogObjectMetadataList importCatalogObjects(
+            @Parameter(description = "sessionID", required = true) @RequestHeader(value = "sessionID") String sessionId,
+            @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
+            @Parameter(description = "Plain zip instead of a Proactive package") @RequestParam(value = "isPlainZip", required = false, defaultValue = "false") boolean isPlainZip,
+            @Parameter(description = "Commit message. If empty, the message will either be empty for a plain zip or the commit message recorded inside the ProActive Catalog package.") @RequestParam(value = "commitMessage", required = false, defaultValue = "") String commitMessage,
+            @Parameter(description = "Kind of the new object (only used when importing a plain zip)", schema = @Schema(pattern = KindAndContentTypeValidator.VALID_KIND_NAME_PATTERN)) @RequestParam(value = "kind", required = false) String kind,
+            @Parameter(description = "Project of the package objects (Optional). If used with a ProActive Catalog package, will override all objects project names.") @RequestParam(value = "projectName", required = false, defaultValue = "") Optional<String> projectName,
+            @Parameter(description = "List of comma separated tags of the objects (Optional). If used with a ProActive Catalog package, will override all objects tags.", schema = @Schema(pattern = TagsValidator.TAGS_PATTERN)) @RequestParam(value = "tags", required = false, defaultValue = "") Optional<String> tags,
+            @Parameter(description = "The ProActive package zip file", required = true) @RequestPart(value = "file") MultipartFile file)
+            throws IOException, NotAuthenticatedException, AccessDeniedException {
+
+        // Check Grants
+        AuthenticatedUser user = getAuthenticatedUser(sessionId, bucketName);
+
+        String userName = user.getName();
+        String initiator = userName;
+
+        CatalogObjectMetadataList catalogObjectMetadataList;
+
+        if (isPlainZip) {
+            catalogObjectMetadataList = createObjectsAndGetMetadataList(bucketName,
+                                                                        projectName,
+                                                                        tags,
+                                                                        kind,
+                                                                        commitMessage,
+                                                                        file,
+                                                                        userName);
+        } else {
+            List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjectsFromPackage(bucketName,
+                                                                                                              userName,
+                                                                                                              projectName.orElse(""),
+                                                                                                              tags.orElse(""),
+                                                                                                              file.getBytes(),
+                                                                                                              commitMessage);
+
+            for (CatalogObjectMetadata catalogObject : catalogObjects) {
+                catalogObject.add(LinkUtil.createLink(bucketName, catalogObject.getName()));
+                catalogObject.add(LinkUtil.createRelativeLink(bucketName, catalogObject.getName()));
+            }
+            catalogObjectMetadataList = new CatalogObjectMetadataList(catalogObjects);
+        }
+
+        log.info(ACTION + initiator + " created new catalog objects from archive inside bucket " + bucketName);
+        return catalogObjectMetadataList;
+    }
+
+    private AuthenticatedUser getAuthenticatedUser(String sessionId, String bucketName) {
+        AuthenticatedUser user = AuthenticatedUser.EMPTY;
+        if (sessionIdRequired) {
+            // Check session validation
+            if (!restApiAccessService.isSessionActive(sessionId)) {
+                throw new AccessDeniedException("Session id is not active. Please login.");
+            }
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), write)) {
+                throw new BucketGrantAccessException(bucketName);
+            }
+        }
+        return user;
     }
 
     private UserBucketGrants checkAndGetUserGrantsForBucket(String sessionId, String bucketName) {
@@ -547,9 +601,8 @@ public class CatalogObjectController {
         List<BucketGrantMetadata> userBucketGrants = Collections.emptyList();
         List<CatalogObjectGrantMetadata> userCatalogGrants = Collections.emptyList();
         String bucketRights = Strings.EMPTY;
-
         // Check Grants
-        AuthenticatedUser user;
+        AuthenticatedUser user = AuthenticatedUser.EMPTY;
         if (sessionIdRequired) {
             // Check session validation
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -649,7 +702,7 @@ public class CatalogObjectController {
     }
 
     private ResponseEntity<List<CatalogObjectMetadata>> getResponseAsArchive(ZipArchiveContent zipArchiveContent,
-            HttpServletResponse response) {
+            HttpServletResponse response, String archiveName) {
         HttpStatus status;
         if (zipArchiveContent.isPartial()) {
             status = HttpStatus.PARTIAL_CONTENT;
@@ -660,7 +713,9 @@ public class CatalogObjectController {
         }
 
         response.setContentType(ZIP_CONTENT_TYPE);
-        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
+        response.addHeader(HttpHeaders.CONTENT_DISPOSITION,
+                           "attachment; filename=\"" + (Strings.isBlank(archiveName) ? "archive" : archiveName) +
+                                                            ".zip\"");
         response.addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
         try {
             response.getOutputStream().write(zipArchiveContent.getContent());

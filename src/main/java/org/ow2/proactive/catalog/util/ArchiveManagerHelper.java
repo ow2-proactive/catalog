@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.util;
 
+import static org.ow2.proactive.catalog.util.PackageMetadataJSONParser.readJSONFile;
 import static org.ow2.proactive.catalog.util.PackageMetadataJSONParser.writeJSONFile;
 
 import java.io.ByteArrayInputStream;
@@ -38,6 +39,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.logging.log4j.Level;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -172,19 +174,20 @@ public class ArchiveManagerHelper {
                                                                                                                 .getName(),
                                                                                              catalogObjectEntity.getExtension(),
                                                                                              catalogObjectEntity.getKind());
-            fileNameWithExtension = bucketName + "/resources/catalog/" + fileNameWithExtension;
+            fileNameWithExtension = "resources/catalog/" + fileNameWithExtension;
+            CatalogObjectRevisionEntity lastRevision = catalogObjectEntity.getRevisions().last();
             PackageMetadataJSONParser.CatalogObjectData objectData = new PackageMetadataJSONParser.CatalogObjectData(catalogObjectEntity.getId()
                                                                                                                                         .getName(),
                                                                                                                      catalogObjectEntity.getKind(),
-                                                                                                                     catalogObjectEntity.getRevisions()
-                                                                                                                                        .last()
-                                                                                                                                        .getCommitMessage(),
+                                                                                                                     lastRevision.getCommitMessage(),
                                                                                                                      catalogObjectEntity.getContentType(),
+                                                                                                                     lastRevision.getProjectName(),
+                                                                                                                     lastRevision.getTags(),
                                                                                                                      fileNameWithExtension);
             packageData.getCatalog().getObjects().add(objectData);
         }
         try {
-            return new ByteSource(bucketName + "/METADATA.json", writeJSONFile(packageData));
+            return new ByteSource("METADATA.json", writeJSONFile(packageData));
         } catch (IOException ioe) {
             log.error("Could not create a METADATA.json file for the demanded package");
             throw new RuntimeException(ioe);
@@ -215,8 +218,7 @@ public class ArchiveManagerHelper {
                                                                                                                                                                             .getName(),
                                                                                                                                                          catalogObjectEntity.getExtension(),
                                                                                                                                                          catalogObjectEntity.getKind());
-                                                                        fileNameWithExtension = bucketName +
-                                                                                                "/resources/catalog/" +
+                                                                        fileNameWithExtension = "resources/catalog/" +
                                                                                                 fileNameWithExtension;
                                                                         return new ByteSource(fileNameWithExtension,
                                                                                               catalogObjectRevision.getRawObject());
@@ -265,8 +267,26 @@ public class ArchiveManagerHelper {
      */
     private void checkAndAddFileFromZip(List<FileNameAndContent> filesList, InputStream in, ZipEntry entry) {
         String nameZipEntry = FilenameUtils.getName(entry.getName());
-        if (!nameZipEntry.isEmpty()) {
+        if (!nameZipEntry.isEmpty() && !nameZipEntry.equals("METADATA.json")) {
             filesList.add(process(in, entry));
+        }
+    }
+
+    public static PackageMetadataJSONParser.PackageData extractMetadataObject(String bucketName,
+            byte[] byteArrayArchive) {
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayArchive)) {
+            byte[] bytes = ZipUtil.unpackEntry(byteArrayInputStream, "METADATA.json");
+            return readJSONFile(bytes);
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+    }
+
+    public static byte[] extractObjectByPath(byte[] byteArrayArchive, String objectName) {
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayArchive)) {
+            return ZipUtil.unpackEntry(byteArrayInputStream, objectName);
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
         }
     }
 

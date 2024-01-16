@@ -43,6 +43,10 @@ public abstract class AbstractRestAssuredTest {
 
     protected static final String CATALOG_OBJECTS_RESOURCE = "/buckets/{bucketName}/resources/";
 
+    protected static final String CATALOG_OBJECTS_EXPORT_RESOURCE = "/buckets/{bucketName}/resources/export";
+
+    protected static final String CATALOG_OBJECTS_IMPORT_RESOURCE = "/buckets/{bucketName}/resources/import";
+
     protected static final String CATALOG_OBJECT_REVISIONS_RESOURCE = "/buckets/{bucketName}/resources/{name}/revisions";
 
     protected static final String CATALOG_OBJECT_REVISION_RESOURCE_WITH_TIME = "/buckets/{bucketName}/resources/{name}/revisions/{commitTimeRaw}";

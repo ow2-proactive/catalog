@@ -41,8 +41,10 @@ import lombok.Data;
 @Builder
 public class AuthenticatedUser {
 
+    public static final String ANONYMOUS = "anonymous";
+
     public final static AuthenticatedUser EMPTY = AuthenticatedUser.builder()
-                                                                   .name("")
+                                                                   .name(ANONYMOUS)
                                                                    .groups(Lists.newArrayList())
                                                                    .build();
 

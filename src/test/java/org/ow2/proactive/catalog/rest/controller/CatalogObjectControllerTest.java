@@ -139,7 +139,8 @@ public class CatalogObjectControllerTest {
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
         verify(response, times(1)).setContentType("application/zip");
         verify(response, times(1)).addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
-        verify(response, times(1)).addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
+        verify(response, times(1)).addHeader(HttpHeaders.CONTENT_DISPOSITION,
+                                             "attachment; filename=\"bucket-name.zip\"");
         verify(sos, times(1)).write(any());
         verify(sos, times(1)).flush();
     }
@@ -154,12 +155,13 @@ public class CatalogObjectControllerTest {
         ZipArchiveContent content = new ZipArchiveContent();
         content.setContent(new byte[0]);
         when(catalogObjectService.getCatalogObjectsAsPackageZipArchive("bucket-name", nameList)).thenReturn(content);
-        catalogObjectController.exportAsPackage("", "bucket-name", Optional.of(nameList), response);
+        catalogObjectController.exportCatalogObjects("", "bucket-name", false, Optional.of(nameList), response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsPackageZipArchive("bucket-name", nameList);
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
         verify(response, times(1)).setContentType("application/zip");
         verify(response, times(1)).addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
-        verify(response, times(1)).addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"archive.zip\"");
+        verify(response, times(1)).addHeader(HttpHeaders.CONTENT_DISPOSITION,
+                                             "attachment; filename=\"bucket-name.zip\"");
         verify(sos, times(1)).write(any());
         verify(sos, times(1)).flush();
     }
@@ -207,7 +209,7 @@ public class CatalogObjectControllerTest {
         content.setContent(new byte[0]);
         content.setPartial(true);
         when(catalogObjectService.getCatalogObjectsAsPackageZipArchive("bucket-name", nameList)).thenReturn(content);
-        catalogObjectController.exportAsPackage("", "bucket-name", Optional.of(nameList), response);
+        catalogObjectController.exportCatalogObjects("", "bucket-name", false, Optional.of(nameList), response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsPackageZipArchive("bucket-name", nameList);
         verify(response, never()).setStatus(HttpServletResponse.SC_OK);
     }

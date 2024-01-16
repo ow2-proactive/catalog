@@ -27,6 +27,7 @@ package org.ow2.proactive.catalog.rest.controller;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
+import static org.ow2.proactive.catalog.service.model.AuthenticatedUser.ANONYMOUS;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -82,7 +83,7 @@ public class CatalogObjectGrantControllerTest {
                                                                       DUMMY_OBJECT,
                                                                       DUMMY_ACCESS_TYPE,
                                                                       DUMMY_USER);
-        String DUMMY_CURRENT_USER = "";
+        String DUMMY_CURRENT_USER = ANONYMOUS;
         verify(catalogObjectGrantService, times(1)).createCatalogObjectGrantForAUser(DUMMY_BUCKET_NAME,
                                                                                      DUMMY_OBJECT,
                                                                                      DUMMY_CURRENT_USER,
