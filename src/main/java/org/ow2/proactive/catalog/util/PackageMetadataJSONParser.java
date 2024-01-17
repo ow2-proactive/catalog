@@ -58,9 +58,14 @@ public final class PackageMetadataJSONParser {
         return new PackageData(bucketName, userGroup);
     }
 
+    protected static PackageData readJSONFile(byte[] jsonFileAsByteArray) throws IOException {
+        return MAPPER.readValue(jsonFileAsByteArray, PackageMetadataJSONParser.PackageData.class);
+    }
+
     @Getter
     @Setter
-    protected static class PackageData {
+    @AllArgsConstructor(access = AccessLevel.PUBLIC)
+    public static class PackageData {
 
         private PackageMetaData metadata;
 
@@ -69,13 +74,14 @@ public final class PackageMetadataJSONParser {
         public PackageData(String bucketName, String userGroup) {
             this.metadata = new PackageMetaData(bucketName);
 
-            this.catalog = new BucketData(bucketName, userGroup, new ArrayList<CatalogObjectData>());
+            this.catalog = new BucketData(bucketName, userGroup, new ArrayList<>());
         }
 
     }
 
     @Getter
     @Setter
+    @AllArgsConstructor(access = AccessLevel.PUBLIC)
     private static class PackageMetaData {
 
         private String name;
@@ -101,7 +107,7 @@ public final class PackageMetadataJSONParser {
     @Getter
     @Setter
     @AllArgsConstructor(access = AccessLevel.PUBLIC)
-    protected static class BucketData {
+    public static class BucketData {
 
         private String bucket;
 
@@ -113,7 +119,8 @@ public final class PackageMetadataJSONParser {
 
     @Getter
     @Setter
-    protected static class CatalogObjectData {
+    @AllArgsConstructor(access = AccessLevel.PUBLIC)
+    public static class CatalogObjectData {
 
         private String name;
 
@@ -121,24 +128,29 @@ public final class PackageMetadataJSONParser {
 
         private String file;
 
-        public CatalogObjectData(String name, String kind, String commitMessage, String contentType, String file) {
+        public CatalogObjectData(String name, String kind, String commitMessage, String contentType, String projectName,
+                String tags, String file) {
             this.name = name;
             this.file = file;
-            this.metadata = new CatalogObjectMetaData(kind, commitMessage, contentType);
+            this.metadata = new CatalogObjectMetaData(kind, commitMessage, contentType, projectName, tags);
         }
 
     }
 
     @Getter
     @Setter
-    @AllArgsConstructor(access = AccessLevel.PROTECTED)
-    private static class CatalogObjectMetaData {
+    @AllArgsConstructor(access = AccessLevel.PUBLIC)
+    public static class CatalogObjectMetaData {
 
         private String kind;
 
         private String commitMessage;
 
         private String contentType;
+
+        private String projectName;
+
+        private String tags;
 
     }
 }

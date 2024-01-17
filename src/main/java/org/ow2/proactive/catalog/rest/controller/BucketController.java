@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static org.ow2.proactive.catalog.service.model.AuthenticatedUser.ANONYMOUS;
 import static org.ow2.proactive.catalog.util.AccessType.admin;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
@@ -68,8 +69,6 @@ import lombok.extern.log4j.Log4j2;
 @RestController
 @RequestMapping(value = "/buckets")
 public class BucketController {
-
-    private static final String ANONYMOUS = "anonymous";
 
     private static final String ACTION = "[Action] ";
 
@@ -133,20 +132,8 @@ public class BucketController {
             @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
             @Parameter(description = "The new name of the user that will own the Bucket") @RequestParam(value = "owner", required = true) String newOwnerName)
             throws NotAuthenticatedException, AccessDeniedException {
-        String initiator = ANONYMOUS;
-        if (sessionIdRequired) {
-            // Check session validation
-            if (!restApiAccessService.isSessionActive(sessionId)) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-
-            // Check Grants
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), admin)) {
-                throw new BucketGrantAccessException(bucketName);
-            }
-            initiator = user.getName();
-        }
+        AuthenticatedUser user = getAuthenticatedUser(sessionId, bucketName);
+        String initiator = user.getName();
         try {
             BucketMetadata bucketMetadata = bucketService.updateOwnerByBucketName(bucketName, newOwnerName);
             log.info(ACTION + initiator + " changed bucket " + bucketName + " ownership to " + newOwnerName);
@@ -166,8 +153,9 @@ public class BucketController {
             @SuppressWarnings("DefaultAnnotationParam") @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName)
             throws NotAuthenticatedException, AccessDeniedException {
-        AuthenticatedUser user;
         BucketMetadata data = bucketService.getBucketMetadata(bucketName);
+
+        AuthenticatedUser user = AuthenticatedUser.EMPTY;
 
         if (sessionIdRequired) {
             // Check session validation
@@ -341,7 +329,15 @@ public class BucketController {
             @Parameter(description = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
             @Parameter(description = "The name of the existing Bucket", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName)
             throws NotAuthenticatedException, AccessDeniedException {
-        String initiator = ANONYMOUS;
+        AuthenticatedUser user = getAuthenticatedUser(sessionId, bucketName);
+        String initiator = user.getName();
+        BucketMetadata bucketMetadata = bucketService.deleteEmptyBucket(bucketName);
+        log.info(ACTION + initiator + " deleted empty bucket " + bucketName);
+        return bucketMetadata;
+    }
+
+    private AuthenticatedUser getAuthenticatedUser(String sessionId, String bucketName) {
+        AuthenticatedUser user = AuthenticatedUser.EMPTY;
         // Check session validation
         if (sessionIdRequired) {
             if (!restApiAccessService.isSessionActive(sessionId)) {
@@ -349,14 +345,11 @@ public class BucketController {
             }
 
             // Check Grants
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-            if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            if (!AccessTypeHelper.satisfy(grantRightsService.getBucketRights(user, bucketName), admin)) {
                 throw new BucketGrantAccessException(bucketName);
             }
-            initiator = user.getName();
         }
-        BucketMetadata bucketMetadata = bucketService.deleteEmptyBucket(bucketName);
-        log.info(ACTION + initiator + " deleted empty bucket " + bucketName);
-        return bucketMetadata;
+        return user;
     }
 }

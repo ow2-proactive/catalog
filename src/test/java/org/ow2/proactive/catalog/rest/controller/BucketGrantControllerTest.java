@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.rest.controller;
 
 import static org.mockito.Mockito.*;
+import static org.ow2.proactive.catalog.service.model.AuthenticatedUser.ANONYMOUS;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +53,7 @@ public class BucketGrantControllerTest {
 
     private final String DUMMY_BUCKET_NAME = "dummy-bucket";
 
-    private final String DUMMY_CURRENT_USER = "";
+    private final String DUMMY_CURRENT_USER = ANONYMOUS;
 
     private final String DUMMY_ACCESS_TYPE = "admin";
 

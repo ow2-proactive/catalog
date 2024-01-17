@@ -58,6 +58,7 @@ import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
+import org.ow2.proactive.catalog.util.PackageMetadataJSONParser;
 import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
@@ -200,6 +201,54 @@ public class CatalogObjectService {
                                                         file.getContent());
             }
         }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<CatalogObjectMetadata> createCatalogObjectsFromPackage(String bucketName, String username,
+            String projectName, String tags, byte[] zipArchive, String commitMessage) {
+
+        PackageMetadataJSONParser.PackageData metadata = ArchiveManagerHelper.extractMetadataObject(bucketName,
+                                                                                                    zipArchive);
+
+        List<CatalogObjectMetadata> objectsList = new ArrayList<>();
+        BucketEntity bucketEntity = findBucketByNameAndCheck(bucketName);
+
+        metadata.getCatalog().getObjects().forEach(object -> {
+            byte[] objectFile = ArchiveManagerHelper.extractObjectByPath(zipArchive, object.getFile());
+            CatalogObjectEntity catalogObject = catalogObjectRepository.findOne(new CatalogObjectEntity.CatalogObjectEntityKey(bucketEntity.getId(),
+                                                                                                                               object.getName()));
+            CatalogObjectMetadata objectMetadata;
+            if (catalogObject == null) {
+                objectMetadata = this.createCatalogObject(bucketName,
+                                                          object.getName(),
+                                                          Strings.isNullOrEmpty(projectName) ? object.getMetadata()
+                                                                                                     .getProjectName()
+                                                                                             : projectName,
+                                                          Strings.isNullOrEmpty(tags) ? object.getMetadata().getTags()
+                                                                                      : tags,
+                                                          object.getMetadata().getKind(),
+                                                          Strings.isNullOrEmpty(commitMessage) ? object.getMetadata()
+                                                                                                       .getCommitMessage()
+                                                                                               : commitMessage,
+                                                          username,
+                                                          object.getMetadata().getContentType(),
+                                                          Collections.emptyList(),
+                                                          objectFile,
+                                                          FilenameUtils.getExtension(object.getFile()));
+            } else {
+                objectMetadata = this.createCatalogObjectRevision(bucketName,
+                                                                  object.getName(),
+                                                                  projectName,
+                                                                  tags,
+                                                                  Strings.isNullOrEmpty(commitMessage) ? object.getMetadata()
+                                                                                                               .getCommitMessage()
+                                                                                                       : commitMessage,
+                                                                  username,
+                                                                  objectFile);
+            }
+            objectsList.add(objectMetadata);
+        });
+        return objectsList;
     }
 
     @Transactional
@@ -795,8 +844,7 @@ public class CatalogObjectService {
     }
 
     @Transactional(readOnly = true)
-    public CatalogObjectMetadata getCatalogObjectRevision(String bucketName, String name, long commitTime)
-            throws UnsupportedEncodingException {
+    public CatalogObjectMetadata getCatalogObjectRevision(String bucketName, String name, long commitTime) {
         CatalogObjectRevisionEntity revisionEntity = getCatalogObjectRevisionEntityByCommitTime(bucketName,
                                                                                                 name,
                                                                                                 commitTime);
@@ -805,8 +853,7 @@ public class CatalogObjectService {
     }
 
     @Transactional(readOnly = true)
-    public CatalogRawObject getCatalogObjectRevisionRaw(String bucketName, String name, long commitTime)
-            throws UnsupportedEncodingException {
+    public CatalogRawObject getCatalogObjectRevisionRaw(String bucketName, String name, long commitTime) {
         CatalogObjectRevisionEntity revisionEntity = getCatalogObjectRevisionEntityByCommitTime(bucketName,
                                                                                                 name,
                                                                                                 commitTime);
