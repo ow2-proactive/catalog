@@ -25,6 +25,8 @@
  */
 package org.ow2.proactive.catalog.service;
 
+import static org.ow2.proactive.catalog.util.AccessType.write;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -54,13 +56,11 @@ import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectRevisionEntity;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.ow2.proactive.catalog.service.exception.*;
+import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.service.model.GenericInfoBucketData;
-import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
+import org.ow2.proactive.catalog.util.*;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.FileNameAndContent;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
-import org.ow2.proactive.catalog.util.PackageMetadataJSONParser;
-import org.ow2.proactive.catalog.util.RevisionCommitMessageBuilder;
-import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.name.validator.KindAndContentTypeValidator;
 import org.ow2.proactive.catalog.util.name.validator.ObjectNameValidator;
 import org.ow2.proactive.catalog.util.name.validator.TagsValidator;
@@ -132,6 +132,9 @@ public class CatalogObjectService {
     @Autowired
     CatalogObjectGrantService catalogObjectGrantService;
 
+    @Autowired
+    private GrantRightsService grantRightsService;
+
     @Value("${kind.separator}")
     protected String kindSeparator;
 
@@ -165,7 +168,7 @@ public class CatalogObjectService {
 
     @Transactional
     public List<CatalogObjectMetadata> createCatalogObjects(String bucketName, String projectName, String tags,
-            String kind, String commitMessage, String username, byte[] zipArchive) {
+            String kind, String commitMessage, AuthenticatedUser user, byte[] zipArchive) {
 
         List<FileNameAndContent> filesContainedInArchive = archiveManager.extractZIP(zipArchive);
 
@@ -186,25 +189,30 @@ public class CatalogObjectService {
                                                 tags,
                                                 kind,
                                                 commitMessage,
-                                                username,
+                                                user.getName(),
                                                 contentTypeOfFile,
                                                 Collections.emptyList(),
                                                 file.getContent(),
                                                 FilenameUtils.getExtension(file.getFileNameWithExtension()));
             } else {
+                if (!user.equals(AuthenticatedUser.EMPTY) &&
+                    !AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, objectName),
+                                              write)) {
+                    throw new CatalogObjectGrantAccessException(bucketName, objectName);
+                }
                 return this.createCatalogObjectRevision(bucketName,
                                                         objectName,
                                                         projectName,
                                                         tags,
                                                         commitMessage,
-                                                        username,
+                                                        user.getName(),
                                                         file.getContent());
             }
         }).collect(Collectors.toList());
     }
 
     @Transactional
-    public List<CatalogObjectMetadata> createCatalogObjectsFromPackage(String bucketName, String username,
+    public List<CatalogObjectMetadata> createCatalogObjectsFromPackage(String bucketName, AuthenticatedUser user,
             String projectName, String tags, byte[] zipArchive, String commitMessage) {
 
         PackageMetadataJSONParser.PackageData metadata = ArchiveManagerHelper.extractMetadataObject(bucketName,
@@ -230,12 +238,19 @@ public class CatalogObjectService {
                                                           Strings.isNullOrEmpty(commitMessage) ? object.getMetadata()
                                                                                                        .getCommitMessage()
                                                                                                : commitMessage,
-                                                          username,
+                                                          user.getName(),
                                                           object.getMetadata().getContentType(),
                                                           Collections.emptyList(),
                                                           objectFile,
                                                           FilenameUtils.getExtension(object.getFile()));
             } else {
+                if (!user.equals(AuthenticatedUser.EMPTY) &&
+                    !AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user,
+                                                                                        bucketName,
+                                                                                        object.getName()),
+                                              write)) {
+                    throw new CatalogObjectGrantAccessException(bucketName, object.getName());
+                }
                 objectMetadata = this.createCatalogObjectRevision(bucketName,
                                                                   object.getName(),
                                                                   projectName,
@@ -243,7 +258,7 @@ public class CatalogObjectService {
                                                                   Strings.isNullOrEmpty(commitMessage) ? object.getMetadata()
                                                                                                                .getCommitMessage()
                                                                                                        : commitMessage,
-                                                                  username,
+                                                                  user.getName(),
                                                                   objectFile);
             }
             objectsList.add(objectMetadata);

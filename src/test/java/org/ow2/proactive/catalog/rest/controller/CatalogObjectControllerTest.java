@@ -155,6 +155,28 @@ public class CatalogObjectControllerTest {
         ZipArchiveContent content = new ZipArchiveContent();
         content.setContent(new byte[0]);
         when(catalogObjectService.getCatalogObjectsAsPackageZipArchive("bucket-name", nameList)).thenReturn(content);
+        CatalogObjectMetadata dummyContent = new CatalogObjectMetadata("bucket-name",
+                                                                       "workflowname",
+                                                                       "",
+                                                                       "",
+                                                                       "workflow",
+                                                                       "application/xml",
+                                                                       0L,
+                                                                       "",
+                                                                       "user",
+                                                                       Collections.emptyList(),
+                                                                       ".xml");
+        when(catalogObjectService.listCatalogObjects(Collections.singletonList("bucket-name"),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     0,
+                                                     Integer.MAX_VALUE)).thenReturn(Collections.singletonList(dummyContent));
         catalogObjectController.exportCatalogObjects("", "bucket-name", false, Optional.of(nameList), response);
         verify(catalogObjectService, times(1)).getCatalogObjectsAsPackageZipArchive("bucket-name", nameList);
         verify(response, times(1)).setStatus(HttpServletResponse.SC_OK);
@@ -172,14 +194,39 @@ public class CatalogObjectControllerTest {
         HttpServletResponse response = mock(HttpServletResponse.class);
         ServletOutputStream sos = mock(ServletOutputStream.class);
         when(response.getOutputStream()).thenReturn(sos);
+        String bucketName = "bucket-name";
+        String workflowName = "workflowname";
         List<String> nameList = new ArrayList<>();
-        nameList.add("workflowname");
+        nameList.add(workflowName);
         ZipArchiveContent content = new ZipArchiveContent();
         content.setContent(new byte[0]);
         content.setPartial(true);
-        when(catalogObjectService.getCatalogObjectsAsZipArchive("bucket-name", nameList)).thenReturn(content);
+
+        CatalogObjectMetadata dummyContent = new CatalogObjectMetadata(bucketName,
+                                                                       workflowName,
+                                                                       "",
+                                                                       "",
+                                                                       "workflow",
+                                                                       "application/xml",
+                                                                       0L,
+                                                                       "",
+                                                                       "user",
+                                                                       Collections.emptyList(),
+                                                                       ".xml");
+        when(catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     0,
+                                                     Integer.MAX_VALUE)).thenReturn(Collections.singletonList(dummyContent));
+        when(catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, nameList)).thenReturn(content);
         catalogObjectController.list("",
-                                     "bucket-name",
+                                     bucketName,
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
@@ -193,24 +240,48 @@ public class CatalogObjectControllerTest {
                                      0,
                                      Integer.MAX_VALUE,
                                      response);
-        verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive("bucket-name", nameList);
+        verify(catalogObjectService, times(1)).getCatalogObjectsAsZipArchive(bucketName, nameList);
         verify(response, never()).setStatus(HttpServletResponse.SC_OK);
     }
 
     @Test
     public void testGetCatalogObjectsAsPackageWithMissingObject()
             throws IOException, NotAuthenticatedException, AccessDeniedException {
+        String bucketName = "bucket-name";
+        String workflowName = "workflowname";
         HttpServletResponse response = mock(HttpServletResponse.class);
         ServletOutputStream sos = mock(ServletOutputStream.class);
         when(response.getOutputStream()).thenReturn(sos);
         List<String> nameList = new ArrayList<>();
-        nameList.add("workflowname");
+        nameList.add(workflowName);
         ZipArchiveContent content = new ZipArchiveContent();
         content.setContent(new byte[0]);
         content.setPartial(true);
-        when(catalogObjectService.getCatalogObjectsAsPackageZipArchive("bucket-name", nameList)).thenReturn(content);
-        catalogObjectController.exportCatalogObjects("", "bucket-name", false, Optional.of(nameList), response);
-        verify(catalogObjectService, times(1)).getCatalogObjectsAsPackageZipArchive("bucket-name", nameList);
+        CatalogObjectMetadata dummyContent = new CatalogObjectMetadata(bucketName,
+                                                                       workflowName,
+                                                                       "",
+                                                                       "",
+                                                                       "workflow",
+                                                                       "application/xml",
+                                                                       0L,
+                                                                       "",
+                                                                       "user",
+                                                                       Collections.emptyList(),
+                                                                       ".xml");
+        when(catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     Optional.empty(),
+                                                     0,
+                                                     Integer.MAX_VALUE)).thenReturn(Collections.singletonList(dummyContent));
+        when(catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, nameList)).thenReturn(content);
+        catalogObjectController.exportCatalogObjects("", bucketName, false, Optional.of(nameList), response);
+        verify(catalogObjectService, times(1)).getCatalogObjectsAsPackageZipArchive(bucketName, nameList);
         verify(response, never()).setStatus(HttpServletResponse.SC_OK);
     }
 

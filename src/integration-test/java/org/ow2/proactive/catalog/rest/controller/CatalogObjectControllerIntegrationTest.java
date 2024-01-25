@@ -67,6 +67,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
+import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.response.ValidatableResponse;
 
@@ -1216,7 +1217,7 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .assertThat()
                .statusCode(HttpStatus.SC_CREATED);
 
-        //Check that workflow_existing has a a first revision
+        //Check that workflow_existing has a first revision
         given().pathParam("bucketName", bucket.getName())
                .pathParam("name", "workflow_existing")
                .when()
@@ -1351,8 +1352,10 @@ public class CatalogObjectControllerIntegrationTest extends AbstractRestAssuredT
                .statusCode(HttpStatus.SC_CREATED);
 
         byte[] fileContent = given().pathParam("bucketName", bucket.getName())
+                                    .contentType(ContentType.JSON)
+                                    .body("")
                                     .when()
-                                    .get(CATALOG_OBJECTS_EXPORT_RESOURCE)
+                                    .post(CATALOG_OBJECTS_EXPORT_RESOURCE)
                                     .then()
                                     .assertThat()
                                     .statusCode(HttpStatus.SC_OK)
