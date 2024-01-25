@@ -46,6 +46,7 @@ import org.ow2.proactive.catalog.service.*;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.exception.CatalogObjectGrantAccessException;
+import org.ow2.proactive.catalog.service.exception.CatalogObjectNotFoundException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.*;
 import org.ow2.proactive.catalog.util.ArchiveManagerHelper.ZipArchiveContent;
@@ -139,7 +140,7 @@ public class CatalogObjectController {
             throws IOException, NotAuthenticatedException, AccessDeniedException {
 
         // Check Grants
-        AuthenticatedUser user = getAuthenticatedUser(sessionId, bucketName);
+        AuthenticatedUser user = checkWriteAccess(sessionId, bucketName);
 
         String userName = user.getName();
         String initiator = userName;
@@ -169,7 +170,7 @@ public class CatalogObjectController {
                                                                         kind,
                                                                         commitMessage,
                                                                         file,
-                                                                        userName);
+                                                                        user);
         }
         if (name.isPresent()) {
             log.info(ACTION + initiator + " created a new catalog object " + name.get() + " inside bucket " +
@@ -181,7 +182,7 @@ public class CatalogObjectController {
     }
 
     private CatalogObjectMetadataList createObjectsAndGetMetadataList(String bucketName, Optional<String> projectName,
-            Optional<String> tags, String kind, String commitMessage, MultipartFile file, String userName)
+            Optional<String> tags, String kind, String commitMessage, MultipartFile file, AuthenticatedUser user)
             throws IOException {
         CatalogObjectMetadataList catalogObjectMetadataList;
         List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjects(bucketName,
@@ -189,7 +190,7 @@ public class CatalogObjectController {
                                                                                                tags.orElse(""),
                                                                                                kind,
                                                                                                commitMessage,
-                                                                                               userName,
+                                                                                               user,
                                                                                                file.getBytes());
 
         for (CatalogObjectMetadata catalogObject : catalogObjects) {
@@ -254,7 +255,7 @@ public class CatalogObjectController {
             @Parameter(description = "List of comma separated tags of the object", schema = @Schema(pattern = TagsValidator.TAGS_PATTERN)) @RequestParam(value = "tags", required = false) Optional<String> tags)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
-        AuthenticatedUser user = getAuthenticatedUser(sessionId, bucketName, name, write);
+        AuthenticatedUser user = checkUserAccess(sessionId, bucketName, name, write);
         String initiator = user.getName();
 
         log.info(ACTION + initiator + " updated the metadata of catalog object " + name + " inside bucket " +
@@ -270,8 +271,7 @@ public class CatalogObjectController {
         return catalogObjectMetadata;
     }
 
-    private AuthenticatedUser getAuthenticatedUser(String sessionId, String bucketName, String name,
-            AccessType accessType) {
+    private AuthenticatedUser checkUserAccess(String sessionId, String bucketName, String name, AccessType accessType) {
         AuthenticatedUser user = AuthenticatedUser.EMPTY;
         if (sessionIdRequired) {
             // Check session validation
@@ -344,7 +344,7 @@ public class CatalogObjectController {
             @Parameter(description = "The name of the existing Object", required = true, schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
-        getAuthenticatedUser(sessionId, bucketName, name, read);
+        checkUserAccess(sessionId, bucketName, name, read);
 
         CatalogRawObject rawObject = catalogObjectService.getCatalogRawObject(bucketName, name);
         return rawObjectResponseCreator.createRawObjectResponse(rawObject);
@@ -364,7 +364,7 @@ public class CatalogObjectController {
             @Parameter(description = "The name of the existing Object", required = true, schema = @Schema(pattern = ObjectNameValidator.VALID_OBJECT_NAME_PATTERN)) @PathVariable String name)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
-        getAuthenticatedUser(sessionId, bucketName, name, read);
+        checkUserAccess(sessionId, bucketName, name, read);
 
         return catalogObjectService.getObjectDependencies(bucketName, name);
     }
@@ -477,46 +477,58 @@ public class CatalogObjectController {
     }
 
     @Operation(summary = "Export catalog objects as a plain zip archive or a ProActive Catalog Package", description = "Can either export catalog objects as a plain zip or as a ProActive Package containing the exported files along with a METADATA json file describing the exported objects. <br/> Note: Returns catalog objects metadata associated to the latest revision.")
-    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket not found"),
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket not found or no object was found"),
                             @ApiResponse(responseCode = "206", description = "Missing object"),
                             @ApiResponse(responseCode = "401", description = "User not authenticated"),
                             @ApiResponse(responseCode = "403", description = "Permission denied") })
-    @RequestMapping(value = REQUEST_API_QUERY + "/export", method = GET)
+    @RequestMapping(value = REQUEST_API_QUERY +
+                            "/export", consumes = { MediaType.APPLICATION_JSON_VALUE }, method = POST)
     public ResponseEntity<List<CatalogObjectMetadata>> exportCatalogObjects(
             @Parameter(description = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
             @PathVariable String bucketName,
             @Parameter(description = "Plain zip instead of a Proactive package") @RequestParam(value = "isPlainZip", required = false, defaultValue = "false") boolean isPlainZip,
-            @Parameter(description = "Give a list of name separated by comma to get them in an archive", array = @ArraySchema(schema = @Schema())) @RequestParam(value = "objectNamesList", required = false) Optional<List<String>> names,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "An optional json list of catalog object names to export. If not provided, the bucket will be exported fully.") @RequestBody Optional<List<String>> names,
             HttpServletResponse response) throws NotAuthenticatedException, AccessDeniedException {
 
         UserBucketGrants userGrants = checkAndGetUserGrantsForBucket(sessionId, bucketName);
 
         ZipArchiveContent content;
-        if (names.isPresent()) {
+        List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
+                                                                                           Optional.empty(),
+                                                                                           Optional.empty(),
+                                                                                           Optional.empty(),
+                                                                                           Optional.empty(),
+                                                                                           Optional.empty(),
+                                                                                           Optional.empty(),
+                                                                                           Optional.empty(),
+                                                                                           Optional.empty(),
+                                                                                           0,
+                                                                                           Integer.MAX_VALUE);
+        if (sessionIdRequired && !userGrants.isPublicBucket()) {
+            // remove all objects that the user shouldn't have access according to the grants specification.
+            GrantRightsService.removeInaccessibleObjectsInBucket(metadataList,
+                                                                 userGrants.getBucketGrants(),
+                                                                 userGrants.getCatalogObjectsGrants());
+        }
+        if (names.isPresent() && !names.get().isEmpty()) {
+            List<String> accessibleObjectNames = names.get();
+            accessibleObjectNames = accessibleObjectNames.stream()
+                                                         .filter(name -> metadataList.stream()
+                                                                                     .anyMatch(metadata -> metadata.getName()
+                                                                                                                   .equalsIgnoreCase(name)))
+                                                         .collect(Collectors.toList());
+            if (accessibleObjectNames.isEmpty()) {
+                throw new CatalogObjectNotFoundException("Objects " + names.get() +
+                                                         " not found or read-protected in bucket " + bucketName);
+            }
+
             if (isPlainZip) {
-                content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, names.get());
+                content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, accessibleObjectNames);
             } else {
-                content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, names.get());
+                content = catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, accessibleObjectNames);
             }
         } else {
-            List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
-                                                                                               Optional.empty(),
-                                                                                               Optional.empty(),
-                                                                                               Optional.empty(),
-                                                                                               Optional.empty(),
-                                                                                               Optional.empty(),
-                                                                                               Optional.empty(),
-                                                                                               Optional.empty(),
-                                                                                               Optional.empty(),
-                                                                                               0,
-                                                                                               Integer.MAX_VALUE);
 
-            if (sessionIdRequired && !userGrants.isPublicBucket()) {
-                // remove all objects that the user shouldn't have access according to the grants specification.
-                GrantRightsService.removeInaccessibleObjectsInBucket(metadataList,
-                                                                     userGrants.getBucketGrants(),
-                                                                     userGrants.getCatalogObjectsGrants());
-            }
             List<String> objectNames = metadataList.stream()
                                                    .map(CatalogObjectMetadata::getName)
                                                    .collect(Collectors.toList());
@@ -547,7 +559,7 @@ public class CatalogObjectController {
             throws IOException, NotAuthenticatedException, AccessDeniedException {
 
         // Check Grants
-        AuthenticatedUser user = getAuthenticatedUser(sessionId, bucketName);
+        AuthenticatedUser user = checkWriteAccess(sessionId, bucketName);
 
         String userName = user.getName();
         String initiator = userName;
@@ -561,10 +573,10 @@ public class CatalogObjectController {
                                                                         kind,
                                                                         commitMessage,
                                                                         file,
-                                                                        userName);
+                                                                        user);
         } else {
             List<CatalogObjectMetadata> catalogObjects = catalogObjectService.createCatalogObjectsFromPackage(bucketName,
-                                                                                                              userName,
+                                                                                                              user,
                                                                                                               projectName.orElse(""),
                                                                                                               tags.orElse(""),
                                                                                                               file.getBytes(),
@@ -581,7 +593,7 @@ public class CatalogObjectController {
         return catalogObjectMetadataList;
     }
 
-    private AuthenticatedUser getAuthenticatedUser(String sessionId, String bucketName) {
+    private AuthenticatedUser checkWriteAccess(String sessionId, String bucketName) {
         AuthenticatedUser user = AuthenticatedUser.EMPTY;
         if (sessionIdRequired) {
             // Check session validation
