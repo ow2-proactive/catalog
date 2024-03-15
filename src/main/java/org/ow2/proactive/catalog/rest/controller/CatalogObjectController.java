@@ -372,8 +372,7 @@ public class CatalogObjectController {
     @Operation(summary = "Lists catalog objects metadata", description = "Note: Returns catalog objects metadata associated to the latest revision.")
     @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket not found"),
                             @ApiResponse(responseCode = "206", description = "Missing object"),
-                            @ApiResponse(responseCode = "401", description = "User not authenticated"),
-                            @ApiResponse(responseCode = "403", description = "Permission denied") })
+                            @ApiResponse(responseCode = "401", description = "User not authenticated") })
     @RequestMapping(value = REQUEST_API_QUERY, method = GET)
     public ResponseEntity<List<CatalogObjectMetadata>> list(
             @Parameter(description = "sessionID") @RequestHeader(value = "sessionID", required = false) String sessionId,
@@ -395,7 +394,14 @@ public class CatalogObjectController {
             HttpServletResponse response)
             throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
 
-        UserBucketGrants userGrants = checkAndGetUserGrantsForBucket(sessionId, bucketName);
+        UserBucketGrants userGrants;
+
+        try {
+            userGrants = checkAndGetUserGrantsForBucket(sessionId, bucketName);
+        } catch (BucketGrantAccessException e) {
+            // Return empty response if the user is not authorized on the bucket
+            return ResponseEntity.ok(Collections.emptyList());
+        }
 
         //transform empty String into an empty Optional
         kind = kind.filter(s -> !s.isEmpty());
