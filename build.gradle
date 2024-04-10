@@ -173,6 +173,7 @@ dependencies {
     antlr 'org.antlr:antlr4:4.7.2'
 
     compile 'org.apache.tika:tika-core:1.28.5'
+
     compile 'commons-fileupload:commons-fileupload'
     compile 'org.apache.commons:commons-lang3'
     compile 'com.fasterxml.jackson.core:jackson-databind'
@@ -185,6 +186,8 @@ dependencies {
     compile 'com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider'
     compile 'com.fasterxml.jackson.module:jackson-module-jaxb-annotations'
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor'
+    compile 'jakarta.activation:jakarta.activation-api'
+
     compile 'com.querydsl:querydsl-jpa:4.1.4'
 
     jacksonCoreLibs 'com.fasterxml.jackson.core:jackson-databind'
