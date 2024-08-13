@@ -59,8 +59,8 @@ public class CatalogObjectReportService {
 
     }
 
-    public ArchiveManagerHelper.ZipArchiveContent generateBytesReportZip(List<String> authorisedBucketsNames,
-            Optional<String> kind, Optional<String> contentType) {
+    public byte[] generateBytesReportZip(List<String> authorisedBucketsNames, Optional<String> kind,
+            Optional<String> contentType) {
 
         List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(authorisedBucketsNames,
                                                                                            kind,

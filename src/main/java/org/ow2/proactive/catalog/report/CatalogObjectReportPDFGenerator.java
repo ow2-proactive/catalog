@@ -72,10 +72,8 @@ public class CatalogObjectReportPDFGenerator {
     @Autowired
     private TableCatalogObjectsDependenciesBuilder tableCatalogObjectsDependenciesBuilder;
 
-    public ArchiveManagerHelper.ZipArchiveContent getAllCatalogObjectsReportPDFAsArchive(
-            Set<CatalogObjectMetadata> orderedObjectsPerBucket, Optional<String> kind, Optional<String> contentType) {
-
-        ArchiveManagerHelper.ZipArchiveContent zipContent = new ArchiveManagerHelper.ZipArchiveContent();
+    public byte[] getAllCatalogObjectsReportPDFAsArchive(Set<CatalogObjectMetadata> orderedObjectsPerBucket,
+            Optional<String> kind, Optional<String> contentType) {
 
         // Create a Map with bucketName as key and CatalogObjectMetadata as value
         Map<String, Set<CatalogObjectMetadata>> catalogObjectMetadataMap = orderedObjectsPerBucket.stream()
@@ -93,8 +91,7 @@ public class CatalogObjectReportPDFGenerator {
 
             ZipEntrySource[] sources = zipEntrySources.toArray(new ZipEntrySource[0]);
             ZipUtil.pack(sources, byteArrayOutputStream);
-            zipContent.setContent(byteArrayOutputStream.toByteArray());
-            return zipContent;
+            return byteArrayOutputStream.toByteArray();
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }

@@ -105,7 +105,7 @@ public class CatalogObjectReportController {
     @RequestMapping(method = GET)
     @ResponseStatus(HttpStatus.OK)
     @Produces({ MediaType.APPLICATION_OCTET_STREAM_VALUE })
-    public ResponseEntity<List<CatalogObjectMetadata>> getReport(HttpServletResponse response,
+    public void getReport(HttpServletResponse response,
             @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @Parameter(description = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @Parameter(description = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
@@ -114,10 +114,14 @@ public class CatalogObjectReportController {
 
         List<String> authorisedBucketsNames = getListOfAuthorizedBuckets(sessionId, ownerName, kind, contentType);
 
-        ArchiveManagerHelper.ZipArchiveContent content = catalogObjectReportService.generateBytesReportZip(authorisedBucketsNames,
-                                                                                                           kind,
-                                                                                                           contentType);
-        return getResponseAsArchive(content, response, "catalogReport");
+        byte[] content = catalogObjectReportService.generateBytesReportZip(authorisedBucketsNames, kind, contentType);
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType(ZIP_CONTENT_TYPE);
+        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"catalog_report.zip\"");
+        response.addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
+        response.getOutputStream().write(content);
+        response.getOutputStream().flush();
     }
 
     @Operation(summary = "Get list of selected catalog objects in a PDF report file")
@@ -222,31 +226,4 @@ public class CatalogObjectReportController {
 
         return authorisedBuckets.stream().map(BucketMetadata::getName).collect(Collectors.toList());
     }
-
-    private ResponseEntity<List<CatalogObjectMetadata>> getResponseAsArchive(
-            ArchiveManagerHelper.ZipArchiveContent zipArchiveContent, HttpServletResponse response,
-            String archiveName) {
-        HttpStatus status;
-        if (zipArchiveContent.isPartial()) {
-            status = HttpStatus.PARTIAL_CONTENT;
-            response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
-        } else {
-            status = HttpStatus.OK;
-            response.setStatus(HttpServletResponse.SC_OK);
-        }
-
-        response.setContentType(ZIP_CONTENT_TYPE);
-        response.addHeader(HttpHeaders.CONTENT_DISPOSITION,
-                           "attachment; filename=\"" + (Strings.isBlank(archiveName) ? "archive" : archiveName) +
-                                                            ".zip\"");
-        response.addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
-        try {
-            response.getOutputStream().write(zipArchiveContent.getContent());
-            response.getOutputStream().flush();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
-        }
-        return new ResponseEntity<>(status);
-    }
-
 }
