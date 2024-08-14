@@ -35,7 +35,6 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.ow2.proactive.catalog.callgraph.CallGraphHolder;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.service.exception.PDFGenerationException;
-import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.ReportGeneratorHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -75,16 +74,14 @@ public class CatalogObjectReportPDFGenerator {
     public byte[] getAllCatalogObjectsReportPDFAsArchive(Set<CatalogObjectMetadata> orderedObjectsPerBucket,
             Optional<String> kind, Optional<String> contentType) {
 
-        // Create a Map with bucketName as key and CatalogObjectMetadata as value
-        Map<String, Set<CatalogObjectMetadata>> catalogObjectMetadataMap = orderedObjectsPerBucket.stream()
-                                                                                                  .collect(Collectors.groupingBy(CatalogObjectMetadata::getBucketName, // Group by bucketName
-                                                                                                                                 Collectors.toSet() // Collect items into a Set
-        ));
+        Map<String, Set<CatalogObjectMetadata>> bucketNameCatalogObjectMetadata = orderedObjectsPerBucket.stream()
+                                                                                                         .collect(Collectors.groupingBy(CatalogObjectMetadata::getBucketName,
+                                                                                                                                        Collectors.toSet()));
 
-        List<ZipEntrySource> zipEntrySources = new ArrayList<>(catalogObjectMetadataMap.keySet().size());
+        List<ZipEntrySource> zipEntrySources = new ArrayList<>(bucketNameCatalogObjectMetadata.keySet().size());
 
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
-            for (Map.Entry<String, Set<CatalogObjectMetadata>> entry : catalogObjectMetadataMap.entrySet()) {
+            for (Map.Entry<String, Set<CatalogObjectMetadata>> entry : bucketNameCatalogObjectMetadata.entrySet()) {
                 byte[] pdfData = generatePDF(entry.getValue(), kind, contentType);
                 zipEntrySources.add(new ByteSource(entry.getKey() + "_report.pdf", pdfData));
             }
