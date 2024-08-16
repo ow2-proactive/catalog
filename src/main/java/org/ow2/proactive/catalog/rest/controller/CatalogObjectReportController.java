@@ -38,19 +38,24 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Produces;
 
+import org.apache.logging.log4j.util.Strings;
 import org.ow2.proactive.catalog.dto.BucketGrantMetadata;
 import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.dto.CatalogObjectGrantMetadata;
+import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.service.*;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.ow2.proactive.catalog.util.GrantHelper;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -69,6 +74,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 @RequestMapping(value = "/buckets/report")
 public class CatalogObjectReportController {
+
+    private static final String ZIP_CONTENT_TYPE = "application/zip";
 
     @Autowired
     private BucketService bucketService;
@@ -97,7 +104,7 @@ public class CatalogObjectReportController {
                             @ApiResponse(responseCode = "403", description = "Permission denied", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)), })
     @RequestMapping(method = GET)
     @ResponseStatus(HttpStatus.OK)
-    @Produces({ MediaType.APPLICATION_PDF_VALUE, MediaType.APPLICATION_JSON_VALUE })
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM_VALUE })
     public void getReport(HttpServletResponse response,
             @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @Parameter(description = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
@@ -107,10 +114,14 @@ public class CatalogObjectReportController {
 
         List<String> authorisedBucketsNames = getListOfAuthorizedBuckets(sessionId, ownerName, kind, contentType);
 
-        byte[] content = catalogObjectReportService.generateBytesReport(authorisedBucketsNames, kind, contentType);
+        byte[] content = catalogObjectReportService.generateBytesReportZip(authorisedBucketsNames, kind, contentType);
 
-        flushResponse(response, content);
-
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType(ZIP_CONTENT_TYPE);
+        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"catalog_report.zip\"");
+        response.addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
+        response.getOutputStream().write(content);
+        response.getOutputStream().flush();
     }
 
     @Operation(summary = "Get list of selected catalog objects in a PDF report file")
@@ -215,5 +226,4 @@ public class CatalogObjectReportController {
 
         return authorisedBuckets.stream().map(BucketMetadata::getName).collect(Collectors.toList());
     }
-
 }

@@ -48,6 +48,7 @@ import org.ow2.proactive.catalog.dto.BucketMetadata;
 import org.ow2.proactive.catalog.service.BucketService;
 import org.ow2.proactive.catalog.service.CatalogObjectReportService;
 import org.ow2.proactive.catalog.service.RestApiAccessService;
+import org.springframework.http.HttpHeaders;
 
 import com.google.common.collect.Lists;
 
@@ -87,14 +88,16 @@ public class CatalogObjectReportControllerTest {
         when(response.getOutputStream()).thenReturn(sos);
 
         when(bucketService.listBuckets(ownerName, kind, contentType)).thenReturn(authorisedBuckets);
-        when(catalogObjectReportService.generateBytesReport(anyList(), anyObject(), anyObject())).thenReturn(content);
+        when(catalogObjectReportService.generateBytesReportZip(anyList(),
+                                                               anyObject(),
+                                                               anyObject())).thenReturn(content);
 
         catalogObjectReportController.getReport(response, "sessionid", "xxx", Optional.empty(), Optional.empty());
-        verify(response, times(1)).addHeader("Content-size", new Integer(content.length).toString());
-        verify(response, times(1)).setCharacterEncoding("UTF-8");
+        verify(response, times(1)).addHeader(HttpHeaders.CONTENT_DISPOSITION,
+                                             "attachment; filename=\"catalog_report.zip\"");
+        verify(response, times(1)).addHeader(HttpHeaders.CONTENT_ENCODING, "binary");
 
         verify(sos, times(1)).write(content);
-
         verify(sos, times(1)).flush();
 
     }

@@ -27,9 +27,8 @@ package org.ow2.proactive.catalog.report;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -39,6 +38,9 @@ import org.ow2.proactive.catalog.service.exception.PDFGenerationException;
 import org.ow2.proactive.catalog.util.ReportGeneratorHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.zeroturnaround.zip.ByteSource;
+import org.zeroturnaround.zip.ZipEntrySource;
+import org.zeroturnaround.zip.ZipUtil;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -68,6 +70,29 @@ public class CatalogObjectReportPDFGenerator {
 
     @Autowired
     private TableCatalogObjectsDependenciesBuilder tableCatalogObjectsDependenciesBuilder;
+
+    public byte[] getAllCatalogObjectsReportPDFAsArchive(Set<CatalogObjectMetadata> orderedObjectsPerBucket,
+            Optional<String> kind, Optional<String> contentType) {
+
+        Map<String, Set<CatalogObjectMetadata>> bucketNameCatalogObjectMetadata = orderedObjectsPerBucket.stream()
+                                                                                                         .collect(Collectors.groupingBy(CatalogObjectMetadata::getBucketName,
+                                                                                                                                        Collectors.toSet()));
+
+        List<ZipEntrySource> zipEntrySources = new ArrayList<>(bucketNameCatalogObjectMetadata.keySet().size());
+
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            for (Map.Entry<String, Set<CatalogObjectMetadata>> entry : bucketNameCatalogObjectMetadata.entrySet()) {
+                byte[] pdfData = generatePDF(entry.getValue(), kind, contentType);
+                zipEntrySources.add(new ByteSource(entry.getKey() + "_report.pdf", pdfData));
+            }
+
+            ZipEntrySource[] sources = zipEntrySources.toArray(new ZipEntrySource[0]);
+            ZipUtil.pack(sources, byteArrayOutputStream);
+            return byteArrayOutputStream.toByteArray();
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+    }
 
     public byte[] generatePDF(Set<CatalogObjectMetadata> orderedObjectsPerBucket, Optional<String> kind,
             Optional<String> contentType) {

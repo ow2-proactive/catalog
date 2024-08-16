@@ -25,16 +25,13 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.report.CatalogObjectReportPDFGenerator;
+import org.ow2.proactive.catalog.util.ArchiveManagerHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -59,6 +56,19 @@ public class CatalogObjectReportService {
                                                                                                    catalogObjectsNames);
 
         return orderCatalogObjectsByBucketAndProjectName(kind, contentType, metadataList);
+
+    }
+
+    public byte[] generateBytesReportZip(List<String> authorisedBucketsNames, Optional<String> kind,
+            Optional<String> contentType) {
+
+        List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(authorisedBucketsNames,
+                                                                                           kind,
+                                                                                           contentType);
+
+        return catalogObjectReportPDFGenerator.getAllCatalogObjectsReportPDFAsArchive(new HashSet<>(metadataList),
+                                                                                      kind,
+                                                                                      contentType);
 
     }
 
