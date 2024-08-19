@@ -87,9 +87,9 @@ public class CatalogObjectCallGraphControllerTest {
         when(response.getOutputStream()).thenReturn(sos);
 
         when(bucketService.listBuckets(ownerName, kind, contentType)).thenReturn(authorisedBuckets);
-        when(catalogObjectCallGraphService.generateBytesCallGraph(anyList(),
-                                                                  anyObject(),
-                                                                  anyObject())).thenReturn(content);
+        when(catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(anyList(),
+                                                                                    anyObject(),
+                                                                                    anyObject())).thenReturn(content);
 
         CatalogObjectCallGraphController.getCallGraph(response, "sessionid", "xxx", Optional.empty(), Optional.empty());
         verify(response, times(1)).addHeader("Content-size", new Integer(content.length).toString());
@@ -152,9 +152,9 @@ public class CatalogObjectCallGraphControllerTest {
         ServletOutputStream sos = mock(ServletOutputStream.class);
         when(response.getOutputStream()).thenReturn(sos);
 
-        when(catalogObjectCallGraphService.generateBytesCallGraph(anyList(),
-                                                                  anyObject(),
-                                                                  anyObject())).thenReturn(content);
+        when(catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(anyList(),
+                                                                                    anyObject(),
+                                                                                    anyObject())).thenReturn(content);
 
         String bucketName = "basic-examples";
         Optional<List<String>> catalogObjectsNames = Optional.empty();

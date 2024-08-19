@@ -25,14 +25,19 @@
  */
 package org.ow2.proactive.catalog.service;
 
-import java.util.List;
-import java.util.Optional;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.ow2.proactive.catalog.callgraph.CatalogObjectCallGraphPDFGenerator;
 import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.zeroturnaround.zip.ByteSource;
+import org.zeroturnaround.zip.ZipEntrySource;
+import org.zeroturnaround.zip.ZipUtil;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -52,15 +57,33 @@ public class CatalogObjectCallGraphService {
     @Autowired
     private CatalogObjectCallGraphPDFGenerator catalogObjectCallGraphPDFGenerator;
 
-    public byte[] generateBytesCallGraph(List<String> authorisedBucketsNames, Optional<String> kind,
+    public byte[] generateBytesCallGraphForAllBucketsAsZip(List<String> authorisedBucketsNames, Optional<String> kind,
             Optional<String> contentType) {
 
-        List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(authorisedBucketsNames,
-                                                                                           kind,
-                                                                                           contentType);
+        Map<String, List<CatalogObjectMetadata>> bucketNameCatalogObjectMetadata = catalogObjectService.listCatalogObjects(authorisedBucketsNames,
+                                                                                                                           kind,
+                                                                                                                           contentType)
+                                                                                                       .stream()
+                                                                                                       .collect(Collectors.groupingBy(CatalogObjectMetadata::getBucketName,
+                                                                                                                                      Collectors.toList()));
 
-        return catalogObjectCallGraphPDFGenerator.generatePdfImage(metadataList, kind, contentType);
+        List<ZipEntrySource> zipEntrySources = new ArrayList<>(bucketNameCatalogObjectMetadata.keySet().size());
 
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            for (Map.Entry<String, List<CatalogObjectMetadata>> entry : bucketNameCatalogObjectMetadata.entrySet()) {
+                byte[] pdfData = catalogObjectCallGraphPDFGenerator.generatePdfImage(entry.getValue(),
+                                                                                     kind,
+                                                                                     contentType);
+                ByteSource byteSource = new ByteSource(entry.getKey() + "_report.pdf", pdfData);
+                zipEntrySources.add(byteSource);
+            }
+
+            ZipEntrySource[] sources = zipEntrySources.toArray(new ZipEntrySource[0]);
+            ZipUtil.pack(sources, byteArrayOutputStream);
+            return byteArrayOutputStream.toByteArray();
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
     }
 
     public byte[] generateBytesCallGraphForSelectedObjects(String bucketName, List<String> catalogObjectsNames,
