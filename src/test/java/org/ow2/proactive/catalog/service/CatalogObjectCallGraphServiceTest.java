@@ -31,8 +31,8 @@ import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
-import java.util.Optional;
+import java.io.OutputStream;
+import java.util.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +44,8 @@ import org.ow2.proactive.catalog.dto.CatalogObjectMetadata;
 import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.util.SeparatorUtility;
 import org.ow2.proactive.catalog.util.parser.WorkflowParser;
+import org.zeroturnaround.zip.ZipEntrySource;
+import org.zeroturnaround.zip.ZipUtil;
 
 import com.google.common.collect.Lists;
 
@@ -89,17 +91,23 @@ public class CatalogObjectCallGraphServiceTest {
                                                      any(Optional.class),
                                                      any(Optional.class))).thenReturn(objectsMetadata);
 
-        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
+        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(Arrays.asList(one, two),
                                                                  kind,
-                                                                 contentType)).thenReturn("onetwothree".getBytes());
+                                                                 contentType)).thenReturn("onetwo".getBytes());
 
-        byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
-                                                                              kind,
-                                                                              contentType);
+        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(Arrays.asList(two, one),
+                                                                 kind,
+                                                                 contentType)).thenReturn("onetwo".getBytes());
+
+        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(Collections.singletonList(three),
+                                                                 kind,
+                                                                 contentType)).thenReturn("three".getBytes());
+
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
+                                                                                                kind,
+                                                                                                contentType);
 
         assertThat(content).isNotNull();
-        assertThat(content.length).isEqualTo("onetwothree".length());
-
     }
 
     @Test
@@ -138,24 +146,22 @@ public class CatalogObjectCallGraphServiceTest {
 
         CatalogObjectMetadata one = createObjectMetadata("bucket3", "one");
         CatalogObjectMetadata two = createObjectMetadata("bucket3", "two");
-        CatalogObjectMetadata three = createObjectMetadata("bucket6", "three");
+        CatalogObjectMetadata three = createObjectMetadata("bucket3", "three");
 
         List<CatalogObjectMetadata> objectsMetadata = Lists.newArrayList(one, two, three);
-        when(catalogObjectService.listCatalogObjects(anyList(),
-                                                     any(Optional.class),
-                                                     any(Optional.class))).thenReturn(objectsMetadata);
+        when(catalogObjectService.listCatalogObjects(authorisedBucketsNames,
+                                                     kind,
+                                                     contentType)).thenReturn(objectsMetadata);
 
-        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
-                                                                 kind,
-                                                                 contentType)).thenReturn("onetwothree".getBytes());
+        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(anyList(),
+                                                                 any(Optional.class),
+                                                                 any(Optional.class))).thenReturn("onetwothree".getBytes());
 
-        byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
-                                                                              kind,
-                                                                              contentType);
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
+                                                                                                kind,
+                                                                                                contentType);
 
         assertThat(content).isNotNull();
-        assertThat(content.length).isEqualTo("onetwothree".length());
-
     }
 
     @Test
@@ -173,17 +179,15 @@ public class CatalogObjectCallGraphServiceTest {
                                                      any(Optional.class),
                                                      any(Optional.class))).thenReturn(objectsMetadata);
 
-        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
-                                                                 kind,
-                                                                 contentType)).thenReturn("onetwothree".getBytes());
+        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(anyList(),
+                                                                 any(Optional.class),
+                                                                 any(Optional.class))).thenReturn("onetwothree".getBytes());
 
-        byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
-                                                                              kind,
-                                                                              contentType);
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
+                                                                                                kind,
+                                                                                                contentType);
 
         assertThat(content).isNotNull();
-        assertThat(content.length).isEqualTo("onetwothree".length());
-
     }
 
     @Test
@@ -201,17 +205,15 @@ public class CatalogObjectCallGraphServiceTest {
                                                      any(Optional.class),
                                                      any(Optional.class))).thenReturn(objectsMetadata);
 
-        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(objectsMetadata,
-                                                                 kind,
-                                                                 contentType)).thenReturn("onetwothree".getBytes());
+        when(catalogObjectCallGraphPDFGenerator.generatePdfImage(anyList(),
+                                                                 any(Optional.class),
+                                                                 any(Optional.class))).thenReturn("onetwothree".getBytes());
 
-        byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
-                                                                              kind,
-                                                                              contentType);
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
+                                                                                                kind,
+                                                                                                contentType);
 
         assertThat(content).isNotNull();
-        assertThat(content.length).isEqualTo("onetwothree".length());
-
     }
 
     @Test
@@ -229,9 +231,9 @@ public class CatalogObjectCallGraphServiceTest {
                                                                  kind,
                                                                  contentType)).thenReturn("onetwothree".getBytes());
 
-        byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
-                                                                              kind,
-                                                                              contentType);
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
+                                                                                                kind,
+                                                                                                contentType);
 
         assertThat(content).isNotNull();
 

@@ -91,13 +91,13 @@ public class CatalogObjectCallGraphController {
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
-    @Operation(summary = "Get the call graph of all catalog objects in a PDF report")
+    @Operation(summary = "Get a ZIP file containing a PDF report of the call graph for all catalog objects")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE, schema = @Schema(type = "string", format = "byte"))),
                             @ApiResponse(responseCode = "401", description = "User not authenticated", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
                             @ApiResponse(responseCode = "403", description = "Permission denied", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)), })
     @RequestMapping(method = GET)
     @ResponseStatus(HttpStatus.OK)
-    @Produces({ MediaType.APPLICATION_PDF_VALUE, MediaType.APPLICATION_JSON_VALUE })
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM_VALUE })
     public void getCallGraph(HttpServletResponse response,
             @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @Parameter(description = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
@@ -107,9 +107,9 @@ public class CatalogObjectCallGraphController {
 
         List<String> authorisedBucketsNames = getListOfAuthorizedBuckets(sessionId, ownerName, kind, contentType);
 
-        byte[] content = catalogObjectCallGraphService.generateBytesCallGraph(authorisedBucketsNames,
-                                                                              kind,
-                                                                              contentType);
+        byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
+                                                                                                kind,
+                                                                                                contentType);
 
         flushResponse(response, content);
 
@@ -150,9 +150,9 @@ public class CatalogObjectCallGraphController {
                                                                                                                                  names,
                                                                                                                                  kind,
                                                                                                                                  contentType))
-                                            .orElse(catalogObjectCallGraphService.generateBytesCallGraph(Collections.singletonList(bucketName),
-                                                                                                         kind,
-                                                                                                         contentType));
+                                            .orElse(catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(Collections.singletonList(bucketName),
+                                                                                                                           kind,
+                                                                                                                           contentType));
         flushResponse(response, content);
 
     }
