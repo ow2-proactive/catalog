@@ -60,11 +60,21 @@ public class CatalogObjectReportService {
     }
 
     public byte[] generateBytesReportZip(List<String> authorisedBucketsNames, Optional<String> kind,
-            Optional<String> contentType) {
+            Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
+            Optional<String> projectName, Optional<String> lastCommitBy, Optional<Long> lastCommitTimeGreaterThan,
+            Optional<Long> lastCommitTimeLessThan) {
 
         List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(authorisedBucketsNames,
                                                                                            kind,
-                                                                                           contentType);
+                                                                                           contentType,
+                                                                                           objectName,
+                                                                                           tag,
+                                                                                           projectName,
+                                                                                           lastCommitBy,
+                                                                                           lastCommitTimeGreaterThan,
+                                                                                           lastCommitTimeLessThan,
+                                                                                           0,
+                                                                                           Integer.MAX_VALUE);
 
         return catalogObjectReportPDFGenerator.getAllCatalogObjectsReportPDFAsArchive(new HashSet<>(metadataList),
                                                                                       kind,
