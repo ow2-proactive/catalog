@@ -90,9 +90,26 @@ public class CatalogObjectReportControllerTest {
         when(bucketService.listBuckets(ownerName, kind, contentType)).thenReturn(authorisedBuckets);
         when(catalogObjectReportService.generateBytesReportZip(anyList(),
                                                                anyObject(),
+                                                               anyObject(),
+                                                               anyObject(),
+                                                               anyObject(),
+                                                               anyObject(),
+                                                               anyObject(),
+                                                               anyObject(),
                                                                anyObject())).thenReturn(content);
 
-        catalogObjectReportController.getReport(response, "sessionid", "xxx", Optional.empty(), Optional.empty());
+        catalogObjectReportController.getReport(response,
+                                                "sessionid",
+                                                "xxx",
+                                                Optional.empty(),
+                                                Optional.empty(),
+                                                Optional.empty(),
+                                                Optional.empty(),
+                                                Optional.empty(),
+                                                Optional.empty(),
+                                                Optional.empty(),
+                                                Optional.empty(),
+                                                Optional.empty());
         verify(response, times(1)).addHeader(HttpHeaders.CONTENT_DISPOSITION,
                                              "attachment; filename=\"catalog_report.zip\"");
         verify(response, times(1)).addHeader(HttpHeaders.CONTENT_ENCODING, "binary");

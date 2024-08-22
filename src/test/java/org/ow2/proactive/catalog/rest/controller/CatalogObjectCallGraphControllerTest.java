@@ -89,9 +89,26 @@ public class CatalogObjectCallGraphControllerTest {
         when(bucketService.listBuckets(ownerName, kind, contentType)).thenReturn(authorisedBuckets);
         when(catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(anyList(),
                                                                                     anyObject(),
+                                                                                    anyObject(),
+                                                                                    anyObject(),
+                                                                                    anyObject(),
+                                                                                    anyObject(),
+                                                                                    anyObject(),
+                                                                                    anyObject(),
                                                                                     anyObject())).thenReturn(content);
 
-        CatalogObjectCallGraphController.getCallGraph(response, "sessionid", "xxx", Optional.empty(), Optional.empty());
+        CatalogObjectCallGraphController.getCallGraph(response,
+                                                      "sessionid",
+                                                      "xxx",
+                                                      Optional.empty(),
+                                                      Optional.empty(),
+                                                      Optional.empty(),
+                                                      Optional.empty(),
+                                                      Optional.empty(),
+                                                      Optional.empty(),
+                                                      Optional.empty(),
+                                                      Optional.empty(),
+                                                      Optional.empty());
         verify(response, times(1)).addHeader("Content-size", new Integer(content.length).toString());
         verify(response, times(1)).setCharacterEncoding("UTF-8");
 
@@ -153,6 +170,12 @@ public class CatalogObjectCallGraphControllerTest {
         when(response.getOutputStream()).thenReturn(sos);
 
         when(catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(anyList(),
+                                                                                    anyObject(),
+                                                                                    anyObject(),
+                                                                                    anyObject(),
+                                                                                    anyObject(),
+                                                                                    anyObject(),
+                                                                                    anyObject(),
                                                                                     anyObject(),
                                                                                     anyObject())).thenReturn(content);
 
