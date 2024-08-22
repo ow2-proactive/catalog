@@ -102,14 +102,28 @@ public class CatalogObjectCallGraphController {
             @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @Parameter(description = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @Parameter(description = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
-            @Parameter(description = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType)
+            @Parameter(description = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
+            @Parameter(description = "The project name of objects containing this name") @RequestParam(value = "projectName", required = false) Optional<String> projectName,
+            @Parameter(description = "The object name of objects containing this name") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
+            @Parameter(description = "The bucket name of catalog objects") @RequestParam(value = "bucketName", required = false) Optional<String> bucketName,
+            @Parameter(description = "The tag of catalog objects") @RequestParam(value = "tag", required = false) Optional<String> tag,
+            @Parameter(description = "The user who last committed the catalog object") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy,
+            @Parameter(description = "The maximum time the object was last committed") @RequestParam(value = "lastCommitTimeLessThan", required = false) Optional<Long> lastCommitTimeLessThan,
+            @Parameter(description = "The minimum time the object was last committed") @RequestParam(value = "lastCommitTimeGreater", required = false) Optional<Long> lastCommitTimeGreaterThan)
             throws NotAuthenticatedException, AccessDeniedException, IOException {
 
         List<String> authorisedBucketsNames = getListOfAuthorizedBuckets(sessionId, ownerName, kind, contentType);
+        bucketName.ifPresent(bucketNameFilter -> authorisedBucketsNames.removeIf(bName -> !bName.contains(bucketNameFilter)));
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
                                                                                                 kind,
-                                                                                                contentType);
+                                                                                                contentType,
+                                                                                                objectName,
+                                                                                                tag,
+                                                                                                projectName,
+                                                                                                lastCommitBy,
+                                                                                                lastCommitTimeGreaterThan,
+                                                                                                lastCommitTimeLessThan);
 
         flushResponse(response, content);
 
@@ -152,7 +166,13 @@ public class CatalogObjectCallGraphController {
                                                                                                                                  contentType))
                                             .orElse(catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(Collections.singletonList(bucketName),
                                                                                                                            kind,
-                                                                                                                           contentType));
+                                                                                                                           contentType,
+                                                                                                                           Optional.empty(),
+                                                                                                                           Optional.empty(),
+                                                                                                                           Optional.empty(),
+                                                                                                                           Optional.empty(),
+                                                                                                                           Optional.empty(),
+                                                                                                                           Optional.empty()));
         flushResponse(response, content);
 
     }
