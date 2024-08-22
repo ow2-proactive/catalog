@@ -110,7 +110,7 @@ public class CatalogObjectReportController {
             @Parameter(description = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
             @Parameter(description = "The kind of objects that buckets must contain") @RequestParam(value = "kind", required = false) Optional<String> kind,
             @Parameter(description = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
-            @Parameter(description = "The object name of objects containing this name") @RequestParam(value = "projectName", required = false) Optional<String> projectName,
+            @Parameter(description = "The project name of objects containing this name") @RequestParam(value = "projectName", required = false) Optional<String> projectName,
             @Parameter(description = "The object name of objects containing this name") @RequestParam(value = "objectName", required = false) Optional<String> objectName,
             @Parameter(description = "The bucket name of catalog objects") @RequestParam(value = "bucketName", required = false) Optional<String> bucketName,
             @Parameter(description = "The tag of catalog objects") @RequestParam(value = "tag", required = false) Optional<String> tag,
@@ -120,7 +120,7 @@ public class CatalogObjectReportController {
             throws NotAuthenticatedException, AccessDeniedException, IOException {
 
         List<String> authorisedBucketsNames = getListOfAuthorizedBuckets(sessionId, ownerName, kind, contentType);
-        bucketName.ifPresent(s -> authorisedBucketsNames.removeIf(bName -> !bName.equals(s)));
+        bucketName.ifPresent(bucketNameFilter -> authorisedBucketsNames.removeIf(bName -> !bName.contains(bucketNameFilter)));
 
         byte[] content = catalogObjectReportService.generateBytesReportZip(authorisedBucketsNames,
                                                                            kind,

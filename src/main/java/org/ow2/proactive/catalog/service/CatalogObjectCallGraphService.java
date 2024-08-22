@@ -58,11 +58,21 @@ public class CatalogObjectCallGraphService {
     private CatalogObjectCallGraphPDFGenerator catalogObjectCallGraphPDFGenerator;
 
     public byte[] generateBytesCallGraphForAllBucketsAsZip(List<String> authorisedBucketsNames, Optional<String> kind,
-            Optional<String> contentType) {
+            Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
+            Optional<String> projectName, Optional<String> lastCommitBy, Optional<Long> lastCommitTimeGreaterThan,
+            Optional<Long> lastCommitTimeLessThan) {
 
         Map<String, List<CatalogObjectMetadata>> bucketNameCatalogObjectMetadata = catalogObjectService.listCatalogObjects(authorisedBucketsNames,
                                                                                                                            kind,
-                                                                                                                           contentType)
+                                                                                                                           contentType,
+                                                                                                                           objectName,
+                                                                                                                           tag,
+                                                                                                                           projectName,
+                                                                                                                           lastCommitBy,
+                                                                                                                           lastCommitTimeGreaterThan,
+                                                                                                                           lastCommitTimeLessThan,
+                                                                                                                           0,
+                                                                                                                           Integer.MAX_VALUE)
                                                                                                        .stream()
                                                                                                        .collect(Collectors.groupingBy(CatalogObjectMetadata::getBucketName,
                                                                                                                                       Collectors.toList()));

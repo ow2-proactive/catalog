@@ -105,7 +105,13 @@ public class CatalogObjectCallGraphServiceTest {
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
                                                                                                 kind,
-                                                                                                contentType);
+                                                                                                contentType,
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty());
 
         assertThat(content).isNotNull();
     }
@@ -159,7 +165,13 @@ public class CatalogObjectCallGraphServiceTest {
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
                                                                                                 kind,
-                                                                                                contentType);
+                                                                                                contentType,
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty());
 
         assertThat(content).isNotNull();
     }
@@ -185,7 +197,13 @@ public class CatalogObjectCallGraphServiceTest {
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
                                                                                                 kind,
-                                                                                                contentType);
+                                                                                                contentType,
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty());
 
         assertThat(content).isNotNull();
     }
@@ -211,7 +229,13 @@ public class CatalogObjectCallGraphServiceTest {
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
                                                                                                 kind,
-                                                                                                contentType);
+                                                                                                contentType,
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty());
 
         assertThat(content).isNotNull();
     }
@@ -233,7 +257,13 @@ public class CatalogObjectCallGraphServiceTest {
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
                                                                                                 kind,
-                                                                                                contentType);
+                                                                                                contentType,
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty(),
+                                                                                                Optional.empty());
 
         assertThat(content).isNotNull();
 
