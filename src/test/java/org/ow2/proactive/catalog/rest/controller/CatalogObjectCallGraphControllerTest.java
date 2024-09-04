@@ -95,11 +95,13 @@ public class CatalogObjectCallGraphControllerTest {
                                                                                     anyObject(),
                                                                                     anyObject(),
                                                                                     anyObject(),
+                                                                                    anyObject(),
                                                                                     anyObject())).thenReturn(content);
 
         CatalogObjectCallGraphController.getCallGraph(response,
                                                       "sessionid",
                                                       "xxx",
+                                                      Optional.empty(),
                                                       Optional.empty(),
                                                       Optional.empty(),
                                                       Optional.empty(),
@@ -170,6 +172,7 @@ public class CatalogObjectCallGraphControllerTest {
         when(response.getOutputStream()).thenReturn(sos);
 
         when(catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(anyList(),
+                                                                                    anyObject(),
                                                                                     anyObject(),
                                                                                     anyObject(),
                                                                                     anyObject(),
