@@ -385,6 +385,7 @@ public class CatalogObjectController {
                                                                                                                                                                                                                                                                                                                                                                                                                                                                             "PLANNED", "DEACTIVATED", "FAILED", "UNPLANNED" })) @RequestParam(value = "associationStatus", required = false) Optional<String> associationStatusFilter,
             @Parameter(description = "Include only objects whose project name contains the given string.") @RequestParam(value = "projectName", required = false) Optional<String> projectNameFilter,
             @Parameter(description = "Include only objects whose last commit belong to the given user.") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy,
+            @Parameter(description = "Include only objects that have been committed at least once by the given user.") @RequestParam(value = "committedAtLeastOnceBy", required = false) Optional<String> committedAtLeastOnceBy,
             @Parameter(description = "Include only objects whose last commit time is greater than the given EPOCH time.") @RequestParam(value = "lastCommitTimeGreater", required = false) Optional<Long> lastCommitTimeGreater,
             @Parameter(description = "Include only objects whose last commit time is less than the given EPOCH time.") @RequestParam(value = "lastCommitTimeLessThan", required = false) Optional<Long> lastCommitTimeLessThan,
             @Parameter(description = "Give a list of name separated by comma to get them in an archive", array = @ArraySchema(schema = @Schema())) @RequestParam(value = "listObjectNamesForArchive", required = false) Optional<List<String>> names,
@@ -410,6 +411,7 @@ public class CatalogObjectController {
         objectTagFilter = objectTagFilter.filter(s -> !s.isEmpty());
         projectNameFilter = projectNameFilter.filter(s -> !s.isEmpty());
         lastCommitBy = lastCommitBy.filter(s -> !s.isEmpty());
+        committedAtLeastOnceBy = committedAtLeastOnceBy.filter(s -> !s.isEmpty());
         if (names.isPresent()) {
             ZipArchiveContent content = catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, names.get());
             return getResponseAsArchive(content, response, bucketName);
@@ -421,6 +423,7 @@ public class CatalogObjectController {
                                                                                                objectTagFilter,
                                                                                                projectNameFilter,
                                                                                                lastCommitBy,
+                                                                                               committedAtLeastOnceBy,
                                                                                                lastCommitTimeGreater,
                                                                                                lastCommitTimeLessThan,
                                                                                                pageNo,
@@ -500,6 +503,7 @@ public class CatalogObjectController {
 
         ZipArchiveContent content;
         List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(Collections.singletonList(bucketName),
+                                                                                           Optional.empty(),
                                                                                            Optional.empty(),
                                                                                            Optional.empty(),
                                                                                            Optional.empty(),

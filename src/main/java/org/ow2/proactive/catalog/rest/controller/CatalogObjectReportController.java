@@ -115,6 +115,7 @@ public class CatalogObjectReportController {
             @Parameter(description = "The bucket name of catalog objects") @RequestParam(value = "bucketName", required = false) Optional<String> bucketName,
             @Parameter(description = "The tag of catalog objects") @RequestParam(value = "tag", required = false) Optional<String> tag,
             @Parameter(description = "The user who last committed the catalog object") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy,
+            @Parameter(description = "The user who committed at least once in the catalog object") @RequestParam(value = "committedAtLeastOnceBy", required = false) Optional<String> committedAtLeastOnceBy,
             @Parameter(description = "The maximum time the object was last committed") @RequestParam(value = "lastCommitTimeLessThan", required = false) Optional<Long> lastCommitTimeLessThan,
             @Parameter(description = "The minimum time the object was last committed") @RequestParam(value = "lastCommitTimeGreater", required = false) Optional<Long> lastCommitTimeGreaterThan)
             throws NotAuthenticatedException, AccessDeniedException, IOException {
@@ -129,6 +130,7 @@ public class CatalogObjectReportController {
                                                                            tag,
                                                                            projectName,
                                                                            lastCommitBy,
+                                                                           committedAtLeastOnceBy,
                                                                            lastCommitTimeGreaterThan,
                                                                            lastCommitTimeLessThan);
 

@@ -59,8 +59,8 @@ public class CatalogObjectCallGraphService {
 
     public byte[] generateBytesCallGraphForAllBucketsAsZip(List<String> authorisedBucketsNames, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
-            Optional<String> projectName, Optional<String> lastCommitBy, Optional<Long> lastCommitTimeGreaterThan,
-            Optional<Long> lastCommitTimeLessThan) {
+            Optional<String> projectName, Optional<String> lastCommitBy, Optional<String> committedAtLeastOnceBy,
+            Optional<Long> lastCommitTimeGreaterThan, Optional<Long> lastCommitTimeLessThan) {
 
         Map<String, List<CatalogObjectMetadata>> bucketNameCatalogObjectMetadata = catalogObjectService.listCatalogObjects(authorisedBucketsNames,
                                                                                                                            kind,
@@ -69,6 +69,7 @@ public class CatalogObjectCallGraphService {
                                                                                                                            tag,
                                                                                                                            projectName,
                                                                                                                            lastCommitBy,
+                                                                                                                           committedAtLeastOnceBy,
                                                                                                                            lastCommitTimeGreaterThan,
                                                                                                                            lastCommitTimeLessThan,
                                                                                                                            0,

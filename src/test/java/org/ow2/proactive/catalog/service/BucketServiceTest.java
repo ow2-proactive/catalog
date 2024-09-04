@@ -96,6 +96,7 @@ public class BucketServiceTest {
                                              null,
                                              null,
                                              null,
+                                             null,
                                              false)).isEmpty();
         verify(bucketRepository,
                times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(any(),
@@ -113,6 +114,7 @@ public class BucketServiceTest {
         List<String> owners = new ArrayList<>();
         assertThat(bucketService.listBuckets(owners,
                                              kind,
+                                             Optional.empty(),
                                              Optional.empty(),
                                              Optional.empty(),
                                              Optional.empty(),

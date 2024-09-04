@@ -644,6 +644,7 @@ public class CatalogObjectService {
                                   Optional.empty(),
                                   Optional.empty(),
                                   Optional.empty(),
+                                  Optional.empty(),
                                   0,
                                   Integer.MAX_VALUE);
     }
@@ -652,11 +653,13 @@ public class CatalogObjectService {
     public List<CatalogObjectMetadata> listCatalogObjects(List<String> bucketsNames, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectNameFilter, Optional<String> objectTagFilter,
             Optional<String> projectNameFilter, Optional<String> lastCommitByFilter,
-            Optional<Long> lastCommitTimeGreater, Optional<Long> lastCommitTimeLessThan, int pageNo, int pageSize) {
+            Optional<String> committedAtLeastOnceByFilter, Optional<Long> lastCommitTimeGreater,
+            Optional<Long> lastCommitTimeLessThan, int pageNo, int pageSize) {
         List<CatalogObjectMetadata> metadataList;
         if (kind.isPresent() || contentType.isPresent() || objectNameFilter.isPresent() ||
             objectTagFilter.isPresent() || projectNameFilter.isPresent() || lastCommitByFilter.isPresent() ||
-            lastCommitTimeGreater.isPresent() || lastCommitTimeLessThan.isPresent()) {
+            committedAtLeastOnceByFilter.isPresent() || lastCommitTimeGreater.isPresent() ||
+            lastCommitTimeLessThan.isPresent()) {
             metadataList = listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(bucketsNames,
                                                                                                kind.orElse(""),
                                                                                                contentType.orElse(""),
@@ -664,6 +667,7 @@ public class CatalogObjectService {
                                                                                                objectTagFilter.orElse(""),
                                                                                                projectNameFilter.orElse(""),
                                                                                                lastCommitByFilter.orElse(""),
+                                                                                               committedAtLeastOnceByFilter.orElse(""),
                                                                                                lastCommitTimeGreater.orElse(0L),
                                                                                                lastCommitTimeLessThan.orElse(0L),
                                                                                                pageNo,
@@ -682,8 +686,8 @@ public class CatalogObjectService {
     @Transactional(readOnly = true)
     public List<CatalogObjectMetadata> listCatalogObjectsByKindListAndContentTypeAndObjectNameAndObjectTag(
             List<String> bucketNames, String kind, String contentType, String objectName, String objectTag,
-            String projectName, String lastCommitBy, Long lastCommitTimeGreater, Long lastCommitTimeLessThan,
-            int pageNo, int pageSize) {
+            String projectName, String lastCommitBy, String committedAtLeastOnceBy, Long lastCommitTimeGreater,
+            Long lastCommitTimeLessThan, int pageNo, int pageSize) {
         bucketNames.forEach(this::findBucketByNameAndCheck);
         List<String> kindList = new ArrayList<>();
         if (!kind.isEmpty()) {
@@ -699,6 +703,7 @@ public class CatalogObjectService {
                                                                                                                                 objectName,
                                                                                                                                 projectName,
                                                                                                                                 lastCommitBy,
+                                                                                                                                committedAtLeastOnceBy,
                                                                                                                                 lastCommitTimeGreater,
                                                                                                                                 lastCommitTimeLessThan,
                                                                                                                                 pageNo,
@@ -711,6 +716,7 @@ public class CatalogObjectService {
                                                                                                                                       objectName,
                                                                                                                                       projectName,
                                                                                                                                       lastCommitBy,
+                                                                                                                                      committedAtLeastOnceBy,
                                                                                                                                       objectTag,
                                                                                                                                       lastCommitTimeGreater,
                                                                                                                                       lastCommitTimeLessThan,

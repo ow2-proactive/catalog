@@ -55,7 +55,8 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     @Override
     public List<CatalogObjectRevisionEntity> findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameInBucket(
             List<String> bucketNames, List<String> kindList, String contentType, String objectName, String projectName,
-            String lastCommitBy, Long lastCommitTimeGreater, Long lastCommitTimeLessThan, int pageNo, int pageSize) {
+            String lastCommitBy, String committedAtLeastOnceBy, Long lastCommitTimeGreater, Long lastCommitTimeLessThan,
+            int pageNo, int pageSize) {
         if (pageSize < 0) {
             throw new IllegalArgumentException("pageSize cannot be negative");
         }
@@ -66,6 +67,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                                                                                                 objectName,
                                                                                                 projectName,
                                                                                                 lastCommitBy,
+                                                                                                committedAtLeastOnceBy,
                                                                                                 lastCommitTimeGreater,
                                                                                                 lastCommitTimeLessThan))
                                                                 .setMaxResults(pageSize)
@@ -77,8 +79,8 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     public List<CatalogObjectRevisionEntity>
             findDefaultCatalogObjectsOfKindListAndContentTypeAndObjectNameAndTagInBucket(List<String> bucketNames,
                     List<String> objectNames, List<String> kindList, String contentType, String objectName,
-                    String projectName, String lastCommitBy, String tag, Long lastCommitTimeGreater,
-                    Long lastCommitTimeLessThan, int pageNo, int pageSize) {
+                    String projectName, String lastCommitBy, String committedAtLeastOnceBy, String tag,
+                    Long lastCommitTimeGreater, Long lastCommitTimeLessThan, int pageNo, int pageSize) {
         if (pageSize < 0) {
             throw new IllegalArgumentException("pageSize cannot be negative");
         }
@@ -105,6 +107,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                                                                                                 objectName,
                                                                                                 projectName,
                                                                                                 lastCommitBy,
+                                                                                                committedAtLeastOnceBy,
                                                                                                 lastCommitTimeGreater,
                                                                                                 lastCommitTimeLessThan,
                                                                                                 tag))
@@ -125,6 +128,7 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
                                                      objectName,
                                                      projectName,
                                                      lastCommitBy,
+                                                     committedAtLeastOnceBy,
                                                      lastCommitTimeGreater,
                                                      lastCommitTimeLessThan,
                                                      tag))
@@ -147,7 +151,8 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
 
     private CriteriaQuery<CatalogObjectRevisionEntity> buildCriteriaQuery(List<String> bucketNames,
             List<String> objectNames, List<String> kindList, String contentType, String objectName, String projectName,
-            String lastCommitBy, Long lastCommitTimeGreater, Long lastCommitTimeLessThan, String tag) {
+            String lastCommitBy, String committedAtLeastOnceBy, Long lastCommitTimeGreater, Long lastCommitTimeLessThan,
+            String tag) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<CatalogObjectRevisionEntity> cq = cb.createQuery(CatalogObjectRevisionEntity.class);
         Root<CatalogObjectRevisionEntity> root = cq.from(CatalogObjectRevisionEntity.class);
@@ -160,11 +165,13 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
 
         List<Predicate> allPredicates = getCommonPredicates(kindList,
                                                             cb,
+                                                            cq,
                                                             root,
                                                             contentType,
                                                             objectName,
                                                             projectName,
                                                             lastCommitBy,
+                                                            committedAtLeastOnceBy,
                                                             lastCommitTimeGreater,
                                                             lastCommitTimeLessThan,
                                                             bucketNames,
@@ -186,8 +193,9 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
     }
 
     private List<Predicate> getCommonPredicates(List<String> kindList, CriteriaBuilder cb,
-            Root<CatalogObjectRevisionEntity> root, String contentType, String objectName, String projectName,
-            String lastCommitBy, Long lastCommitTimeGreater, Long lastCommitTimeLessThan, List<String> bucketNames,
+            CriteriaQuery<CatalogObjectRevisionEntity> cq, Root<CatalogObjectRevisionEntity> root, String contentType,
+            String objectName, String projectName, String lastCommitBy, String committedAtLeastOnceBy,
+            Long lastCommitTimeGreater, Long lastCommitTimeLessThan, List<String> bucketNames,
             List<String> objectNames) {
         List<Predicate> allPredicates = new ArrayList<>();
         if (!kindList.isEmpty()) {
@@ -220,6 +228,16 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
         if (!Strings.isNullOrEmpty(lastCommitBy)) {
             Predicate projectNamePredicate = cb.equal(root.get("username"), lastCommitBy);
             allPredicates.add(projectNamePredicate);
+        } else if (!Strings.isNullOrEmpty(committedAtLeastOnceBy)) {
+            Subquery<Long> subQuery = cq.subquery(Long.class);
+            Root<CatalogObjectRevisionEntity> subQueryRoot = subQuery.from(CatalogObjectRevisionEntity.class);
+
+            Predicate sameUserPredicate = cb.equal(subQueryRoot.get("username"), committedAtLeastOnceBy);
+            Predicate sameObjectPredicate = cb.equal(root.get("catalogObject"), subQueryRoot.get("catalogObject"));
+
+            subQuery = subQuery.select(cb.count(subQueryRoot)).where(cb.and(sameObjectPredicate, sameUserPredicate));
+
+            allPredicates.add(cb.gt(subQuery, 0));
         }
 
         if (lastCommitTimeGreater > 0) {
@@ -251,18 +269,20 @@ public class CatalogObjectRevisionRepositoryImpl implements CatalogObjectRevisio
 
     private CriteriaQuery<CatalogObjectRevisionEntity> buildCriteriaQuery(List<String> bucketNames,
             List<String> kindList, String contentType, String objectName, String projectName, String lastCommitBy,
-            Long lastCommitTimeGreater, Long lastCommitTimeLessThan) {
+            String committedAtLeastOnceBy, Long lastCommitTimeGreater, Long lastCommitTimeLessThan) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<CatalogObjectRevisionEntity> cq = cb.createQuery(CatalogObjectRevisionEntity.class);
         Root<CatalogObjectRevisionEntity> root = cq.from(CatalogObjectRevisionEntity.class);
 
         List<Predicate> allPredicates = getCommonPredicates(kindList,
                                                             cb,
+                                                            cq,
                                                             root,
                                                             contentType,
                                                             objectName,
                                                             projectName,
                                                             lastCommitBy,
+                                                            committedAtLeastOnceBy,
                                                             lastCommitTimeGreater,
                                                             lastCommitTimeLessThan,
                                                             bucketNames,
