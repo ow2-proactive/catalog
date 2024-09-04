@@ -108,6 +108,7 @@ public class CatalogObjectCallGraphController {
             @Parameter(description = "The bucket name of catalog objects") @RequestParam(value = "bucketName", required = false) Optional<String> bucketName,
             @Parameter(description = "The tag of catalog objects") @RequestParam(value = "tag", required = false) Optional<String> tag,
             @Parameter(description = "The user who last committed the catalog object") @RequestParam(value = "lastCommitBy", required = false) Optional<String> lastCommitBy,
+            @Parameter(description = "The user committed at least once in the catalog object") @RequestParam(value = "committedAtLeastOnce", required = false) Optional<String> committedAtLeastOnce,
             @Parameter(description = "The maximum time the object was last committed") @RequestParam(value = "lastCommitTimeLessThan", required = false) Optional<Long> lastCommitTimeLessThan,
             @Parameter(description = "The minimum time the object was last committed") @RequestParam(value = "lastCommitTimeGreater", required = false) Optional<Long> lastCommitTimeGreaterThan)
             throws NotAuthenticatedException, AccessDeniedException, IOException {
@@ -122,6 +123,7 @@ public class CatalogObjectCallGraphController {
                                                                                                 tag,
                                                                                                 projectName,
                                                                                                 lastCommitBy,
+                                                                                                committedAtLeastOnce,
                                                                                                 lastCommitTimeGreaterThan,
                                                                                                 lastCommitTimeLessThan);
 
@@ -167,6 +169,7 @@ public class CatalogObjectCallGraphController {
                                             .orElse(catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(Collections.singletonList(bucketName),
                                                                                                                            kind,
                                                                                                                            contentType,
+                                                                                                                           Optional.empty(),
                                                                                                                            Optional.empty(),
                                                                                                                            Optional.empty(),
                                                                                                                            Optional.empty(),

@@ -111,6 +111,7 @@ public class CatalogObjectCallGraphServiceTest {
                                                                                                 Optional.empty(),
                                                                                                 Optional.empty(),
                                                                                                 Optional.empty(),
+                                                                                                Optional.empty(),
                                                                                                 Optional.empty());
 
         assertThat(content).isNotNull();
@@ -171,6 +172,7 @@ public class CatalogObjectCallGraphServiceTest {
                                                                                                 Optional.empty(),
                                                                                                 Optional.empty(),
                                                                                                 Optional.empty(),
+                                                                                                Optional.empty(),
                                                                                                 Optional.empty());
 
         assertThat(content).isNotNull();
@@ -198,6 +200,7 @@ public class CatalogObjectCallGraphServiceTest {
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
                                                                                                 kind,
                                                                                                 contentType,
+                                                                                                Optional.empty(),
                                                                                                 Optional.empty(),
                                                                                                 Optional.empty(),
                                                                                                 Optional.empty(),
@@ -235,6 +238,7 @@ public class CatalogObjectCallGraphServiceTest {
                                                                                                 Optional.empty(),
                                                                                                 Optional.empty(),
                                                                                                 Optional.empty(),
+                                                                                                Optional.empty(),
                                                                                                 Optional.empty());
 
         assertThat(content).isNotNull();
@@ -258,6 +262,7 @@ public class CatalogObjectCallGraphServiceTest {
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
                                                                                                 kind,
                                                                                                 contentType,
+                                                                                                Optional.empty(),
                                                                                                 Optional.empty(),
                                                                                                 Optional.empty(),
                                                                                                 Optional.empty(),

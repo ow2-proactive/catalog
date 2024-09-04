@@ -96,11 +96,13 @@ public class CatalogObjectReportControllerTest {
                                                                anyObject(),
                                                                anyObject(),
                                                                anyObject(),
+                                                               anyObject(),
                                                                anyObject())).thenReturn(content);
 
         catalogObjectReportController.getReport(response,
                                                 "sessionid",
                                                 "xxx",
+                                                Optional.empty(),
                                                 Optional.empty(),
                                                 Optional.empty(),
                                                 Optional.empty(),

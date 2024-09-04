@@ -131,6 +131,7 @@ public class CatalogObjectControllerTest {
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
+                                     Optional.empty(),
                                      Optional.of(nameList),
                                      0,
                                      Integer.MAX_VALUE,
@@ -167,6 +168,7 @@ public class CatalogObjectControllerTest {
                                                                        Collections.emptyList(),
                                                                        ".xml");
         when(catalogObjectService.listCatalogObjects(Collections.singletonList("bucket-name"),
+                                                     Optional.empty(),
                                                      Optional.empty(),
                                                      Optional.empty(),
                                                      Optional.empty(),
@@ -222,11 +224,13 @@ public class CatalogObjectControllerTest {
                                                      Optional.empty(),
                                                      Optional.empty(),
                                                      Optional.empty(),
+                                                     Optional.empty(),
                                                      0,
                                                      Integer.MAX_VALUE)).thenReturn(Collections.singletonList(dummyContent));
         when(catalogObjectService.getCatalogObjectsAsZipArchive(bucketName, nameList)).thenReturn(content);
         catalogObjectController.list("",
                                      bucketName,
+                                     Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
@@ -277,6 +281,7 @@ public class CatalogObjectControllerTest {
                                                      Optional.empty(),
                                                      Optional.empty(),
                                                      Optional.empty(),
+                                                     Optional.empty(),
                                                      0,
                                                      Integer.MAX_VALUE)).thenReturn(Collections.singletonList(dummyContent));
         when(catalogObjectService.getCatalogObjectsAsPackageZipArchive(bucketName, nameList)).thenReturn(content);
@@ -304,10 +309,12 @@ public class CatalogObjectControllerTest {
                                      Optional.empty(),
                                      Optional.empty(),
                                      Optional.empty(),
+                                     Optional.empty(),
                                      0,
                                      Integer.MAX_VALUE,
                                      response);
         verify(catalogObjectService, times(1)).listCatalogObjects(anyList(),
+                                                                  any(Optional.class),
                                                                   any(Optional.class),
                                                                   any(Optional.class),
                                                                   any(Optional.class),
