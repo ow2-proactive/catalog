@@ -106,4 +106,14 @@ public class CatalogObjectCallGraphService {
         return catalogObjectCallGraphPDFGenerator.generatePdfImage(metadataList, kind, contentType);
 
     }
+
+    public byte[] generateBytesCallGraph(List<String> bucketName, Optional<String> kind, Optional<String> contentType) {
+
+        List<CatalogObjectMetadata> metadataList = catalogObjectService.listCatalogObjects(bucketName,
+                                                                                           kind,
+                                                                                           contentType);
+
+        return catalogObjectCallGraphPDFGenerator.generatePdfImage(metadataList, kind, contentType);
+
+    }
 }

@@ -98,7 +98,7 @@ public class CatalogObjectReportController {
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
-    @Operation(summary = "Get list of catalog objects in a PDF report file")
+    @Operation(summary = "Get a ZIP file containing the PDF reports for each catalog objects matching the provided filters")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE, schema = @Schema(type = "string", format = "byte"))),
                             @ApiResponse(responseCode = "401", description = "User not authenticated", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
                             @ApiResponse(responseCode = "403", description = "Permission denied", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)), })
@@ -142,7 +142,7 @@ public class CatalogObjectReportController {
         response.getOutputStream().flush();
     }
 
-    @Operation(summary = "Get list of selected catalog objects in a PDF report file")
+    @Operation(summary = "Get a PDF report file for the selected catalog items")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE, schema = @Schema(type = "string", format = "byte"))),
                             @ApiResponse(responseCode = "404", description = "Bucket not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
                             @ApiResponse(responseCode = "401", description = "User not authenticated", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
