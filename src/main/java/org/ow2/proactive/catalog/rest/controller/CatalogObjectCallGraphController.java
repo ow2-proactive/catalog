@@ -91,7 +91,7 @@ public class CatalogObjectCallGraphController {
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
-    @Operation(summary = "Get a ZIP file containing a PDF report of the call graph for all catalog objects")
+    @Operation(summary = "Get a ZIP file containing a call graph report for each catalog objects matching the provided filters")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", content = @Content(mediaType = MediaType.APPLICATION_PDF_VALUE, schema = @Schema(type = "string", format = "byte"))),
                             @ApiResponse(responseCode = "401", description = "User not authenticated", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
                             @ApiResponse(responseCode = "403", description = "Permission denied", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)), })
@@ -162,20 +162,17 @@ public class CatalogObjectCallGraphController {
             }
 
         }
-        byte[] content = catalogObjectsNames.map(names -> catalogObjectCallGraphService.generateBytesCallGraphForSelectedObjects(bucketName,
-                                                                                                                                 names,
-                                                                                                                                 kind,
-                                                                                                                                 contentType))
-                                            .orElse(catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(Collections.singletonList(bucketName),
-                                                                                                                           kind,
-                                                                                                                           contentType,
-                                                                                                                           Optional.empty(),
-                                                                                                                           Optional.empty(),
-                                                                                                                           Optional.empty(),
-                                                                                                                           Optional.empty(),
-                                                                                                                           Optional.empty(),
-                                                                                                                           Optional.empty(),
-                                                                                                                           Optional.empty()));
+        byte[] content;
+        if (catalogObjectsNames.isPresent()) {
+            content = catalogObjectCallGraphService.generateBytesCallGraphForSelectedObjects(bucketName,
+                                                                                             catalogObjectsNames.get(),
+                                                                                             kind,
+                                                                                             contentType);
+        } else {
+            content = catalogObjectCallGraphService.generateBytesCallGraph(Collections.singletonList(bucketName),
+                                                                           kind,
+                                                                           contentType);
+        }
         flushResponse(response, content);
 
     }
