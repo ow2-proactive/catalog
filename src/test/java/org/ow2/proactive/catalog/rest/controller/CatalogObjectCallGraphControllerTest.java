@@ -171,16 +171,9 @@ public class CatalogObjectCallGraphControllerTest {
         ServletOutputStream sos = mock(ServletOutputStream.class);
         when(response.getOutputStream()).thenReturn(sos);
 
-        when(catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(anyList(),
-                                                                                    anyObject(),
-                                                                                    anyObject(),
-                                                                                    anyObject(),
-                                                                                    anyObject(),
-                                                                                    anyObject(),
-                                                                                    anyObject(),
-                                                                                    anyObject(),
-                                                                                    anyObject(),
-                                                                                    anyObject())).thenReturn(content);
+        when(catalogObjectCallGraphService.generateBytesCallGraph(anyList(),
+                                                                  anyObject(),
+                                                                  anyObject())).thenReturn(content);
 
         String bucketName = "basic-examples";
         Optional<List<String>> catalogObjectsNames = Optional.empty();
