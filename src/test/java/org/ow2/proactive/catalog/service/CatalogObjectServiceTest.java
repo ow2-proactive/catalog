@@ -259,9 +259,12 @@ public class CatalogObjectServiceTest {
 
     }
 
-    @Test(expected = BucketNotFoundException.class)
+    @Test(expected = CatalogObjectNotFoundException.class)
     public void testUpdateObjectMetadataWithInvalidBucket() {
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
+        when(objectNameValidator.isValid(anyString())).thenReturn(true);
+        when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
+        when(tagsValidator.isValid(anyString())).thenReturn(true);
         catalogObjectService.updateObjectMetadata("wrong-bucket",
                                                   NAME,
                                                   Optional.of("some-kind"),
@@ -277,6 +280,9 @@ public class CatalogObjectServiceTest {
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(bucketEntity);
         when(catalogObjectRevisionRepository.findDefaultCatalogObjectByNameInBucket(anyList(),
                                                                                     anyString())).thenReturn(null);
+        when(objectNameValidator.isValid(anyString())).thenReturn(true);
+        when(kindAndContentTypeValidator.isValid(anyString())).thenReturn(true);
+        when(tagsValidator.isValid(anyString())).thenReturn(true);
         catalogObjectService.updateObjectMetadata(bucketEntity.getBucketName(),
                                                   "wrong-name",
                                                   Optional.of("some-kind"),
