@@ -310,17 +310,19 @@ public class CatalogObjectController {
         if (!restApiAccessService.isSessionActive(sessionId)) {
             throw new AccessDeniedException("Session id is not active. Please login.");
         }
-        AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
         if (request == null || request.isEmpty()) {
             throw new IllegalArgumentException("At least one bucketName/objectName pair must be provided");
         }
+
+        AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
 
         HashMap<String, Set<String>> bucketNameObjectNameMap = new HashMap<>();
 
         for (String bucketObjectName : request) {
             String[] split = bucketObjectName.split("/");
             if (split.length < 2) {
-                throw new IllegalArgumentException("Wrong request body. At least one pair with syntax \"bucketName/objectName\" must be provided");
+                throw new IllegalArgumentException(String.format("Wrong bucket and object pair in request body for element %s. Each element of the list must match the format: \"bucketName/objectName\"",
+                                                                 Arrays.toString(split)));
             }
             String bucketName = split[0];
             String objectName = split[1];

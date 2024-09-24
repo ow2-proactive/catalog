@@ -364,7 +364,6 @@ public class CatalogObjectService {
         List<CatalogObjectEntity> updateCatalogObjectEntities = new ArrayList<>();
 
         bucketNameObjectName.keySet().forEach(bucketName -> {
-            findBucketByNameAndCheck(bucketName);// TODO je pense pas necessaire car en dessous ca check aussi
             bucketNameObjectName.get(bucketName).forEach(objectName -> {
                 CatalogObjectRevisionEntity catalogObjectRevisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName,
                                                                                                                    objectName);
