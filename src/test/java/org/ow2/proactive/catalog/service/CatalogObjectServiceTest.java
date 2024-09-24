@@ -259,7 +259,7 @@ public class CatalogObjectServiceTest {
 
     }
 
-    @Test(expected = BucketNotFoundException.class)
+    @Test(expected = CatalogObjectNotFoundException.class)
     public void testUpdateObjectMetadataWithInvalidBucket() {
         when(bucketRepository.findOneByBucketName(anyString())).thenReturn(null);
         when(objectNameValidator.isValid(anyString())).thenReturn(true);
