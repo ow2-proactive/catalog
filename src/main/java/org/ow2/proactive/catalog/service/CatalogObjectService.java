@@ -311,7 +311,7 @@ public class CatalogObjectService {
                                                                               catalogObjectEntity,
                                                                               metadataList,
                                                                               false);
-        return new CatalogObjectMetadata(result);
+        return new CatalogObjectMetadata(catalogObjectRevisionRepository.save(result));
     }
 
     private String getFileMimeType(FileNameAndContent file) {
@@ -331,10 +331,21 @@ public class CatalogObjectService {
     @Transactional
     public CatalogObjectMetadata updateObjectMetadata(String bucketName, String name, Optional<String> kind,
             Optional<String> contentType, Optional<String> projectName, Optional<String> tags, String username) {
-        findBucketByNameAndCheck(bucketName);
-        CatalogObjectRevisionEntity catalogObjectRevisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName,
-                                                                                                           name);
-        CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
+        Map<String, Set<String>> catalogObjectToUpdate = new HashMap<>(1);
+        catalogObjectToUpdate.put(bucketName, Collections.singleton(name));
+        List<CatalogObjectMetadata> result = updateObjectMetadata(catalogObjectToUpdate,
+                                                                  kind,
+                                                                  contentType,
+                                                                  projectName,
+                                                                  tags,
+                                                                  username);
+        return result.get(0);
+    }
+
+    @Transactional
+    public List<CatalogObjectMetadata> updateObjectMetadata(Map<String, Set<String>> bucketNameObjectName,
+            Optional<String> kind, Optional<String> contentType, Optional<String> projectName, Optional<String> tags,
+            String username) {
 
         if (!kind.isPresent() && !contentType.isPresent() && !projectName.isPresent() && !tags.isPresent()) {
             throw new WrongParametersException("at least one parameter should be present");
@@ -349,26 +360,45 @@ public class CatalogObjectService {
             throw new TagsIsNotValidException(tags.get(), "tags");
         }
 
-        String previousProjectName = catalogObjectRevisionEntity.getProjectName();
-        String previousTags = catalogObjectRevisionEntity.getTags();
-        if (!catalogObjectRevisionEntity.getProjectName().equals(projectName.orElse("")) ||
-            !catalogObjectRevisionEntity.getTags().equals(tags.orElse(""))) {
-            buildCatalogObjectRevisionEntity(UPDATE_COMMIT_MESSAGE,
-                                             username,
-                                             projectName.orElse(previousProjectName),
-                                             tags.orElse(previousTags),
-                                             catalogObjectRevisionEntity.getRawObject(),
-                                             catalogObjectEntity,
-                                             KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevisionEntity.getKeyValueMetadataList()),
-                                             true);
-        }
-        kind.ifPresent(catalogObjectEntity::setKind);
-        kind.ifPresent(catalogObjectEntity::setKindLower);
-        catalogObjectEntity.setNameLower(name);
-        contentType.ifPresent(catalogObjectEntity::setContentType);
-        contentType.ifPresent(catalogObjectEntity::setContentTypeLower);
-        catalogObjectRepository.save(catalogObjectEntity);
-        return new CatalogObjectMetadata(catalogObjectEntity);
+        List<CatalogObjectRevisionEntity> updateRevisionEntities = new ArrayList<>();
+        List<CatalogObjectEntity> updateCatalogObjectEntities = new ArrayList<>();
+
+        bucketNameObjectName.keySet().forEach(bucketName -> {
+            findBucketByNameAndCheck(bucketName);// TODO je pense pas necessaire car en dessous ca check aussi
+            bucketNameObjectName.get(bucketName).forEach(objectName -> {
+                CatalogObjectRevisionEntity catalogObjectRevisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName,
+                                                                                                                   objectName);
+                CatalogObjectEntity catalogObjectEntity = catalogObjectRevisionEntity.getCatalogObject();
+
+                String previousProjectName = catalogObjectRevisionEntity.getProjectName();
+                String previousTags = catalogObjectRevisionEntity.getTags();
+
+                if (!catalogObjectRevisionEntity.getProjectName().equals(projectName.orElse("")) ||
+                    !catalogObjectRevisionEntity.getTags().equals(tags.orElse(""))) {
+                    CatalogObjectRevisionEntity revisionEntity = buildCatalogObjectRevisionEntity(UPDATE_COMMIT_MESSAGE,
+                                                                                                  username,
+                                                                                                  projectName.orElse(previousProjectName),
+                                                                                                  tags.orElse(previousTags),
+                                                                                                  catalogObjectRevisionEntity.getRawObject(),
+                                                                                                  catalogObjectEntity,
+                                                                                                  KeyValueLabelMetadataHelper.convertFromEntity(catalogObjectRevisionEntity.getKeyValueMetadataList()),
+                                                                                                  true);
+                    updateRevisionEntities.add(revisionEntity);
+                }
+
+                catalogObjectEntity.setNameLower(objectName);
+                kind.ifPresent(catalogObjectEntity::setKind);
+                kind.ifPresent(catalogObjectEntity::setKindLower);
+                contentType.ifPresent(catalogObjectEntity::setContentType);
+                contentType.ifPresent(catalogObjectEntity::setContentTypeLower);
+                updateCatalogObjectEntities.add(catalogObjectEntity);
+            });
+        });
+
+        catalogObjectRevisionRepository.save(updateRevisionEntities);
+        catalogObjectRepository.save(updateCatalogObjectEntities);
+
+        return updateCatalogObjectEntities.stream().map(CatalogObjectMetadata::new).collect(Collectors.toList());
     }
 
     /**
@@ -570,7 +600,7 @@ public class CatalogObjectService {
                                                                                              .build();
         synchronizedKeyValueMetadataEntityList.forEach(keyValue -> keyValue.setCatalogObjectRevision(catalogObjectRevisionEntity));
         catalogObjectEntity.addRevision(catalogObjectRevisionEntity);
-        return catalogObjectRevisionRepository.save(catalogObjectRevisionEntity);
+        return catalogObjectRevisionEntity;
     }
 
     private String synchronizeMetadataValue(String queryParamMetadata, String metadataListMetadata,
@@ -820,7 +850,7 @@ public class CatalogObjectService {
                                                                                       metadataListParsed,
                                                                                       false);
 
-        return new CatalogObjectMetadata(revisionEntity);
+        return new CatalogObjectMetadata(catalogObjectRevisionRepository.save(revisionEntity));
     }
 
     protected String getTagsValueIfExistsOrEmptyString(List<Metadata> metadataListParsed) {
@@ -906,7 +936,7 @@ public class CatalogObjectService {
                                                                                         metadataList,
                                                                                         false);
 
-        return new CatalogObjectMetadata(restoredRevision);
+        return new CatalogObjectMetadata(catalogObjectRevisionRepository.save(restoredRevision));
     }
 
     /**

@@ -40,7 +40,9 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
+import org.jboss.resteasy.annotations.Body;
 import org.ow2.proactive.catalog.dto.*;
 import org.ow2.proactive.catalog.service.*;
 import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
@@ -287,6 +289,59 @@ public class CatalogObjectController {
             }
         }
         return user;
+    }
+
+    @Operation(summary = "Updates metadata, like kind, Content-Type, project name and tags for multiple objects")
+    @ApiResponses(value = { @ApiResponse(responseCode = "404", description = "Bucket, object or revision not found"),
+                            @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"),
+                            @ApiResponse(responseCode = "400", description = "Wrong specified parameters: at least one should be present") })
+    @RequestMapping(value = "/resources/metadata", method = PUT)
+    @ResponseStatus(HttpStatus.OK)
+    public List<CatalogObjectMetadata> updateObjectMetadataMulti(
+            @Parameter(description = "sessionID", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The new kind of an object", schema = @Schema(pattern = KindAndContentTypeValidator.VALID_KIND_NAME_PATTERN)) @RequestParam(value = "kind", required = false) Optional<String> kind,
+            @Parameter(description = "The new Content-Type of an object - MIME type", schema = @Schema(pattern = KindAndContentTypeValidator.VALID_KIND_NAME_PATTERN)) @RequestParam(value = "contentType", required = false) Optional<String> contentType,
+            @Parameter(description = "The new project name of an object") @RequestParam(value = "projectName", required = false) Optional<String> projectName,
+            @Parameter(description = "List of comma separated tags of the object", schema = @Schema(pattern = TagsValidator.TAGS_PATTERN)) @RequestParam(value = "tags", required = false) Optional<String> tags,
+            @Parameter(description = "List of catalog objects to update with syntax \"bucketName/objectName\"", required = true) @RequestBody List<String> request)
+            throws UnsupportedEncodingException, NotAuthenticatedException, AccessDeniedException {
+
+        if (!restApiAccessService.isSessionActive(sessionId)) {
+            throw new AccessDeniedException("Session id is not active. Please login.");
+        }
+        AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
+        if (request == null || request.isEmpty()) {
+            throw new IllegalArgumentException("At least one bucketName/objectName pair must be provided");
+        }
+
+        HashMap<String, Set<String>> bucketNameObjectNameMap = new HashMap<>();
+
+        for (String bucketObjectName : request) {
+            String[] split = bucketObjectName.split("/");
+            if (split.length == 0 || StringUtils.isBlank(split[0]) || StringUtils.isBlank(split[1])) {
+                throw new IllegalArgumentException("Wrong bucket name with catalog object syntax. It must follow \"bucketName/objectName\"");
+            }
+            String bucketName = split[0];
+            String objectName = split[1];
+
+            if (!AccessTypeHelper.satisfy(grantRightsService.getCatalogObjectRights(user, bucketName, objectName),
+                                          write)) {
+                throw new CatalogObjectGrantAccessException(bucketName, objectName);
+            }
+
+            Set<String> currentObjectsForBucket = Optional.ofNullable(bucketNameObjectNameMap.get(bucketName))
+                                                          .orElse(new HashSet<>());
+            currentObjectsForBucket.add(objectName);
+            bucketNameObjectNameMap.put(split[0], currentObjectsForBucket);
+        }
+
+        return catalogObjectService.updateObjectMetadata(bucketNameObjectNameMap,
+                                                         kind,
+                                                         contentType,
+                                                         projectName,
+                                                         tags,
+                                                         user.getName());
     }
 
     @Operation(summary = "Gets a catalog object's metadata by IDs", description = "Note: returns metadata associated to the latest revision of the catalog object.")
