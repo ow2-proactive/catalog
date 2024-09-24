@@ -319,8 +319,8 @@ public class CatalogObjectController {
 
         for (String bucketObjectName : request) {
             String[] split = bucketObjectName.split("/");
-            if (split.length == 0 || StringUtils.isBlank(split[0]) || StringUtils.isBlank(split[1])) {
-                throw new IllegalArgumentException("Wrong bucket name with catalog object syntax. It must follow \"bucketName/objectName\"");
+            if (split.length < 2) {
+                throw new IllegalArgumentException("Wrong request body. At least one pair with syntax \"bucketName/objectName\" must be provided");
             }
             String bucketName = split[0];
             String objectName = split[1];
