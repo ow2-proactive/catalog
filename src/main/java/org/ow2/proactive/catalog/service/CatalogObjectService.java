@@ -26,7 +26,6 @@
 package org.ow2.proactive.catalog.service;
 
 import static org.ow2.proactive.catalog.util.AccessType.write;
-import static org.ow2.proactive.catalog.util.parser.SupportedParserKinds.CALENDAR;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -805,11 +804,7 @@ public class CatalogObjectService {
     @Transactional(readOnly = true)
     public CatalogObjectMetadata getCatalogObjectMetadata(String bucketName, String name) {
         CatalogObjectRevisionEntity revisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
-        CatalogObjectMetadata metadata = new CatalogObjectMetadata(revisionEntity);
-        if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString())) {
-            addDescriptionMetadataToCalendar(revisionEntity, metadata);
-        }
-        return metadata;
+        return new CatalogObjectMetadata(revisionEntity);
     }
 
     @Transactional(readOnly = true)
@@ -904,10 +899,6 @@ public class CatalogObjectService {
         CatalogObjectRevisionEntity revisionEntity = getCatalogObjectRevisionEntityByCommitTime(bucketName,
                                                                                                 name,
                                                                                                 commitTime);
-        CatalogObjectMetadata metadata = new CatalogObjectMetadata(revisionEntity);
-        if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString())) {
-            addDescriptionMetadataToCalendar(revisionEntity, metadata);
-        }
         return new CatalogObjectMetadata(revisionEntity);
     }
 
@@ -1007,18 +998,6 @@ public class CatalogObjectService {
                       .flatMap(Collection::stream)
                       .sorted()
                       .collect(Collectors.toList());
-    }
-
-    private void addDescriptionMetadataToCalendar(CatalogObjectRevisionEntity revisionEntity,
-            CatalogObjectMetadata metadata) {
-        if (revisionEntity.getRawObject() != null) {
-            List<Metadata> metadataList = keyValueLabelMetadataHelper.extractKeyValuesFromRaw(metadata.getKind(),
-                                                                                              revisionEntity.getRawObject())
-                                                                     .stream()
-                                                                     .map(Metadata::new)
-                                                                     .collect(Collectors.toList());
-            metadata.getMetadataList().addAll(metadataList);
-        }
     }
 
     private Map<String, List<CatalogObjectNameReference>>
