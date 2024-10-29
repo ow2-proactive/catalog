@@ -803,7 +803,8 @@ public class CatalogObjectService {
 
     @Transactional(readOnly = true)
     public CatalogObjectMetadata getCatalogObjectMetadata(String bucketName, String name) {
-        return new CatalogObjectMetadata(findCatalogObjectByNameAndBucketAndCheck(bucketName, name));
+        CatalogObjectRevisionEntity revisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
+        return new CatalogObjectMetadata(revisionEntity);
     }
 
     @Transactional(readOnly = true)
@@ -898,7 +899,6 @@ public class CatalogObjectService {
         CatalogObjectRevisionEntity revisionEntity = getCatalogObjectRevisionEntityByCommitTime(bucketName,
                                                                                                 name,
                                                                                                 commitTime);
-
         return new CatalogObjectMetadata(revisionEntity);
     }
 
