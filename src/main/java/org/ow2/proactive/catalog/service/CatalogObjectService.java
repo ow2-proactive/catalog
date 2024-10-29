@@ -76,7 +76,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -807,8 +806,7 @@ public class CatalogObjectService {
     public CatalogObjectMetadata getCatalogObjectMetadata(String bucketName, String name) {
         CatalogObjectRevisionEntity revisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
         CatalogObjectMetadata metadata = new CatalogObjectMetadata(revisionEntity);
-        if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString()) &&
-            revisionEntity.getRawObject() != null) {
+        if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString())) {
             addDescriptionMetadataToCalendar(revisionEntity, metadata);
         }
         return metadata;
@@ -907,8 +905,7 @@ public class CatalogObjectService {
                                                                                                 name,
                                                                                                 commitTime);
         CatalogObjectMetadata metadata = new CatalogObjectMetadata(revisionEntity);
-        if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString()) &&
-            revisionEntity.getRawObject() != null) {
+        if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString())) {
             addDescriptionMetadataToCalendar(revisionEntity, metadata);
         }
         return new CatalogObjectMetadata(revisionEntity);
