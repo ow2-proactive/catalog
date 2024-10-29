@@ -807,7 +807,8 @@ public class CatalogObjectService {
     public CatalogObjectMetadata getCatalogObjectMetadata(String bucketName, String name) {
         CatalogObjectRevisionEntity revisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
         CatalogObjectMetadata metadata = new CatalogObjectMetadata(revisionEntity);
-        if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString())) {
+        if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString()) &&
+            revisionEntity.getRawObject() != null) {
             addDescriptionMetadataToCalendar(revisionEntity, metadata);
         }
         return metadata;
@@ -906,7 +907,8 @@ public class CatalogObjectService {
                                                                                                 name,
                                                                                                 commitTime);
         CatalogObjectMetadata metadata = new CatalogObjectMetadata(revisionEntity);
-        if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString())) {
+        if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString()) &&
+            revisionEntity.getRawObject() != null) {
             addDescriptionMetadataToCalendar(revisionEntity, metadata);
         }
         return new CatalogObjectMetadata(revisionEntity);
@@ -1012,15 +1014,13 @@ public class CatalogObjectService {
 
     private void addDescriptionMetadataToCalendar(CatalogObjectRevisionEntity revisionEntity,
             CatalogObjectMetadata metadata) {
-        ObjectMapper objectMapper = new ObjectMapper();
-        String descriptionKey = "description";
-        try {
-            Map<String, String> result = objectMapper.readValue(revisionEntity.getRawObject(), Map.class);
-            if (result.containsKey(descriptionKey)) {
-                metadata.getMetadataList().add(new Metadata(descriptionKey, result.get(descriptionKey), "General"));
-            }
-        } catch (Exception e) {
-            log.warn("Error when reading calendar's raw object (JSON). Returning object without description");
+        if (revisionEntity.getRawObject() != null) {
+            List<Metadata> metadataList = keyValueLabelMetadataHelper.extractKeyValuesFromRaw(metadata.getKind(),
+                                                                                              revisionEntity.getRawObject())
+                                                                     .stream()
+                                                                     .map(Metadata::new)
+                                                                     .collect(Collectors.toList());
+            metadata.getMetadataList().addAll(metadataList);
         }
     }
 
