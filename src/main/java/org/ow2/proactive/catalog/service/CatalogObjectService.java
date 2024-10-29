@@ -26,6 +26,7 @@
 package org.ow2.proactive.catalog.service;
 
 import static org.ow2.proactive.catalog.util.AccessType.write;
+import static org.ow2.proactive.catalog.util.parser.SupportedParserKinds.CALENDAR;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -75,6 +76,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -803,7 +805,13 @@ public class CatalogObjectService {
 
     @Transactional(readOnly = true)
     public CatalogObjectMetadata getCatalogObjectMetadata(String bucketName, String name) {
-        return new CatalogObjectMetadata(findCatalogObjectByNameAndBucketAndCheck(bucketName, name));
+        CatalogObjectRevisionEntity revisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
+        CatalogObjectMetadata metadata = new CatalogObjectMetadata(revisionEntity);
+        // If we are fetching the metadata of a calendar object, we read the description from the raw object and add it to the keyValueMetadataList
+        if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString())) {
+            addDescriptionMetadataToCalendar(revisionEntity, metadata);
+        }
+        return metadata;
     }
 
     @Transactional(readOnly = true)
@@ -898,7 +906,10 @@ public class CatalogObjectService {
         CatalogObjectRevisionEntity revisionEntity = getCatalogObjectRevisionEntityByCommitTime(bucketName,
                                                                                                 name,
                                                                                                 commitTime);
-
+        CatalogObjectMetadata metadata = new CatalogObjectMetadata(revisionEntity);
+        if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString())) {
+            addDescriptionMetadataToCalendar(revisionEntity, metadata);
+        }
         return new CatalogObjectMetadata(revisionEntity);
     }
 
@@ -998,6 +1009,20 @@ public class CatalogObjectService {
                       .flatMap(Collection::stream)
                       .sorted()
                       .collect(Collectors.toList());
+    }
+
+    private void addDescriptionMetadataToCalendar(CatalogObjectRevisionEntity revisionEntity,
+            CatalogObjectMetadata metadata) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String descriptionKey = "description";
+        try {
+            Map<String, String> result = objectMapper.readValue(revisionEntity.getRawObject(), Map.class);
+            if (result.containsKey(descriptionKey)) {
+                metadata.getMetadataList().add(new Metadata(descriptionKey, result.get(descriptionKey), "General"));
+            }
+        } catch (Exception e) {
+            log.warn("Error when reading calendar's raw object (JSON). Returning object without description");
+        }
     }
 
     private Map<String, List<CatalogObjectNameReference>>
