@@ -28,9 +28,13 @@ package org.ow2.proactive.catalog.util.parser;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.ow2.proactive.catalog.dto.Metadata;
 import org.ow2.proactive.catalog.repository.entity.KeyValueLabelMetadataEntity;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -45,6 +49,8 @@ import lombok.extern.log4j.Log4j2;
 
 public final class CalendarDefinitionParser extends AbstractCatalogObjectParser {
 
+    public static final String DESCRIPTION_KEY = "description";
+
     @Override
     public boolean isMyKind(String kind) {
         return kind.toLowerCase().startsWith(SupportedParserKinds.CALENDAR.toString().toLowerCase());
@@ -57,6 +63,16 @@ public final class CalendarDefinitionParser extends AbstractCatalogObjectParser 
 
     @Override
     List<KeyValueLabelMetadataEntity> getMetadataKeyValues(InputStream inputStream) {
-        return new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<KeyValueLabelMetadataEntity> result = new ArrayList<>(1);
+        try {
+            Map<String, String> parse = objectMapper.readValue(inputStream, Map.class);
+            if (parse.containsKey(DESCRIPTION_KEY)) {
+                result.add(new KeyValueLabelMetadataEntity(DESCRIPTION_KEY, parse.get(DESCRIPTION_KEY), "General"));
+            }
+        } catch (Exception e) {
+            log.warn("Error when reading calendar's raw object (JSON). Returning object without description");
+        }
+        return result;
     }
 }
