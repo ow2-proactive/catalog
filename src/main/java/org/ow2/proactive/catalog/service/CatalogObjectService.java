@@ -807,7 +807,6 @@ public class CatalogObjectService {
     public CatalogObjectMetadata getCatalogObjectMetadata(String bucketName, String name) {
         CatalogObjectRevisionEntity revisionEntity = findCatalogObjectByNameAndBucketAndCheck(bucketName, name);
         CatalogObjectMetadata metadata = new CatalogObjectMetadata(revisionEntity);
-        // If we are fetching the metadata of a calendar object, we read the description from the raw object and add it to the keyValueMetadataList
         if (StringUtils.equalsIgnoreCase(metadata.getKind(), CALENDAR.toString())) {
             addDescriptionMetadataToCalendar(revisionEntity, metadata);
         }
