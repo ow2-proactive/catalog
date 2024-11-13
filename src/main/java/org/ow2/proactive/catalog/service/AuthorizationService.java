@@ -52,6 +52,10 @@ public class AuthorizationService {
             return true;
         }
 
+        if (authenticatedUser.isCatalogAdmin()) {
+            return true;
+        }
+
         String groupName = ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString(bucketOwnerOrGroup);
         return authenticatedUser.getGroups().contains(groupName);
     }

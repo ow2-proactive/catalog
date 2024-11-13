@@ -25,6 +25,7 @@
  */
 package org.ow2.proactive.catalog.rest.controller;
 
+import static org.ow2.proactive.catalog.util.ReportHelper.getListOfAuthorizedBuckets;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 import java.io.IOException;
@@ -45,6 +46,7 @@ import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketGrantAccessException;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.GrantHelper;
+import org.ow2.proactive.catalog.util.ReportHelper;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -113,7 +115,16 @@ public class CatalogObjectCallGraphController {
             @Parameter(description = "The minimum time the object was last committed") @RequestParam(value = "lastCommitTimeGreater", required = false) Optional<Long> lastCommitTimeGreaterThan)
             throws NotAuthenticatedException, AccessDeniedException, IOException {
 
-        List<String> authorisedBucketsNames = getListOfAuthorizedBuckets(sessionId, ownerName, kind, contentType);
+        List<String> authorisedBucketsNames = getListOfAuthorizedBuckets(bucketGrantService,
+                                                                         bucketService,
+                                                                         catalogObjectGrantService,
+                                                                         grantRightsService,
+                                                                         restApiAccessService,
+                                                                         sessionIdRequired,
+                                                                         sessionId,
+                                                                         ownerName,
+                                                                         kind,
+                                                                         contentType);
         bucketName.ifPresent(bucketNameFilter -> authorisedBucketsNames.removeIf(bName -> !bName.contains(bucketNameFilter)));
 
         byte[] content = catalogObjectCallGraphService.generateBytesCallGraphForAllBucketsAsZip(authorisedBucketsNames,
@@ -178,59 +189,7 @@ public class CatalogObjectCallGraphController {
     }
 
     private void flushResponse(HttpServletResponse response, byte[] content) throws IOException {
-        response.addHeader("Content-size", Integer.toString(content.length));
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType(MediaType.APPLICATION_PDF_VALUE);
-        response.setHeader("Content-Disposition", "attachment; filename=call-graph.pdf");
-
-        response.getOutputStream().write(content);
-        response.getOutputStream().flush();
-    }
-
-    private List<String> getListOfAuthorizedBuckets(String sessionId, String ownerName, Optional<String> kind,
-            Optional<String> contentType) throws NotAuthenticatedException, AccessDeniedException {
-        List<BucketMetadata> authorisedBuckets;
-        if (sessionIdRequired) {
-            // Check session validation
-            if (!restApiAccessService.isSessionActive(sessionId)) {
-                throw new AccessDeniedException("Session id is not active. Please login.");
-            }
-
-            // Check Grants
-            AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
-
-            authorisedBuckets = bucketService.getBucketsByGroups(ownerName, kind, contentType, () -> user.getGroups());
-            authorisedBuckets.addAll(grantRightsService.getBucketsByPrioritiedGrants(user));
-
-            List<BucketGrantMetadata> allBucketsGrants = bucketGrantService.getUserAllBucketsGrants(user);
-            List<CatalogObjectGrantMetadata> allCatalogObjectsGrants = catalogObjectGrantService.getObjectsGrants(user);
-
-            List<BucketMetadata> res = new LinkedList<>();
-            for (BucketMetadata data : authorisedBuckets) {
-                List<BucketGrantMetadata> bucketGrants = GrantHelper.filterBucketGrants(allBucketsGrants,
-                                                                                        data.getName());
-                grantRightsService.addGrantsForBucketOwner(user, data.getName(), data.getOwner(), bucketGrants);
-                List<CatalogObjectGrantMetadata> objectsInBucketGrants = GrantHelper.filterBucketGrants(allCatalogObjectsGrants,
-                                                                                                        data.getName());
-
-                String bucketGrantAccessType = grantRightsService.getBucketRights(bucketGrants);
-                int objectCount = grantRightsService.getNumberOfAccessibleObjectsInBucket(data,
-                                                                                          bucketGrants,
-                                                                                          objectsInBucketGrants);
-                BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), objectCount);
-                metadata.setRights(bucketGrantAccessType);
-                if (!res.contains(metadata)) {
-                    res.add(metadata);
-                }
-            }
-            authorisedBuckets.clear();
-            authorisedBuckets.addAll(res);
-
-        } else {
-            authorisedBuckets = bucketService.listBuckets(ownerName, kind, contentType);
-        }
-
-        return authorisedBuckets.stream().map(BucketMetadata::getName).collect(Collectors.toList());
+        ReportHelper.flushResponse(response, content, "call-graph.pdf");
     }
 
 }
