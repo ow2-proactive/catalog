@@ -80,7 +80,7 @@ public class GrantRightsService {
         if (bucket == null) {
             throw new BucketNotFoundException(bucketName);
         }
-        if (GrantHelper.isPublicBucket(bucket.getOwner())) {
+        if (GrantHelper.isPublicBucket(bucket.getOwner()) || user.isCatalogAdmin()) {
             return admin.name();
         }
 
@@ -121,6 +121,9 @@ public class GrantRightsService {
         CatalogObjectRevisionEntity object = catalogObjectGrantService.getCatalogObject(bucketName, catalogObjectName);
         if (object == null) {
             throw new CatalogObjectNotFoundException(bucketName, catalogObjectName);
+        }
+        if (user.isCatalogAdmin()) {
+            return admin.name();
         }
 
         List<CatalogObjectGrantMetadata> objGrants = catalogObjectGrantService.getObjectGrants(user,
@@ -271,7 +274,7 @@ public class GrantRightsService {
     public boolean isBucketAccessible(AuthenticatedUser user, BucketMetadata bucket) {
         boolean isPublicBucket = GrantHelper.isPublicBucket(bucket.getOwner());
 
-        if (isPublicBucket) {
+        if (isPublicBucket || user.isCatalogAdmin()) {
             return true;
         } else {
             List<BucketGrantMetadata> bucketGrants = bucketGrantService.getUserBucketGrants(user, bucket.getName());

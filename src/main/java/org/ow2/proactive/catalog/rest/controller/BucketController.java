@@ -225,7 +225,7 @@ public class BucketController {
                                                           lastCommitTimeLessThan,
                                                           sessionId,
                                                           allBucketsEnabled,
-                                                          user::getGroups);
+                                                          user);
             listBucket.addAll(grantRightsService.getBucketsByPrioritiedGrants(user));
             listBucket = GrantHelper.removeDuplicate(listBucket);
 
@@ -233,7 +233,7 @@ public class BucketController {
             List<CatalogObjectGrantMetadata> allCatalogObjectsGrants = catalogObjectGrantService.getObjectsGrants(user);
 
             for (BucketMetadata bucket : listBucket) {
-                if (GrantHelper.isPublicBucket(bucket.getOwner())) {
+                if (GrantHelper.isPublicBucket(bucket.getOwner()) || user.isCatalogAdmin()) {
                     bucket.setRights(admin.name());
                 } else {
                     List<BucketGrantMetadata> bucketGrants = GrantHelper.filterBucketGrants(allBucketsGrants,

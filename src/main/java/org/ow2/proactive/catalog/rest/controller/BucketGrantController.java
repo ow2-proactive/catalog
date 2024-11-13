@@ -102,7 +102,7 @@ public class BucketGrantController {
         String initiator = ANONYMOUS;
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
-            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
             initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -146,7 +146,7 @@ public class BucketGrantController {
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
             initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -189,7 +189,7 @@ public class BucketGrantController {
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
             initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -224,7 +224,7 @@ public class BucketGrantController {
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
             initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -257,7 +257,7 @@ public class BucketGrantController {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
         }
         return bucketGrantService.getAllBucketGrantsForABucket(bucketName);
     }
@@ -281,7 +281,7 @@ public class BucketGrantController {
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            checkAccess(sessionId, user, bucketName, PUBLIC_CANNOT_ASSIGN_A_GRANT);
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_CANNOT_ASSIGN_A_GRANT);
             initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -325,7 +325,7 @@ public class BucketGrantController {
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            checkAccess(sessionId, user, bucketName, PUBLIC_CANNOT_ASSIGN_A_GRANT);
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_CANNOT_ASSIGN_A_GRANT);
             initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -363,7 +363,7 @@ public class BucketGrantController {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
             initiator = user.getName();
         }
         List<BucketGrantMetadata> bucketGrantMetadataList = bucketGrantService.deleteAllGrantsAssignedToABucket(bucketName);
@@ -383,7 +383,7 @@ public class BucketGrantController {
         if (sessionIdRequired) {
             AuthenticatedUser user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
         }
         return bucketGrantService.getAllBucketAndObjectGrants(bucketName);
     }
@@ -403,7 +403,7 @@ public class BucketGrantController {
         if (sessionIdRequired) {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             // Check session validation
-            checkAccess(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
             initiator = user.getName();
         } else {
             user = AuthenticatedUser.EMPTY;
@@ -420,7 +420,7 @@ public class BucketGrantController {
         return deletedGrantsForTheBucketAndItsObjects;
     }
 
-    private void checkAccess(String sessionId, AuthenticatedUser user, String bucketName,
+    private void checkAccessAndNotPublicBucket(String sessionId, AuthenticatedUser user, String bucketName,
             String publicBucketExceptionMessage) {
         // Check session validation
         if (!restApiAccessService.isUserSessionActive(sessionId, user.getName())) {
