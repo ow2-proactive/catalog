@@ -96,6 +96,7 @@ public class SchedulerUserAuthenticationService {
         return AuthenticatedUser.builder()
                                 .name(userData.getUserName())
                                 .groups(new ArrayList<String>(userData.getGroups()))
+                                .catalogAdmin(userData.isAllCatalogPermission())
                                 .build();
     }
 }

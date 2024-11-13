@@ -51,4 +51,6 @@ public class AuthenticatedUser {
     private String name;
 
     private List<String> groups;
+
+    private boolean catalogAdmin = false;
 }

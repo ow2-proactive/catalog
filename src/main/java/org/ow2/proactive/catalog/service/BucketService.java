@@ -45,6 +45,7 @@ import org.ow2.proactive.catalog.service.exception.AccessDeniedException;
 import org.ow2.proactive.catalog.service.exception.BucketNameIsNotValidException;
 import org.ow2.proactive.catalog.service.exception.BucketNotFoundException;
 import org.ow2.proactive.catalog.service.exception.DeleteNonEmptyBucketException;
+import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -180,7 +181,7 @@ public class BucketService {
 
     private List<BucketMetadata> getBucketEntities(List<String> owners, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName, Optional<Long> lastCommitTimeGreater,
-            Optional<Long> lastCcommitTimeLessThan, boolean allBuckets) {
+            Optional<Long> lastCommitTimeLessThan, boolean allBuckets) {
         List<String> kindList = convertKindFilterToList(kind);
         long startTime = System.currentTimeMillis();
         List<Object[]> filteredBucketsFromDB = bucketRepository.findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(owners,
@@ -188,7 +189,7 @@ public class BucketService {
                                                                                                                                                            contentType.orElse(""),
                                                                                                                                                            objectName.orElse(""),
                                                                                                                                                            lastCommitTimeGreater.orElse(0L),
-                                                                                                                                                           lastCcommitTimeLessThan.orElse(0L));
+                                                                                                                                                           lastCommitTimeLessThan.orElse(0L));
 
         List<BucketEntity> allBucketsFromDB = allBuckets ? bucketRepository.findAll() : null;
         log.debug("bucket list timer : get buckets : DB request with filtering {} ms",
@@ -490,7 +491,7 @@ public class BucketService {
 
     @Transactional(readOnly = true)
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
-            Optional<String> contentType, Supplier<List<String>> authenticatedUserGroupsSupplier) {
+            Optional<String> contentType, AuthenticatedUser user) {
         return getBucketsByGroups(ownerName,
                                   kind,
                                   contentType,
@@ -504,7 +505,7 @@ public class BucketService {
                                   Optional.empty(),
                                   null,
                                   false,
-                                  authenticatedUserGroupsSupplier);
+                                  user);
     }
 
     @Transactional(readOnly = true)
@@ -512,15 +513,18 @@ public class BucketService {
             Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
             Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
             Optional<String> committedAtLeastOnceBy, Optional<Long> lastCommitTimeGreater,
-            Optional<Long> lastCommitTimeLessThan, String sessionId, boolean allBuckets,
-            Supplier<List<String>> authenticatedUserGroupsSupplier)
+            Optional<Long> lastCommitTimeLessThan, String sessionId, boolean allBuckets, AuthenticatedUser user)
             throws NotAuthenticatedException, AccessDeniedException {
         List<String> groups;
         long startTime = System.currentTimeMillis();
 
         if (ownerName == null) {
-            groups = ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(authenticatedUserGroupsSupplier.get());
-            groups.add(BucketService.DEFAULT_BUCKET_OWNER);
+            if (user.isCatalogAdmin()) {
+                groups = Collections.emptyList();
+            } else {
+                groups = ownerGroupStringHelper.getGroupsWithPrefixFromGroupList(user.getGroups());
+                groups.add(BucketService.DEFAULT_BUCKET_OWNER);
+            }
         } else {
             groups = Collections.singletonList(ownerName);
         }

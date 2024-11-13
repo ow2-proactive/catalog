@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.util.Strings;
 import org.jboss.resteasy.annotations.Body;
 import org.ow2.proactive.catalog.dto.*;
@@ -486,7 +487,7 @@ public class CatalogObjectController {
                                                                                                pageNo,
                                                                                                pageSize);
 
-            if (sessionIdRequired && !userGrants.isPublicBucket()) {
+            if (sessionIdRequired && !userGrants.isPublicBucket() && !userGrants.isCatalogAdmin()) {
                 // remove all objects that the user shouldn't have access according to the grants specification.
                 GrantRightsService.removeInaccessibleObjectsInBucket(metadataList,
                                                                      userGrants.getBucketGrants(),
@@ -501,7 +502,8 @@ public class CatalogObjectController {
                 if (sessionIdRequired) {
                     List<CatalogObjectGrantMetadata> objectsGrants = GrantHelper.filterObjectGrants(userGrants.getCatalogObjectsGrants(),
                                                                                                     catalogObject.getName());
-                    catalogObject.setRights(GrantRightsService.getCatalogObjectRights(userGrants.isPublicBucket(),
+                    catalogObject.setRights(GrantRightsService.getCatalogObjectRights(userGrants.isPublicBucket() ||
+                                                                                      userGrants.isCatalogAdmin(),
                                                                                       userGrants.getBucketRights(),
                                                                                       userSpecificBucketRights,
                                                                                       objectsGrants));
@@ -571,7 +573,7 @@ public class CatalogObjectController {
                                                                                            Optional.empty(),
                                                                                            0,
                                                                                            Integer.MAX_VALUE);
-        if (sessionIdRequired && !userGrants.isPublicBucket()) {
+        if (sessionIdRequired && !userGrants.isPublicBucket() && !userGrants.isCatalogAdmin()) {
             // remove all objects that the user shouldn't have access according to the grants specification.
             GrantRightsService.removeInaccessibleObjectsInBucket(metadataList,
                                                                  userGrants.getBucketGrants(),
@@ -677,6 +679,7 @@ public class CatalogObjectController {
 
     private UserBucketGrants checkAndGetUserGrantsForBucket(String sessionId, String bucketName) {
         boolean isPublicBucket = false;
+
         List<BucketGrantMetadata> userBucketGrants = Collections.emptyList();
         List<CatalogObjectGrantMetadata> userCatalogGrants = Collections.emptyList();
         String bucketRights = Strings.EMPTY;
@@ -690,7 +693,7 @@ public class CatalogObjectController {
             user = restApiAccessService.getUserFromSessionId(sessionId);
             BucketMetadata bucket = bucketService.getBucketMetadata(bucketName);
             isPublicBucket = GrantHelper.isPublicBucket(bucket.getOwner());
-            if (isPublicBucket) {
+            if (isPublicBucket || user.isCatalogAdmin()) {
                 bucketRights = admin.name();
             } else {
                 userBucketGrants = bucketGrantService.getUserBucketGrants(user, bucketName);
@@ -705,6 +708,7 @@ public class CatalogObjectController {
         }
         return UserBucketGrants.builder()
                                .isPublicBucket(isPublicBucket)
+                               .isCatalogAdmin(!sessionIdRequired || user.isCatalogAdmin())
                                .bucketRights(bucketRights)
                                .catalogObjectsGrants(userCatalogGrants)
                                .bucketGrants(userBucketGrants)
@@ -809,6 +813,8 @@ public class CatalogObjectController {
     @Builder
     private static class UserBucketGrants {
         boolean isPublicBucket;
+
+        boolean isCatalogAdmin;
 
         String bucketRights;
 
