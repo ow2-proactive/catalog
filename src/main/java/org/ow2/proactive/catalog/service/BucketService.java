@@ -95,16 +95,17 @@ public class BucketService {
     private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
 
     public BucketMetadata createBucket(String name) {
-        return createBucket(name, DEFAULT_BUCKET_OWNER);
+        return createBucket(name, DEFAULT_BUCKET_OWNER, "");
     }
 
     @Transactional
-    public BucketMetadata createBucket(String name, String owner) throws DataIntegrityViolationException {
+    public BucketMetadata createBucket(String name, String owner, String tenant)
+            throws DataIntegrityViolationException {
         if (!bucketNameValidator.isValid(name)) {
             throw new BucketNameIsNotValidException(name);
         }
 
-        BucketEntity bucketEntity = new BucketEntity(name, owner);
+        BucketEntity bucketEntity = new BucketEntity(name, owner, tenant);
 
         bucketEntity = bucketRepository.save(bucketEntity);
         return new BucketMetadata(bucketEntity, 0);
@@ -139,11 +140,11 @@ public class BucketService {
     }
 
     @Transactional(readOnly = true)
-    public List<BucketMetadata> listBuckets(List<String> owners, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
-            Optional<String> projectName, Optional<String> lastCommitBy, Optional<String> committedAtLeastOnceBy,
-            Optional<Long> lastCommitTimeGreater, Optional<Long> lastCommitTimeLessThan, String sessionId,
-            boolean allBuckets) {
+    public List<BucketMetadata> listBuckets(List<String> owners, String tenant, String userTenant,
+            Optional<String> kind, Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
+            Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
+            Optional<String> committedAtLeastOnceBy, Optional<Long> lastCommitTimeGreater,
+            Optional<Long> lastCommitTimeLessThan, String sessionId, boolean allBuckets) {
         if (owners == null) {
             return Collections.emptyList();
         }
@@ -154,7 +155,9 @@ public class BucketService {
                                                           objectName,
                                                           lastCommitTimeGreater,
                                                           lastCommitTimeLessThan,
-                                                          allBuckets);
+                                                          allBuckets,
+                                                          tenant,
+                                                          userTenant);
 
         // Consider now objectTag, association status, project name, last committed by, commit time range filters
         if (tag.isPresent() || associationStatus.isPresent() || projectName.isPresent() || lastCommitBy.isPresent() ||
@@ -181,7 +184,7 @@ public class BucketService {
 
     private List<BucketMetadata> getBucketEntities(List<String> owners, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName, Optional<Long> lastCommitTimeGreater,
-            Optional<Long> lastCommitTimeLessThan, boolean allBuckets) {
+            Optional<Long> lastCommitTimeLessThan, boolean allBuckets, String tenant, String userTenant) {
         List<String> kindList = convertKindFilterToList(kind);
         long startTime = System.currentTimeMillis();
         List<Object[]> filteredBucketsFromDB = bucketRepository.findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(owners,
@@ -189,7 +192,9 @@ public class BucketService {
                                                                                                                                                            contentType.orElse(""),
                                                                                                                                                            objectName.orElse(""),
                                                                                                                                                            lastCommitTimeGreater.orElse(0L),
-                                                                                                                                                           lastCommitTimeLessThan.orElse(0L));
+                                                                                                                                                           lastCommitTimeLessThan.orElse(0L),
+                                                                                                                                                           tenant,
+                                                                                                                                                           userTenant);
 
         List<BucketEntity> allBucketsFromDB = allBuckets ? bucketRepository.findAll() : null;
         log.debug("bucket list timer : get buckets : DB request with filtering {} ms",
@@ -231,7 +236,8 @@ public class BucketService {
         return bucketEntityWithContentCountList.stream()
                                                .map(bucketEntityWithContentCount -> new BucketMetadata((String) bucketEntityWithContentCount[0],
                                                                                                        (String) bucketEntityWithContentCount[1],
-                                                                                                       ((Long) bucketEntityWithContentCount[2]).intValue()))
+                                                                                                       ((Long) bucketEntityWithContentCount[2]).intValue(),
+                                                                                                       (String) bucketEntityWithContentCount[3]))
                                                .collect(Collectors.toList());
 
     }
@@ -247,6 +253,8 @@ public class BucketService {
     @Transactional(readOnly = true)
     public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType) {
         return listBuckets(ownerName,
+                           null,
+                           null,
                            kind,
                            contentType,
                            Optional.empty(),
@@ -261,12 +269,15 @@ public class BucketService {
     }
 
     @Transactional(readOnly = true)
-    public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
-            Optional<String> projectName, Optional<String> lastCommitBy, Optional<String> committedAtLeastOnceBy,
-            Optional<Long> lastCommitTimeGreater, Optional<Long> lastCommitTimeLessThan, String sessionId) {
+    public List<BucketMetadata> listBuckets(String ownerName, String tenant, String userTenant, Optional<String> kind,
+            Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
+            Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
+            Optional<String> committedAtLeastOnceBy, Optional<Long> lastCommitTimeGreater,
+            Optional<Long> lastCommitTimeLessThan, String sessionId) {
 
         return listBuckets(ownerName,
+                           tenant,
+                           userTenant,
                            kind,
                            contentType,
                            objectName,
@@ -282,15 +293,17 @@ public class BucketService {
     }
 
     @Transactional(readOnly = true)
-    public List<BucketMetadata> listBuckets(String ownerName, Optional<String> kind, Optional<String> contentType,
-            Optional<String> objectName, Optional<String> tag, Optional<String> associationStatus,
-            Optional<String> projectName, Optional<String> lastCommitBy, Optional<String> committedAtLeastOnceBy,
-            Optional<Long> lastCommitTimeGreater, Optional<Long> lastCommitTimeLessThan, String sessionId,
-            boolean allBuckets) {
+    public List<BucketMetadata> listBuckets(String ownerName, String tenant, String userTenant, Optional<String> kind,
+            Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
+            Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
+            Optional<String> committedAtLeastOnceBy, Optional<Long> lastCommitTimeGreater,
+            Optional<Long> lastCommitTimeLessThan, String sessionId, boolean allBuckets) {
         List<String> owners = StringUtils.isEmpty(ownerName) ? Collections.emptyList()
                                                              : Collections.singletonList(ownerName);
 
         return listBuckets(owners,
+                           tenant,
+                           userTenant,
                            kind,
                            contentType,
                            objectName,
@@ -493,6 +506,7 @@ public class BucketService {
     public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
             Optional<String> contentType, AuthenticatedUser user) {
         return getBucketsByGroups(ownerName,
+                                  null,
                                   kind,
                                   contentType,
                                   Optional.empty(),
@@ -509,7 +523,7 @@ public class BucketService {
     }
 
     @Transactional(readOnly = true)
-    public List<BucketMetadata> getBucketsByGroups(String ownerName, Optional<String> kind,
+    public List<BucketMetadata> getBucketsByGroups(String ownerName, String tenant, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
             Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
             Optional<String> committedAtLeastOnceBy, Optional<Long> lastCommitTimeGreater,
@@ -530,6 +544,8 @@ public class BucketService {
         }
 
         List<BucketMetadata> bucketsByGroups = listBuckets(groups,
+                                                           tenant,
+                                                           user.getTenant(),
                                                            kind,
                                                            contentType,
                                                            objectName,

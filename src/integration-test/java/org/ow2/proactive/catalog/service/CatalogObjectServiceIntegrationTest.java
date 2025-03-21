@@ -102,7 +102,7 @@ public class CatalogObjectServiceIntegrationTest {
         PASchedulerProperties.CATALOG_REST_URL.updateProperty("http://localhost:8080/catalog");
 
         // Bucket
-        bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
+        bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest", "");
 
         // Metadata
         Metadata[] metadataArray = { new Metadata("key", "value", "type"),
@@ -2086,7 +2086,8 @@ public class CatalogObjectServiceIntegrationTest {
         //create a second bucket and add some catalog objects to it
 
         BucketMetadata secondBucket = bucketService.createBucket("second-bucket",
-                                                                 "CatalogObjectServiceIntegrationTest");
+                                                                 "CatalogObjectServiceIntegrationTest",
+                                                                 "");
 
         catalogObjectService.createCatalogObject(secondBucket.getName(),
                                                  "catalog_object_1",
@@ -2192,9 +2193,10 @@ public class CatalogObjectServiceIntegrationTest {
 
         String secondBucketName = "aaa-bucket";
         BucketMetadata secondBucket = bucketService.createBucket(secondBucketName,
-                                                                 "CatalogObjectServiceIntegrationTest");
+                                                                 "CatalogObjectServiceIntegrationTest",
+                                                                 "");
 
-        bucketService.createBucket("empty-bucket", "CatalogObjectServiceIntegrationTest");
+        bucketService.createBucket("empty-bucket", "CatalogObjectServiceIntegrationTest", "");
 
         //Adding the object to the new bucket
         catalogObjectService.createCatalogObject(secondBucket.getName(),

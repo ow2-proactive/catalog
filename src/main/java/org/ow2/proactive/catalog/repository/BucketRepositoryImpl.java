@@ -28,6 +28,7 @@ package org.ow2.proactive.catalog.repository;
 import static org.ow2.proactive.catalog.service.BucketService.DEFAULT_BUCKET_OWNER;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -51,35 +52,39 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
     public List<Object[]> findBucketContainingKindListAndContentTypeAndObjectName(List<String> kindList,
             String contentType, String objectName) {
 
-        return em.createQuery(buildCriteriaQuery(null, kindList, contentType, objectName, null, null)).getResultList();
+        return em.createQuery(buildCriteriaQuery(null, kindList, contentType, objectName, null, null, null))
+                 .getResultList();
     }
 
     @Override
     public List<Object[]> findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(
             List<String> owners, List<String> kindList, String contentType, String objectName,
-            Long committedTimeGreater, Long committedTimeLessThan) {
+            Long committedTimeGreater, Long committedTimeLessThan, String tenant, String userTenant) {
 
         return em.createQuery(buildCriteriaQuery(owners,
                                                  kindList,
                                                  contentType,
                                                  objectName,
                                                  committedTimeGreater,
-                                                 committedTimeLessThan))
+                                                 committedTimeLessThan,
+                                                 tenant,
+                                                 userTenant))
                  .getResultList();
     }
 
     @Override
     public List<Object[]> findBucketByOwnerContainingKindList(List<String> owners, List<String> kindList) {
-        return em.createQuery(buildCriteriaQuery(owners, kindList, null, null, null, null)).getResultList();
+        return em.createQuery(buildCriteriaQuery(owners, kindList, null, null, null, null, null)).getResultList();
     }
 
     @Override
     public List<Object[]> findBucketContainingKindList(List<String> kindList) {
-        return em.createQuery(buildCriteriaQuery(null, kindList, null, null, null, null)).getResultList();
+        return em.createQuery(buildCriteriaQuery(null, kindList, null, null, null, null, null)).getResultList();
     }
 
     private CriteriaQuery<Object[]> buildCriteriaQuery(List<String> owners, List<String> kindList, String contentType,
-            String objectName, Long committedTimeGreater, Long committedTimeLessThan) {
+            String objectName, Long committedTimeGreater, Long committedTimeLessThan, String tenant,
+            String userTenant) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
         Root<BucketEntity> bucketEntityRoot = cq.from(BucketEntity.class);
@@ -119,6 +124,15 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
             Predicate ownerPredicate = cb.in(bucketEntityRoot.get("owner")).value(owners);
             allPredicates.add(ownerPredicate);
         }
+        if (!Strings.isNullOrEmpty(tenant)) {
+            Predicate tenantPredicate = cb.equal(bucketEntityRoot.get("tenant"), tenant);
+            allPredicates.add(tenantPredicate);
+        }
+        if (!Strings.isNullOrEmpty(userTenant)) {
+            Predicate tenantPredicate = cb.in(bucketEntityRoot.get("tenant"))
+                                          .value(Arrays.asList(userTenant, "", null));
+            allPredicates.add(tenantPredicate);
+        }
 
         if (committedTimeGreater > 0) {
             allPredicates.add(cb.ge(catalogObjectsJoin.get("lastCommitTime"), committedTimeGreater));
@@ -140,9 +154,22 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
         cq.multiselect(bucketEntityRoot.get("bucketName"),
                        bucketEntityRoot.get("owner"),
                        cb.count(catalogObjectsJoin.get("id").get("name")),
+                       bucketEntityRoot.get("tenant"),
                        bucketEntityRoot.get("id"))
           .groupBy(bucketEntityRoot.get("bucketName"), bucketEntityRoot.get("owner"), bucketEntityRoot.get("id"));
         return cq;
+    }
+
+    private CriteriaQuery<Object[]> buildCriteriaQuery(List<String> owners, List<String> kindList, String contentType,
+            String objectName, Long committedTimeGreater, Long committedTimeLessThan, String tenant) {
+        return buildCriteriaQuery(owners,
+                                  kindList,
+                                  contentType,
+                                  objectName,
+                                  committedTimeGreater,
+                                  committedTimeLessThan,
+                                  tenant,
+                                  null);
     }
 
     private String toBothSidesPredicatePattern(String pattern) {

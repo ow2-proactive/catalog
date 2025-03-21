@@ -68,7 +68,7 @@ public class BucketServiceIntegrationTest {
 
     @Before
     public void createBucket() {
-        bucket = bucketService.createBucket("bucket", "BucketServiceIntegrationTest");
+        bucket = bucketService.createBucket("bucket", "BucketServiceIntegrationTest", "");
         keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
         assertThat(bucket).isNotNull();
         assertThat(bucket.getOwner()).isEqualTo("BucketServiceIntegrationTest");
@@ -83,6 +83,8 @@ public class BucketServiceIntegrationTest {
     @Test
     public void testThatEmptyOwnerListReturnsABucketListAndDoesNotReturnAnException() {
         List emptyResult = bucketService.listBuckets(Collections.emptyList(),
+                                                     null,
+                                                     null,
                                                      Optional.empty(),
                                                      Optional.empty(),
                                                      Optional.empty(),
@@ -99,8 +101,29 @@ public class BucketServiceIntegrationTest {
     }
 
     @Test
+    public void testThatNotAuthorisedTenantCannotSeeBucket() {
+        bucketService.createBucket("bucketnotempty", "emptyBucketTest", "");
+        List<BucketMetadata> emptyBucketTest = bucketService.listBuckets("emptyBucketTest",
+                                                                         "notAuthorized",
+                                                                         null,
+                                                                         Optional.empty(),
+                                                                         Optional.empty(),
+                                                                         Optional.empty(),
+                                                                         Optional.empty(),
+                                                                         Optional.empty(),
+                                                                         Optional.empty(),
+                                                                         Optional.empty(),
+                                                                         Optional.empty(),
+                                                                         Optional.empty(),
+                                                                         Optional.empty(),
+                                                                         (String) null,
+                                                                         false);
+        assertThat(emptyBucketTest).isEmpty();
+    }
+
+    @Test
     public void testDeleteEmptyBucket() {
-        bucket = bucketService.createBucket("bucketnotempty", "emptyBucketTest");
+        bucket = bucketService.createBucket("bucketnotempty", "emptyBucketTest", "");
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
@@ -113,7 +136,7 @@ public class BucketServiceIntegrationTest {
                                                  null,
                                                  null);
 
-        bucketService.createBucket("bucketempty", "emptyBucketTest");
+        bucketService.createBucket("bucketempty", "emptyBucketTest", "");
 
         List<BucketMetadata> emptyBucketTest = bucketService.listBuckets("emptyBucketTest",
                                                                          Optional.empty(),
@@ -159,7 +182,7 @@ public class BucketServiceIntegrationTest {
 
     @Test
     public void testListBucketByOwnerAndCaseInsensitiveByKind() {
-        bucket = bucketService.createBucket("bucket-workflow", "owner");
+        bucket = bucketService.createBucket("bucket-workflow", "owner", "");
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
@@ -191,7 +214,7 @@ public class BucketServiceIntegrationTest {
     @Test
     public void testListBucketsCaseInsensitiveFilterByKindPrefix() {
         //create bucket with kind object workflow inside
-        bucket = bucketService.createBucket("bucket-workflow", "owner");
+        bucket = bucketService.createBucket("bucket-workflow", "owner", "");
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
@@ -205,7 +228,7 @@ public class BucketServiceIntegrationTest {
                                                  null);
 
         //create bucket with kind object workflow/standard inside
-        BucketMetadata bucketWfStandard = bucketService.createBucket("bucket-wf-standard", "owner");
+        BucketMetadata bucketWfStandard = bucketService.createBucket("bucket-wf-standard", "owner", "");
         catalogObjectService.createCatalogObject(bucketWfStandard.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
@@ -219,7 +242,7 @@ public class BucketServiceIntegrationTest {
                                                  null);
 
         //create bucket with kind object workflow/pca inside
-        BucketMetadata bucketWfPCA = bucketService.createBucket("bucket-wf-pca", "owner");
+        BucketMetadata bucketWfPCA = bucketService.createBucket("bucket-wf-pca", "owner", "");
         catalogObjectService.createCatalogObject(bucketWfPCA.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
@@ -233,7 +256,7 @@ public class BucketServiceIntegrationTest {
                                                  null);
 
         //create bucket with kind object not-workflow inside
-        BucketMetadata bucketNotWf = bucketService.createBucket("bucket-not-workflow", "different-owner");
+        BucketMetadata bucketNotWf = bucketService.createBucket("bucket-not-workflow", "different-owner", "");
         catalogObjectService.createCatalogObject(bucketNotWf.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
@@ -296,7 +319,7 @@ public class BucketServiceIntegrationTest {
     @Test
     public void testListBucketsFilterByKindList() {
         //create bucket with kind object workflow inside
-        bucket = bucketService.createBucket("bucket-workflow", "owner");
+        bucket = bucketService.createBucket("bucket-workflow", "owner", "");
         catalogObjectService.createCatalogObject(bucket.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
@@ -310,7 +333,7 @@ public class BucketServiceIntegrationTest {
                                                  null);
 
         //create bucket with kind object workflow/standard inside
-        BucketMetadata bucketWfStandard = bucketService.createBucket("bucket-rule", "owner");
+        BucketMetadata bucketWfStandard = bucketService.createBucket("bucket-rule", "owner", "");
         catalogObjectService.createCatalogObject(bucketWfStandard.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
@@ -324,7 +347,7 @@ public class BucketServiceIntegrationTest {
                                                  null);
 
         //create bucket with kind object workflow/pca inside
-        BucketMetadata bucketWfPCA = bucketService.createBucket("bucket-wf-pca", "owner");
+        BucketMetadata bucketWfPCA = bucketService.createBucket("bucket-wf-pca", "owner", "");
         catalogObjectService.createCatalogObject(bucketWfPCA.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,
@@ -338,7 +361,7 @@ public class BucketServiceIntegrationTest {
                                                  null);
 
         //create bucket with kind object not-workflow inside
-        BucketMetadata bucketNotWf = bucketService.createBucket("bucket-script", "different-owner");
+        BucketMetadata bucketNotWf = bucketService.createBucket("bucket-script", "different-owner", "");
         catalogObjectService.createCatalogObject(bucketNotWf.getName(),
                                                  "catalog",
                                                  PROJECT_NAME,

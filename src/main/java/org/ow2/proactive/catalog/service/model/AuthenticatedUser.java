@@ -53,4 +53,8 @@ public class AuthenticatedUser {
     private List<String> groups;
 
     private boolean catalogAdmin = false;
+
+    private String tenant;
+
+    private boolean allTenantAccess = false;
 }

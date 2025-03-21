@@ -53,28 +53,35 @@ public class BucketMetadata extends ResourceSupport implements Comparable<Bucket
     @JsonProperty
     private String rights;
 
+    @JsonProperty
+    private final String tenant;
+
     public BucketMetadata(BucketEntity bucket) {
         this.name = bucket.getBucketName();
         this.owner = bucket.getOwner();
         this.objectCount = 0;
+        this.tenant = bucket.getTenant();
     }
 
     public BucketMetadata(BucketEntity bucket, int objectCount) {
         this.name = bucket.getBucketName();
         this.owner = bucket.getOwner();
         this.objectCount = objectCount;
+        this.tenant = bucket.getTenant();
     }
 
-    public BucketMetadata(String name, String owner, int objectCount) {
+    public BucketMetadata(String name, String owner, int objectCount, String tenant) {
         this.name = name;
         this.owner = owner;
         this.objectCount = objectCount;
+        this.tenant = tenant;
     }
 
     public BucketMetadata(String name, String owner) {
         this.name = name;
         this.owner = owner;
         this.objectCount = 0;
+        this.tenant = "";
     }
 
     public String getOwner() {
@@ -83,6 +90,10 @@ public class BucketMetadata extends ResourceSupport implements Comparable<Bucket
 
     public String getName() {
         return name;
+    }
+
+    public String getTenant() {
+        return tenant;
     }
 
     public void setObjectCount(int objectCount) {

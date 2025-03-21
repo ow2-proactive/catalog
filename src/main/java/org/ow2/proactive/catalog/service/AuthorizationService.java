@@ -59,4 +59,24 @@ public class AuthorizationService {
         String groupName = ownerGroupStringHelper.extractGroupFromBucketOwnerOrGroupString(bucketOwnerOrGroup);
         return authenticatedUser.getGroups().contains(groupName);
     }
+
+    public boolean askUserAuthorizationByTenant(AuthenticatedUser authenticatedUser, String tenant) {
+        if (authenticatedUser == null) {
+            return false;
+        }
+
+        if (tenant == null) {
+            return true;
+        }
+
+        if (authenticatedUser.isCatalogAdmin()) {
+            return true;
+        }
+
+        if (authenticatedUser.isAllTenantAccess()) {
+            return true;
+        }
+
+        return tenant.equals(authenticatedUser.getTenant());
+    }
 }

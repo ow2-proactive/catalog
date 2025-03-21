@@ -117,7 +117,7 @@ public class GrantRightServiceTest {
 
     @Test
     public void testGetTheNumberOfAccessibleObjectsInTheBucketWithReadGrantBucketAndNoObjectGrants() {
-        BucketMetadata bucketRead = new BucketMetadata(bucketName, "admin-group", 5);
+        BucketMetadata bucketRead = new BucketMetadata(bucketName, "admin-group", 5, "");
         List<BucketGrantMetadata> bucketReadGrants = Collections.singletonList(createBucketGrantMetadata(username,
                                                                                                          read.toString(),
                                                                                                          bucketName));
@@ -134,7 +134,7 @@ public class GrantRightServiceTest {
         objectGrants.add(createObjectGrantMetadata(bucketName, "object2", noAccess.name()));
         objectGrants.add(createObjectGrantMetadata(bucketName, "object3", read.name()));
 
-        BucketMetadata bucketWrite = new BucketMetadata("test-write", "admin-group", 4);
+        BucketMetadata bucketWrite = new BucketMetadata("test-write", "admin-group", 4, "");
         List<BucketGrantMetadata> bucketWriteGrants = Collections.singletonList(createBucketGrantMetadata(username,
                                                                                                           write.toString(),
                                                                                                           bucketWrite.getName()));
@@ -151,7 +151,7 @@ public class GrantRightServiceTest {
         objectGrants.add(createObjectGrantMetadata(bucketName, "object2", write.name()));
         objectGrants.add(createObjectGrantMetadata(bucketName, "object3", noAccess.name()));
 
-        BucketMetadata bucketNoAccess = new BucketMetadata("test-noaccess", "admin-group", 7);
+        BucketMetadata bucketNoAccess = new BucketMetadata("test-noaccess", "admin-group", 7, "");
         List<BucketGrantMetadata> bucketNoAccessGrants = Collections.singletonList(createBucketGrantMetadata(username,
                                                                                                              noAccess.toString(),
                                                                                                              bucketNoAccess.getName()));

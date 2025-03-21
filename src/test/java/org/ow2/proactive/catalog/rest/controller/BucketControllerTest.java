@@ -70,7 +70,7 @@ public class BucketControllerTest {
     public void testCreate() throws Exception {
         final String bucketTestUser = "BucketControllerTestUser";
         bucketController.create("", "dummy", bucketTestUser);
-        verify(bucketService, times(1)).createBucket("dummy", bucketTestUser);
+        verify(bucketService, times(1)).createBucket("dummy", bucketTestUser, "");
     }
 
     @Test
@@ -85,6 +85,7 @@ public class BucketControllerTest {
         Optional type = Optional.ofNullable("type");
         bucketController.list(null,
                               null,
+                              null,
                               kind,
                               type,
                               Optional.ofNullable(null),
@@ -98,6 +99,8 @@ public class BucketControllerTest {
                               Optional.ofNullable(null),
                               "false");
         verify(bucketService, times(1)).listBuckets((String) null,
+                                                    null,
+                                                    null,
                                                     kind,
                                                     type,
                                                     Optional.empty(),
@@ -127,6 +130,7 @@ public class BucketControllerTest {
         Optional committedTimeLessThan = Optional.ofNullable(0L);
         bucketController.list(null,
                               null,
+                              null,
                               kind,
                               type,
                               name,
@@ -140,6 +144,8 @@ public class BucketControllerTest {
                               committedTimeLessThan,
                               "false");
         verify(bucketService, times(1)).listBuckets((String) null,
+                                                    null,
+                                                    null,
                                                     Optional.empty(),
                                                     Optional.empty(),
                                                     Optional.empty(),
