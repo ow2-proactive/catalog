@@ -37,6 +37,7 @@ import javax.persistence.criteria.*;
 
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
+import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.base.Strings;
@@ -59,7 +60,7 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
     @Override
     public List<Object[]> findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(
             List<String> owners, List<String> kindList, String contentType, String objectName,
-            Long committedTimeGreater, Long committedTimeLessThan, String tenant, String userTenant) {
+            Long committedTimeGreater, Long committedTimeLessThan, String tenant, AuthenticatedUser user) {
 
         return em.createQuery(buildCriteriaQuery(owners,
                                                  kindList,
@@ -68,7 +69,7 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
                                                  committedTimeGreater,
                                                  committedTimeLessThan,
                                                  tenant,
-                                                 userTenant))
+                                                 user))
                  .getResultList();
     }
 
@@ -84,7 +85,7 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
 
     private CriteriaQuery<Object[]> buildCriteriaQuery(List<String> owners, List<String> kindList, String contentType,
             String objectName, Long committedTimeGreater, Long committedTimeLessThan, String tenant,
-            String userTenant) {
+            AuthenticatedUser user) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
         Root<BucketEntity> bucketEntityRoot = cq.from(BucketEntity.class);
@@ -128,9 +129,21 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
             Predicate tenantPredicate = cb.equal(bucketEntityRoot.get("tenant"), tenant);
             allPredicates.add(tenantPredicate);
         }
-        if (!Strings.isNullOrEmpty(userTenant)) {
-            Predicate tenantPredicate = cb.in(bucketEntityRoot.get("tenant"))
-                                          .value(Arrays.asList(userTenant, "", null));
+        if (user != null && !user.isAllTenantAccess()) {
+            String userTenant = user.getTenant();
+            Predicate tenantPredicate;
+            if (!Strings.isNullOrEmpty(userTenant)) {
+                Predicate userTenantPredicate = cb.equal(bucketEntityRoot.get("tenant"), userTenant);
+                Predicate nullTenantPredicate = cb.isNull(bucketEntityRoot.get("tenant"));
+                if (!Strings.isNullOrEmpty(tenant)) {
+                    Predicate filteredTenantPredicate = cb.equal(bucketEntityRoot.get("tenant"), tenant);
+                    tenantPredicate = cb.or(userTenantPredicate, filteredTenantPredicate, nullTenantPredicate);
+                } else {
+                    tenantPredicate = cb.or(userTenantPredicate, nullTenantPredicate);
+                }
+            } else {
+                tenantPredicate = cb.isNull(bucketEntityRoot.get("tenant"));
+            }
             allPredicates.add(tenantPredicate);
         }
 

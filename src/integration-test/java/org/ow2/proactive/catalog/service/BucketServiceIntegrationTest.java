@@ -68,7 +68,7 @@ public class BucketServiceIntegrationTest {
 
     @Before
     public void createBucket() {
-        bucket = bucketService.createBucket("bucket", "BucketServiceIntegrationTest", "");
+        bucket = bucketService.createBucket("bucket", "BucketServiceIntegrationTest", null);
         keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
         assertThat(bucket).isNotNull();
         assertThat(bucket.getOwner()).isEqualTo("BucketServiceIntegrationTest");

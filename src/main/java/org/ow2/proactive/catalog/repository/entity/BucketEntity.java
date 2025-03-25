@@ -75,7 +75,7 @@ public class BucketEntity implements Serializable {
     @Column(name = "OWNER", nullable = false)
     protected String owner;
 
-    @Column(name = "TENANT", nullable = false)
+    @Column(name = "TENANT")
     protected String tenant;
 
     @OneToMany(mappedBy = "bucket", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST,
@@ -94,7 +94,7 @@ public class BucketEntity implements Serializable {
     public BucketEntity(String bucketName, String owner) {
         this.bucketName = bucketName;
         this.owner = owner;
-        this.tenant = "";
+        this.tenant = null;
         this.catalogObjects = new HashSet<>();
     }
 

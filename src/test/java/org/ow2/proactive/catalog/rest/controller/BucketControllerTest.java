@@ -70,7 +70,7 @@ public class BucketControllerTest {
     public void testCreate() throws Exception {
         final String bucketTestUser = "BucketControllerTestUser";
         bucketController.create("", "dummy", bucketTestUser);
-        verify(bucketService, times(1)).createBucket("dummy", bucketTestUser, "");
+        verify(bucketService, times(1)).createBucket("dummy", bucketTestUser, null);
     }
 
     @Test

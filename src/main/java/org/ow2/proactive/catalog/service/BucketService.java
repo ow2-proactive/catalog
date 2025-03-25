@@ -49,6 +49,7 @@ import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.util.name.validator.BucketNameValidator;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -93,6 +94,9 @@ public class BucketService {
 
     @Autowired
     private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
+
+    @Value("${pa.catalog.tenant.filtering}")
+    private boolean tenantFiltering;
 
     public BucketMetadata createBucket(String name) {
         return createBucket(name, DEFAULT_BUCKET_OWNER, "");
@@ -140,7 +144,7 @@ public class BucketService {
     }
 
     @Transactional(readOnly = true)
-    public List<BucketMetadata> listBuckets(List<String> owners, String tenant, String userTenant,
+    public List<BucketMetadata> listBuckets(List<String> owners, String tenant, AuthenticatedUser user,
             Optional<String> kind, Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
             Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
             Optional<String> committedAtLeastOnceBy, Optional<Long> lastCommitTimeGreater,
@@ -157,7 +161,7 @@ public class BucketService {
                                                           lastCommitTimeLessThan,
                                                           allBuckets,
                                                           tenant,
-                                                          userTenant);
+                                                          user);
 
         // Consider now objectTag, association status, project name, last committed by, commit time range filters
         if (tag.isPresent() || associationStatus.isPresent() || projectName.isPresent() || lastCommitBy.isPresent() ||
@@ -184,7 +188,7 @@ public class BucketService {
 
     private List<BucketMetadata> getBucketEntities(List<String> owners, Optional<String> kind,
             Optional<String> contentType, Optional<String> objectName, Optional<Long> lastCommitTimeGreater,
-            Optional<Long> lastCommitTimeLessThan, boolean allBuckets, String tenant, String userTenant) {
+            Optional<Long> lastCommitTimeLessThan, boolean allBuckets, String tenant, AuthenticatedUser user) {
         List<String> kindList = convertKindFilterToList(kind);
         long startTime = System.currentTimeMillis();
         List<Object[]> filteredBucketsFromDB = bucketRepository.findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(owners,
@@ -194,7 +198,7 @@ public class BucketService {
                                                                                                                                                            lastCommitTimeGreater.orElse(0L),
                                                                                                                                                            lastCommitTimeLessThan.orElse(0L),
                                                                                                                                                            tenant,
-                                                                                                                                                           userTenant);
+                                                                                                                                                           user);
 
         List<BucketEntity> allBucketsFromDB = allBuckets ? bucketRepository.findAll() : null;
         log.debug("bucket list timer : get buckets : DB request with filtering {} ms",
@@ -269,15 +273,15 @@ public class BucketService {
     }
 
     @Transactional(readOnly = true)
-    public List<BucketMetadata> listBuckets(String ownerName, String tenant, String userTenant, Optional<String> kind,
-            Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
+    public List<BucketMetadata> listBuckets(String ownerName, String tenant, AuthenticatedUser user,
+            Optional<String> kind, Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
             Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
             Optional<String> committedAtLeastOnceBy, Optional<Long> lastCommitTimeGreater,
             Optional<Long> lastCommitTimeLessThan, String sessionId) {
 
         return listBuckets(ownerName,
                            tenant,
-                           userTenant,
+                           user,
                            kind,
                            contentType,
                            objectName,
@@ -293,8 +297,8 @@ public class BucketService {
     }
 
     @Transactional(readOnly = true)
-    public List<BucketMetadata> listBuckets(String ownerName, String tenant, String userTenant, Optional<String> kind,
-            Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
+    public List<BucketMetadata> listBuckets(String ownerName, String tenant, AuthenticatedUser user,
+            Optional<String> kind, Optional<String> contentType, Optional<String> objectName, Optional<String> tag,
             Optional<String> associationStatus, Optional<String> projectName, Optional<String> lastCommitBy,
             Optional<String> committedAtLeastOnceBy, Optional<Long> lastCommitTimeGreater,
             Optional<Long> lastCommitTimeLessThan, String sessionId, boolean allBuckets) {
@@ -303,7 +307,7 @@ public class BucketService {
 
         return listBuckets(owners,
                            tenant,
-                           userTenant,
+                           user,
                            kind,
                            contentType,
                            objectName,
@@ -545,7 +549,7 @@ public class BucketService {
 
         List<BucketMetadata> bucketsByGroups = listBuckets(groups,
                                                            tenant,
-                                                           user.getTenant(),
+                                                           tenantFiltering ? user : null,
                                                            kind,
                                                            contentType,
                                                            objectName,
