@@ -148,7 +148,7 @@ public class BucketServiceTest {
         BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
         when(bucketNameValidator.isValid(anyString())).thenReturn(true);
-        BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME, "");
+        BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME, null);
         verify(bucketRepository, times(1)).save(any(BucketEntity.class));
         verify(bucketNameValidator, times(1)).isValid(anyString());
         assertEquals(mockedBucket.getBucketName(), bucketMetadata.getName());

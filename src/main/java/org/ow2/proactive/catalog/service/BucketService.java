@@ -99,7 +99,7 @@ public class BucketService {
     private boolean tenantFiltering;
 
     public BucketMetadata createBucket(String name) {
-        return createBucket(name, DEFAULT_BUCKET_OWNER, "");
+        return createBucket(name, DEFAULT_BUCKET_OWNER, null);
     }
 
     @Transactional
