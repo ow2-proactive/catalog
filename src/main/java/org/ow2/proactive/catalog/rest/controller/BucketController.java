@@ -93,9 +93,6 @@ public class BucketController {
     @Value("${pa.catalog.security.required.sessionid}")
     private boolean sessionIdRequired;
 
-    @Value("${pa.catalog.tenant.filtering}")
-    private boolean tenantFiltering;
-
     @SuppressWarnings("DefaultAnnotationParam")
     @Operation(summary = "Creates a new bucket")
     @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
@@ -114,18 +111,14 @@ public class BucketController {
         if (sessionIdRequired) {
             AuthenticatedUser authenticatedUser = restApiAccessService.getUserFromSessionId(sessionId);
             String tenant = authenticatedUser.getTenant();
-            if (tenantFiltering && !Strings.isNullOrEmpty(tenant)) {
-                restApiAccessService.checkAccessBySessionIdForOwnerOrGroupOrTenantAndThrowIfDeclined(sessionId,
-                                                                                                     ownerName,
-                                                                                                     tenant);
-            } else {
-                restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId, ownerName);
-            }
+            restApiAccessService.checkAccessBySessionIdForOwnerOrGroupOrTenantAndThrowIfDeclined(sessionId,
+                                                                                                 ownerName,
+                                                                                                 tenant);
             initiator = restApiAccessService.getUserFromSessionId(sessionId).getName();
         }
         try {
             String tenant = null;
-            if (tenantFiltering && sessionIdRequired) {
+            if (sessionIdRequired) {
                 AuthenticatedUser authenticatedUser = restApiAccessService.getUserFromSessionId(sessionId);
                 tenant = authenticatedUser.getTenant();
             }
@@ -226,9 +219,6 @@ public class BucketController {
         committedAtLeastOnceBy = committedAtLeastOnceBy.filter(s -> !s.isEmpty());
         boolean allBucketsEnabled = Boolean.parseBoolean(allBuckets);
         if (sessionIdRequired) {
-            if (!tenantFiltering) {
-                tenant = null;
-            }
             AuthenticatedUser user = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupOrTenantAndThrowIfDeclined(sessionId,
                                                                                                                           ownerName,
                                                                                                                           tenant)
@@ -275,9 +265,6 @@ public class BucketController {
                 }
             }
         } else {
-            if (!tenantFiltering) {
-                tenant = null;
-            }
             listBucket = bucketService.listBuckets(ownerName,
                                                    tenant,
                                                    null,

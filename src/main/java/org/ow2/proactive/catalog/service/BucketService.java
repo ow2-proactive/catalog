@@ -30,7 +30,6 @@ import static org.ow2.proactive.catalog.dto.AssociationStatus.UNPLANNED;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -96,13 +95,12 @@ public class BucketService {
     private CatalogObjectRevisionRepository catalogObjectRevisionRepository;
 
     @Value("${pa.catalog.tenant.filtering}")
-    private boolean tenantFiltering;
+    private boolean isTenantFiltering;
 
     public BucketMetadata createBucket(String name) {
         return createBucket(name, DEFAULT_BUCKET_OWNER, null);
     }
 
-    @Transactional
     public BucketMetadata createBucket(String name, String owner, String tenant)
             throws DataIntegrityViolationException {
         if (!bucketNameValidator.isValid(name)) {
@@ -199,8 +197,7 @@ public class BucketService {
                                                                                                                                                            lastCommitTimeLessThan.orElse(0L),
                                                                                                                                                            tenant,
                                                                                                                                                            user);
-
-        List<BucketEntity> allBucketsFromDB = allBuckets ? bucketRepository.findAll() : null;
+        List<BucketEntity> allBucketsFromDB = getAllFilteredBucketsFromDB(allBuckets, tenant, user);
         log.debug("bucket list timer : get buckets : DB request with filtering {} ms",
                   (System.currentTimeMillis() - startTime));
         List<BucketMetadata> filteredEntities = generateBucketMetadataListFromObject(filteredBucketsFromDB);
@@ -211,6 +208,33 @@ public class BucketService {
                   (System.currentTimeMillis() - startTime));
 
         return answer;
+    }
+
+    private List<BucketEntity> getAllFilteredBucketsFromDB(boolean allBuckets, String tenant, AuthenticatedUser user) {
+        List<BucketEntity> allBucketsFromDB;
+        if (isTenantFiltering && user != null && !user.isAllTenantAccess()) {
+            allBucketsFromDB = getBucketsFilteredByTenant(tenant, user);
+        } else {
+            allBucketsFromDB = allBuckets ? bucketRepository.findAll() : null;
+        }
+        return allBucketsFromDB;
+    }
+
+    private List<BucketEntity> getBucketsFilteredByTenant(String tenant, AuthenticatedUser user) {
+        List<BucketEntity> allBucketsFromDB;
+        String userTenant = user.getTenant();
+        boolean hasUserTenant = !Strings.isNullOrEmpty(userTenant);
+        boolean hasTenant = !Strings.isNullOrEmpty(tenant);
+        if (hasUserTenant && hasTenant) {
+            allBucketsFromDB = bucketRepository.findByTenantIn(Arrays.asList(userTenant, tenant, null));
+        } else if (hasUserTenant) {
+            allBucketsFromDB = bucketRepository.findByTenantIn(Arrays.asList(userTenant, null));
+        } else if (hasTenant) {
+            allBucketsFromDB = bucketRepository.findByTenantIn(Arrays.asList(tenant, null));
+        } else {
+            allBucketsFromDB = bucketRepository.findByTenantIsNull();
+        }
+        return allBucketsFromDB;
     }
 
     private List<BucketMetadata> mergeEntities(List<BucketMetadata> filteredEntities,
@@ -549,7 +573,7 @@ public class BucketService {
 
         List<BucketMetadata> bucketsByGroups = listBuckets(groups,
                                                            tenant,
-                                                           tenantFiltering ? user : null,
+                                                           user,
                                                            kind,
                                                            contentType,
                                                            objectName,

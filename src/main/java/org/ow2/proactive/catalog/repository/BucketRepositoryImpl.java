@@ -38,6 +38,7 @@ import javax.persistence.criteria.*;
 import org.ow2.proactive.catalog.repository.entity.BucketEntity;
 import org.ow2.proactive.catalog.repository.entity.CatalogObjectEntity;
 import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.base.Strings;
@@ -48,6 +49,9 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
 
     @PersistenceContext
     EntityManager em;
+
+    @Value("${pa.catalog.tenant.filtering}")
+    private boolean isTenantFiltering;
 
     @Override
     public List<Object[]> findBucketContainingKindListAndContentTypeAndObjectName(List<String> kindList,
@@ -129,12 +133,12 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
             Predicate tenantPredicate = cb.equal(bucketEntityRoot.get("tenant"), tenant);
             allPredicates.add(tenantPredicate);
         }
-        if (user != null && !user.isAllTenantAccess()) {
+        if (user != null && isTenantFiltering && !user.isAllTenantAccess()) {
             String userTenant = user.getTenant();
             Predicate tenantPredicate;
+            Predicate nullTenantPredicate = cb.isNull(bucketEntityRoot.get("tenant"));
             if (!Strings.isNullOrEmpty(userTenant)) {
                 Predicate userTenantPredicate = cb.equal(bucketEntityRoot.get("tenant"), userTenant);
-                Predicate nullTenantPredicate = cb.isNull(bucketEntityRoot.get("tenant"));
                 if (!Strings.isNullOrEmpty(tenant)) {
                     Predicate filteredTenantPredicate = cb.equal(bucketEntityRoot.get("tenant"), tenant);
                     tenantPredicate = cb.or(userTenantPredicate, filteredTenantPredicate, nullTenantPredicate);
@@ -142,7 +146,12 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
                     tenantPredicate = cb.or(userTenantPredicate, nullTenantPredicate);
                 }
             } else {
-                tenantPredicate = cb.isNull(bucketEntityRoot.get("tenant"));
+                if (!Strings.isNullOrEmpty(tenant)) {
+                    Predicate filteredTenantPredicate = cb.equal(bucketEntityRoot.get("tenant"), tenant);
+                    tenantPredicate = cb.or(filteredTenantPredicate, nullTenantPredicate);
+                } else {
+                    tenantPredicate = cb.isNull(bucketEntityRoot.get("tenant"));
+                }
             }
             allPredicates.add(tenantPredicate);
         }
