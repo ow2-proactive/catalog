@@ -30,6 +30,7 @@ import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
 import org.ow2.proactive.catalog.service.model.RestApiAccessResponse;
 import org.ow2.proactive.microservices.common.exception.NotAuthenticatedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +48,9 @@ public class RestApiAccessService {
     private final AuthorizationService authorizationService;
 
     private final SchedulerUserAuthenticationService schedulerUserAuthenticationService;
+
+    @Value("${pa.catalog.tenant.filtering}")
+    private boolean isTenantFiltering;
 
     @Autowired
     public RestApiAccessService(BucketService bucketService, AuthorizationService authorizationService,
@@ -83,13 +87,19 @@ public class RestApiAccessService {
         return BucketService.DEFAULT_BUCKET_OWNER.equals(bucketService.getBucketMetadata(bucketName).getOwner());
     }
 
-    public RestApiAccessResponse checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(String sessionId,
-            String ownerOrGroup) throws NotAuthenticatedException, AccessDeniedException {
-        RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionIdToOwnerOrGroup(sessionId,
-                                                                                                ownerOrGroup);
+    public RestApiAccessResponse checkAccessBySessionIdForOwnerOrGroupOrTenantAndThrowIfDeclined(String sessionId,
+            String ownerOrGroup, String tenant) throws NotAuthenticatedException, AccessDeniedException {
+        RestApiAccessResponse restApiAccessResponse = this.checkAccessBySessionIdToOwnerOrGroupOrTenant(sessionId,
+                                                                                                        ownerOrGroup,
+                                                                                                        tenant);
         if (!restApiAccessResponse.isAuthorized()) {
-            throw new AccessDeniedException("SessionId: " + sessionId +
-                                            " is not allowed to access buckets with owner or group " + ownerOrGroup);
+            String message = isTenantFiltering ? "SessionId: " + sessionId +
+                                                 " is not allowed to access buckets with owner or group " +
+                                                 ownerOrGroup + " and tenant " + tenant
+                                               : "SessionId: " + sessionId +
+                                                 " is not allowed to access buckets with owner or group " +
+                                                 ownerOrGroup;
+            throw new AccessDeniedException(message);
         }
         return restApiAccessResponse;
     }
@@ -136,14 +146,22 @@ public class RestApiAccessService {
 
     private RestApiAccessResponse checkAccessBySessionForBucketToOwnerOrGroup(String sessionId, String bucketName)
             throws NotAuthenticatedException {
-        return checkAccessBySessionIdToOwnerOrGroup(sessionId, bucketService.getBucketMetadata(bucketName).getOwner());
+        return checkAccessBySessionIdToOwnerOrGroupOrTenant(sessionId,
+                                                            bucketService.getBucketMetadata(bucketName).getOwner(),
+                                                            null);
     }
 
-    private RestApiAccessResponse checkAccessBySessionIdToOwnerOrGroup(String sessionId, String ownerOrGroup)
-            throws NotAuthenticatedException {
+    private RestApiAccessResponse checkAccessBySessionIdToOwnerOrGroupOrTenant(String sessionId, String ownerOrGroup,
+            String tenant) throws NotAuthenticatedException {
         AuthenticatedUser authenticatedUser = schedulerUserAuthenticationService.authenticateBySessionId(sessionId);
-        boolean authorized = authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser, ownerOrGroup);
-        return RestApiAccessResponse.builder().authorized(authorized).authenticatedUser(authenticatedUser).build();
+        boolean ownerOrGroupAuthorized = authorizationService.askUserAuthorizationByBucketOwner(authenticatedUser,
+                                                                                                ownerOrGroup);
+        boolean isAuthorized = ownerOrGroupAuthorized;
+        if (isTenantFiltering) {
+            boolean tenantAuthorized = authorizationService.askUserAuthorizationByTenant(authenticatedUser, tenant);
+            isAuthorized = ownerOrGroupAuthorized && tenantAuthorized;
+        }
+        return RestApiAccessResponse.builder().authorized(isAuthorized).authenticatedUser(authenticatedUser).build();
     }
 
     private AuthenticatedUser getAuthenticatedUser(boolean sessionIdRequired, String sessionId) {

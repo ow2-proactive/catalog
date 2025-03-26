@@ -109,12 +109,22 @@ public class BucketController {
             throws NotAuthenticatedException, AccessDeniedException {
         String initiator = ANONYMOUS;
         if (sessionIdRequired) {
-            restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId, ownerName);
+            AuthenticatedUser authenticatedUser = restApiAccessService.getUserFromSessionId(sessionId);
+            String tenant = authenticatedUser.getTenant();
+            restApiAccessService.checkAccessBySessionIdForOwnerOrGroupOrTenantAndThrowIfDeclined(sessionId,
+                                                                                                 ownerName,
+                                                                                                 tenant);
             initiator = restApiAccessService.getUserFromSessionId(sessionId).getName();
         }
         try {
-            BucketMetadata bucketMetadata = bucketService.createBucket(bucketName, ownerName);
-            log.info(ACTION + initiator + " created new bucket " + bucketName + " with owner " + ownerName);
+            String tenant = null;
+            if (sessionIdRequired) {
+                AuthenticatedUser authenticatedUser = restApiAccessService.getUserFromSessionId(sessionId);
+                tenant = authenticatedUser.getTenant();
+            }
+            BucketMetadata bucketMetadata = bucketService.createBucket(bucketName, ownerName, tenant);
+            log.info(ACTION + initiator + " created new bucket " + bucketName + " with owner " + ownerName +
+                     " and tenant " + tenant);
             return bucketMetadata;
         } catch (DataIntegrityViolationException exception) {
             throw new BucketAlreadyExistingException(bucketName, ownerName);
@@ -183,6 +193,7 @@ public class BucketController {
     public List<BucketMetadata> list(
             @Parameter(description = "sessionID", required = false) @RequestHeader(value = "sessionID", required = false) String sessionId,
             @Parameter(description = "The name of the user who owns the Bucket") @RequestParam(value = "owner", required = false) String ownerName,
+            @Parameter(description = "The name of the tenant that has access to the Bucket") @RequestParam(value = "tenant", required = false) String tenant,
             @Parameter(description = "The kind(s) of objects that buckets must contain.<br />Multiple kinds can be specified using comma separators") @RequestParam(value = "kind", required = false) Optional<String> kind,
             @Parameter(description = "The Content-Type of objects that buckets must contain") @RequestParam(value = "contentType", required = false) Optional<String> contentType,
             @Parameter(description = "The tag of objects that buckets must contain") @RequestParam(value = "objectTag", required = false) Optional<String> tag,
@@ -208,11 +219,13 @@ public class BucketController {
         committedAtLeastOnceBy = committedAtLeastOnceBy.filter(s -> !s.isEmpty());
         boolean allBucketsEnabled = Boolean.parseBoolean(allBuckets);
         if (sessionIdRequired) {
-            AuthenticatedUser user = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(sessionId,
-                                                                                                                  ownerName)
+            AuthenticatedUser user = restApiAccessService.checkAccessBySessionIdForOwnerOrGroupOrTenantAndThrowIfDeclined(sessionId,
+                                                                                                                          ownerName,
+                                                                                                                          tenant)
                                                          .getAuthenticatedUser();
             log.debug("bucket list timer : validate session : " + (System.currentTimeMillis() - startTime) + " ms");
             listBucket = bucketService.getBucketsByGroups(ownerName,
+                                                          tenant,
                                                           kind,
                                                           contentType,
                                                           objectName,
@@ -253,6 +266,8 @@ public class BucketController {
             }
         } else {
             listBucket = bucketService.listBuckets(ownerName,
+                                                   tenant,
+                                                   null,
                                                    kind,
                                                    contentType,
                                                    objectName,

@@ -97,9 +97,13 @@ public class BucketServiceTest {
                                              null,
                                              null,
                                              null,
+                                             null,
+                                             null,
                                              false)).isEmpty();
         verify(bucketRepository,
                times(0)).findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(any(),
+                                                                                                                    any(),
+                                                                                                                    any(),
                                                                                                                     any(),
                                                                                                                     any(),
                                                                                                                     any(),
@@ -113,6 +117,8 @@ public class BucketServiceTest {
         Optional<String> kind = Optional.of("kind");
         List<String> owners = new ArrayList<>();
         assertThat(bucketService.listBuckets(owners,
+                                             null,
+                                             null,
                                              kind,
                                              Optional.empty(),
                                              Optional.empty(),
@@ -124,10 +130,13 @@ public class BucketServiceTest {
                                              Optional.empty(),
                                              Optional.empty(),
                                              (String) null,
-                                             false)).isEmpty();
+                                             false)
+                                .isEmpty());
         verify(bucketRepository,
                times(1)).findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(anyList(),
                                                                                                                     anyList(),
+                                                                                                                    any(),
+                                                                                                                    any(),
                                                                                                                     any(),
                                                                                                                     any(),
                                                                                                                     any(),
@@ -139,7 +148,7 @@ public class BucketServiceTest {
         BucketEntity mockedBucket = newMockedBucket(1L, "bucket-name", LocalDateTime.now());
         when(bucketRepository.save(any(BucketEntity.class))).thenReturn(mockedBucket);
         when(bucketNameValidator.isValid(anyString())).thenReturn(true);
-        BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME);
+        BucketMetadata bucketMetadata = bucketService.createBucket("BUCKET-NAME-TEST", DEFAULT_BUCKET_NAME, null);
         verify(bucketRepository, times(1)).save(any(BucketEntity.class));
         verify(bucketNameValidator, times(1)).isValid(anyString());
         assertEquals(mockedBucket.getBucketName(), bucketMetadata.getName());
@@ -265,7 +274,9 @@ public class BucketServiceTest {
                                                                                                                     anyString(),
                                                                                                                     anyString(),
                                                                                                                     anyLong(),
-                                                                                                                    anyLong());
+                                                                                                                    anyLong(),
+                                                                                                                    any(),
+                                                                                                                    any());
     }
 
     private BucketEntity newMockedBucket(Long id, String name, LocalDateTime createdAt) {

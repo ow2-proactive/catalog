@@ -50,6 +50,10 @@ public interface BucketRepository extends JpaRepository<BucketEntity, Long>, Jpa
 
     List<BucketEntity> findByOwnerIn(List<String> owners, Sort sort);
 
+    List<BucketEntity> findByTenantIn(List<String> owners);
+
+    List<BucketEntity> findByTenantIsNull();
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
     @Query(value = "SELECT bk FROM BucketEntity bk WHERE SIZE(bk.catalogObjects) = 0")

@@ -75,6 +75,9 @@ public class BucketEntity implements Serializable {
     @Column(name = "OWNER", nullable = false)
     protected String owner;
 
+    @Column(name = "TENANT")
+    protected String tenant;
+
     @OneToMany(mappedBy = "bucket", fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST,
                                                                         CascadeType.REMOVE }, orphanRemoval = true)
     @Fetch(FetchMode.SELECT)
@@ -91,6 +94,14 @@ public class BucketEntity implements Serializable {
     public BucketEntity(String bucketName, String owner) {
         this.bucketName = bucketName;
         this.owner = owner;
+        this.tenant = null;
+        this.catalogObjects = new HashSet<>();
+    }
+
+    public BucketEntity(String bucketName, String owner, String tenant) {
+        this.bucketName = bucketName;
+        this.owner = owner;
+        this.tenant = tenant;
         this.catalogObjects = new HashSet<>();
     }
 

@@ -89,7 +89,10 @@ public class ReportHelper {
                 int objectCount = grantRightsService.getNumberOfAccessibleObjectsInBucket(data,
                                                                                           bucketGrants,
                                                                                           objectsInBucketGrants);
-                BucketMetadata metadata = new BucketMetadata(data.getName(), data.getOwner(), objectCount);
+                BucketMetadata metadata = new BucketMetadata(data.getName(),
+                                                             data.getOwner(),
+                                                             objectCount,
+                                                             data.getTenant());
                 metadata.setRights(bucketGrantAccessType);
                 if (!res.contains(metadata)) {
                     res.add(metadata);

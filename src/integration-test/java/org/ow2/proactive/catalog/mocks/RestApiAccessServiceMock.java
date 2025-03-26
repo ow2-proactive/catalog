@@ -51,8 +51,8 @@ public class RestApiAccessServiceMock extends RestApiAccessService {
 
     }
 
-    public RestApiAccessResponse checkAccessBySessionIdForOwnerOrGroupAndThrowIfDeclined(String sessionId,
-            String ownerOrGroup) throws NotAuthenticatedException, AccessDeniedException {
+    public RestApiAccessResponse checkAccessBySessionIdForOwnerOrGroupOrTenantAndThrowIfDeclined(String sessionId,
+            String ownerOrGroup, String tenant) throws NotAuthenticatedException, AccessDeniedException {
         AuthenticatedUser authenticatedUser = AuthenticatedUser.builder()
                                                                .name("username")
                                                                .groups(Lists.newArrayList())

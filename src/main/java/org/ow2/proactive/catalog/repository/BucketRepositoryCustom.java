@@ -27,6 +27,8 @@ package org.ow2.proactive.catalog.repository;
 
 import java.util.List;
 
+import org.ow2.proactive.catalog.service.model.AuthenticatedUser;
+
 
 /**
  * @author ActiveEon Team
@@ -38,7 +40,7 @@ public interface BucketRepositoryCustom {
 
     List<Object[]> findBucketByOwnerContainingKindListAndContentTypeAndObjectNameAndLastCommittedTimeInterval(
             List<String> owners, List<String> kindList, String contentType, String objectName,
-            Long committedTimeGreater, Long committedTimeLessThan);
+            Long committedTimeGreater, Long committedTimeLessThan, String tenant, AuthenticatedUser user);
 
     List<Object[]> findBucketByOwnerContainingKindList(List<String> owners, List<String> kindList);
 

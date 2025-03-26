@@ -93,7 +93,7 @@ public class GraphqlServiceIntegrationTest {
     public void setup() throws IOException, NotAuthenticatedException, AccessDeniedException, InterruptedException {
         doReturn("link").when(catalogObjectMapper).generateLink(anyString(), anyString());
 
-        bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest");
+        bucket = bucketService.createBucket("bucket", "CatalogObjectServiceIntegrationTest", null);
         keyValues = Collections.singletonList(new Metadata("key", "value", "type"));
 
         workflowAsByteArray = IntegrationTestUtil.getWorkflowAsByteArray("workflow.xml");
@@ -564,7 +564,7 @@ public class GraphqlServiceIntegrationTest {
     @Test
     public void testComplexAndQuery() throws IOException {
         // new bucket
-        BucketMetadata bucket2 = bucketService.createBucket("bucket2", "CatalogObjectServiceIntegrationTest");
+        BucketMetadata bucket2 = bucketService.createBucket("bucket2", "CatalogObjectServiceIntegrationTest", null);
         keyValues = Collections.singletonList(new Metadata("key2", "", "type"));
 
         catalogObjectService.createCatalogObject(bucket2.getName(),
