@@ -58,6 +58,10 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
     CatalogObjectGrantEntity findCatalogObjectGrantByUsernameForUpdate(String catalogObjectId, String username,
             long bucketId);
 
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.id.name = ?1 AND coge.grantee = ?2 AND coge.catalogObject.bucket.id = ?3 AND coge.granteeType='tenant'")
+    CatalogObjectGrantEntity findCatalogObjectGrantByTenantForUpdate(String catalogObjectId, String tenant,
+            long bucketId);
+
     //TODO to test
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.catalogObject.id.name = ?1 AND coge.grantee = ?2 AND coge.catalogObject.bucket.id = ?3 AND coge.granteeType='group'")
     CatalogObjectGrantEntity findCatalogObjectGrantByUserGroupForUpdate(String catalogObjectName, String userGroup,
@@ -66,11 +70,17 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
     @Query(value = "SELECT coge.catalogObject.bucket.id FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user' AND coge.accessType<>'noAccess'")
     List<Long> findAllBucketsIdFromCatalogObjectGrantsAssignedToAUsername(String username);
 
+    @Query(value = "SELECT coge.catalogObject.bucket.id FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='tenant' AND coge.accessType<>'noAccess'")
+    List<Long> findAllBucketsIdFromCatalogObjectGrantsAssignedToATenant(String tenant);
+
     @Query(value = "SELECT coge.catalogObject.bucket.id FROM CatalogObjectGrantEntity coge WHERE coge.grantee in ?1 AND coge.granteeType='group' AND coge.accessType<>'noAccess'")
     List<Long> findAllBucketsIdFromCatalogObjectGrantsAssignedToAUserGroup(List<String> userGroups);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user' AND coge.accessType='noAccess'")
     List<CatalogObjectGrantEntity> findAllObjectGrantsWithNoAccessRightsAndAssignedToAUsername(String username);
+
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='tenant' AND coge.accessType='noAccess'")
+    List<CatalogObjectGrantEntity> findAllObjectGrantsWithNoAccessRightsAndAssignedToATenant(String tenant);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee in ?1 AND coge.granteeType='group' AND coge.accessType='noAccess'")
     List<CatalogObjectGrantEntity>
@@ -79,11 +89,17 @@ public interface CatalogObjectGrantRepository extends JpaRepository<CatalogObjec
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user' AND coge.accessType<>'noAccess'")
     List<CatalogObjectGrantEntity> findAllAccessibleObjectGrantsAssignedToAUser(String username);
 
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='tenant' AND coge.accessType<>'noAccess'")
+    List<CatalogObjectGrantEntity> findAllAccessibleObjectGrantsAssignedToATenant(String tenant);
+
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee in ?1 AND coge.granteeType='group' AND coge.accessType<>'noAccess'")
     List<CatalogObjectGrantEntity> findAllAccessibleObjectGrantsAssignedToUserGroups(List<String> userGroup);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='user'")
     List<CatalogObjectGrantEntity> findAllObjectGrantsAssignedToAUser(String username);
+
+    @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee = ?1 AND coge.granteeType='tenant'")
+    List<CatalogObjectGrantEntity> findAllObjectGrantsAssignedToATenant(String tenant);
 
     @Query(value = "SELECT coge FROM CatalogObjectGrantEntity coge WHERE coge.grantee in ?1 AND coge.granteeType='group'")
     List<CatalogObjectGrantEntity> findAllObjectGrantsAssignedToUserGroups(List<String> userGroup);

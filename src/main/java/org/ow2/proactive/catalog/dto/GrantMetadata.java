@@ -25,6 +25,9 @@
  */
 package org.ow2.proactive.catalog.dto;
 
+import static org.ow2.proactive.catalog.util.GrantHelper.TENANT_GRANTEE_TYPE;
+import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
+
 import java.util.Deque;
 
 import org.ow2.proactive.catalog.repository.entity.BucketGrantEntity;
@@ -41,7 +44,7 @@ import lombok.Getter;
 @Data
 @Getter
 @EqualsAndHashCode(callSuper = false)
-public class GrantMetadata extends ResourceSupport {
+public class GrantMetadata extends ResourceSupport implements Comparable<GrantMetadata> {
 
     @JsonProperty
     protected String granteeType = "";
@@ -66,6 +69,10 @@ public class GrantMetadata extends ResourceSupport {
 
     @JsonProperty
     protected Deque<ModificationHistoryData> modificationHistory;
+
+    public static final int TENANT_PRIORITY = -100;
+
+    public static final int USER_PRIORITY = 100;
 
     public GrantMetadata() {
     }
@@ -98,5 +105,24 @@ public class GrantMetadata extends ResourceSupport {
         this.creator = creator;
         this.creationDate = creationDate;
         this.modificationHistory = modificationHistory;
+    }
+
+    @Override
+    public int compareTo(GrantMetadata o) {
+        return this.getComputedPriority() - o.getComputedPriority();
+    }
+
+    /**
+     * Return a grant priority which takes into consideration the Grantee type
+     */
+    public int getComputedPriority() {
+        switch (this.accessType) {
+            case USER_GRANTEE_TYPE:
+                return USER_PRIORITY;
+            case TENANT_GRANTEE_TYPE:
+                return TENANT_PRIORITY;
+            default:
+                return priority;
+        }
     }
 }

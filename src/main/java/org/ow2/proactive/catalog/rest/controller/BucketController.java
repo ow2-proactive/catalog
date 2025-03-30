@@ -239,7 +239,7 @@ public class BucketController {
                                                           sessionId,
                                                           allBucketsEnabled,
                                                           user);
-            listBucket.addAll(grantRightsService.getBucketsByPrioritiedGrants(user));
+            listBucket.addAll(grantRightsService.getBucketsByPrioritizedGrants(user));
             listBucket = GrantHelper.removeDuplicate(listBucket);
 
             List<BucketGrantMetadata> allBucketsGrants = bucketGrantService.getUserAllBucketsGrants(user);

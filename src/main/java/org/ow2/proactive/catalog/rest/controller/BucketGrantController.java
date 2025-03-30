@@ -125,6 +125,46 @@ public class BucketGrantController {
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
+    @Operation(summary = "Update the access type of an existing tenant bucket grant")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
+    @RequestMapping(value = "/{bucketName}/grant/tenant", method = PUT)
+    @ResponseStatus(HttpStatus.OK)
+    @Transactional
+    public BucketGrantMetadata updateBucketGrantForATenant(
+            @Parameter(description = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable String bucketName,
+            @Parameter(description = "The name of the tenant that is benefiting from the access grant.", required = true) @RequestParam(value = "tenant", required = true, defaultValue = "") String tenant,
+            @Parameter(description = "The new type of the access grant. It can be either noAccess, read, write or admin.", schema = @Schema(type = "string", allowableValues = { "noAccess",
+                                                                                                                                                                                 "read", "write", "admin" }), required = true) @RequestParam(value = "accessType", required = true, defaultValue = "") String accessType)
+            throws NotAuthenticatedException, AccessDeniedException {
+        AuthenticatedUser user;
+        String initiator = ANONYMOUS;
+        if (sessionIdRequired) {
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            initiator = user.getName();
+        } else {
+            user = AuthenticatedUser.EMPTY;
+        }
+        BucketGrantMetadata updatedUserGrant = bucketGrantService.updateBucketGrantForASpecificTenant(user,
+                                                                                                      bucketName,
+                                                                                                      tenant,
+                                                                                                      accessType);
+        if (sessionIdRequired) {
+            if (tenant.equals(user.getTenant())) {
+                if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By updating this grant assigned to your tenant, you will lose your admin rights over the bucket: " +
+                                                             bucketName + ".");
+                }
+            }
+        }
+        log.info(ACTION + initiator + " changed grant access for tenant " + tenant + " on bucket " + bucketName +
+                 " to " + accessType);
+        return updatedUserGrant;
+    }
+
+    @SuppressWarnings("DefaultAnnotationParam")
     @Operation(summary = "Update the access type of an existing group bucket grant")
     @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
                             @ApiResponse(responseCode = "403", description = "Permission denied"), })
@@ -204,6 +244,41 @@ public class BucketGrantController {
             }
         }
         log.info(ACTION + initiator + " deleted grant access for user " + username + " on bucket " + bucketName);
+        return deletedUSerGrant;
+    }
+
+    @SuppressWarnings("DefaultAnnotationParam")
+    @Operation(summary = "Delete a tenant grant access for a bucket")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
+    @RequestMapping(value = "/{bucketName}/grant/tenant", method = DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    @Transactional
+    public BucketGrantMetadata deleteBucketGrantForATenant(
+            @Parameter(description = "The session id used to access ProActive REST server.", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable(value = "bucketName") String bucketName,
+            @Parameter(description = "The name of the tenant that is benefiting from the access grant.", required = true) @RequestParam(value = "tenant", required = true, defaultValue = "") String tenant)
+            throws NotAuthenticatedException, AccessDeniedException {
+        AuthenticatedUser user;
+        String initiator = ANONYMOUS;
+        if (sessionIdRequired) {
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            // Check session validation
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_NO_GRANTS_ARE_ASSIGNED);
+            initiator = user.getName();
+        } else {
+            user = AuthenticatedUser.EMPTY;
+        }
+        BucketGrantMetadata deletedUSerGrant = bucketGrantService.deleteBucketGrantForATenant(bucketName, tenant);
+        if (sessionIdRequired) {
+            if (tenant.equals(user.getTenant())) {
+                if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By deleting this grant assigned to your tenant, you will lose your admin rights over the bucket: " +
+                                                             bucketName + ".");
+                }
+            }
+        }
+        log.info(ACTION + initiator + " deleted grant access for tenant " + tenant + " on bucket " + bucketName);
         return deletedUSerGrant;
     }
 
@@ -299,6 +374,47 @@ public class BucketGrantController {
             }
         }
         log.info(ACTION + initiator + " created " + accessType + " grant access for user " + username + " on bucket " +
+                 bucketName);
+        return updatedUserGrant;
+    }
+
+    @SuppressWarnings("DefaultAnnotationParam")
+    @Operation(summary = "Create a new tenant grant access for a bucket")
+    @ApiResponses(value = { @ApiResponse(responseCode = "401", description = "User not authenticated"),
+                            @ApiResponse(responseCode = "403", description = "Permission denied"), })
+    @RequestMapping(value = "/{bucketName}/grant/tenant", method = POST)
+    @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
+    public BucketGrantMetadata createBucketGrantForATenant(
+            @Parameter(description = "The the session id used to access ProActive REST server", required = true) @RequestHeader(value = "sessionID", required = true) String sessionId,
+            @Parameter(description = "The name of the bucket where the catalog objects are stored.", required = true, schema = @Schema(pattern = BucketNameValidator.VALID_BUCKET_NAME_PATTERN)) @PathVariable(value = "bucketName") String bucketName,
+            @Parameter(description = "The type of the access grant.<br />It can be either noAccess, read, write or admin.", schema = @Schema(type = "string", allowableValues = { "noAccess",
+                                                                                                                                                                                  "read", "write", "admin" }), required = true) @RequestParam(value = "accessType", required = true) String accessType,
+            @Parameter(description = "The name of the tenant that will benefit of the access grant.", required = true) @RequestParam(value = "tenant", required = true, defaultValue = "") String tenant)
+            throws NotAuthenticatedException, AccessDeniedException {
+        AuthenticatedUser user;
+        String initiator = ANONYMOUS;
+        if (sessionIdRequired) {
+            user = restApiAccessService.getUserFromSessionId(sessionId);
+            // Check session validation
+            checkAccessAndNotPublicBucket(sessionId, user, bucketName, PUBLIC_CANNOT_ASSIGN_A_GRANT);
+            initiator = user.getName();
+        } else {
+            user = AuthenticatedUser.EMPTY;
+        }
+        BucketGrantMetadata updatedUserGrant = bucketGrantService.createBucketGrantForATenant(bucketName,
+                                                                                              user.getName(),
+                                                                                              accessType,
+                                                                                              tenant);
+        if (sessionIdRequired) {
+            if (tenant.equals(user.getTenant())) {
+                if (!grantRightsService.getBucketRights(user, bucketName).equals(admin.toString())) {
+                    throw new LostOfAdminGrantRightException("By creating this grant for your tenant, you will lose your admin rights over the bucket: " +
+                                                             bucketName + ".");
+                }
+            }
+        }
+        log.info(ACTION + initiator + " created " + accessType + " grant access for tenant " + tenant + " on bucket " +
                  bucketName);
         return updatedUserGrant;
     }
