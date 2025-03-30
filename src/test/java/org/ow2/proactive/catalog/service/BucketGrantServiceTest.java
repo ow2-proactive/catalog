@@ -31,8 +31,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.ow2.proactive.catalog.util.AccessType.noAccess;
 import static org.ow2.proactive.catalog.util.AccessType.read;
-import static org.ow2.proactive.catalog.util.GrantHelper.GROUP_GRANTEE_TYPE;
-import static org.ow2.proactive.catalog.util.GrantHelper.USER_GRANTEE_TYPE;
+import static org.ow2.proactive.catalog.util.GrantHelper.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -71,6 +70,8 @@ public class BucketGrantServiceTest {
     private CatalogObjectGrantService catalogObjectGrantService;
 
     private final String DUMMY_USERNAME = "dummyUser";
+
+    private final String DUMMY_TENANT = "dummyTenant";
 
     private final String DUMMY_CURRENT_USERNAME = "dummyAdmin";
 
@@ -113,6 +114,35 @@ public class BucketGrantServiceTest {
 
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
         verify(bucketGrantRepository, times(1)).findBucketGrantByUsername(DUMMY_BUCKET_ID, DUMMY_USERNAME);
+        verify(bucketGrantRepository, times(1)).save(bucketGrantEntity);
+    }
+
+    @Test
+    public void testUpdateBucketGrantForASpecificTenant() {
+        BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
+        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity(TENANT_GRANTEE_TYPE,
+                                                                    DUMMY_CURRENT_USERNAME,
+                                                                    DUMMY_TENANT,
+                                                                    DUMMY_ACCESS_TYPE,
+                                                                    mockedBucket);
+        when(bucketGrantRepository.save(any(BucketGrantEntity.class))).thenReturn(bucketGrantEntity);
+        when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
+        when(bucketGrantRepository.findBucketGrantByTenant(mockedBucket.getId(),
+                                                           DUMMY_TENANT)).thenReturn(bucketGrantEntity);
+
+        BucketGrantMetadata result = bucketGrantService.updateBucketGrantForASpecificTenant(AuthenticatedUser.EMPTY,
+                                                                                            DUMMY_BUCKET,
+                                                                                            DUMMY_TENANT,
+                                                                                            DUMMY_ACCESS_TYPE);
+
+        assertEquals(DUMMY_ACCESS_TYPE, result.getAccessType());
+        assertEquals(TENANT_GRANTEE_TYPE, result.getGranteeType());
+        assertEquals(DUMMY_CURRENT_USERNAME, result.getCreator());
+        assertEquals(DUMMY_TENANT, result.getGrantee());
+        assertEquals(1L, result.getBucketId());
+
+        verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
+        verify(bucketGrantRepository, times(1)).findBucketGrantByTenant(DUMMY_BUCKET_ID, DUMMY_TENANT);
         verify(bucketGrantRepository, times(1)).save(bucketGrantEntity);
     }
 
@@ -174,6 +204,33 @@ public class BucketGrantServiceTest {
     }
 
     @Test
+    public void testCreateBucketGrantForTenant() {
+        BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
+        BucketGrantEntity bucketGrantEntity = new BucketGrantEntity(TENANT_GRANTEE_TYPE,
+                                                                    DUMMY_CURRENT_USERNAME,
+                                                                    DUMMY_TENANT,
+                                                                    DUMMY_ACCESS_TYPE,
+                                                                    mockedBucket);
+        when(bucketGrantRepository.save(any(BucketGrantEntity.class))).thenReturn(bucketGrantEntity);
+        when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
+
+        BucketGrantMetadata userGrantMetadata = bucketGrantService.createBucketGrantForATenant(DUMMY_BUCKET,
+                                                                                               DUMMY_CURRENT_USERNAME,
+                                                                                               DUMMY_ACCESS_TYPE,
+                                                                                               DUMMY_TENANT);
+
+        assertEquals(DUMMY_ACCESS_TYPE, userGrantMetadata.getAccessType());
+        assertEquals(TENANT_GRANTEE_TYPE, userGrantMetadata.getGranteeType());
+        assertEquals(DUMMY_CURRENT_USERNAME, userGrantMetadata.getCreator());
+        assertEquals(DUMMY_TENANT, userGrantMetadata.getGrantee());
+        assertEquals(1L, userGrantMetadata.getBucketId());
+
+        verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
+        verify(bucketGrantRepository, times(1)).findBucketGrantByTenant(1L, DUMMY_TENANT);
+        verify(bucketGrantRepository, times(1)).save(any(BucketGrantEntity.class));
+    }
+
+    @Test
     public void testCreateBucketGrantForUserGroup() {
         BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
         BucketGrantEntity groupBucketGrantEntity = new BucketGrantEntity(GROUP_GRANTEE_TYPE,
@@ -225,6 +282,32 @@ public class BucketGrantServiceTest {
 
         verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
         verify(bucketGrantRepository, times(1)).findBucketGrantByUsername(1L, DUMMY_USERNAME);
+        verify(bucketGrantRepository, times(1)).delete(userBucketGrantEntity);
+    }
+
+    @Test
+    public void testDeleteBucketGrantForTenant() {
+        BucketEntity mockedBucket = newMockedBucket(DUMMY_BUCKET, 1L);
+        BucketGrantEntity userBucketGrantEntity = new BucketGrantEntity(TENANT_GRANTEE_TYPE,
+                                                                        DUMMY_CURRENT_USERNAME,
+                                                                        DUMMY_TENANT,
+                                                                        DUMMY_ACCESS_TYPE,
+                                                                        mockedBucket);
+        when(bucketRepository.findOneByBucketName(DUMMY_BUCKET)).thenReturn(mockedBucket);
+        when(bucketGrantRepository.findBucketGrantByTenant(1L, DUMMY_TENANT)).thenReturn(userBucketGrantEntity);
+        doNothing().when(bucketGrantRepository).delete(any(BucketGrantEntity.class));
+
+        BucketGrantMetadata userGrantMetadata = bucketGrantService.deleteBucketGrantForATenant(DUMMY_BUCKET,
+                                                                                               DUMMY_TENANT);
+
+        assertEquals(userGrantMetadata.getAccessType(), DUMMY_ACCESS_TYPE);
+        assertEquals(userGrantMetadata.getGranteeType(), TENANT_GRANTEE_TYPE);
+        assertEquals(userGrantMetadata.getCreator(), DUMMY_CURRENT_USERNAME);
+        assertEquals(userGrantMetadata.getGrantee(), DUMMY_TENANT);
+        assertEquals(userGrantMetadata.getBucketId(), 1L);
+
+        verify(bucketRepository, times(1)).findOneByBucketName(DUMMY_BUCKET);
+        verify(bucketGrantRepository, times(1)).findBucketGrantByTenant(1L, DUMMY_TENANT);
         verify(bucketGrantRepository, times(1)).delete(userBucketGrantEntity);
     }
 

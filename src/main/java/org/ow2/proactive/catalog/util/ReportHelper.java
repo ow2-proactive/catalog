@@ -72,7 +72,7 @@ public class ReportHelper {
             user = restApiAccessService.getUserFromSessionId(sessionId);
 
             authorisedBuckets = bucketService.getBucketsByGroups(ownerName, kind, contentType, user);
-            authorisedBuckets.addAll(grantRightsService.getBucketsByPrioritiedGrants(user));
+            authorisedBuckets.addAll(grantRightsService.getBucketsByPrioritizedGrants(user));
 
             List<BucketGrantMetadata> allBucketsGrants = bucketGrantService.getUserAllBucketsGrants(user);
             List<CatalogObjectGrantMetadata> allCatalogObjectsGrants = catalogObjectGrantService.getObjectsGrants(user);
