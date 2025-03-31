@@ -154,7 +154,7 @@ public class CatalogObjectGrantController {
         }
         CatalogObjectGrantMetadata createdUserObjectGrant = catalogObjectGrantService.createCatalogObjectGrantForATenant(bucketName,
                                                                                                                          catalogObjectName,
-                                                                                                                         user.getTenant(),
+                                                                                                                         user.getName(),
                                                                                                                          accessType,
                                                                                                                          tenant);
         if (sessionIdRequired) {
