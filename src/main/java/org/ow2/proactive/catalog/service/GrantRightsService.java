@@ -200,7 +200,7 @@ public class GrantRightsService {
         for (String bucketName : bucketGrantsByBucketName.keySet()) {
             List<BucketGrantMetadata> bucketGrantMetadataList = bucketGrantsByBucketName.get(bucketName);
             String access = getBucketRights(bucketGrantMetadataList);
-            if (!access.equals(noAccess)) {
+            if (!access.equals(noAccess.name())) {
                 // if the bucket is accessible, add it
                 accessibleBucketNames.add(bucketName);
             } else if (objectGrantsByBucketName.containsKey(bucketName)) {
