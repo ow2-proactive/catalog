@@ -178,7 +178,10 @@ public class BucketRepositoryImpl implements BucketRepositoryCustom {
                        cb.count(catalogObjectsJoin.get("id").get("name")),
                        bucketEntityRoot.get("tenant"),
                        bucketEntityRoot.get("id"))
-          .groupBy(bucketEntityRoot.get("bucketName"), bucketEntityRoot.get("owner"), bucketEntityRoot.get("id"));
+          .groupBy(bucketEntityRoot.get("bucketName"),
+                   bucketEntityRoot.get("owner"),
+                   bucketEntityRoot.get("tenant"),
+                   bucketEntityRoot.get("id"));
         return cq;
     }
 
